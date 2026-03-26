@@ -1,0 +1,435 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "done": "Xong",
+    "retry": "Thử lại",
+    "search": "Tìm kiếm",
+    "settings": "Cài đặt",
+    "close": "Đóng",
+    "edit": "Chỉnh sửa",
+    "submit": "Gửi",
+    "ok": "OK",
+    "syncStatus": {
+      "syncNow": "Đồng bộ ngay",
+      "loginToSync": "Đăng nhập để đồng bộ",
+      "failed": "Đồng bộ thất bại",
+      "syncing": "Đang đồng bộ",
+      "synced": "Đã đồng bộ"
+    }
+  },
+  "tabs": {
+    "home": "Trang chủ",
+    "stats": "Thống kê",
+    "add": "Thêm",
+    "favorites": "Yêu thích",
+    "profile": "Hồ sơ",
+    "showcase": "Trình diễn",
+    "settings": "Cài đặt"
+  },
+  "header": {
+    "back": "Quay lại",
+    "brandName": "Check Calo",
+    "companyName": "Theo dõi dinh dưỡng",
+    "toggleTheme": "Giao diện",
+    "themeSystem": "Theo hệ thống",
+    "themeLight": "Sáng",
+    "themeDark": "Tối"
+  },
+  "language": {
+    "label": "Ngôn ngữ",
+    "english": "Tiếng Anh",
+    "vietnamese": "Tiếng Việt"
+  },
+  "application": {
+    "applyTitle": "Đăng ký",
+    "form": {
+      "successPageTitle": "Gửi biểu mẫu thành công"
+    }
+  },
+  "home": {
+    "welcome": "Chào mừng",
+    "subtitle": "Ứng dụng đã sẵn sàng.",
+    "greetingMorning": "Chào buổi sáng",
+    "greetingAfternoon": "Chào buổi chiều",
+    "greetingEvening": "Chào buổi tối",
+    "userName": "Alex Johnson",
+    "searchPlaceholder": "Tìm bất kỳ thứ gì...",
+    "quickActions": {
+      "send": "Gửi",
+      "receive": "Nhận",
+      "pay": "Thanh toán",
+      "more": "Thêm"
+    },
+    "featured": {
+      "title": "Nổi bật",
+      "seeAll": "Xem tất cả",
+      "card1Title": "Design System",
+      "card1Subtitle": "Xây UI đồng nhất bằng tokens",
+      "card2Title": "Phân tích",
+      "card2Subtitle": "Theo dõi các chỉ số hiệu suất",
+      "card3Title": "Tích hợp",
+      "card3Subtitle": "Kết nối công cụ bạn yêu thích"
+    },
+    "stats": {
+      "projects": "Dự án",
+      "tasks": "Công việc",
+      "messages": "Tin nhắn"
+    },
+    "recentActivity": {
+      "title": "Hoạt động gần đây",
+      "seeAll": "Xem tất cả",
+      "item1Title": "Dự án mới được tạo",
+      "item1Subtitle": "Thiết kế lại ứng dụng mobile",
+      "item1Time": "2 phút trước",
+      "item2Title": "Hoàn thành công việc",
+      "item2Subtitle": "Cập nhật design tokens",
+      "item2Time": "15 phút trước",
+      "item3Title": "Tin nhắn mới",
+      "item3Subtitle": "Sarah vừa chia sẻ tệp",
+      "item3Time": "1 giờ trước",
+      "item4Title": "Thanh toán thành công",
+      "item4Subtitle": "Hóa đơn #1042 đã thanh toán",
+      "item4Time": "3 giờ trước"
+    }
+  },
+  "homeScreen": {
+    "greetingTitle": "Chào {{name}}",
+    "alerts": "Thông báo",
+    "dailyIntake": "Lượng nạp hôm nay",
+    "dayCount": "Ngày 4",
+    "target": "Mục tiêu",
+    "today": "hôm nay",
+    "kcalToday": "kcal / hôm nay",
+    "remaining": "Còn lại",
+    "onTrack": "Đúng tiến độ",
+    "progress": "Tiến độ",
+    "steps": "Bước chân",
+    "stepsValue": "bước",
+    "water": "Nước uống",
+    "waterValue": "ly",
+    "greetings": {
+      "morning": "Sẵn sàng bắt đầu",
+      "afternoon": "Giữ nhịp thật tốt",
+      "evening": "Kết thúc thật đẹp"
+    },
+    "week": {
+      "sun": "CN",
+      "mon": "T2",
+      "tue": "T3",
+      "wed": "T4",
+      "thu": "T5",
+      "fri": "T6",
+      "sat": "T7"
+    },
+    "meals": {
+      "title": "Bữa ăn hôm nay",
+      "subtitle": "Món ăn mới nhất ở trên",
+      "detailComposition": "Xem thành phần",
+      "comboLabel": "Combo {{first}} + {{second}}",
+      "breakfast": "Bữa sáng",
+      "breakfastTime": "07:00 - 08:30",
+      "lunch": "Bữa trưa",
+      "lunchTime": "12:00 - 13:30",
+      "dinner": "Bữa tối",
+      "dinnerTime": "18:30 - 20:00",
+      "add": "Thêm",
+      "addMeal": "Thêm {{meal}}",
+      "metrics": {
+        "calories": "kcal"
+      },
+      "items": {
+        "beefBowl": "Cơm bò áp chảo",
+        "salmonSalad": "Salad cá hồi",
+        "eggToast": "Bánh mì bơ trứng",
+        "kimchiSoup": "Canh kim chi đậu hũ",
+        "greekYogurt": "Ly sữa chua Hy Lạp",
+        "bananaSmoothie": "Sinh tố chuối yến mạch"
+      }
+    }
+  },
+  "statsScreen": {
+    "title": "Hoạt động của tôi",
+    "subtitle": "Xem nhanh calories, thời lượng tập và thay đổi cân nặng.",
+    "weekly": "Theo tuần",
+    "peakDuration": "70 phút",
+    "metrics": {
+      "completed": "Hoàn thành",
+      "caloriesBurn": "kcal đốt",
+      "weightToLose": "kg tới mục tiêu"
+    },
+    "days": {
+      "sat": "T7",
+      "sun": "CN",
+      "mon": "T2",
+      "tue": "T3",
+      "wed": "T4",
+      "thu": "T5",
+      "fri": "T6"
+    },
+    "workout": {
+      "title": "Thời lượng tập",
+      "subtitle": "Tổng thời gian vận động"
+    },
+    "weightJourney": {
+      "title": "Hành trình cân nặng",
+      "subtitle": "7 ngày gần nhất"
+    },
+    "macros": {
+      "title": "Tỷ lệ dinh dưỡng",
+      "carbs": "Tinh bột",
+      "protein": "Đạm",
+      "fat": "Chất béo"
+    }
+  },
+  "addScreen": {
+    "title": "Thêm calo",
+    "subtitle": "Ghi nhanh bữa ăn để giữ đúng mục tiêu mỗi ngày.",
+    "todaySummary": "Tổng hôm nay",
+    "todaySummaryHint": "kcal đã được ghi trước bữa tối.",
+    "chooseMeal": "Chọn bữa",
+    "caloriesLabel": "Lượng calo",
+    "caloriesPlaceholder": "Nhập số calo",
+    "quickAdd": "Thêm nhanh {{value}} kcal",
+    "suggestionTitle": "Gợi ý nhỏ",
+    "suggestionBody": "Hãy thêm rau xanh cho bữa trưa để no lâu hơn mà không vượt mục tiêu.",
+    "saveAction": "Lưu bữa ăn",
+    "meals": {
+      "breakfast": "Bữa sáng",
+      "lunch": "Bữa trưa",
+      "dinner": "Bữa tối",
+      "snack": "Ăn nhẹ"
+    }
+  },
+  "favoritesScreen": {
+    "title": "Món yêu thích",
+    "subtitle": "Những món bạn đã lưu để dùng lại vào ngày bận rộn.",
+    "heroTitle": "Món đã lưu",
+    "heroSubtitle": "Danh sách healthy quen thuộc của bạn",
+    "savedItem": "Món đã lưu",
+    "filters": {
+      "all": "Tất cả",
+      "protein": "Nhiều đạm",
+      "lowCarb": "Ít carb"
+    },
+    "items": {
+      "salmonSalad": {
+        "title": "Salad cá hồi",
+        "subtitle": "Rau xanh, bơ và sốt mè rang"
+      },
+      "greenBowl": {
+        "title": "Bowl gà xanh",
+        "subtitle": "Bông cải, quinoa và gà nướng"
+      },
+      "avocadoToast": {
+        "title": "Bánh mì bơ",
+        "subtitle": "Sourdough, trứng và cà chua bi"
+      }
+    }
+  },
+  "welcomeScreen": {
+    "title": "Check Calo",
+    "subtitle": "Nhập thông tin BMI một lần để app cá nhân hóa mục tiêu calo mỗi ngày.",
+    "profileStatus": "Trạng thái BMI",
+    "formTitle": "Thông tin cơ bản",
+    "formSubtitle": "Tuổi, chiều cao và cân nặng sẽ giúp app tính chỉ số cơ thể phù hợp.",
+    "summaryTitle": "Hồ sơ hiện tại",
+    "summaryBody": "BMI {{bmi}} với chiều cao {{height}} cm và cân nặng {{weight}} kg.",
+    "saveAction": "Lưu và bắt đầu",
+    "continueAction": "Vào trang chính",
+    "status": {
+      "missing": "Chưa có hồ sơ",
+      "ready": "BMI {{bmi}} đã sẵn sàng"
+    },
+    "fields": {
+      "age": "Tuổi",
+      "height": "Chiều cao (cm)",
+      "weight": "Cân nặng (kg)"
+    },
+    "placeholders": {
+      "age": "Nhập tuổi",
+      "height": "Nhập chiều cao",
+      "weight": "Nhập cân nặng"
+    },
+    "validation": {
+      "number": "Vui lòng nhập số hợp lệ",
+      "positive": "Giá trị phải lớn hơn 0"
+    }
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "appearance": "Giao diện",
+    "darkMode": "Chế độ tối",
+    "language": "Ngôn ngữ",
+    "notifications": "Thông báo",
+    "haptics": "Rung phản hồi",
+    "about": "Giới thiệu",
+    "version": "Phiên bản",
+    "privacy": "Chính sách bảo mật",
+    "terms": "Điều khoản dịch vụ",
+    "profile": {
+      "name": "Alex Johnson",
+      "email": "alex@example.com",
+      "editProfile": "Chỉnh sửa hồ sơ"
+    },
+    "sections": {
+      "account": "Tài khoản",
+      "preferences": "Tùy chọn",
+      "support": "Hỗ trợ",
+      "danger": "Khu vực nguy hiểm"
+    },
+    "account": {
+      "profile": "Hồ sơ",
+      "profileSubtitle": "Quản lý thông tin cá nhân",
+      "security": "Bảo mật",
+      "securitySubtitle": "Mật khẩu và xác thực",
+      "billing": "Thanh toán",
+      "billingSubtitle": "Gói dịch vụ và phương thức thanh toán",
+      "notifications": "Thông báo",
+      "notificationsSubtitle": "Tùy chọn push và email"
+    },
+    "preferences": {
+      "pushNotifications": "Thông báo đẩy",
+      "appIcon": "Biểu tượng ứng dụng",
+      "appIconSubtitle": "Chọn kiểu biểu tượng"
+    },
+    "support": {
+      "helpCenter": "Trung tâm trợ giúp",
+      "helpCenterSubtitle": "FAQ và hướng dẫn",
+      "feedback": "Gửi phản hồi",
+      "feedbackSubtitle": "Giúp chúng tôi cải thiện",
+      "aboutSubtitle": "Phiên bản và thông tin pháp lý"
+    },
+    "danger": {
+      "logout": "Đăng xuất",
+      "logoutSubtitle": "Thoát khỏi tài khoản của bạn",
+      "deleteAccount": "Xóa tài khoản",
+      "deleteAccountSubtitle": "Xóa vĩnh viễn dữ liệu của bạn"
+    }
+  },
+  "showcase": {
+    "title": "Trình diễn UI",
+    "subtitle": "Một màn hình để kiểm tra component dùng chung và trạng thái tương tác.",
+    "avatarLabel": "Avatar trình diễn",
+    "profileTitle": "Khu test component",
+    "profileSubtitle": "Dùng tab này để kiểm tra spacing, motion và theme nhanh chóng.",
+    "statusReady": "Sẵn sàng test",
+    "sections": {
+      "actions": "Hành động",
+      "inputs": "Trường nhập",
+      "selection": "Lựa chọn",
+      "display": "Hiển thị",
+      "feedback": "Phản hồi"
+    },
+    "actions": {
+      "primary": "Hành động chính",
+      "secondary": "Phụ",
+      "outline": "Viền",
+      "ghost": "Trong suốt",
+      "loading": "Giả lập loading"
+    },
+    "metrics": {
+      "completion": "Độ phủ",
+      "completionValue": "78%",
+      "components": "Bộ component",
+      "componentsValue": "15+",
+      "componentsHint": "Buttons, forms, feedback và layout primitives"
+    },
+    "searchPlaceholder": "Tìm component...",
+    "emailLabel": "Email nhận hóa đơn",
+    "emailPlaceholder": "name@example.com",
+    "emailHelper": "Dùng để kiểm tra helper text và căn chỉnh icon.",
+    "dateTimeLabel": "Lịch thanh toán",
+    "dateTimePlaceholder": "Chọn ngày và giờ",
+    "dateTimeTitle": "Chọn thời gian thanh toán",
+    "categoryLabel": "Danh mục chi tiêu",
+    "categoryPlaceholder": "Chọn danh mục",
+    "notesLabel": "Ghi chú",
+    "notesPlaceholder": "Viết ghi chú ngắn cho giao dịch mẫu này...",
+    "selection": {
+      "checkbox": "Bật cảnh báo ngân sách",
+      "notifications": "Thông báo đẩy"
+    },
+    "list": {
+      "primaryTitle": "Ngân sách tháng",
+      "primarySubtitle": "Kiểm tra touch pattern, alignment và accessory slots",
+      "secondaryTitle": "Bảng phân tích",
+      "secondarySubtitle": "Badge đếm và nội dung trộn hai phía"
+    },
+    "accordion": {
+      "tokensTitle": "Design tokens",
+      "tokensBody": "Spacing, typography và màu sắc nên nhất quán giữa light và dark theme.",
+      "formsTitle": "Form controls",
+      "formsBody": "Dùng phần này để kiểm tra focus state, selection state và bottom sheet."
+    },
+    "loadingMessage": "Đang tải trạng thái component",
+    "empty": {
+      "title": "Chưa chọn preview",
+      "message": "Chọn bất kỳ control nào ở trên để xem spacing và hành vi tương tác.",
+      "action": "Thử lại"
+    },
+    "options": {
+      "groceries": "Tạp hóa",
+      "transport": "Di chuyển",
+      "utilities": "Tiện ích",
+      "day": "Ngày",
+      "week": "Tuần",
+      "month": "Tháng",
+      "smartMode": "Chế độ thông minh",
+      "manualMode": "Chế độ thủ công"
+    }
+  },
+  "errorBoundary": {
+    "title": "Đã xảy ra lỗi",
+    "message": "Ứng dụng gặp lỗi ngoài ý muốn. Vui lòng thử lại.",
+    "retry": "Thử lại"
+  },
+  "network": {
+    "offline": "Bạn đang ngoại tuyến",
+    "online": "Đã kết nối lại"
+  },
+  "notFound": {
+    "title": "Không tìm thấy",
+    "message": "Màn hình này không tồn tại.",
+    "goHome": "Về màn hình chính"
+  },
+  "errors": {
+    "title": "Lỗi",
+    "generic": "Có lỗi xảy ra. Vui lòng thử lại.",
+    "network": "Lỗi mạng. Hãy kiểm tra kết nối.",
+    "auth": "Xác thực thất bại."
+  },
+  "validation": {
+    "required": "Trường này là bắt buộc",
+    "emailInvalid": "Vui lòng nhập địa chỉ email hợp lệ",
+    "passwordMin": "Mật khẩu phải có ít nhất 8 ký tự",
+    "passwordMismatch": "Mật khẩu không khớp",
+    "usernameMin": "Tên người dùng phải có ít nhất 3 ký tự",
+    "usernameMax": "Tên người dùng tối đa 20 ký tự",
+    "usernameFormat": "Tên người dùng chỉ được chứa chữ, số và dấu gạch dưới"
+  },
+  "camera": {
+    "title": "Máy ảnh",
+    "scanTitle": "Quét mã QR",
+    "scanHint": "Căn mã QR vào khung để quét tự động.",
+    "permissionDenied": "Bạn đã từ chối quyền truy cập máy ảnh.",
+    "captureFailed": "Không thể chụp ảnh. Vui lòng thử lại.",
+    "scanFailed": "Không thể quét mã. Vui lòng thử lại.",
+    "actions": {
+      "close": "Đóng",
+      "flip": "Đổi camera",
+      "capture": "Chụp ảnh",
+      "toggleFlash": "Bật tắt đèn flash"
+    }
+  },
+  "transactions": {
+    "fields": {
+      "occurredAt": "Thời điểm giao dịch"
+    }
+  }
+}

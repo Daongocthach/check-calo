@@ -1,0 +1,435 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "retry": "Retry",
+    "search": "Search",
+    "settings": "Settings",
+    "close": "Close",
+    "edit": "Edit",
+    "submit": "Submit",
+    "ok": "OK",
+    "syncStatus": {
+      "syncNow": "Sync now",
+      "loginToSync": "Log in to sync",
+      "failed": "Sync failed",
+      "syncing": "Syncing",
+      "synced": "Synced"
+    }
+  },
+  "tabs": {
+    "home": "Home",
+    "stats": "Stats",
+    "add": "Add",
+    "favorites": "Saved",
+    "profile": "Profile",
+    "showcase": "Showcase",
+    "settings": "Settings"
+  },
+  "header": {
+    "back": "Back",
+    "brandName": "Check Calo",
+    "companyName": "Nutrition tracker",
+    "toggleTheme": "Theme",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark"
+  },
+  "language": {
+    "label": "Language",
+    "english": "English",
+    "vietnamese": "Vietnamese"
+  },
+  "application": {
+    "applyTitle": "Apply",
+    "form": {
+      "successPageTitle": "Application submitted"
+    }
+  },
+  "home": {
+    "welcome": "Welcome",
+    "subtitle": "Your app is ready to go.",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "userName": "Alex Johnson",
+    "searchPlaceholder": "Search anything...",
+    "quickActions": {
+      "send": "Send",
+      "receive": "Receive",
+      "pay": "Pay",
+      "more": "More"
+    },
+    "featured": {
+      "title": "Featured",
+      "seeAll": "See all",
+      "card1Title": "Design System",
+      "card1Subtitle": "Build consistent UIs with tokens",
+      "card2Title": "Analytics",
+      "card2Subtitle": "Track performance metrics",
+      "card3Title": "Integrations",
+      "card3Subtitle": "Connect your favorite tools"
+    },
+    "stats": {
+      "projects": "Projects",
+      "tasks": "Tasks",
+      "messages": "Messages"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "seeAll": "See all",
+      "item1Title": "New project created",
+      "item1Subtitle": "Mobile App Redesign",
+      "item1Time": "2m ago",
+      "item2Title": "Task completed",
+      "item2Subtitle": "Update design tokens",
+      "item2Time": "15m ago",
+      "item3Title": "Message received",
+      "item3Subtitle": "Sarah shared a file",
+      "item3Time": "1h ago",
+      "item4Title": "Payment processed",
+      "item4Subtitle": "Invoice #1042 paid",
+      "item4Time": "3h ago"
+    }
+  },
+  "homeScreen": {
+    "greetingTitle": "Hello {{name}}",
+    "alerts": "Notifications",
+    "dailyIntake": "Daily Intake",
+    "dayCount": "4 Day",
+    "target": "Target",
+    "today": "today",
+    "kcalToday": "kcal / today",
+    "remaining": "Remaining",
+    "onTrack": "On track",
+    "progress": "Progress",
+    "steps": "Step to walk",
+    "stepsValue": "steps",
+    "water": "Drink water",
+    "waterValue": "glasses",
+    "greetings": {
+      "morning": "Get ready",
+      "afternoon": "Keep your rhythm",
+      "evening": "Finish strong"
+    },
+    "week": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "meals": {
+      "title": "Meals for today",
+      "subtitle": "Most recent first",
+      "detailComposition": "Detail composition",
+      "comboLabel": "Combo {{first}} + {{second}}",
+      "breakfast": "Breakfast",
+      "breakfastTime": "07:00 - 08:30",
+      "lunch": "Lunch",
+      "lunchTime": "12:00 - 13:30",
+      "dinner": "Dinner",
+      "dinnerTime": "18:30 - 20:00",
+      "add": "Add",
+      "addMeal": "Add {{meal}}",
+      "metrics": {
+        "calories": "kcal"
+      },
+      "items": {
+        "beefBowl": "Beef rice bowl",
+        "salmonSalad": "Salmon salad",
+        "eggToast": "Egg avocado toast",
+        "kimchiSoup": "Kimchi tofu soup",
+        "greekYogurt": "Greek yogurt cup",
+        "bananaSmoothie": "Banana oat smoothie"
+      }
+    }
+  },
+  "statsScreen": {
+    "title": "My Activity",
+    "subtitle": "Quick view of calories, workouts, and weight changes.",
+    "weekly": "Weekly",
+    "peakDuration": "70 min",
+    "metrics": {
+      "completed": "Completed",
+      "caloriesBurn": "kcal burned",
+      "weightToLose": "kg to goal"
+    },
+    "days": {
+      "sat": "Sat",
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri"
+    },
+    "workout": {
+      "title": "Workout Duration",
+      "subtitle": "Total time spent in training"
+    },
+    "weightJourney": {
+      "title": "Weight Journey",
+      "subtitle": "Last 7 days"
+    },
+    "macros": {
+      "title": "Macro split",
+      "carbs": "Carbs",
+      "protein": "Protein",
+      "fat": "Fat"
+    }
+  },
+  "addScreen": {
+    "title": "Add Calories",
+    "subtitle": "Log a meal fast and keep your target in control.",
+    "todaySummary": "Today summary",
+    "todaySummaryHint": "kcal already logged before dinner.",
+    "chooseMeal": "Choose meal",
+    "caloriesLabel": "Calories",
+    "caloriesPlaceholder": "Enter calories",
+    "quickAdd": "Quick add {{value}} kcal",
+    "suggestionTitle": "Coach tip",
+    "suggestionBody": "Pair lunch with more greens to stay full longer without overshooting your target.",
+    "saveAction": "Save calorie entry",
+    "meals": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    }
+  },
+  "favoritesScreen": {
+    "title": "Favorites",
+    "subtitle": "Meals you saved to repeat on busy days.",
+    "heroTitle": "Saved meals",
+    "heroSubtitle": "Your go-to healthy picks",
+    "savedItem": "Saved meal",
+    "filters": {
+      "all": "All",
+      "protein": "High protein",
+      "lowCarb": "Low carb"
+    },
+    "items": {
+      "salmonSalad": {
+        "title": "Salmon salad bowl",
+        "subtitle": "Fresh greens, avocado, sesame dressing"
+      },
+      "greenBowl": {
+        "title": "Green chicken bowl",
+        "subtitle": "Broccoli, quinoa, grilled chicken"
+      },
+      "avocadoToast": {
+        "title": "Avocado toast",
+        "subtitle": "Sourdough, egg, and cherry tomato"
+      }
+    }
+  },
+  "welcomeScreen": {
+    "title": "Check Calo",
+    "subtitle": "Set up your BMI details once so the app can personalize daily calorie goals.",
+    "profileStatus": "BMI profile",
+    "formTitle": "Tell us about you",
+    "formSubtitle": "We use age, height, and weight to estimate your body metrics.",
+    "summaryTitle": "Your current profile",
+    "summaryBody": "BMI {{bmi}} with height {{height}} cm and weight {{weight}} kg.",
+    "saveAction": "Save and start",
+    "continueAction": "Continue to dashboard",
+    "status": {
+      "missing": "Profile missing",
+      "ready": "BMI {{bmi}} ready"
+    },
+    "fields": {
+      "age": "Age",
+      "height": "Height (cm)",
+      "weight": "Weight (kg)"
+    },
+    "placeholders": {
+      "age": "Enter age",
+      "height": "Enter height",
+      "weight": "Enter weight"
+    },
+    "validation": {
+      "number": "Please enter a valid number",
+      "positive": "Value must be greater than 0"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "darkMode": "Dark Mode",
+    "language": "Language",
+    "notifications": "Notifications",
+    "haptics": "Haptic Feedback",
+    "about": "About",
+    "version": "Version",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "profile": {
+      "name": "Alex Johnson",
+      "email": "alex@example.com",
+      "editProfile": "Edit Profile"
+    },
+    "sections": {
+      "account": "Account",
+      "preferences": "Preferences",
+      "support": "Support",
+      "danger": "Danger Zone"
+    },
+    "account": {
+      "profile": "Profile",
+      "profileSubtitle": "Manage your personal info",
+      "security": "Security",
+      "securitySubtitle": "Password & authentication",
+      "billing": "Billing",
+      "billingSubtitle": "Plans & payment methods",
+      "notifications": "Notifications",
+      "notificationsSubtitle": "Push & email preferences"
+    },
+    "preferences": {
+      "pushNotifications": "Push Notifications",
+      "appIcon": "App Icon",
+      "appIconSubtitle": "Choose your icon style"
+    },
+    "support": {
+      "helpCenter": "Help Center",
+      "helpCenterSubtitle": "FAQs & guides",
+      "feedback": "Send Feedback",
+      "feedbackSubtitle": "Help us improve",
+      "aboutSubtitle": "Version & legal info"
+    },
+    "danger": {
+      "logout": "Log Out",
+      "logoutSubtitle": "Sign out of your account",
+      "deleteAccount": "Delete Account",
+      "deleteAccountSubtitle": "Permanently remove your data"
+    }
+  },
+  "showcase": {
+    "title": "UI Showcase",
+    "subtitle": "A single screen to exercise shared components and interaction states.",
+    "avatarLabel": "Showcase avatar",
+    "profileTitle": "Component Sandbox",
+    "profileSubtitle": "Use this tab to check spacing, motion, and theme behavior quickly.",
+    "statusReady": "Ready to test",
+    "sections": {
+      "actions": "Actions",
+      "inputs": "Inputs",
+      "selection": "Selection",
+      "display": "Display",
+      "feedback": "Feedback"
+    },
+    "actions": {
+      "primary": "Primary action",
+      "secondary": "Secondary",
+      "outline": "Outline",
+      "ghost": "Ghost",
+      "loading": "Simulate loading"
+    },
+    "metrics": {
+      "completion": "Coverage",
+      "completionValue": "78%",
+      "components": "Shared kit",
+      "componentsValue": "15+",
+      "componentsHint": "Buttons, forms, feedback, and layout primitives"
+    },
+    "searchPlaceholder": "Search a component...",
+    "emailLabel": "Receipt email",
+    "emailPlaceholder": "name@example.com",
+    "emailHelper": "Useful when you want to test helper text and icon alignment.",
+    "dateTimeLabel": "Scheduled payment",
+    "dateTimePlaceholder": "Pick a date and time",
+    "dateTimeTitle": "Choose payment time",
+    "categoryLabel": "Spending category",
+    "categoryPlaceholder": "Choose a category",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Write a short note for this sample transaction...",
+    "selection": {
+      "checkbox": "Enable budget alerts",
+      "notifications": "Push notifications"
+    },
+    "list": {
+      "primaryTitle": "Monthly budget",
+      "primarySubtitle": "Tap patterns, alignment, and accessory slots",
+      "secondaryTitle": "Insights panel",
+      "secondarySubtitle": "Count badge and mixed leading/right content"
+    },
+    "accordion": {
+      "tokensTitle": "Design tokens",
+      "tokensBody": "Spacing, typography, and colors should stay aligned across light and dark themes.",
+      "formsTitle": "Form controls",
+      "formsBody": "Use this section to verify focus styles, selection states, and bottom-sheet interactions."
+    },
+    "loadingMessage": "Loading component states",
+    "empty": {
+      "title": "No preview selected",
+      "message": "Pick any control above to inspect spacing and interactive behavior.",
+      "action": "Try again"
+    },
+    "options": {
+      "groceries": "Groceries",
+      "transport": "Transport",
+      "utilities": "Utilities",
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "smartMode": "Smart mode",
+      "manualMode": "Manual mode"
+    }
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "message": "The app ran into an unexpected error. Please try again.",
+    "retry": "Try Again"
+  },
+  "network": {
+    "offline": "You appear to be offline",
+    "online": "Back online"
+  },
+  "notFound": {
+    "title": "Not Found",
+    "message": "This screen does not exist.",
+    "goHome": "Go to home screen"
+  },
+  "errors": {
+    "title": "Error",
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Check your connection.",
+    "auth": "Authentication failed."
+  },
+  "validation": {
+    "required": "This field is required",
+    "emailInvalid": "Please enter a valid email address",
+    "passwordMin": "Password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match",
+    "usernameMin": "Username must be at least 3 characters",
+    "usernameMax": "Username must be at most 20 characters",
+    "usernameFormat": "Username can only contain letters, numbers, and underscores"
+  },
+  "camera": {
+    "title": "Camera",
+    "scanTitle": "Scan QR code",
+    "scanHint": "Align the QR code inside the frame to scan it automatically.",
+    "permissionDenied": "Camera permission was denied.",
+    "captureFailed": "Could not capture the photo. Please try again.",
+    "scanFailed": "Could not scan the code. Please try again.",
+    "actions": {
+      "close": "Close",
+      "flip": "Flip camera",
+      "capture": "Capture photo",
+      "toggleFlash": "Toggle flash"
+    }
+  },
+  "transactions": {
+    "fields": {
+      "occurredAt": "Occurred at"
+    }
+  }
+}

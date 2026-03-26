@@ -1,0 +1,463 @@
+import { CameraView, type BarcodeScanningResult, useCameraPermissions } from 'expo-camera';
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useTranslation } from 'react-i18next';
+import { Modal, Pressable, View } from 'react-native';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet } from 'react-native-unistyles';
+import { Icon, Text } from '@/common/components';
+import { toast } from '@/utils/toast';
+
+export interface CameraCaptureFile {
+  uri: string;
+  width: number;
+  height: number;
+  fileName: string;
+  mimeType: 'image/jpeg';
+  base64: string;
+}
+
+type OpenCamera = () => Promise<CameraCaptureFile | null>;
+type OpenQrScanner = () => Promise<string | null>;
+
+type CameraMode = 'capture' | 'scan';
+
+interface CameraContextValue {
+  openCamera: OpenCamera;
+  openQrScanner: OpenQrScanner;
+}
+
+const CameraContext = createContext<CameraContextValue | null>(null);
+
+interface CameraProviderProps {
+  children: ReactNode;
+}
+
+const SCAN_ZOOM = 0.25;
+const MIN_ZOOM = 0;
+const MAX_ZOOM = 1;
+
+function clampZoom(value: number) {
+  return Math.min(Math.max(value, MIN_ZOOM), MAX_ZOOM);
+}
+
+function buildFileName(uri: string) {
+  const uriName = uri.split('/').pop();
+
+  if (uriName) {
+    return uriName;
+  }
+
+  return `capture-${Date.now()}.jpg`;
+}
+
+export function CameraProvider({ children }: CameraProviderProps) {
+  const { t } = useTranslation();
+  const [permission, requestPermission] = useCameraPermissions();
+  const [visible, setVisible] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [facing, setFacing] = useState<'back' | 'front'>('back');
+  const [isTorchEnabled, setIsTorchEnabled] = useState(false);
+  const [mode, setMode] = useState<CameraMode>('capture');
+  const [zoom, setZoom] = useState(0);
+  const hasScannedRef = useRef(false);
+  const pinchZoomStartRef = useRef(0);
+  const zoomRef = useRef(0);
+  const cameraRef = useRef<CameraView | null>(null);
+  const resolverRef = useRef<((value: CameraCaptureFile | string | null) => void) | null>(null);
+
+  const setZoomValue = useCallback((value: number) => {
+    const nextZoom = clampZoom(value);
+    zoomRef.current = nextZoom;
+    setZoom(nextZoom);
+  }, []);
+
+  const closeWithResult = useCallback(
+    (result: CameraCaptureFile | string | null) => {
+      resolverRef.current?.(result);
+      resolverRef.current = null;
+      setVisible(false);
+      setIsCapturing(false);
+      setFacing('back');
+      setIsTorchEnabled(false);
+      setMode('capture');
+      setZoomValue(0);
+      hasScannedRef.current = false;
+    },
+    [setZoomValue]
+  );
+
+  const requestCameraAccess = useCallback(async () => {
+    const hasPermission = permission?.granted ?? false;
+    let isGranted = hasPermission;
+
+    if (!hasPermission) {
+      const nextPermission = await requestPermission();
+      isGranted = nextPermission.granted;
+    }
+
+    if (!isGranted) {
+      toast.error(t('camera.permissionDenied'));
+      return false;
+    }
+
+    return true;
+  }, [permission?.granted, requestPermission, t]);
+
+  const openCamera = useCallback(async () => {
+    if (resolverRef.current) {
+      return null;
+    }
+
+    const isGranted = await requestCameraAccess();
+
+    if (!isGranted) {
+      return null;
+    }
+
+    setMode('capture');
+    setZoomValue(0);
+    setVisible(true);
+
+    return new Promise<CameraCaptureFile | null>((resolve) => {
+      resolverRef.current = (result) => {
+        resolve(typeof result === 'string' ? null : result);
+      };
+    });
+  }, [requestCameraAccess, setZoomValue]);
+
+  const openQrScanner = useCallback(async () => {
+    if (resolverRef.current) {
+      return null;
+    }
+
+    const isGranted = await requestCameraAccess();
+
+    if (!isGranted) {
+      return null;
+    }
+
+    setFacing('back');
+    setMode('scan');
+    setZoomValue(SCAN_ZOOM);
+    setVisible(true);
+
+    return new Promise<string | null>((resolve) => {
+      resolverRef.current = (result) => {
+        resolve(typeof result === 'string' ? result : null);
+      };
+    });
+  }, [requestCameraAccess, setZoomValue]);
+
+  const handleCapture = useCallback(async () => {
+    if (!cameraRef.current || isCapturing) {
+      return;
+    }
+
+    setIsCapturing(true);
+
+    try {
+      const photo = await cameraRef.current.takePictureAsync({
+        base64: true,
+        quality: 0.9,
+        shutterSound: false,
+      });
+
+      if (!photo.base64) {
+        toast.error(t('camera.captureFailed'));
+        setIsCapturing(false);
+        return;
+      }
+
+      closeWithResult({
+        uri: photo.uri,
+        width: photo.width,
+        height: photo.height,
+        fileName: buildFileName(photo.uri),
+        mimeType: 'image/jpeg',
+        base64: photo.base64,
+      });
+    } catch {
+      toast.error(t('camera.captureFailed'));
+      setIsCapturing(false);
+    }
+  }, [closeWithResult, isCapturing, t]);
+
+  const handleDismiss = useCallback(() => {
+    closeWithResult(null);
+  }, [closeWithResult]);
+
+  const handleBarcodeScanned = useCallback(
+    (event: BarcodeScanningResult) => {
+      if (hasScannedRef.current || mode !== 'scan') {
+        return;
+      }
+
+      hasScannedRef.current = true;
+
+      const rawValue = event.data.trim();
+      if (!rawValue) {
+        toast.error(t('camera.scanFailed'));
+        hasScannedRef.current = false;
+        return;
+      }
+
+      closeWithResult(rawValue);
+    },
+    [closeWithResult, mode, t]
+  );
+
+  const contextValue = useMemo(
+    () => ({
+      openCamera,
+      openQrScanner,
+    }),
+    [openCamera, openQrScanner]
+  );
+
+  const pinchGesture = useMemo(
+    () =>
+      Gesture.Pinch()
+        .runOnJS(true)
+        .onBegin(() => {
+          pinchZoomStartRef.current = zoomRef.current;
+        })
+        .onUpdate((event) => {
+          setZoomValue(pinchZoomStartRef.current + (event.scale - 1) * 0.35);
+        }),
+    [setZoomValue]
+  );
+
+  return (
+    <CameraContext.Provider value={contextValue}>
+      {children}
+      <Modal
+        animationType="fade"
+        statusBarTranslucent
+        visible={visible}
+        onRequestClose={handleDismiss}
+      >
+        <GestureHandlerRootView style={styles.modalRoot}>
+          <GestureDetector gesture={pinchGesture}>
+            <View style={styles.cameraContainer}>
+              <CameraView
+                ref={cameraRef}
+                style={styles.camera}
+                facing={facing}
+                zoom={zoom}
+                enableTorch={isTorchEnabled}
+                onBarcodeScanned={mode === 'scan' ? handleBarcodeScanned : undefined}
+                barcodeScannerSettings={mode === 'scan' ? { barcodeTypes: ['qr'] } : undefined}
+              />
+            </View>
+          </GestureDetector>
+
+          {mode === 'scan' ? (
+            <View pointerEvents="none" style={styles.scanOverlay}>
+              <View style={styles.scanFrame} />
+              <View style={styles.scanFocusDot} />
+              <Text variant="bodySmall" style={styles.scanHint}>
+                {t('camera.scanHint')}
+              </Text>
+            </View>
+          ) : null}
+
+          <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+            <View style={styles.header}>
+              <Text variant="label" style={styles.headerText}>
+                {mode === 'scan' ? t('camera.scanTitle') : t('camera.title')}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('camera.actions.close')}
+                onPress={handleDismiss}
+                style={styles.headerAction}
+              >
+                <Icon name="close" variant="inverse" size={18} />
+              </Pressable>
+            </View>
+          </SafeAreaView>
+
+          <SafeAreaView edges={['bottom']} style={styles.footerSafeArea}>
+            <View style={styles.footer}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('camera.actions.flip')}
+                disabled={mode === 'scan'}
+                onPress={() => setFacing((prev) => (prev === 'back' ? 'front' : 'back'))}
+                style={[styles.secondaryAction, mode === 'scan' && styles.secondaryActionDisabled]}
+              >
+                <Icon name="camera-reverse-outline" variant="inverse" size={22} />
+              </Pressable>
+
+              {mode === 'capture' ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('camera.actions.capture')}
+                  disabled={isCapturing}
+                  onPress={handleCapture}
+                  style={[styles.captureOuter, isCapturing && styles.captureDisabled]}
+                >
+                  <View style={styles.captureInner} />
+                </Pressable>
+              ) : (
+                <View style={styles.scanModeSpacer} />
+              )}
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('camera.actions.toggleFlash')}
+                onPress={() => setIsTorchEnabled((prev) => !prev)}
+                style={styles.secondaryAction}
+              >
+                <Icon
+                  name={isTorchEnabled ? 'flash' : 'flash-outline'}
+                  variant="inverse"
+                  size={22}
+                />
+              </Pressable>
+            </View>
+          </SafeAreaView>
+        </GestureHandlerRootView>
+      </Modal>
+    </CameraContext.Provider>
+  );
+}
+
+export function useOpenCamera() {
+  const context = useContext(CameraContext);
+
+  if (!context) {
+    throw new Error('useOpenCamera must be used within CameraProvider');
+  }
+
+  return context.openCamera;
+}
+
+export function useOpenQrScanner() {
+  const context = useContext(CameraContext);
+
+  if (!context) {
+    throw new Error('useOpenQrScanner must be used within CameraProvider');
+  }
+
+  return context.openQrScanner;
+}
+
+const styles = StyleSheet.create((theme) => ({
+  modalRoot: {
+    flex: 1,
+    backgroundColor: theme.colors.background.app,
+  },
+  cameraContainer: {
+    flex: 1,
+  },
+  camera: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerSafeArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingTop: theme.metrics.spacingV.p8,
+  },
+  headerText: {
+    color: theme.colors.text.inverse,
+  },
+  headerAction: {
+    width: 36,
+    height: 36,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.overlay.modal,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+  },
+  footerSafeArea: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingBottom: theme.metrics.spacingV.p16,
+  },
+  secondaryAction: {
+    width: 46,
+    height: 46,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.overlay.modal,
+  },
+  secondaryActionDisabled: {
+    opacity: 0.45,
+  },
+  captureOuter: {
+    width: 82,
+    height: 82,
+    borderRadius: theme.metrics.borderRadius.full,
+    borderWidth: 4,
+    borderColor: theme.colors.text.onBrand,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.overlay.focus,
+  },
+  captureInner: {
+    width: 60,
+    height: 60,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.text.onBrand,
+  },
+  captureDisabled: {
+    opacity: 0.6,
+  },
+  scanOverlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.metrics.spacingV.p16,
+  },
+  scanFrame: {
+    width: 300,
+    height: 300,
+    borderWidth: 3,
+    borderRadius: theme.metrics.borderRadius.md,
+    borderColor: theme.colors.text.onBrand,
+  },
+  scanFocusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.text.onBrand,
+  },
+  scanHint: {
+    color: theme.colors.text.onBrand,
+    textAlign: 'center',
+  },
+  scanModeSpacer: {
+    width: 82,
+    height: 82,
+  },
+}));

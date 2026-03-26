@@ -1,0 +1,27 @@
+{
+  "i18n-ally.localesPaths": [
+    "src/i18n",
+    "src/i18n/locales",
+    "ios/Pods/ReactNativeDependencies/Headers/folly/lang",
+    "ios/Pods/Headers/Private/ReactNativeDependencies/folly/lang",
+    "ios/Pods/Headers/Public/ReactNativeDependencies/folly/lang",
+    "ios/Pods/ReactNativeDependencies/framework/packages/react-native/ReactNativeDependencies.xcframework/Headers/folly/lang"
+  ],
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Use Conventional Commits format. Allowed types: feat, fix, refactor, docs, test, chore, perf, build, ci, revert."
+    },
+    {
+      "text": "The 'scope' is MANDATORY. Format: type(scope): description. Scope must be lower-case or kebab-case."
+    },
+    {
+      "text": "The 'subject' must NOT use sentence-case, Start-Case, PascalCase, or UPPERCASE. Keep it all lowercase."
+    },
+    {
+      "text": "The 'subject' must NOT end with a period (.)."
+    },
+    {
+      "text": "Use the imperative, present tense: 'change' not 'changed' or 'changes'."
+    }
+  ]
+}

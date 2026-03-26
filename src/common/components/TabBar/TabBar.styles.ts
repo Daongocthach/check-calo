@@ -1,0 +1,69 @@
+import { StyleSheet } from 'react-native-unistyles';
+import { hs, vs } from '@/theme/metrics';
+
+export const styles = StyleSheet.create((theme) => ({
+  container: {
+    position: 'absolute',
+    bottom: 0,
+    left: theme.metrics.spacing.p24,
+    right: theme.metrics.spacing.p24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.background.surface,
+    borderRadius: theme.metrics.borderRadius.full,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
+    paddingVertical: vs(12),
+    paddingHorizontal: hs(12),
+    shadowColor: theme.colors.shadow.color,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    elevation: theme.colors.shadow.elevationMedium,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: vs(8),
+    borderRadius: theme.metrics.borderRadius.full,
+    zIndex: 1,
+  },
+  standardTab: {
+    maxWidth: '22%',
+  },
+  addTab: {
+    flex: 0,
+    marginTop: -vs(34),
+    paddingHorizontal: theme.metrics.spacing.p8,
+  },
+  tabBubble: {
+    width: theme.metrics.spacing.p44,
+    height: theme.metrics.spacing.p44,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabBubbleActive: {
+    backgroundColor: theme.colors.brand.primary,
+  },
+  tabBubbleInactive: {
+    backgroundColor: 'transparent',
+  },
+  addBubble: {
+    width: theme.metrics.spacing.p64,
+    height: theme.metrics.spacing.p64,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.brand.secondary,
+    borderWidth: 6,
+    borderColor: theme.colors.background.app,
+    shadowColor: theme.colors.shadow.color,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.26,
+    shadowRadius: 20,
+    elevation: theme.colors.shadow.elevationLarge,
+  },
+}));
