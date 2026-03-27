@@ -48,6 +48,8 @@ export function AppHeader() {
     if (pathname === '/add') return t('tabs.add');
     if (pathname === '/favorites') return t('tabs.favorites');
     if (pathname === '/profile') return t('tabs.profile');
+    if (pathname === '/food-result') return t('addScreen.result.title');
+    if (pathname === '/manual-food-entry') return t('manualFoodEntry.title');
     if (pathname === '/application-form') return t('application.applyTitle');
     if (pathname === '/application-form-success') {
       return t('application.form.successPageTitle');

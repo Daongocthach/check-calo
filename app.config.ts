@@ -73,6 +73,7 @@ const config: ExpoConfig = {
       },
     ],
     'expo-image',
+    'expo-sqlite',
     ['./plugins/with-android-splits'],
   ],
   experiments: {

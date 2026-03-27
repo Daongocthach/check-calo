@@ -3220,6 +3220,11 @@ available-typed-arrays@^1.0.7:
   dependencies:
     possible-typed-array-names "^1.0.0"
 
+await-lock@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/await-lock/-/await-lock-2.2.2.tgz#a95a9b269bfd2f69d22b17a321686f551152bcef"
+  integrity sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw==
+
 axios@^1.7.9:
   version "1.13.6"
   resolved "https://registry.npmjs.org/axios/-/axios-1.13.6.tgz"
@@ -4870,6 +4875,13 @@ expo-splash-screen@~55.0.12:
   integrity sha512-+QYsmW+fIF4bL6zXDeVRkxQr+i6w3UJRwDGOybT1NgN9GWxAO7J/lT9Q0IKVPyW4hDiQrdEMbVISOfpYm6QPIw==
   dependencies:
     "@expo/prebuild-config" "^55.0.10"
+
+expo-sqlite@~55.0.11:
+  version "55.0.11"
+  resolved "https://registry.yarnpkg.com/expo-sqlite/-/expo-sqlite-55.0.11.tgz#3a192ad053c4e6019702f3caa1223f943c266378"
+  integrity sha512-lDGJrE0m1lw/3y1ZSsER2kfXnS+9WzgaKcIFp/RKbTfyhs0v8l86Ulqdr+6peRFOfzi0kdj4Ty0LzE2Adx93tg==
+  dependencies:
+    await-lock "^2.2.2"
 
 expo-status-bar@~55.0.4:
   version "55.0.4"

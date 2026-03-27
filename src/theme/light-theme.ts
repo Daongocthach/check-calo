@@ -9,7 +9,7 @@ export const lightColors: ThemeColors = {
     tertiary: '#FF9E3D',
     primaryVariant: '#D2E93B',
     secondaryVariant: '#345125',
-    onBrand: '#203214',
+    onBrand: '#FFFFFF',
   },
 
   background: {

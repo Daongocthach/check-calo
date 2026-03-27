@@ -182,28 +182,93 @@
     },
     "macros": {
       "title": "Tỷ lệ dinh dưỡng",
-      "carbs": "Tinh bột",
-      "protein": "Đạm",
+      "carbs": "Carb",
+      "protein": "Protein",
       "fat": "Chất béo"
     }
   },
   "addScreen": {
-    "title": "Thêm calo",
-    "subtitle": "Ghi nhanh bữa ăn để giữ đúng mục tiêu mỗi ngày.",
-    "todaySummary": "Tổng hôm nay",
-    "todaySummaryHint": "kcal đã được ghi trước bữa tối.",
-    "chooseMeal": "Chọn bữa",
-    "caloriesLabel": "Lượng calo",
-    "caloriesPlaceholder": "Nhập số calo",
-    "quickAdd": "Thêm nhanh {{value}} kcal",
-    "suggestionTitle": "Gợi ý nhỏ",
-    "suggestionBody": "Hãy thêm rau xanh cho bữa trưa để no lâu hơn mà không vượt mục tiêu.",
-    "saveAction": "Lưu bữa ăn",
-    "meals": {
-      "breakfast": "Bữa sáng",
-      "lunch": "Bữa trưa",
-      "dinner": "Bữa tối",
-      "snack": "Ăn nhẹ"
+    "title": "Thêm món ăn",
+    "modalTitle": "Thêm bữa ăn",
+    "modalSubtitle": "Chọn cách bạn muốn tạo mục món ăn này.",
+    "captureModes": {
+      "scanFood": "Chụp ảnh",
+      "barcode": "Barcode",
+      "manual": "Nhập tay"
+    },
+    "modeContent": {
+      "scanFood": {
+        "title": "Quét món ăn",
+        "body": "Mở camera, chụp món ăn và app sẽ ước tính calories cùng các chỉ số dinh dưỡng.",
+        "button": "Mở camera món ăn"
+      },
+      "barcode": {
+        "title": "Quét thực phẩm đóng gói",
+        "body": "Dùng barcode cho nước uống, snack hoặc sản phẩm có nhãn để lấy dinh dưỡng nhanh hơn.",
+        "button": "Mở quét barcode"
+      },
+      "manual": {
+        "title": "Nhập món thủ công",
+        "body": "Tạo món ăn thủ công khi bạn không cần camera hoặc muốn chỉnh nhanh kết quả.",
+        "button": "Tạo mục nhập tay"
+      }
+    },
+    "stats": {
+      "scanAccuracy": "Độ chính xác ước tính",
+      "averageTime": "Thời gian trung bình",
+      "averageTimeValue": "2s"
+    },
+    "result": {
+      "title": "Chi tiết món ăn",
+      "photoLabel": "Nutrition",
+      "healthScore": "Điểm sức khỏe",
+      "quantity": "Khẩu phần",
+      "decreaseQuantity": "Giảm khẩu phần",
+      "increaseQuantity": "Tăng khẩu phần",
+      "barcodeLabel": "Mã vạch",
+      "fixResults": "Sửa kết quả",
+      "mealTypes": {
+        "breakfast": "Bữa sáng",
+        "lunch": "Bữa trưa",
+        "dinner": "Bữa tối",
+        "snack": "Ăn nhẹ"
+      },
+      "metrics": {
+        "calories": "Calories",
+        "carbs": "Carb",
+        "protein": "Protein",
+        "fat": "Chất béo",
+        "gramsUnit": "gram",
+        "gramsShort": "g"
+      },
+      "presets": {
+        "scanFood": {
+          "title": "Pancakes với việt quất và syrup",
+          "subtitle": "Nhận diện từ ảnh"
+        },
+        "barcode": {
+          "title": "Thanh yến mạch protein",
+          "subtitle": "Nhận diện từ barcode"
+        },
+        "manual": {
+          "title": "Cơm gà bowl",
+          "subtitle": "Bản nháp nhập tay"
+        }
+      }
+    }
+  },
+  "manualFoodEntry": {
+    "title": "Nhập tay",
+    "subtitle": "Điền thông tin món ăn trước khi lưu bữa ăn.",
+    "fields": {
+      "foodName": "Tên món ăn",
+      "quantity": "Khẩu phần",
+      "calories": "Calories"
+    },
+    "placeholders": {
+      "foodName": "Ví dụ: Salad gà",
+      "quantity": "Ví dụ: 1 phần",
+      "calories": "Ví dụ: 420"
     }
   },
   "favoritesScreen": {
@@ -416,7 +481,9 @@
   "camera": {
     "title": "Máy ảnh",
     "scanTitle": "Quét mã QR",
+    "barcodeTitle": "Quét barcode",
     "scanHint": "Căn mã QR vào khung để quét tự động.",
+    "barcodeHint": "Căn barcode vào khung để quét tự động.",
     "permissionDenied": "Bạn đã từ chối quyền truy cập máy ảnh.",
     "captureFailed": "Không thể chụp ảnh. Vui lòng thử lại.",
     "scanFailed": "Không thể quét mã. Vui lòng thử lại.",

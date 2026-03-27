@@ -13,6 +13,8 @@ export default function MainLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="food-result" />
+      <Stack.Screen name="manual-food-entry" />
     </Stack>
   );
 }

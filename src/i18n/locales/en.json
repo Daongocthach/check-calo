@@ -182,28 +182,93 @@
     },
     "macros": {
       "title": "Macro split",
-      "carbs": "Carbs",
+      "carbs": "Carb",
       "protein": "Protein",
-      "fat": "Fat"
+      "fat": "Chất béo"
     }
   },
   "addScreen": {
-    "title": "Add Calories",
-    "subtitle": "Log a meal fast and keep your target in control.",
-    "todaySummary": "Today summary",
-    "todaySummaryHint": "kcal already logged before dinner.",
-    "chooseMeal": "Choose meal",
-    "caloriesLabel": "Calories",
-    "caloriesPlaceholder": "Enter calories",
-    "quickAdd": "Quick add {{value}} kcal",
-    "suggestionTitle": "Coach tip",
-    "suggestionBody": "Pair lunch with more greens to stay full longer without overshooting your target.",
-    "saveAction": "Save calorie entry",
-    "meals": {
-      "breakfast": "Breakfast",
-      "lunch": "Lunch",
-      "dinner": "Dinner",
-      "snack": "Snack"
+    "title": "Add Food",
+    "modalTitle": "Add your meal",
+    "modalSubtitle": "Pick how you want to capture this food entry.",
+    "captureModes": {
+      "scanFood": "Capture food",
+      "barcode": "Barcode",
+      "manual": "Manual"
+    },
+    "modeContent": {
+      "scanFood": {
+        "title": "Scan your meal",
+        "body": "Open the camera, snap the dish, and we will estimate calories and macros for you.",
+        "button": "Open food camera"
+      },
+      "barcode": {
+        "title": "Scan packaged food",
+        "body": "Use barcode mode for drinks, snacks, and labels to get product nutrition faster.",
+        "button": "Open barcode scanner"
+      },
+      "manual": {
+        "title": "Enter food manually",
+        "body": "Create a food entry yourself when the camera is not needed or the result needs a quick correction.",
+        "button": "Create manual entry"
+      }
+    },
+    "stats": {
+      "scanAccuracy": "Estimated accuracy",
+      "averageTime": "Average time",
+      "averageTimeValue": "2s"
+    },
+    "result": {
+      "title": "Food detail",
+      "photoLabel": "Nutrition",
+      "healthScore": "Health score",
+      "quantity": "Quantity",
+      "decreaseQuantity": "Decrease quantity",
+      "increaseQuantity": "Increase quantity",
+      "barcodeLabel": "Barcode",
+      "fixResults": "Fix results",
+      "mealTypes": {
+        "breakfast": "Breakfast",
+        "lunch": "Lunch",
+        "dinner": "Dinner",
+        "snack": "Snack"
+      },
+      "metrics": {
+        "calories": "Calories",
+        "carbs": "Carb",
+        "protein": "Protein",
+        "fat": "Chất béo",
+        "gramsUnit": "grams",
+        "gramsShort": "g"
+      },
+      "presets": {
+        "scanFood": {
+          "title": "Pancakes with blueberries & syrup",
+          "subtitle": "Detected from photo"
+        },
+        "barcode": {
+          "title": "Protein oat bar",
+          "subtitle": "Detected from barcode"
+        },
+        "manual": {
+          "title": "Chicken rice bowl",
+          "subtitle": "Manual draft"
+        }
+      }
+    }
+  },
+  "manualFoodEntry": {
+    "title": "Manual entry",
+    "subtitle": "Fill in the food details yourself before saving the meal.",
+    "fields": {
+      "foodName": "Food name",
+      "quantity": "Quantity",
+      "calories": "Calories"
+    },
+    "placeholders": {
+      "foodName": "Example: Chicken salad",
+      "quantity": "Example: 1 serving",
+      "calories": "Example: 420"
     }
   },
   "favoritesScreen": {
@@ -416,7 +481,9 @@
   "camera": {
     "title": "Camera",
     "scanTitle": "Scan QR code",
+    "barcodeTitle": "Scan barcode",
     "scanHint": "Align the QR code inside the frame to scan it automatically.",
+    "barcodeHint": "Align the barcode inside the frame to scan it automatically.",
     "permissionDenied": "Camera permission was denied.",
     "captureFailed": "Could not capture the photo. Please try again.",
     "scanFailed": "Could not scan the code. Please try again.",

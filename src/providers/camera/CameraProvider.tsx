@@ -11,9 +11,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 import { Icon, Text } from '@/common/components';
+import { useScreenDimensions } from '@/hooks/useScreenDimensions';
 import { toast } from '@/utils/toast';
 
 export interface CameraCaptureFile {
@@ -61,6 +61,7 @@ function buildFileName(uri: string) {
 
 export function CameraProvider({ children }: CameraProviderProps) {
   const { t } = useTranslation();
+  const { isTablet } = useScreenDimensions();
   const [permission, requestPermission] = useCameraPermissions();
   const [visible, setVisible] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -270,8 +271,8 @@ export function CameraProvider({ children }: CameraProviderProps) {
             </View>
           ) : null}
 
-          <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-            <View style={styles.header}>
+          <View style={styles.headerSafeArea}>
+            <View style={[styles.header, isTablet && styles.headerTablet]}>
               <Text variant="label" style={styles.headerText}>
                 {mode === 'scan' ? t('camera.scanTitle') : t('camera.title')}
               </Text>
@@ -281,21 +282,25 @@ export function CameraProvider({ children }: CameraProviderProps) {
                 onPress={handleDismiss}
                 style={styles.headerAction}
               >
-                <Icon name="close" variant="inverse" size={18} />
+                <Icon name="close" variant="onBrand" size={18} />
               </Pressable>
             </View>
-          </SafeAreaView>
+          </View>
 
-          <SafeAreaView edges={['bottom']} style={styles.footerSafeArea}>
-            <View style={styles.footer}>
+          <View style={[styles.footerSafeArea, isTablet && styles.footerSafeAreaTablet]}>
+            <View style={[styles.footer, isTablet && styles.footerTablet]}>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('camera.actions.flip')}
                 disabled={mode === 'scan'}
                 onPress={() => setFacing((prev) => (prev === 'back' ? 'front' : 'back'))}
-                style={[styles.secondaryAction, mode === 'scan' && styles.secondaryActionDisabled]}
+                style={[
+                  styles.secondaryAction,
+                  isTablet && styles.secondaryActionTablet,
+                  mode === 'scan' && styles.secondaryActionDisabled,
+                ]}
               >
-                <Icon name="camera-reverse-outline" variant="inverse" size={22} />
+                <Icon name="camera-reverse-outline" variant="onBrand" size={22} />
               </Pressable>
 
               {mode === 'capture' ? (
@@ -304,28 +309,32 @@ export function CameraProvider({ children }: CameraProviderProps) {
                   accessibilityLabel={t('camera.actions.capture')}
                   disabled={isCapturing}
                   onPress={handleCapture}
-                  style={[styles.captureOuter, isCapturing && styles.captureDisabled]}
+                  style={[
+                    styles.captureOuter,
+                    isTablet && styles.captureOuterTablet,
+                    isCapturing && styles.captureDisabled,
+                  ]}
                 >
-                  <View style={styles.captureInner} />
+                  <View style={[styles.captureInner, isTablet && styles.captureInnerTablet]} />
                 </Pressable>
               ) : (
-                <View style={styles.scanModeSpacer} />
+                <View style={[styles.scanModeSpacer, isTablet && styles.scanModeSpacerTablet]} />
               )}
 
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('camera.actions.toggleFlash')}
                 onPress={() => setIsTorchEnabled((prev) => !prev)}
-                style={styles.secondaryAction}
+                style={[styles.secondaryAction, isTablet && styles.secondaryActionTablet]}
               >
                 <Icon
                   name={isTorchEnabled ? 'flash' : 'flash-outline'}
-                  variant="inverse"
+                  variant="onBrand"
                   size={22}
                 />
               </Pressable>
             </View>
-          </SafeAreaView>
+          </View>
         </GestureHandlerRootView>
       </Modal>
     </CameraContext.Provider>
@@ -352,7 +361,7 @@ export function useOpenQrScanner() {
   return context.openQrScanner;
 }
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create((theme, rt) => ({
   modalRoot: {
     flex: 1,
     backgroundColor: theme.colors.background.app,
@@ -368,13 +377,19 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerTablet: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 960,
+  },
   headerSafeArea: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     paddingHorizontal: theme.metrics.spacing.p16,
-    paddingTop: theme.metrics.spacingV.p8,
+    paddingTop: rt.insets.top + theme.metrics.spacingV.p8,
+    zIndex: 2,
   },
   headerText: {
     color: theme.colors.text.inverse,
@@ -392,12 +407,22 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'space-evenly',
   },
+  footerTablet: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 560,
+  },
   footerSafeArea: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    paddingBottom: theme.metrics.spacingV.p16,
+    paddingBottom: rt.insets.bottom + theme.metrics.spacingV.p16,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    zIndex: 2,
+  },
+  footerSafeAreaTablet: {
+    paddingBottom: rt.insets.bottom + theme.metrics.spacingV.p24,
   },
   secondaryAction: {
     width: 46,
@@ -406,6 +431,10 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.overlay.modal,
+  },
+  secondaryActionTablet: {
+    width: 58,
+    height: 58,
   },
   secondaryActionDisabled: {
     opacity: 0.45,
@@ -420,11 +449,19 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     backgroundColor: theme.colors.overlay.focus,
   },
+  captureOuterTablet: {
+    width: 96,
+    height: 96,
+  },
   captureInner: {
     width: 60,
     height: 60,
     borderRadius: theme.metrics.borderRadius.full,
     backgroundColor: theme.colors.text.onBrand,
+  },
+  captureInnerTablet: {
+    width: 70,
+    height: 70,
   },
   captureDisabled: {
     opacity: 0.6,
@@ -459,5 +496,9 @@ const styles = StyleSheet.create((theme) => ({
   scanModeSpacer: {
     width: 82,
     height: 82,
+  },
+  scanModeSpacerTablet: {
+    width: 96,
+    height: 96,
   },
 }));

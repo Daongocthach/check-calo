@@ -9,7 +9,7 @@ export const darkColors: ThemeColors = {
     tertiary: '#FFB34D',
     primaryVariant: '#E3F45A',
     secondaryVariant: '#FBFFE8',
-    onBrand: '#18210E',
+    onBrand: '#FFFFFF',
   },
 
   background: {
