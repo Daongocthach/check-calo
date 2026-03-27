@@ -1,113 +1,108 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import type { ComponentProps } from 'react';
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, SectionList, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Card, Icon, MonthSelector, ProgressBar, ScreenContainer, Text } from '@/common/components';
+import {
+  getDailyNutritionSummary,
+  listFoodEntriesByDate,
+  toggleFavoriteFoodEntry,
+} from '@/features/nutrition/services/nutritionDatabase';
+import type { DailyNutritionSummary, FoodEntry } from '@/features/nutrition/types';
 import { vs } from '@/theme/metrics';
 
-interface FoodLogCard {
-  id: string;
+interface MealSection {
   title: string;
-  time: string;
-  calories: string;
-  protein: string;
-  carbs: string;
-  fat: string;
-  icon: ComponentProps<typeof Icon>['name'];
-  previewStyle: 'sunrisePreview' | 'greenPreview' | 'nightPreview';
+  data: FoodEntry[];
+}
+
+function formatTimeLabel(consumedAt: string) {
+  const date = new Date(consumedAt);
+  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+}
+
+function getPreviewStyle(entry: FoodEntry) {
+  if (entry.proteinGrams >= entry.carbsGrams && entry.proteinGrams >= entry.fatGrams) {
+    return {
+      icon: 'fish-outline' as const,
+      previewStyle: 'nightPreview' as const,
+    };
+  }
+
+  if (entry.carbsGrams >= entry.fatGrams) {
+    return {
+      icon: 'nutrition-outline' as const,
+      previewStyle: 'sunrisePreview' as const,
+    };
+  }
+
+  return {
+    icon: 'water' as const,
+    previewStyle: 'greenPreview' as const,
+  };
+}
+
+function createEmptySummary(date: Date): DailyNutritionSummary {
+  return {
+    date: date.toISOString().slice(0, 10),
+    calorieTarget: 0,
+    consumedCalories: 0,
+    remainingCalories: 0,
+    progressPercent: 0,
+    proteinGrams: 0,
+    carbsGrams: 0,
+    fatGrams: 0,
+  };
 }
 
 export default function HomeTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
   const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [summary, setSummary] = useState<DailyNutritionSummary>(() =>
+    createEmptySummary(new Date())
+  );
+  const [entries, setEntries] = useState<FoodEntry[]>([]);
 
-  const mealCards: FoodLogCard[] = [
-    {
-      id: 'beef-bowl',
-      title: t('homeScreen.meals.items.beefBowl'),
-      time: '19:10',
-      calories: '475 kcal',
-      protein: '34 g',
-      carbs: '15 g',
-      fat: '12 g',
-      icon: 'restaurant-outline',
-      previewStyle: 'nightPreview',
-    },
-    {
-      id: 'kimchi-soup',
-      title: t('homeScreen.meals.items.kimchiSoup'),
-      time: '19:10',
-      calories: '465 kcal',
-      protein: '18 g',
-      carbs: '28 g',
-      fat: '16 g',
-      icon: 'flame-outline',
-      previewStyle: 'nightPreview',
-    },
-    {
-      id: 'salmon-salad',
-      title: t('homeScreen.meals.items.salmonSalad'),
-      time: '13:05',
-      calories: '430 kcal',
-      protein: '31 g',
-      carbs: '24 g',
-      fat: '18 g',
-      icon: 'fish-outline',
-      previewStyle: 'greenPreview',
-    },
-    {
-      id: 'greek-yogurt',
-      title: t('homeScreen.meals.items.greekYogurt'),
-      time: '13:05',
-      calories: '180 kcal',
-      protein: '8 g',
-      carbs: '18 g',
-      fat: '6 g',
-      icon: 'ice-cream-outline',
-      previewStyle: 'greenPreview',
-    },
-    {
-      id: 'egg-toast',
-      title: t('homeScreen.meals.items.eggToast'),
-      time: '08:15',
-      calories: '475 kcal',
-      protein: '34 g',
-      carbs: '15 g',
-      fat: '12 g',
-      icon: 'cafe-outline',
-      previewStyle: 'sunrisePreview',
-    },
-    {
-      id: 'banana-smoothie',
-      title: t('homeScreen.meals.items.bananaSmoothie'),
-      time: '08:15',
-      calories: '210 kcal',
-      protein: '9 g',
-      carbs: '33 g',
-      fat: '4 g',
-      icon: 'nutrition-outline',
-      previewStyle: 'sunrisePreview',
-    },
-  ];
+  const loadNutritionData = useCallback(async (date: Date) => {
+    const [nextSummary, nextEntries] = await Promise.all([
+      getDailyNutritionSummary(date),
+      listFoodEntriesByDate(date),
+    ]);
 
-  const mealSections = mealCards.reduce<Array<{ title: string; data: FoodLogCard[] }>>(
-    (acc, meal) => {
-      const existingSection = acc.find((section) => section.title === meal.time);
+    setSummary(nextSummary);
+    setEntries(nextEntries);
+  }, []);
+
+  useEffect(() => {
+    void loadNutritionData(selectedDate);
+  }, [loadNutritionData, selectedDate]);
+
+  const mealSections = useMemo<MealSection[]>(() => {
+    return entries.reduce<MealSection[]>((accumulator, entry) => {
+      const title = formatTimeLabel(entry.consumedAt);
+      const existingSection = accumulator.find((section) => section.title === title);
 
       if (existingSection) {
-        existingSection.data.push(meal);
-        return acc;
+        existingSection.data.push(entry);
+        return accumulator;
       }
 
-      acc.push({ title: meal.time, data: [meal] });
-      return acc;
-    },
-    []
-  );
+      accumulator.push({
+        title,
+        data: [entry],
+      });
+
+      return accumulator;
+    }, []);
+  }, [entries]);
+
+  const handleFavoriteToggle = async (entryId: string) => {
+    await toggleFavoriteFoodEntry(entryId);
+    await loadNutritionData(selectedDate);
+  };
 
   return (
     <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
@@ -127,6 +122,8 @@ export default function HomeTab() {
           </View>
         )}
         renderItem={({ item: meal }) => {
+          const preview = getPreviewStyle(meal);
+
           return (
             <View style={styles.itemTimelineRow}>
               <View style={styles.itemRail}>
@@ -136,19 +133,14 @@ export default function HomeTab() {
 
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={meal.title}
+                accessibilityLabel={meal.mealName}
                 style={styles.mealPressable}
                 onPress={() =>
                   router.push({
                     pathname: '/food-result',
                     params: {
                       mode: 'manual',
-                      title: meal.title,
-                      subtitle: meal.time,
-                      calories: meal.calories,
-                      carbs: meal.carbs,
-                      protein: meal.protein,
-                      fat: meal.fat,
+                      entryId: meal.id,
                     },
                   })
                 }
@@ -156,81 +148,73 @@ export default function HomeTab() {
                 <Card variant="elevated" style={styles.mealCard}>
                   <View style={styles.mealMainRow}>
                     <View style={styles.mealCopy}>
-                      <Text variant="h2">{meal.title}</Text>
-                      <View style={styles.detailRow}>
-                        <Text variant="caption" weight="semibold" color="accent">
-                          {t('homeScreen.meals.detailComposition')}
-                        </Text>
-                        <Icon name="chevron-forward" variant="accent" size={14} />
+                      <View style={styles.mealHeaderRow}>
+                        <View style={styles.mealTitleBlock}>
+                          <Text variant="h3">{meal.mealName}</Text>
+                          <Text variant="caption" color="secondary">
+                            {meal.quantityLabel}
+                          </Text>
+                        </View>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={
+                            meal.isFavorite
+                              ? t('homeScreen.meals.removeFavorite')
+                              : t('homeScreen.meals.addFavorite')
+                          }
+                          style={styles.favoriteButton}
+                          onPress={(event) => {
+                            event.stopPropagation();
+                            void handleFavoriteToggle(meal.id);
+                          }}
+                        >
+                          <Icon
+                            name={meal.isFavorite ? 'heart' : 'heart-outline'}
+                            size={18}
+                            variant={meal.isFavorite ? 'accent' : 'muted'}
+                          />
+                        </Pressable>
+                      </View>
+
+                      <View style={styles.macroPanel}>
+                        <View style={styles.macroColumn}>
+                          <Text variant="caption" color="secondary">
+                            {t('statsScreen.macros.protein')}
+                          </Text>
+                          <Text variant="bodySmall" weight="semibold">
+                            {`${Math.round(meal.proteinGrams)} ${t('common.units.gram')}`}
+                          </Text>
+                        </View>
+                        <View style={styles.macroDivider} />
+                        <View style={styles.macroColumn}>
+                          <Text variant="caption" color="secondary">
+                            {t('statsScreen.macros.carbs')}
+                          </Text>
+                          <Text variant="bodySmall" weight="semibold">
+                            {`${Math.round(meal.carbsGrams)} ${t('common.units.gram')}`}
+                          </Text>
+                        </View>
+                        <View style={styles.macroDivider} />
+                        <View style={styles.macroColumn}>
+                          <Text variant="caption" color="secondary">
+                            {t('statsScreen.macros.fat')}
+                          </Text>
+                          <Text variant="bodySmall" weight="semibold">
+                            {`${Math.round(meal.fatGrams)} ${t('common.units.gram')}`}
+                          </Text>
+                        </View>
                       </View>
                     </View>
 
-                    <View style={[styles.mealPreview, styles[meal.previewStyle]]}>
+                    <View style={[styles.mealPreview, styles[preview.previewStyle]]}>
                       <View style={styles.previewPlate}>
-                        <Icon name={meal.icon} variant="inverse" size={28} />
+                        <Icon name={preview.icon} variant="inverse" size={28} />
                       </View>
                       <View style={styles.previewCalories}>
                         <Text variant="caption" weight="semibold" color="inverse">
-                          {meal.calories}
+                          {`${Math.round(meal.totalCalories)} ${t('common.units.kcal')}`}
                         </Text>
                       </View>
-                    </View>
-                  </View>
-
-                  <View style={styles.macroRow}>
-                    <View style={styles.metricChip}>
-                      <Text
-                        variant="caption"
-                        color="secondary"
-                        numberOfLines={1}
-                        style={styles.metricLabel}
-                      >
-                        {t('statsScreen.macros.carbs')}
-                      </Text>
-                      <Text
-                        variant="caption"
-                        weight="semibold"
-                        numberOfLines={1}
-                        style={styles.metricValue}
-                      >
-                        {meal.carbs}
-                      </Text>
-                    </View>
-                    <View style={styles.metricChip}>
-                      <Text
-                        variant="caption"
-                        color="secondary"
-                        numberOfLines={1}
-                        style={styles.metricLabel}
-                      >
-                        {t('statsScreen.macros.protein')}
-                      </Text>
-                      <Text
-                        variant="caption"
-                        weight="semibold"
-                        numberOfLines={1}
-                        style={styles.metricValue}
-                      >
-                        {meal.protein}
-                      </Text>
-                    </View>
-                    <View style={styles.metricChip}>
-                      <Text
-                        variant="caption"
-                        color="secondary"
-                        numberOfLines={1}
-                        style={styles.metricLabel}
-                      >
-                        {t('statsScreen.macros.fat')}
-                      </Text>
-                      <Text
-                        variant="caption"
-                        weight="semibold"
-                        numberOfLines={1}
-                        style={styles.metricValue}
-                      >
-                        {meal.fat}
-                      </Text>
                     </View>
                   </View>
                 </Card>
@@ -256,7 +240,7 @@ export default function HomeTab() {
                 </View>
                 <View style={styles.dayPill}>
                   <Text variant="caption" weight="semibold">
-                    {t('homeScreen.dayCount')}
+                    {selectedDate.getDate()}/{selectedDate.getMonth() + 1}
                   </Text>
                 </View>
               </View>
@@ -266,7 +250,7 @@ export default function HomeTab() {
                   <Text variant="caption" color="secondary">
                     {t('homeScreen.target')}
                   </Text>
-                  <Text variant="h1">1,840</Text>
+                  <Text variant="h1">{summary.calorieTarget}</Text>
                   <Text variant="bodySmall" color="secondary">
                     {t('homeScreen.kcalToday')}
                   </Text>
@@ -275,9 +259,11 @@ export default function HomeTab() {
                   <Text variant="caption" color="secondary">
                     {t('homeScreen.remaining')}
                   </Text>
-                  <Text variant="h2">820</Text>
+                  <Text variant="h2">{summary.remainingCalories}</Text>
                   <Text variant="bodySmall" color="accent">
-                    {t('homeScreen.onTrack')}
+                    {summary.remainingCalories >= 0
+                      ? t('homeScreen.onTrack')
+                      : t('homeScreen.exceeded')}
                   </Text>
                 </View>
               </View>
@@ -287,10 +273,10 @@ export default function HomeTab() {
                   {t('homeScreen.progress')}
                 </Text>
                 <Text variant="bodySmall" weight="semibold">
-                  55%
+                  {summary.progressPercent}%
                 </Text>
               </View>
-              <ProgressBar value={55} size="lg" colorScheme="success" />
+              <ProgressBar value={summary.progressPercent} size="lg" colorScheme="success" />
 
               <View style={styles.quickStatsRow}>
                 <View style={[styles.macroTile, styles.macroTileProtein]}>
@@ -301,7 +287,7 @@ export default function HomeTab() {
                     {t('statsScreen.macros.protein')}
                   </Text>
                   <View style={styles.macroValueRow}>
-                    <Text variant="h3">160</Text>
+                    <Text variant="h3">{Math.round(summary.proteinGrams)}</Text>
                     <Text variant="caption" color="secondary">
                       {t('addScreen.result.metrics.gramsShort')}
                     </Text>
@@ -316,7 +302,7 @@ export default function HomeTab() {
                     {t('statsScreen.macros.carbs')}
                   </Text>
                   <View style={styles.macroValueRow}>
-                    <Text variant="h3">48</Text>
+                    <Text variant="h3">{Math.round(summary.carbsGrams)}</Text>
                     <Text variant="caption" color="secondary">
                       {t('addScreen.result.metrics.gramsShort')}
                     </Text>
@@ -331,7 +317,7 @@ export default function HomeTab() {
                     {t('statsScreen.macros.fat')}
                   </Text>
                   <View style={styles.macroValueRow}>
-                    <Text variant="h3">72</Text>
+                    <Text variant="h3">{Math.round(summary.fatGrams)}</Text>
                     <Text variant="caption" color="secondary">
                       {t('addScreen.result.metrics.gramsShort')}
                     </Text>
@@ -339,6 +325,15 @@ export default function HomeTab() {
                 </View>
               </View>
             </LinearGradient>
+
+            {entries.length === 0 ? (
+              <Card variant="filled" style={styles.emptyCard}>
+                <Text variant="h3">{t('homeScreen.meals.emptyTitle')}</Text>
+                <Text variant="bodySmall" color="secondary">
+                  {t('homeScreen.meals.emptySubtitle')}
+                </Text>
+              </Card>
+            ) : null}
           </View>
         }
       />
@@ -435,20 +430,16 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     backgroundColor: theme.colors.background.modal,
   },
-  mealSection: {
-    gap: theme.metrics.spacingV.p12,
+  emptyCard: {
+    gap: theme.metrics.spacingV.p8,
   },
-  sectionContent: {
-    flex: 1,
+  mealSection: {
     gap: theme.metrics.spacingV.p12,
   },
   sectionTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: theme.metrics.spacing.p20,
-  },
-  sectionItems: {
-    gap: theme.metrics.spacingV.p12,
   },
   itemTimelineRow: {
     flexDirection: 'row',
@@ -473,13 +464,12 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: theme.metrics.spacingV.p4,
     backgroundColor: theme.colors.state.infoBg,
   },
-  mealCard: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p12,
-    backgroundColor: theme.colors.background.surface,
-  },
   mealPressable: {
     flex: 1,
+  },
+  mealCard: {
+    flex: 1,
+    backgroundColor: theme.colors.background.surface,
   },
   mealMainRow: {
     flexDirection: 'row',
@@ -491,14 +481,44 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'space-between',
     gap: theme.metrics.spacingV.p8,
   },
-  detailRow: {
+  mealHeaderRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p8,
+  },
+  mealTitleBlock: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  favoriteButton: {
+    width: theme.metrics.spacing.p32,
+    height: theme.metrics.spacing.p32,
+    borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
-    gap: theme.metrics.spacing.p4,
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.section,
+  },
+  macroPanel: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    borderRadius: theme.metrics.borderRadius.lg,
+    backgroundColor: theme.colors.background.section,
+    overflow: 'hidden',
+  },
+  macroColumn: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
+  },
+  macroDivider: {
+    width: 1,
+    backgroundColor: theme.colors.border.subtle,
   },
   mealPreview: {
     width: theme.metrics.spacing.p112,
-    minHeight: theme.metrics.spacing.p96,
+    minHeight: theme.metrics.spacing.p104,
     borderRadius: theme.metrics.borderRadius.lg,
     padding: theme.metrics.spacing.p8,
     justifyContent: 'flex-end',
@@ -528,28 +548,5 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.metrics.spacingV.p4,
     borderRadius: theme.metrics.borderRadius.full,
     backgroundColor: theme.colors.overlay.modal,
-  },
-  macroRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.metrics.spacing.p8,
-  },
-  metricChip: {
-    flex: 1,
-    minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p8,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.background.surfaceAlt,
-  },
-  metricLabel: {
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  metricValue: {
-    flexShrink: 0,
   },
 }));

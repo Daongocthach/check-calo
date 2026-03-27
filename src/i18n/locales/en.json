@@ -15,6 +15,12 @@
     "edit": "Edit",
     "submit": "Submit",
     "ok": "OK",
+    "units": {
+      "cm": "cm",
+      "kg": "kg",
+      "kcal": "kcal",
+      "gram": "g"
+    },
     "syncStatus": {
       "syncNow": "Sync now",
       "loginToSync": "Log in to sync",
@@ -108,6 +114,7 @@
     "kcalToday": "kcal / today",
     "remaining": "Remaining",
     "onTrack": "On track",
+    "exceeded": "Over target",
     "progress": "Progress",
     "steps": "Step to walk",
     "stepsValue": "steps",
@@ -131,6 +138,10 @@
       "title": "Meals for today",
       "subtitle": "Most recent first",
       "detailComposition": "Detail composition",
+      "addFavorite": "Add favorite",
+      "removeFavorite": "Remove favorite",
+      "emptyTitle": "No meals logged yet",
+      "emptySubtitle": "Add your first meal to start tracking calories and macros today.",
       "comboLabel": "Combo {{first}} + {{second}}",
       "breakfast": "Breakfast",
       "breakfastTime": "07:00 - 08:30",
@@ -158,10 +169,18 @@
     "subtitle": "Quick view of calories, workouts, and weight changes.",
     "weekly": "Weekly",
     "peakDuration": "70 min",
+    "modes": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
     "metrics": {
       "completed": "Completed",
       "caloriesBurn": "kcal burned",
-      "weightToLose": "kg to goal"
+      "weightToLose": "kg to goal",
+      "caloriesConsumed": "Calories today",
+      "calorieTarget": "Today's target",
+      "remainingCalories": "Remaining calories"
     },
     "days": {
       "sat": "Sat",
@@ -182,9 +201,20 @@
     },
     "macros": {
       "title": "Macro split",
+      "subtitle": "Protein, carb, and fat intake logged for today.",
+      "centerLabel": "Total macros",
+      "empty": "No macro data logged for today.",
       "carbs": "Carb",
       "protein": "Protein",
       "fat": "Chất béo"
+    },
+    "todayProgress": {
+      "title": "Today's progress",
+      "subtitle": "Track how your calorie intake compares with your current goal."
+    },
+    "trends": {
+      "title": "Calorie trends",
+      "subtitle": "Total calorie intake grouped by day, week, and month."
     }
   },
   "addScreen": {
@@ -260,15 +290,27 @@
   "manualFoodEntry": {
     "title": "Manual entry",
     "subtitle": "Fill in the food details yourself before saving the meal.",
+    "editTitle": "Edit meal",
+    "saveAction": "Save meal",
+    "updateAction": "Update meal",
+    "favoriteSectionTitle": "Quick pick from favorites",
+    "favoriteSectionHint": "Tap to load values into the form, or long press to save it straight to today.",
     "fields": {
       "foodName": "Food name",
       "quantity": "Quantity",
-      "calories": "Calories"
+      "quantityLabel": "Quantity",
+      "calories": "Calories",
+      "protein": "Protein",
+      "carbs": "Carb",
+      "fat": "Chất béo",
+      "notes": "Notes"
     },
     "placeholders": {
       "foodName": "Example: Chicken salad",
       "quantity": "Example: 1 serving",
-      "calories": "Example: 420"
+      "calories": "Example: 420",
+      "macro": "Example: 24",
+      "notes": "Example: extra greens, less sauce"
     }
   },
   "favoritesScreen": {
@@ -277,6 +319,10 @@
     "heroTitle": "Saved meals",
     "heroSubtitle": "Your go-to healthy picks",
     "savedItem": "Saved meal",
+    "removeTitle": "Remove favorite",
+    "removeMessage": "Are you sure you want to remove {{mealName}} from favorites?",
+    "emptyTitle": "No favorites yet",
+    "emptySubtitle": "Tap the heart on the home screen to save meals for faster reuse.",
     "filters": {
       "all": "All",
       "protein": "High protein",
@@ -302,19 +348,33 @@
     "subtitle": "Set up your BMI details once so the app can personalize daily calorie goals.",
     "profileStatus": "BMI profile",
     "formTitle": "Tell us about you",
-    "formSubtitle": "We use age, height, and weight to estimate your body metrics.",
+    "formSubtitle": "We use age, gender, height, weight, and activity to estimate your daily calorie goal.",
     "summaryTitle": "Your current profile",
-    "summaryBody": "BMI {{bmi}} with height {{height}} cm and weight {{weight}} kg.",
+    "summaryBody": "BMI {{bmi}} and a target of {{calorieTarget}} kcal per day.",
     "saveAction": "Save and start",
     "continueAction": "Continue to dashboard",
     "status": {
       "missing": "Profile missing",
-      "ready": "BMI {{bmi}} ready"
+      "ready": "BMI {{bmi}} • {{calorieTarget}} kcal/day"
     },
     "fields": {
+      "gender": "Gender",
       "age": "Age",
       "height": "Height (cm)",
-      "weight": "Weight (kg)"
+      "weight": "Weight (kg)",
+      "activityLevel": "Activity level"
+    },
+    "genderOptions": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "activityLevels": {
+      "sedentary": "Sedentary",
+      "light": "Lightly active",
+      "moderate": "Moderately active",
+      "active": "Active",
+      "very_active": "Very active"
     },
     "placeholders": {
       "age": "Enter age",
@@ -325,6 +385,29 @@
       "number": "Please enter a valid number",
       "positive": "Value must be greater than 0"
     }
+  },
+  "profileScreen": {
+    "title": "Nutrition profile",
+    "subtitle": "Quick view of BMI, calorie goal, and your baseline body stats.",
+    "editAction": "Edit profile",
+    "goalTitle": "Daily goal",
+    "bodyMetricsTitle": "Body metrics",
+    "emptyTitle": "No profile yet",
+    "emptySubtitle": "Complete the welcome setup so the app can calculate your calorie target.",
+    "metrics": {
+      "bmi": "BMI",
+      "gender": "Gender",
+      "activity": "Activity"
+    },
+    "theme": {
+      "light": "Light",
+      "dark": "Dark"
+    }
+  },
+  "foodDetail": {
+    "deleteTitle": "Delete meal",
+    "deleteMessage": "Are you sure you want to delete {{mealName}} from today's log?",
+    "deleteAction": "Delete meal"
   },
   "settings": {
     "title": "Settings",

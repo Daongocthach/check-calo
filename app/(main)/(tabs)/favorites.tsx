@@ -1,42 +1,55 @@
-import { useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Icon, ScreenContainer, Text } from '@/common/components';
+import {
+  deleteFavoriteFood,
+  listFavoriteFoods,
+} from '@/features/nutrition/services/nutritionDatabase';
+import type { FavoriteFood } from '@/features/nutrition/types';
+import { useAppAlert } from '@/providers/app-alert';
 import { vs } from '@/theme/metrics';
-
-interface FavoriteItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  calories: string;
-}
 
 export default function FavoritesTab() {
   const { t } = useTranslation();
-  const [filter, setFilter] = useState<'all' | 'protein' | 'lowCarb'>('all');
+  const appAlert = useAppAlert();
+  const [items, setItems] = useState<FavoriteFood[]>([]);
 
-  const filters: Array<'all' | 'protein' | 'lowCarb'> = ['all', 'protein', 'lowCarb'];
-  const items: FavoriteItem[] = [
-    {
-      id: 'salad',
-      title: t('favoritesScreen.items.salmonSalad.title'),
-      subtitle: t('favoritesScreen.items.salmonSalad.subtitle'),
-      calories: '430 kcal',
-    },
-    {
-      id: 'bowl',
-      title: t('favoritesScreen.items.greenBowl.title'),
-      subtitle: t('favoritesScreen.items.greenBowl.subtitle'),
-      calories: '380 kcal',
-    },
-    {
-      id: 'toast',
-      title: t('favoritesScreen.items.avocadoToast.title'),
-      subtitle: t('favoritesScreen.items.avocadoToast.subtitle'),
-      calories: '310 kcal',
-    },
-  ];
+  const loadFavorites = useCallback(async () => {
+    const favorites = await listFavoriteFoods();
+    setItems(favorites);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadFavorites();
+    }, [loadFavorites])
+  );
+
+  const handleRemoveFavorite = (favorite: FavoriteFood) => {
+    appAlert.alert(
+      t('favoritesScreen.removeTitle'),
+      t('favoritesScreen.removeMessage', { mealName: favorite.name }),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('common.confirm'),
+          style: 'destructive',
+          onPress: () => {
+            void deleteFavoriteFood(favorite.id).then(() => {
+              void loadFavorites();
+            });
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ScreenContainer scrollable padded edges={['bottom']} tabBarAware>
@@ -51,51 +64,70 @@ export default function FavoritesTab() {
               {t('favoritesScreen.heroSubtitle')}
             </Text>
           </View>
-          <Text variant="h2">18</Text>
+          <Text variant="h2">{items.length}</Text>
         </Card>
 
-        <View style={styles.filterRow}>
-          {filters.map((item) => {
-            const active = filter === item;
-            return (
-              <Pressable
-                key={item}
-                accessibilityRole="button"
-                accessibilityLabel={t(`favoritesScreen.filters.${item}`)}
-                style={[styles.filterPill, active && styles.filterPillActive]}
-                onPress={() => setFilter(item)}
-              >
-                <Text variant="caption" weight="semibold" color={active ? 'primary' : 'secondary'}>
-                  {t(`favoritesScreen.filters.${item}`)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
         <View style={styles.list}>
-          {items.map((item) => (
-            <Card key={item.id} variant="filled" style={styles.itemCard}>
-              <View style={styles.foodThumb}>
-                <Icon name="nutrition-outline" variant="secondary" size={22} />
-              </View>
-              <View style={styles.itemCopy}>
-                <Text variant="h3">{item.title}</Text>
-                <Text variant="bodySmall" color="secondary">
-                  {item.subtitle}
-                </Text>
-                <Text variant="caption" color="accent">
-                  {item.calories}
-                </Text>
-              </View>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('favoritesScreen.savedItem')}
-                style={styles.savedButton}
-              >
-                <Icon name="heart" variant="accent" size={18} />
-              </Pressable>
+          {items.length === 0 ? (
+            <Card variant="filled" style={styles.emptyCard}>
+              <Text variant="h3">{t('favoritesScreen.emptyTitle')}</Text>
+              <Text variant="bodySmall" color="secondary">
+                {t('favoritesScreen.emptySubtitle')}
+              </Text>
             </Card>
+          ) : null}
+
+          {items.map((item) => (
+            <Pressable
+              key={item.id}
+              accessibilityRole="button"
+              accessibilityLabel={item.name}
+              onPress={() =>
+                router.push({
+                  pathname: '/food-result',
+                  params: {
+                    mode: 'manual',
+                    title: item.name,
+                    subtitle: item.quantityLabel,
+                    calories: `${Math.round(item.totalCalories)} kcal`,
+                    protein: `${Math.round(item.proteinGrams)} g`,
+                    carbs: `${Math.round(item.carbsGrams)} g`,
+                    fat: `${Math.round(item.fatGrams)} g`,
+                  },
+                })
+              }
+            >
+              <Card variant="filled" style={styles.itemCard}>
+                <View style={styles.foodThumb}>
+                  <Icon name="nutrition-outline" variant="secondary" size={22} />
+                </View>
+                <View style={styles.itemCopy}>
+                  <Text variant="h3">{item.name}</Text>
+                  <Text variant="bodySmall" color="secondary">
+                    {item.quantityLabel}
+                  </Text>
+                  <View style={styles.metaRow}>
+                    <Text variant="caption" color="accent">
+                      {`${Math.round(item.totalCalories)} ${t('common.units.kcal')}`}
+                    </Text>
+                    <Text variant="caption" color="secondary">
+                      {`${Math.round(item.proteinGrams)}P • ${Math.round(item.carbsGrams)}C • ${Math.round(item.fatGrams)}F`}
+                    </Text>
+                  </View>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('favoritesScreen.savedItem')}
+                  style={styles.savedButton}
+                  onPress={(event) => {
+                    event.stopPropagation();
+                    handleRemoveFavorite(item);
+                  }}
+                >
+                  <Icon name="heart" variant="accent" size={18} />
+                </Pressable>
+              </Card>
+            </Pressable>
           ))}
         </View>
       </View>
@@ -125,22 +157,11 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     gap: theme.metrics.spacingV.p4,
   },
-  filterRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.metrics.spacing.p8,
-  },
-  filterPill: {
-    paddingHorizontal: theme.metrics.spacing.p16,
-    paddingVertical: theme.metrics.spacingV.p12,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.background.surface,
-  },
-  filterPillActive: {
-    backgroundColor: theme.colors.brand.primary,
-  },
   list: {
     gap: theme.metrics.spacingV.p12,
+  },
+  emptyCard: {
+    gap: theme.metrics.spacingV.p8,
   },
   itemCard: {
     flexDirection: 'row',
@@ -157,7 +178,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   itemCopy: {
     flex: 1,
-    gap: vs(2),
+    gap: vs(4),
+  },
+  metaRow: {
+    gap: theme.metrics.spacingV.p4,
   },
   savedButton: {
     width: theme.metrics.spacing.p36,

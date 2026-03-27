@@ -2,7 +2,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -13,6 +13,7 @@ import { QueryProvider } from '@/providers';
 import { AppAlertProvider } from '@/providers/app-alert/AppAlertProvider';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { CameraProvider } from '@/providers/camera';
+import { initializeDatabase } from '@/services/database/sqlite';
 import InterBold from '../assets/fonts/Inter-Bold.ttf';
 import InterMedium from '../assets/fonts/Inter-Medium.ttf';
 import InterRegular from '../assets/fonts/Inter-Regular.ttf';
@@ -65,14 +66,35 @@ export default function RootLayout() {
     'Inter-SemiBold': InterSemiBold,
     'Inter-Bold': InterBold,
   });
+  const [databaseReady, setDatabaseReady] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    void initializeDatabase()
+      .catch((error: unknown) => {
+        if (__DEV__) {
+          console.error('Failed to initialize database', error);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setDatabaseReady(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded || fontError) {
+    if ((fontsLoaded || fontError) && databaseReady) {
       await SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError]);
+  }, [databaseReady, fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) {
+  if ((!fontsLoaded && !fontError) || !databaseReady) {
     return null;
   }
 

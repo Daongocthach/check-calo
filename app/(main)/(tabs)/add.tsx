@@ -6,15 +6,7 @@ import { Pressable, View } from 'react-native';
 import Animated, { SlideInDown } from 'react-native-reanimated';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Icon, ScreenContainer, Text } from '@/common/components';
-import { useOpenCamera, useOpenQrScanner } from '@/providers/camera';
 import { hs, vs } from '@/theme/metrics';
-
-interface ActionCard {
-  key: 'scanFood' | 'barcode' | 'manual';
-  label: string;
-  icon: 'camera-outline' | 'barcode-outline' | 'create-outline';
-  onPress: () => void | Promise<void>;
-}
 
 const PREVIEW_IMAGE_URI =
   'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80';
@@ -22,55 +14,6 @@ const PREVIEW_IMAGE_URI =
 export default function AddCaloriesTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
-  const openCamera = useOpenCamera();
-  const openQrScanner = useOpenQrScanner();
-
-  const actions: ActionCard[] = [
-    {
-      key: 'scanFood',
-      label: t('addScreen.captureModes.scanFood'),
-      icon: 'camera-outline',
-      onPress: async () => {
-        const file = await openCamera();
-
-        if (file?.uri) {
-          router.push({
-            pathname: '/food-result',
-            params: {
-              mode: 'scanFood',
-              imageUri: file.uri,
-            },
-          });
-        }
-      },
-    },
-    {
-      key: 'barcode',
-      label: t('addScreen.captureModes.barcode'),
-      icon: 'barcode-outline',
-      onPress: async () => {
-        const barcodeValue = await openQrScanner();
-
-        if (barcodeValue) {
-          router.push({
-            pathname: '/food-result',
-            params: {
-              mode: 'barcode',
-              barcodeValue,
-            },
-          });
-        }
-      },
-    },
-    {
-      key: 'manual',
-      label: t('addScreen.captureModes.manual'),
-      icon: 'create-outline',
-      onPress: () => {
-        router.push('/manual-food-entry');
-      },
-    },
-  ];
 
   return (
     <ScreenContainer edges={['bottom']} tabBarAware>
@@ -101,26 +44,27 @@ export default function AddCaloriesTab() {
               {t('addScreen.modalSubtitle')}
             </Text>
 
-            <View style={styles.actionRow}>
-              {actions.map((action) => (
-                <Pressable
-                  key={action.key}
-                  accessibilityRole="button"
-                  accessibilityLabel={action.label}
-                  style={styles.actionButton}
-                  onPress={() => {
-                    void action.onPress();
-                  }}
-                >
-                  <View style={styles.actionIconWrap}>
-                    <Icon name={action.icon} variant="primary" size={22} />
-                  </View>
-                  <Text variant="caption" weight="semibold" align="center">
-                    {action.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('addScreen.captureModes.manual')}
+              style={styles.singleActionButton}
+              onPress={() => {
+                router.push('/manual-food-entry');
+              }}
+            >
+              <View style={styles.actionIconWrap}>
+                <Icon name="create-outline" variant="primary" size={22} />
+              </View>
+              <View style={styles.singleActionCopy}>
+                <Text variant="body" weight="semibold">
+                  {t('addScreen.captureModes.manual')}
+                </Text>
+                <Text variant="caption" color="secondary">
+                  {t('addScreen.modeContent.manual.body')}
+                </Text>
+              </View>
+              <Icon name="chevron-forward" variant="muted" size={18} />
+            </Pressable>
           </Animated.View>
         </LinearGradient>
       </View>
@@ -220,19 +164,14 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     backgroundColor: theme.colors.border.default,
   },
-  actionRow: {
+  singleActionButton: {
     flexDirection: 'row',
-    gap: theme.metrics.spacing.p8,
-  },
-  actionButton: {
-    flex: 1,
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
     minHeight: vs(92),
     borderRadius: theme.metrics.borderRadius.lg,
     backgroundColor: theme.colors.background.section,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.metrics.spacingV.p8,
-    paddingHorizontal: theme.metrics.spacing.p8,
+    paddingHorizontal: theme.metrics.spacing.p12,
     paddingVertical: theme.metrics.spacingV.p12,
   },
   actionIconWrap: {
@@ -242,5 +181,9 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background.surface,
+  },
+  singleActionCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
   },
 }));

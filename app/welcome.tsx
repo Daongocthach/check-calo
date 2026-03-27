@@ -1,73 +1,102 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Card, Icon, Input, ScreenContainer, Text } from '@/common/components';
+import { ACTIVITY_LEVEL_KEYS, GENDER_KEYS } from '@/features/nutrition/constants';
+import { getUserProfile, upsertUserProfile } from '@/features/nutrition/services/nutritionDatabase';
+import type { ActivityLevel, Gender } from '@/features/nutrition/types';
 import { vs } from '@/theme/metrics';
-import { STORAGE_KEYS } from '@/utils/storage/constants';
-import { useStorage } from '@/utils/storage/useStorage';
-
-interface BmiProfile {
-  age: number;
-  height: number;
-  weight: number;
-  bmi: number;
-}
 
 interface ProfileFormState {
+  gender: Gender;
   age: string;
   height: string;
   weight: string;
+  activityLevel: ActivityLevel;
 }
 
-type FormErrors = Partial<Record<keyof ProfileFormState, string>>;
+type FormErrors = Partial<Record<'age' | 'height' | 'weight', string>>;
 
-function calculateBmi(height: number, weight: number) {
-  const heightInMeters = height / 100;
-  return weight / (heightInMeters * heightInMeters);
-}
+const DEFAULT_FORM: ProfileFormState = {
+  gender: 'male',
+  age: '',
+  height: '',
+  weight: '',
+  activityLevel: 'moderate',
+};
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { theme } = useUnistyles();
-  const { value, setValue, loading } = useStorage<BmiProfile>(STORAGE_KEYS.profile.bmiProfile);
-
-  const [form, setForm] = useState<ProfileFormState>({
-    age: '',
-    height: '',
-    weight: '',
-  });
+  const [form, setForm] = useState<ProfileFormState>(DEFAULT_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [currentBmi, setCurrentBmi] = useState<number | null>(null);
+  const [currentTarget, setCurrentTarget] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!value) return;
+  const loadProfile = useCallback(async () => {
+    setIsLoading(true);
+    const profile = await getUserProfile();
 
+    if (!profile) {
+      setHasProfile(false);
+      setCurrentBmi(null);
+      setCurrentTarget(null);
+      setForm(DEFAULT_FORM);
+      setIsLoading(false);
+      return;
+    }
+
+    setHasProfile(true);
+    setCurrentBmi(profile.bmi);
+    setCurrentTarget(profile.dailyCalorieTarget);
     setForm({
-      age: String(value.age),
-      height: String(value.height),
-      weight: String(value.weight),
+      gender: profile.gender,
+      age: String(profile.age),
+      height: String(profile.heightCm),
+      weight: String(profile.weightKg),
+      activityLevel: profile.activityLevel,
     });
-  }, [value]);
+    setIsLoading(false);
+  }, []);
 
-  const bmiStatus = useMemo(() => {
-    if (!value) return t('welcomeScreen.status.missing');
-    return t('welcomeScreen.status.ready', { bmi: value.bmi.toFixed(1) });
-  }, [t, value]);
+  useFocusEffect(
+    useCallback(() => {
+      void loadProfile();
+    }, [loadProfile])
+  );
 
-  const handleChange = (field: keyof ProfileFormState, nextValue: string) => {
+  const profileStatus = useMemo(() => {
+    if (currentBmi === null || currentTarget === null) {
+      return t('welcomeScreen.status.missing');
+    }
+
+    return t('welcomeScreen.status.ready', {
+      bmi: currentBmi.toFixed(1),
+      calorieTarget: currentTarget,
+    });
+  }, [currentBmi, currentTarget, t]);
+
+  const updateField = (field: keyof ProfileFormState, value: string | Gender | ActivityLevel) => {
     setForm((prev) => ({
       ...prev,
-      [field]: nextValue,
+      [field]: value,
     }));
 
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: undefined,
-      }));
+    if (field === 'age' || field === 'height' || field === 'weight') {
+      if (errors[field]) {
+        setErrors((prev) => ({
+          ...prev,
+          [field]: undefined,
+        }));
+      }
     }
   };
 
@@ -75,50 +104,59 @@ export default function WelcomeScreen() {
     router.replace('/(main)/(tabs)');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const nextErrors: FormErrors = {};
-
-    if (!form.age.trim()) nextErrors.age = t('validation.required');
-    if (!form.height.trim()) nextErrors.height = t('validation.required');
-    if (!form.weight.trim()) nextErrors.weight = t('validation.required');
-
     const age = Number(form.age);
-    const height = Number(form.height);
-    const weight = Number(form.weight);
+    const heightCm = Number(form.height);
+    const weightKg = Number(form.weight);
 
-    if (form.age.trim() && Number.isNaN(age)) nextErrors.age = t('welcomeScreen.validation.number');
-    if (form.height.trim() && Number.isNaN(height)) {
+    if (!form.age.trim()) {
+      nextErrors.age = t('validation.required');
+    } else if (Number.isNaN(age)) {
+      nextErrors.age = t('welcomeScreen.validation.number');
+    } else if (age <= 0) {
+      nextErrors.age = t('welcomeScreen.validation.positive');
+    }
+
+    if (!form.height.trim()) {
+      nextErrors.height = t('validation.required');
+    } else if (Number.isNaN(heightCm)) {
       nextErrors.height = t('welcomeScreen.validation.number');
-    }
-    if (form.weight.trim() && Number.isNaN(weight)) {
-      nextErrors.weight = t('welcomeScreen.validation.number');
-    }
-
-    if (form.height.trim() && height <= 0) {
+    } else if (heightCm <= 0) {
       nextErrors.height = t('welcomeScreen.validation.positive');
     }
-    if (form.weight.trim() && weight <= 0) {
+
+    if (!form.weight.trim()) {
+      nextErrors.weight = t('validation.required');
+    } else if (Number.isNaN(weightKg)) {
+      nextErrors.weight = t('welcomeScreen.validation.number');
+    } else if (weightKg <= 0) {
       nextErrors.weight = t('welcomeScreen.validation.positive');
     }
-    if (form.age.trim() && age <= 0) nextErrors.age = t('welcomeScreen.validation.positive');
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       return;
     }
 
-    const bmi = calculateBmi(height, weight);
-    setValue({
+    setIsSaving(true);
+
+    const profile = await upsertUserProfile({
+      gender: form.gender,
       age,
-      height,
-      weight,
-      bmi: Number(bmi.toFixed(1)),
+      heightCm,
+      weightKg,
+      activityLevel: form.activityLevel,
     });
 
+    setCurrentBmi(profile?.bmi ?? null);
+    setCurrentTarget(profile?.dailyCalorieTarget ?? null);
+    setHasProfile(true);
+    setIsSaving(false);
     router.replace('/(main)/(tabs)');
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <ScreenContainer padded edges={['top', 'bottom']}>
         <Text>{t('common.loading')}</Text>
@@ -143,7 +181,7 @@ export default function WelcomeScreen() {
             <Text variant="caption" color="secondary">
               {t('welcomeScreen.profileStatus')}
             </Text>
-            <Text variant="h3">{bmiStatus}</Text>
+            <Text variant="h3">{profileStatus}</Text>
           </Card>
         </LinearGradient>
 
@@ -155,10 +193,37 @@ export default function WelcomeScreen() {
             </Text>
           </View>
 
+          <View style={styles.optionGroup}>
+            <Text variant="label">{t('welcomeScreen.fields.gender')}</Text>
+            <View style={styles.optionRow}>
+              {GENDER_KEYS.map((gender) => {
+                const isActive = form.gender === gender;
+
+                return (
+                  <Pressable
+                    key={gender}
+                    accessibilityRole="button"
+                    accessibilityLabel={t(`welcomeScreen.genderOptions.${gender}`)}
+                    style={[styles.optionPill, isActive && styles.optionPillActive]}
+                    onPress={() => updateField('gender', gender)}
+                  >
+                    <Text
+                      variant="caption"
+                      weight="semibold"
+                      color={isActive ? 'inverse' : 'secondary'}
+                    >
+                      {t(`welcomeScreen.genderOptions.${gender}`)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
           <Input
             label={t('welcomeScreen.fields.age')}
             value={form.age}
-            onChangeText={(nextValue) => handleChange('age', nextValue)}
+            onChangeText={(value) => updateField('age', value)}
             keyboardType="number-pad"
             error={errors.age}
             placeholder={t('welcomeScreen.placeholders.age')}
@@ -166,7 +231,7 @@ export default function WelcomeScreen() {
           <Input
             label={t('welcomeScreen.fields.height')}
             value={form.height}
-            onChangeText={(nextValue) => handleChange('height', nextValue)}
+            onChangeText={(value) => updateField('height', value)}
             keyboardType="number-pad"
             error={errors.height}
             placeholder={t('welcomeScreen.placeholders.height')}
@@ -174,29 +239,62 @@ export default function WelcomeScreen() {
           <Input
             label={t('welcomeScreen.fields.weight')}
             value={form.weight}
-            onChangeText={(nextValue) => handleChange('weight', nextValue)}
+            onChangeText={(value) => updateField('weight', value)}
             keyboardType="number-pad"
             error={errors.weight}
             placeholder={t('welcomeScreen.placeholders.weight')}
           />
+
+          <View style={styles.optionGroup}>
+            <Text variant="label">{t('welcomeScreen.fields.activityLevel')}</Text>
+            <View style={styles.optionWrap}>
+              {ACTIVITY_LEVEL_KEYS.map((activityLevel) => {
+                const isActive = form.activityLevel === activityLevel;
+
+                return (
+                  <Pressable
+                    key={activityLevel}
+                    accessibilityRole="button"
+                    accessibilityLabel={t(`welcomeScreen.activityLevels.${activityLevel}`)}
+                    style={[styles.optionPill, isActive && styles.optionPillActive]}
+                    onPress={() => updateField('activityLevel', activityLevel)}
+                  >
+                    <Text
+                      variant="caption"
+                      weight="semibold"
+                      color={isActive ? 'inverse' : 'secondary'}
+                    >
+                      {t(`welcomeScreen.activityLevels.${activityLevel}`)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
         </Card>
 
-        {value ? (
+        {currentBmi !== null && currentTarget !== null ? (
           <Card variant="filled" style={styles.summaryCard}>
             <Text variant="h3">{t('welcomeScreen.summaryTitle')}</Text>
             <Text variant="bodySmall" color="secondary">
               {t('welcomeScreen.summaryBody', {
-                bmi: value.bmi.toFixed(1),
-                height: value.height,
-                weight: value.weight,
+                bmi: currentBmi.toFixed(1),
+                calorieTarget: currentTarget,
               })}
             </Text>
           </Card>
         ) : null}
 
         <View style={styles.actions}>
-          <Button title={t('welcomeScreen.saveAction')} fullWidth onPress={handleSubmit} />
-          {value ? (
+          <Button
+            title={t('welcomeScreen.saveAction')}
+            fullWidth
+            loading={isSaving}
+            onPress={() => {
+              void handleSubmit();
+            }}
+          />
+          {hasProfile ? (
             <Button
               title={t('welcomeScreen.continueAction')}
               variant="secondary"
@@ -240,6 +338,30 @@ const styles = StyleSheet.create((theme) => ({
   },
   formHeader: {
     gap: theme.metrics.spacingV.p4,
+  },
+  optionGroup: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+  },
+  optionWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.metrics.spacing.p8,
+  },
+  optionPill: {
+    minWidth: '30%',
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.section,
+  },
+  optionPillActive: {
+    backgroundColor: theme.colors.brand.primary,
   },
   summaryCard: {
     gap: vs(6),

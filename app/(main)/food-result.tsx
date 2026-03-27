@@ -1,11 +1,14 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Icon, ScreenContainer, Text } from '@/common/components';
+import { deleteFoodEntry, getFoodEntryById } from '@/features/nutrition/services/nutritionDatabase';
+import { useAppAlert } from '@/providers/app-alert';
 import { hs, vs } from '@/theme/metrics';
 
 type ResultMode = 'scanFood' | 'barcode' | 'manual';
@@ -131,10 +134,12 @@ function getModePreset(
 export default function FoodResultScreen() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
+  const appAlert = useAppAlert();
   const params = useLocalSearchParams<{
     mode?: string;
     imageUri?: string;
     barcodeValue?: string;
+    entryId?: string;
     title?: string;
     subtitle?: string;
     calories?: string;
@@ -142,23 +147,76 @@ export default function FoodResultScreen() {
     protein?: string;
     fat?: string;
   }>();
+  const [entryData, setEntryData] = useState<{
+    id: string;
+    title: string;
+    subtitle: string;
+    calories: string;
+    carbs: string;
+    protein: string;
+    fat: string;
+    notes: string;
+  } | null>(null);
   const mode = toResultMode(params.mode);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      if (typeof params.entryId !== 'string' || !params.entryId) {
+        setEntryData(null);
+        return undefined;
+      }
+
+      void getFoodEntryById(params.entryId).then((entry) => {
+        if (!active || !entry) {
+          return;
+        }
+
+        const consumedAt = new Date(entry.consumedAt);
+        const hours = consumedAt.getHours().toString().padStart(2, '0');
+        const minutes = consumedAt.getMinutes().toString().padStart(2, '0');
+
+        setEntryData({
+          id: entry.id,
+          title: entry.mealName,
+          subtitle: `${hours}:${minutes} • ${entry.quantityLabel}`,
+          calories: `${Math.round(entry.totalCalories)} kcal`,
+          carbs: `${Math.round(entry.carbsGrams)} g`,
+          protein: `${Math.round(entry.proteinGrams)} g`,
+          fat: `${Math.round(entry.fatGrams)} g`,
+          notes: entry.notes ?? '',
+        });
+      });
+
+      return () => {
+        active = false;
+      };
+    }, [params.entryId])
+  );
+
   const preset = useMemo(
     () =>
       getModePreset(
         mode,
         params.barcodeValue,
         {
-          title: params.title,
-          subtitle: params.subtitle,
-          calories: params.calories,
-          carbs: params.carbs,
-          protein: params.protein,
-          fat: params.fat,
+          title: entryData?.title ?? params.title,
+          subtitle: entryData?.subtitle ?? params.subtitle,
+          calories: entryData?.calories ?? params.calories,
+          carbs: entryData?.carbs ?? params.carbs,
+          protein: entryData?.protein ?? params.protein,
+          fat: entryData?.fat ?? params.fat,
         },
         t
       ),
     [
+      entryData?.calories,
+      entryData?.carbs,
+      entryData?.fat,
+      entryData?.protein,
+      entryData?.subtitle,
+      entryData?.title,
       mode,
       params.barcodeValue,
       params.calories,
@@ -176,6 +234,32 @@ export default function FoodResultScreen() {
     typeof params.imageUri === 'string' && params.imageUri.length > 0
       ? params.imageUri
       : FALLBACK_IMAGE_URI;
+
+  const handleDeleteEntry = () => {
+    if (!entryData) {
+      return;
+    }
+
+    appAlert.alert(
+      t('foodDetail.deleteTitle'),
+      t('foodDetail.deleteMessage', { mealName: entryData.title }),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: () => {
+            void deleteFoodEntry(entryData.id).then(() => {
+              router.back();
+            });
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ScreenContainer edges={['bottom']} padded={false}>
@@ -211,6 +295,15 @@ export default function FoodResultScreen() {
                 {preset.subtitle}
               </Text>
             </View>
+
+            {entryData?.notes ? (
+              <View style={styles.notesCard}>
+                <Text variant="caption" color="secondary">
+                  {t('manualFoodEntry.fields.notes')}
+                </Text>
+                <Text variant="bodySmall">{entryData.notes}</Text>
+              </View>
+            ) : null}
 
             <View style={styles.scoreCard}>
               <View style={styles.scoreHeader}>
@@ -328,14 +421,39 @@ export default function FoodResultScreen() {
               title={t('addScreen.result.fixResults')}
               variant="secondary"
               style={styles.secondaryButton}
-              onPress={() => undefined}
+              onPress={() => {
+                if (entryData) {
+                  router.push({
+                    pathname: '/manual-food-entry',
+                    params: {
+                      entryId: entryData.id,
+                    },
+                  });
+                  return;
+                }
+
+                router.push('/manual-food-entry');
+              }}
             />
             <Button
               title={t('common.done')}
               style={styles.primaryButton}
-              onPress={() => router.replace('/')}
+              onPress={() => router.back()}
             />
           </View>
+
+          {entryData ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('foodDetail.deleteAction')}
+              style={styles.deleteAction}
+              onPress={handleDeleteEntry}
+            >
+              <Text variant="bodySmall" weight="semibold" style={styles.deleteActionText}>
+                {t('foodDetail.deleteAction')}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
     </ScreenContainer>
@@ -386,6 +504,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   detailHeader: {
     gap: theme.metrics.spacingV.p8,
+  },
+  notesCard: {
+    gap: theme.metrics.spacingV.p4,
+    padding: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.lg,
+    backgroundColor: theme.colors.background.section,
   },
   scoreCard: {
     borderRadius: theme.metrics.borderRadius.xl,
@@ -493,6 +617,13 @@ const styles = StyleSheet.create((theme) => ({
     paddingTop: theme.metrics.spacingV.p12,
     paddingBottom: theme.metrics.spacingV.p24,
     backgroundColor: theme.colors.background.app,
+  },
+  deleteAction: {
+    alignSelf: 'center',
+    paddingVertical: theme.metrics.spacingV.p8,
+  },
+  deleteActionText: {
+    color: theme.colors.state.error,
   },
   secondaryButton: {
     flex: 1,

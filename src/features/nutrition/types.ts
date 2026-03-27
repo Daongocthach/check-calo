@@ -38,6 +38,10 @@ export interface DailyNutritionSummary {
   fatGrams: number;
 }
 
+export interface NutritionTrendPoint extends DailyNutritionSummary {
+  label: string;
+}
+
 export interface FoodEntryInput {
   mealName: string;
   quantityLabel: string;

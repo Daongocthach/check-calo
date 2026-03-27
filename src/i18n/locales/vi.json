@@ -15,6 +15,12 @@
     "edit": "Chỉnh sửa",
     "submit": "Gửi",
     "ok": "OK",
+    "units": {
+      "cm": "cm",
+      "kg": "kg",
+      "kcal": "kcal",
+      "gram": "g"
+    },
     "syncStatus": {
       "syncNow": "Đồng bộ ngay",
       "loginToSync": "Đăng nhập để đồng bộ",
@@ -108,6 +114,7 @@
     "kcalToday": "kcal / hôm nay",
     "remaining": "Còn lại",
     "onTrack": "Đúng tiến độ",
+    "exceeded": "Vượt mục tiêu",
     "progress": "Tiến độ",
     "steps": "Bước chân",
     "stepsValue": "bước",
@@ -131,6 +138,10 @@
       "title": "Bữa ăn hôm nay",
       "subtitle": "Món ăn mới nhất ở trên",
       "detailComposition": "Xem thành phần",
+      "addFavorite": "Thêm yêu thích",
+      "removeFavorite": "Bỏ yêu thích",
+      "emptyTitle": "Chưa có món ăn nào",
+      "emptySubtitle": "Hãy thêm món đầu tiên để theo dõi calo và dinh dưỡng trong ngày.",
       "comboLabel": "Combo {{first}} + {{second}}",
       "breakfast": "Bữa sáng",
       "breakfastTime": "07:00 - 08:30",
@@ -158,10 +169,18 @@
     "subtitle": "Xem nhanh calories, thời lượng tập và thay đổi cân nặng.",
     "weekly": "Theo tuần",
     "peakDuration": "70 phút",
+    "modes": {
+      "day": "Ngày",
+      "week": "Tuần",
+      "month": "Tháng"
+    },
     "metrics": {
       "completed": "Hoàn thành",
       "caloriesBurn": "kcal đốt",
-      "weightToLose": "kg tới mục tiêu"
+      "weightToLose": "kg tới mục tiêu",
+      "caloriesConsumed": "Calories hôm nay",
+      "calorieTarget": "Mục tiêu hôm nay",
+      "remainingCalories": "Calories còn lại"
     },
     "days": {
       "sat": "T7",
@@ -182,9 +201,20 @@
     },
     "macros": {
       "title": "Tỷ lệ dinh dưỡng",
+      "subtitle": "Phân bổ đạm, tinh bột và chất béo đã nạp hôm nay.",
+      "centerLabel": "Tổng macro",
+      "empty": "Chưa có dữ liệu macro cho hôm nay.",
       "carbs": "Carb",
       "protein": "Protein",
       "fat": "Chất béo"
+    },
+    "todayProgress": {
+      "title": "Tiến độ hôm nay",
+      "subtitle": "Theo dõi mức calories đã nạp so với mục tiêu hiện tại."
+    },
+    "trends": {
+      "title": "Xu hướng calories",
+      "subtitle": "Tổng lượng calories ăn vào theo ngày, tuần và tháng."
     }
   },
   "addScreen": {
@@ -260,15 +290,27 @@
   "manualFoodEntry": {
     "title": "Nhập tay",
     "subtitle": "Điền thông tin món ăn trước khi lưu bữa ăn.",
+    "editTitle": "Sửa món ăn",
+    "saveAction": "Lưu món ăn",
+    "updateAction": "Cập nhật món ăn",
+    "favoriteSectionTitle": "Chọn nhanh từ yêu thích",
+    "favoriteSectionHint": "Chạm để nạp dữ liệu lên form, giữ lâu để lưu thẳng vào hôm nay.",
     "fields": {
       "foodName": "Tên món ăn",
       "quantity": "Khẩu phần",
-      "calories": "Calories"
+      "quantityLabel": "Khẩu phần",
+      "calories": "Calories",
+      "protein": "Protein",
+      "carbs": "Carb",
+      "fat": "Chất béo",
+      "notes": "Ghi chú"
     },
     "placeholders": {
       "foodName": "Ví dụ: Salad gà",
       "quantity": "Ví dụ: 1 phần",
-      "calories": "Ví dụ: 420"
+      "calories": "Ví dụ: 420",
+      "macro": "Ví dụ: 24",
+      "notes": "Ví dụ: ít sốt, thêm rau"
     }
   },
   "favoritesScreen": {
@@ -277,6 +319,10 @@
     "heroTitle": "Món đã lưu",
     "heroSubtitle": "Danh sách healthy quen thuộc của bạn",
     "savedItem": "Món đã lưu",
+    "removeTitle": "Bỏ khỏi yêu thích",
+    "removeMessage": "Bạn có chắc muốn bỏ {{mealName}} khỏi danh sách yêu thích không?",
+    "emptyTitle": "Chưa có món yêu thích",
+    "emptySubtitle": "Nhấn trái tim ở trang chủ để lưu món ăn dùng lại nhanh hơn.",
     "filters": {
       "all": "Tất cả",
       "protein": "Nhiều đạm",
@@ -302,19 +348,33 @@
     "subtitle": "Nhập thông tin BMI một lần để app cá nhân hóa mục tiêu calo mỗi ngày.",
     "profileStatus": "Trạng thái BMI",
     "formTitle": "Thông tin cơ bản",
-    "formSubtitle": "Tuổi, chiều cao và cân nặng sẽ giúp app tính chỉ số cơ thể phù hợp.",
+    "formSubtitle": "Tuổi, giới tính, chiều cao, cân nặng và mức vận động sẽ giúp app tính mục tiêu calo phù hợp.",
     "summaryTitle": "Hồ sơ hiện tại",
-    "summaryBody": "BMI {{bmi}} với chiều cao {{height}} cm và cân nặng {{weight}} kg.",
+    "summaryBody": "BMI {{bmi}} và mục tiêu {{calorieTarget}} kcal mỗi ngày.",
     "saveAction": "Lưu và bắt đầu",
     "continueAction": "Vào trang chính",
     "status": {
       "missing": "Chưa có hồ sơ",
-      "ready": "BMI {{bmi}} đã sẵn sàng"
+      "ready": "BMI {{bmi}} • {{calorieTarget}} kcal/ngày"
     },
     "fields": {
+      "gender": "Giới tính",
       "age": "Tuổi",
       "height": "Chiều cao (cm)",
-      "weight": "Cân nặng (kg)"
+      "weight": "Cân nặng (kg)",
+      "activityLevel": "Hệ số vận động"
+    },
+    "genderOptions": {
+      "male": "Nam",
+      "female": "Nữ",
+      "other": "Khác"
+    },
+    "activityLevels": {
+      "sedentary": "Ít vận động",
+      "light": "Vận động nhẹ",
+      "moderate": "Vận động vừa",
+      "active": "Vận động nhiều",
+      "very_active": "Rất năng động"
     },
     "placeholders": {
       "age": "Nhập tuổi",
@@ -325,6 +385,29 @@
       "number": "Vui lòng nhập số hợp lệ",
       "positive": "Giá trị phải lớn hơn 0"
     }
+  },
+  "profileScreen": {
+    "title": "Hồ sơ dinh dưỡng",
+    "subtitle": "Xem nhanh BMI, mục tiêu calo và chỉnh lại thông tin cơ bản bất cứ lúc nào.",
+    "editAction": "Chỉnh sửa",
+    "goalTitle": "Mục tiêu hằng ngày",
+    "bodyMetricsTitle": "Chỉ số cơ thể",
+    "emptyTitle": "Chưa có hồ sơ",
+    "emptySubtitle": "Hãy hoàn tất màn chào để app tính mục tiêu calo theo cơ thể của bạn.",
+    "metrics": {
+      "bmi": "BMI",
+      "gender": "Giới tính",
+      "activity": "Vận động"
+    },
+    "theme": {
+      "light": "Sáng",
+      "dark": "Tối"
+    }
+  },
+  "foodDetail": {
+    "deleteTitle": "Xóa món ăn",
+    "deleteMessage": "Bạn có chắc muốn xóa {{mealName}} khỏi nhật ký hôm nay không?",
+    "deleteAction": "Xóa món ăn"
   },
   "settings": {
     "title": "Cài đặt",
