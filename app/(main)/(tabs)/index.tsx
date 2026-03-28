@@ -2,9 +2,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, SectionList, View } from 'react-native';
+import { SectionList, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Card, Icon, MonthSelector, ProgressBar, ScreenContainer, Text } from '@/common/components';
+import { HomeMealCard } from '@/features/nutrition/components/HomeMealCard';
 import {
   getDailyNutritionSummary,
   listFoodEntriesByDate,
@@ -21,27 +22,6 @@ interface MealSection {
 function formatTimeLabel(consumedAt: string) {
   const date = new Date(consumedAt);
   return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-}
-
-function getPreviewStyle(entry: FoodEntry) {
-  if (entry.proteinGrams >= entry.carbsGrams && entry.proteinGrams >= entry.fatGrams) {
-    return {
-      icon: 'fish-outline' as const,
-      previewStyle: 'nightPreview' as const,
-    };
-  }
-
-  if (entry.carbsGrams >= entry.fatGrams) {
-    return {
-      icon: 'nutrition-outline' as const,
-      previewStyle: 'sunrisePreview' as const,
-    };
-  }
-
-  return {
-    icon: 'water' as const,
-    previewStyle: 'greenPreview' as const,
-  };
 }
 
 function createEmptySummary(date: Date): DailyNutritionSummary {
@@ -121,107 +101,28 @@ export default function HomeTab() {
             </View>
           </View>
         )}
-        renderItem={({ item: meal }) => {
-          const preview = getPreviewStyle(meal);
-
-          return (
-            <View style={styles.itemTimelineRow}>
-              <View style={styles.itemRail}>
-                <View style={styles.itemDot} />
-                <View style={styles.itemLine} />
-              </View>
-
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={meal.mealName}
-                style={styles.mealPressable}
-                onPress={() =>
-                  router.push({
-                    pathname: '/food-result',
-                    params: {
-                      mode: 'manual',
-                      entryId: meal.id,
-                    },
-                  })
-                }
-              >
-                <Card variant="elevated" style={styles.mealCard}>
-                  <View style={styles.mealMainRow}>
-                    <View style={styles.mealCopy}>
-                      <View style={styles.mealHeaderRow}>
-                        <View style={styles.mealTitleBlock}>
-                          <Text variant="h3">{meal.mealName}</Text>
-                          <Text variant="caption" color="secondary">
-                            {meal.quantityLabel}
-                          </Text>
-                        </View>
-                        <Pressable
-                          accessibilityRole="button"
-                          accessibilityLabel={
-                            meal.isFavorite
-                              ? t('homeScreen.meals.removeFavorite')
-                              : t('homeScreen.meals.addFavorite')
-                          }
-                          style={styles.favoriteButton}
-                          onPress={(event) => {
-                            event.stopPropagation();
-                            void handleFavoriteToggle(meal.id);
-                          }}
-                        >
-                          <Icon
-                            name={meal.isFavorite ? 'heart' : 'heart-outline'}
-                            size={18}
-                            variant={meal.isFavorite ? 'accent' : 'muted'}
-                          />
-                        </Pressable>
-                      </View>
-
-                      <View style={styles.macroPanel}>
-                        <View style={styles.macroColumn}>
-                          <Text variant="caption" color="secondary">
-                            {t('statsScreen.macros.protein')}
-                          </Text>
-                          <Text variant="bodySmall" weight="semibold">
-                            {`${Math.round(meal.proteinGrams)} ${t('common.units.gram')}`}
-                          </Text>
-                        </View>
-                        <View style={styles.macroDivider} />
-                        <View style={styles.macroColumn}>
-                          <Text variant="caption" color="secondary">
-                            {t('statsScreen.macros.carbs')}
-                          </Text>
-                          <Text variant="bodySmall" weight="semibold">
-                            {`${Math.round(meal.carbsGrams)} ${t('common.units.gram')}`}
-                          </Text>
-                        </View>
-                        <View style={styles.macroDivider} />
-                        <View style={styles.macroColumn}>
-                          <Text variant="caption" color="secondary">
-                            {t('statsScreen.macros.fat')}
-                          </Text>
-                          <Text variant="bodySmall" weight="semibold">
-                            {`${Math.round(meal.fatGrams)} ${t('common.units.gram')}`}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-
-                    <View style={[styles.mealPreview, styles[preview.previewStyle]]}>
-                      <View style={styles.previewPlate}>
-                        <Icon name={preview.icon} variant="inverse" size={28} />
-                      </View>
-                      <View style={styles.previewCalories}>
-                        <Text variant="caption" weight="semibold" color="inverse">
-                          {`${Math.round(meal.totalCalories)} ${t('common.units.kcal')}`}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </Card>
-              </Pressable>
+        renderItem={({ item: meal }) => (
+          <View style={styles.itemTimelineRow}>
+            <View style={styles.itemRail}>
+              <View style={styles.itemDot} />
+              <View style={styles.itemLine} />
             </View>
-          );
-        }}
+
+            <HomeMealCard
+              meal={meal}
+              onPress={() =>
+                router.push({
+                  pathname: '/food-result',
+                  params: {
+                    mode: 'manual',
+                    entryId: meal.id,
+                  },
+                })
+              }
+              onToggleFavorite={() => handleFavoriteToggle(meal.id)}
+            />
+          </View>
+        )}
         ListHeaderComponent={
           <View style={styles.header}>
             <MonthSelector
@@ -463,90 +364,5 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     marginTop: theme.metrics.spacingV.p4,
     backgroundColor: theme.colors.state.infoBg,
-  },
-  mealPressable: {
-    flex: 1,
-  },
-  mealCard: {
-    flex: 1,
-    backgroundColor: theme.colors.background.surface,
-  },
-  mealMainRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    gap: theme.metrics.spacing.p12,
-  },
-  mealCopy: {
-    flex: 1,
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacingV.p8,
-  },
-  mealHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p8,
-  },
-  mealTitleBlock: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
-  },
-  favoriteButton: {
-    width: theme.metrics.spacing.p32,
-    height: theme.metrics.spacing.p32,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.section,
-  },
-  macroPanel: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    borderRadius: theme.metrics.borderRadius.lg,
-    backgroundColor: theme.colors.background.section,
-    overflow: 'hidden',
-  },
-  macroColumn: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p8,
-  },
-  macroDivider: {
-    width: 1,
-    backgroundColor: theme.colors.border.subtle,
-  },
-  mealPreview: {
-    width: theme.metrics.spacing.p112,
-    minHeight: theme.metrics.spacing.p104,
-    borderRadius: theme.metrics.borderRadius.lg,
-    padding: theme.metrics.spacing.p8,
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-  },
-  sunrisePreview: {
-    backgroundColor: theme.colors.state.warning,
-  },
-  greenPreview: {
-    backgroundColor: theme.colors.state.success,
-  },
-  nightPreview: {
-    backgroundColor: theme.colors.brand.secondary,
-  },
-  previewPlate: {
-    alignSelf: 'center',
-    width: theme.metrics.spacing.p52,
-    height: theme.metrics.spacing.p52,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.overlay.ripple,
-  },
-  previewCalories: {
-    alignSelf: 'center',
-    paddingHorizontal: theme.metrics.spacing.p8,
-    paddingVertical: theme.metrics.spacingV.p4,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.overlay.modal,
   },
 }));

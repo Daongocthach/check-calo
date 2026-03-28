@@ -5,13 +5,22 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Button, Card, Chip, Icon, ScreenContainer, Text } from '@/common/components';
-import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
+import {
+  deleteUserProfile,
+  getUserProfile,
+  resetNutritionData,
+} from '@/features/nutrition/services/nutritionDatabase';
+import { useAppAlert } from '@/providers/app-alert';
 import { getCurrentMode, toggleDarkMode } from '@/theme/themeManager';
+import { toast } from '@/utils/toast';
 
 export default function ProfileTab() {
   const { t } = useTranslation();
   const router = useRouter();
+  const appAlert = useAppAlert();
   const [isDarkMode, setIsDarkMode] = useState(getCurrentMode() === 'dark');
+  const [isDeletingProfile, setIsDeletingProfile] = useState(false);
+  const [isResettingData, setIsResettingData] = useState(false);
   const [profileSummary, setProfileSummary] = useState<{
     bmi: string;
     calorieTarget: string;
@@ -58,6 +67,62 @@ export default function ProfileTab() {
     setIsDarkMode(nextValue);
     toggleDarkMode(nextValue);
   };
+
+  const handleDeleteProfile = useCallback(() => {
+    appAlert.alert(t('profileScreen.deleteConfirmTitle'), t('profileScreen.deleteConfirmMessage'), [
+      {
+        text: t('common.cancel'),
+        style: 'cancel',
+      },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => {
+          setIsDeletingProfile(true);
+
+          void deleteUserProfile()
+            .then(() => {
+              setProfileSummary(null);
+              toast.success(t('profileScreen.deleteSuccess'));
+            })
+            .catch(() => {
+              toast.error(t('profileScreen.actionError'));
+            })
+            .finally(() => {
+              setIsDeletingProfile(false);
+            });
+        },
+      },
+    ]);
+  }, [appAlert, t]);
+
+  const handleResetData = useCallback(() => {
+    appAlert.alert(t('profileScreen.resetConfirmTitle'), t('profileScreen.resetConfirmMessage'), [
+      {
+        text: t('common.cancel'),
+        style: 'cancel',
+      },
+      {
+        text: t('profileScreen.resetAction'),
+        style: 'destructive',
+        onPress: () => {
+          setIsResettingData(true);
+
+          void resetNutritionData()
+            .then(() => {
+              setProfileSummary(null);
+              toast.success(t('profileScreen.resetSuccess'));
+            })
+            .catch(() => {
+              toast.error(t('profileScreen.actionError'));
+            })
+            .finally(() => {
+              setIsResettingData(false);
+            });
+        },
+      },
+    ]);
+  }, [appAlert, t]);
 
   return (
     <ScreenContainer scrollable padded edges={['bottom']} tabBarAware>
@@ -173,6 +238,31 @@ export default function ProfileTab() {
             />
           </View>
         </Card>
+
+        <Card variant="filled" style={styles.dangerCard}>
+          <View style={styles.dangerCopy}>
+            <Text variant="h3">{t('profileScreen.dangerTitle')}</Text>
+            <Text variant="bodySmall" color="secondary">
+              {t('profileScreen.dangerSubtitle')}
+            </Text>
+          </View>
+
+          <Button
+            title={t('profileScreen.deleteAction')}
+            variant="secondary"
+            loading={isDeletingProfile}
+            disabled={isResettingData}
+            onPress={handleDeleteProfile}
+          />
+
+          <Button
+            title={t('profileScreen.resetAction')}
+            variant="outline"
+            loading={isResettingData}
+            disabled={isDeletingProfile}
+            onPress={handleResetData}
+          />
+        </Card>
       </View>
     </ScreenContainer>
   );
@@ -235,6 +325,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   preferencesCard: {
     gap: theme.metrics.spacingV.p12,
+  },
+  dangerCard: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  dangerCopy: {
+    gap: theme.metrics.spacingV.p4,
   },
   preferenceRow: {
     flexDirection: 'row',

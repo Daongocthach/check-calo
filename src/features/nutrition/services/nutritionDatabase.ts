@@ -184,6 +184,26 @@ export async function upsertUserProfile(profile: UserProfileInput) {
   return getUserProfile();
 }
 
+export async function deleteUserProfile() {
+  const database = await getDatabase();
+
+  await database.withTransactionAsync(async () => {
+    await database.runAsync('DELETE FROM daily_calorie_targets;');
+    await database.runAsync('DELETE FROM user_profile WHERE id = 1;');
+  });
+}
+
+export async function resetNutritionData() {
+  const database = await getDatabase();
+
+  await database.withTransactionAsync(async () => {
+    await database.runAsync('DELETE FROM favorite_foods;');
+    await database.runAsync('DELETE FROM food_entries;');
+    await database.runAsync('DELETE FROM daily_calorie_targets;');
+    await database.runAsync('DELETE FROM user_profile;');
+  });
+}
+
 export async function upsertDailyTargetOverride(date: string, calorieTarget: number) {
   const database = await getDatabase();
   const now = nowIsoString();

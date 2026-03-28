@@ -206,7 +206,7 @@
       "empty": "No macro data logged for today.",
       "carbs": "Carb",
       "protein": "Protein",
-      "fat": "Chất béo"
+      "fat": "Fat"
     },
     "todayProgress": {
       "title": "Today's progress",
@@ -267,7 +267,7 @@
         "calories": "Calories",
         "carbs": "Carb",
         "protein": "Protein",
-        "fat": "Chất béo",
+        "fat": "Fat",
         "gramsUnit": "grams",
         "gramsShort": "g"
       },
@@ -302,7 +302,7 @@
       "calories": "Calories",
       "protein": "Protein",
       "carbs": "Carb",
-      "fat": "Chất béo",
+      "fat": "Fat",
       "notes": "Notes"
     },
     "placeholders": {
@@ -390,10 +390,21 @@
     "title": "Nutrition profile",
     "subtitle": "Quick view of BMI, calorie goal, and your baseline body stats.",
     "editAction": "Edit profile",
+    "deleteAction": "Delete nutrition profile",
+    "resetAction": "Reset all data",
     "goalTitle": "Daily goal",
     "bodyMetricsTitle": "Body metrics",
     "emptyTitle": "No profile yet",
     "emptySubtitle": "Complete the welcome setup so the app can calculate your calorie target.",
+    "dangerTitle": "Nutrition data",
+    "dangerSubtitle": "These actions will remove saved data from this device.",
+    "deleteConfirmTitle": "Delete nutrition profile",
+    "deleteConfirmMessage": "Are you sure you want to delete the current nutrition profile?",
+    "resetConfirmTitle": "Reset nutrition data",
+    "resetConfirmMessage": "Are you sure you want to delete your profile, nutrition history, and saved meals?",
+    "deleteSuccess": "Nutrition profile deleted.",
+    "resetSuccess": "All nutrition data has been reset.",
+    "actionError": "Unable to update data right now. Please try again.",
     "metrics": {
       "bmi": "BMI",
       "gender": "Gender",

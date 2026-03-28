@@ -80,10 +80,19 @@ export function AppHeader() {
     (option) => option.value === selectedLanguage
   );
   const selectedThemeOption = themeOptions.find((option) => option.value === currentMode);
+  const handleBackPress = () => {
+    if (isTabRoute && !isHomeRoute) {
+      router.replace('/');
+      return;
+    }
+
+    router.back();
+  };
+
   let headerContent = (
     <>
       <Pressable
-        onPress={() => router.back()}
+        onPress={handleBackPress}
         accessibilityRole="button"
         accessibilityLabel={t('header.back')}
         style={styles.backButtonWrap}
@@ -120,9 +129,25 @@ export function AppHeader() {
     );
   } else if (isTabRoute) {
     headerContent = (
-      <Text variant="h2" weight="bold" numberOfLines={1} ellipsizeMode="tail" style={styles.title}>
-        {pageTitle}
-      </Text>
+      <>
+        <Pressable
+          onPress={handleBackPress}
+          accessibilityRole="button"
+          accessibilityLabel={t('header.back')}
+          style={styles.backButtonWrap}
+        >
+          <Icon name="chevron-back" variant="primary" size={18} />
+        </Pressable>
+        <Text
+          variant="h2"
+          weight="bold"
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={styles.title}
+        >
+          {pageTitle}
+        </Text>
+      </>
     );
   }
 

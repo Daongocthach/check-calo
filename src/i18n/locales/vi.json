@@ -201,12 +201,12 @@
     },
     "macros": {
       "title": "Tỷ lệ dinh dưỡng",
-      "subtitle": "Phân bổ đạm, tinh bột và chất béo đã nạp hôm nay.",
+      "subtitle": "Phân bổ đạm, tinh bột và fat đã nạp hôm nay.",
       "centerLabel": "Tổng macro",
       "empty": "Chưa có dữ liệu macro cho hôm nay.",
       "carbs": "Carb",
       "protein": "Protein",
-      "fat": "Chất béo"
+      "fat": "Fat"
     },
     "todayProgress": {
       "title": "Tiến độ hôm nay",
@@ -267,7 +267,7 @@
         "calories": "Calories",
         "carbs": "Carb",
         "protein": "Protein",
-        "fat": "Chất béo",
+        "fat": "Fat",
         "gramsUnit": "gram",
         "gramsShort": "g"
       },
@@ -302,7 +302,7 @@
       "calories": "Calories",
       "protein": "Protein",
       "carbs": "Carb",
-      "fat": "Chất béo",
+      "fat": "Fat",
       "notes": "Ghi chú"
     },
     "placeholders": {
@@ -390,10 +390,21 @@
     "title": "Hồ sơ dinh dưỡng",
     "subtitle": "Xem nhanh BMI, mục tiêu calo và chỉnh lại thông tin cơ bản bất cứ lúc nào.",
     "editAction": "Chỉnh sửa",
+    "deleteAction": "Xóa hồ sơ dinh dưỡng",
+    "resetAction": "Đặt lại toàn bộ dữ liệu",
     "goalTitle": "Mục tiêu hằng ngày",
     "bodyMetricsTitle": "Chỉ số cơ thể",
     "emptyTitle": "Chưa có hồ sơ",
     "emptySubtitle": "Hãy hoàn tất màn chào để app tính mục tiêu calo theo cơ thể của bạn.",
+    "dangerTitle": "Dữ liệu dinh dưỡng",
+    "dangerSubtitle": "Các thao tác này sẽ xóa dữ liệu đã lưu trên thiết bị.",
+    "deleteConfirmTitle": "Xóa hồ sơ dinh dưỡng",
+    "deleteConfirmMessage": "Bạn có chắc muốn xóa hồ sơ dinh dưỡng hiện tại không?",
+    "resetConfirmTitle": "Đặt lại dữ liệu dinh dưỡng",
+    "resetConfirmMessage": "Bạn có chắc muốn xóa toàn bộ hồ sơ, lịch sử dinh dưỡng và các món ăn đã lưu không?",
+    "deleteSuccess": "Đã xóa hồ sơ dinh dưỡng.",
+    "resetSuccess": "Đã đặt lại toàn bộ dữ liệu dinh dưỡng.",
+    "actionError": "Không thể cập nhật dữ liệu lúc này. Vui lòng thử lại.",
     "metrics": {
       "bmi": "BMI",
       "gender": "Giới tính",
