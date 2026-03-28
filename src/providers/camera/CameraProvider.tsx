@@ -26,13 +26,13 @@ export interface CameraCaptureFile {
 }
 
 type OpenCamera = () => Promise<CameraCaptureFile | null>;
-type OpenQrScanner = () => Promise<string | null>;
+type OpenBarcodeScanner = () => Promise<string | null>;
 
 type CameraMode = 'capture' | 'scan';
 
 interface CameraContextValue {
   openCamera: OpenCamera;
-  openQrScanner: OpenQrScanner;
+  openBarcodeScanner: OpenBarcodeScanner;
 }
 
 const CameraContext = createContext<CameraContextValue | null>(null);
@@ -135,7 +135,7 @@ export function CameraProvider({ children }: CameraProviderProps) {
     });
   }, [requestCameraAccess, setZoomValue]);
 
-  const openQrScanner = useCallback(async () => {
+  const openBarcodeScanner = useCallback(async () => {
     if (resolverRef.current) {
       return null;
     }
@@ -219,9 +219,9 @@ export function CameraProvider({ children }: CameraProviderProps) {
   const contextValue = useMemo(
     () => ({
       openCamera,
-      openQrScanner,
+      openBarcodeScanner,
     }),
-    [openCamera, openQrScanner]
+    [openBarcodeScanner, openCamera]
   );
 
   const pinchGesture = useMemo(
@@ -256,7 +256,22 @@ export function CameraProvider({ children }: CameraProviderProps) {
                 zoom={zoom}
                 enableTorch={isTorchEnabled}
                 onBarcodeScanned={mode === 'scan' ? handleBarcodeScanned : undefined}
-                barcodeScannerSettings={mode === 'scan' ? { barcodeTypes: ['qr'] } : undefined}
+                barcodeScannerSettings={
+                  mode === 'scan'
+                    ? {
+                        barcodeTypes: [
+                          'ean13',
+                          'ean8',
+                          'upc_a',
+                          'upc_e',
+                          'code128',
+                          'code39',
+                          'itf14',
+                          'pdf417',
+                        ],
+                      }
+                    : undefined
+                }
               />
             </View>
           </GestureDetector>
@@ -266,7 +281,7 @@ export function CameraProvider({ children }: CameraProviderProps) {
               <View style={styles.scanFrame} />
               <View style={styles.scanFocusDot} />
               <Text variant="bodySmall" style={styles.scanHint}>
-                {t('camera.scanHint')}
+                {t('camera.barcodeHint')}
               </Text>
             </View>
           ) : null}
@@ -274,7 +289,7 @@ export function CameraProvider({ children }: CameraProviderProps) {
           <View style={styles.headerSafeArea}>
             <View style={[styles.header, isTablet && styles.headerTablet]}>
               <Text variant="label" style={styles.headerText}>
-                {mode === 'scan' ? t('camera.scanTitle') : t('camera.title')}
+                {mode === 'scan' ? t('camera.barcodeTitle') : t('camera.title')}
               </Text>
               <Pressable
                 accessibilityRole="button"
@@ -358,7 +373,7 @@ export function useOpenQrScanner() {
     throw new Error('useOpenQrScanner must be used within CameraProvider');
   }
 
-  return context.openQrScanner;
+  return context.openBarcodeScanner;
 }
 
 const styles = StyleSheet.create((theme, rt) => ({

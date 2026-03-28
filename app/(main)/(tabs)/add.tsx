@@ -1,11 +1,13 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import Animated, { SlideInDown } from 'react-native-reanimated';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Icon, ScreenContainer, Text } from '@/common/components';
+import { useOpenCamera, useOpenQrScanner } from '@/providers/camera';
 import { hs, vs } from '@/theme/metrics';
 
 const PREVIEW_IMAGE_URI =
@@ -14,6 +16,44 @@ const PREVIEW_IMAGE_URI =
 export default function AddCaloriesTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
+  const openCamera = useOpenCamera();
+  const openQrScanner = useOpenQrScanner();
+
+  const handleCaptureFood = useCallback(async () => {
+    const photo = await openCamera();
+
+    if (!photo) {
+      return;
+    }
+
+    router.push({
+      pathname: '/food-result',
+      params: {
+        mode: 'scanFood',
+        imageUri: photo.uri,
+      },
+    });
+  }, [openCamera]);
+
+  const handleBarcodeScan = useCallback(async () => {
+    const barcodeValue = await openQrScanner();
+
+    if (!barcodeValue) {
+      return;
+    }
+
+    router.push({
+      pathname: '/food-result',
+      params: {
+        mode: 'barcode',
+        barcodeValue,
+      },
+    });
+  }, [openQrScanner]);
+
+  const handleManualEntry = useCallback(() => {
+    router.push('/manual-food-entry');
+  }, []);
 
   return (
     <ScreenContainer edges={['bottom']} tabBarAware>
@@ -44,27 +84,74 @@ export default function AddCaloriesTab() {
               {t('addScreen.modalSubtitle')}
             </Text>
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('addScreen.captureModes.manual')}
-              style={styles.singleActionButton}
-              onPress={() => {
-                router.push('/manual-food-entry');
-              }}
-            >
-              <View style={styles.actionIconWrap}>
-                <Icon name="create-outline" variant="primary" size={22} />
-              </View>
-              <View style={styles.singleActionCopy}>
-                <Text variant="body" weight="semibold">
-                  {t('addScreen.captureModes.manual')}
-                </Text>
-                <Text variant="caption" color="secondary">
-                  {t('addScreen.modeContent.manual.body')}
-                </Text>
-              </View>
-              <Icon name="chevron-forward" variant="muted" size={18} />
-            </Pressable>
+            <View style={styles.actionsList}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('addScreen.captureModes.scanFood')}
+                style={styles.actionButton}
+                onPress={() => {
+                  void handleCaptureFood();
+                }}
+              >
+                <View style={styles.actionIconWrap}>
+                  <Icon name="camera-outline" variant="primary" size={22} />
+                </View>
+                <View style={styles.actionCopy}>
+                  <Text
+                    variant="caption"
+                    weight="semibold"
+                    align="center"
+                    style={styles.actionLabel}
+                  >
+                    {t('addScreen.captureModes.scanFood')}
+                  </Text>
+                </View>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('addScreen.captureModes.barcode')}
+                style={styles.actionButton}
+                onPress={() => {
+                  void handleBarcodeScan();
+                }}
+              >
+                <View style={styles.actionIconWrap}>
+                  <Icon name="barcode-outline" variant="primary" size={22} />
+                </View>
+                <View style={styles.actionCopy}>
+                  <Text
+                    variant="caption"
+                    weight="semibold"
+                    align="center"
+                    style={styles.actionLabel}
+                  >
+                    {t('addScreen.captureModes.barcode')}
+                  </Text>
+                </View>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('addScreen.captureModes.manual')}
+                style={styles.actionButton}
+                onPress={handleManualEntry}
+              >
+                <View style={styles.actionIconWrap}>
+                  <Icon name="create-outline" variant="primary" size={22} />
+                </View>
+                <View style={styles.actionCopy}>
+                  <Text
+                    variant="caption"
+                    weight="semibold"
+                    align="center"
+                    style={styles.actionLabel}
+                  >
+                    {t('addScreen.captureModes.manual')}
+                  </Text>
+                </View>
+              </Pressable>
+            </View>
           </Animated.View>
         </LinearGradient>
       </View>
@@ -127,7 +214,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   cornerBottomLeft: {
     position: 'absolute',
-    bottom: 0,
+    bottom: vs(36),
     left: 0,
     width: hs(44),
     height: vs(44),
@@ -138,7 +225,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   cornerBottomRight: {
     position: 'absolute',
-    bottom: 0,
+    bottom: vs(36),
     right: 0,
     width: hs(44),
     height: vs(44),
@@ -164,26 +251,39 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     backgroundColor: theme.colors.border.default,
   },
-  singleActionButton: {
+  actionsList: {
     flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  actionButton: {
+    width: '31.5%',
+    minWidth: 0,
     alignItems: 'center',
-    gap: theme.metrics.spacing.p12,
-    minHeight: vs(92),
+    justifyContent: 'center',
+    gap: theme.metrics.spacingV.p8,
+    minHeight: vs(100),
     borderRadius: theme.metrics.borderRadius.lg,
     backgroundColor: theme.colors.background.section,
-    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingHorizontal: theme.metrics.spacing.p8,
     paddingVertical: theme.metrics.spacingV.p12,
+    flexDirection: 'column',
   },
   actionIconWrap: {
-    width: theme.metrics.spacing.p44,
-    height: theme.metrics.spacing.p44,
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background.surface,
   },
-  singleActionCopy: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
+  actionCopy: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    minHeight: vs(28),
+  },
+  actionLabel: {
+    flexShrink: 1,
   },
 }));

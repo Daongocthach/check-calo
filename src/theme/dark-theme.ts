@@ -32,7 +32,7 @@ export const darkColors: ThemeColors = {
     accent: '#FFB34D',
     link: '#E3F45A',
     linkHover: '#F1F8B2',
-    onBrand: '#18210E',
+    onBrand: '#FFFFFF',
   },
 
   border: {
@@ -50,7 +50,7 @@ export const darkColors: ThemeColors = {
     muted: '#5B6B4A',
     inverse: '#0F172A',
     accent: '#FFB34D',
-    onBrand: '#18210E',
+    onBrand: '#FFFFFF',
   },
 
   state: {
