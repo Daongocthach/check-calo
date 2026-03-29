@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -86,6 +86,13 @@ async function runVersion1Migration(database: SQLite.SQLiteDatabase) {
   `);
 }
 
+async function runVersion2Migration(database: SQLite.SQLiteDatabase) {
+  await database.execAsync(`
+    ALTER TABLE food_entries ADD COLUMN image_uri TEXT;
+    ALTER TABLE favorite_foods ADD COLUMN image_uri TEXT;
+  `);
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -93,6 +100,13 @@ export async function initializeDatabase() {
 
   if (currentVersion < 1) {
     await runVersion1Migration(database);
+  }
+
+  if (currentVersion < 2) {
+    await runVersion2Migration(database);
+  }
+
+  if (currentVersion < DATABASE_VERSION) {
     await database.execAsync(`PRAGMA user_version = ${DATABASE_VERSION};`);
   } else {
     await database.execAsync(`

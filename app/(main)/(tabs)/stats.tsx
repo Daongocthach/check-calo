@@ -172,17 +172,17 @@ export default function StatsTab() {
       {
         value: todaySummary.proteinGrams,
         color: theme.colors.state.info,
-        text: `${Math.round(todaySummary.proteinGrams)}g`,
+        text: `${Math.round(todaySummary.proteinGrams)}`,
       },
       {
         value: todaySummary.carbsGrams,
         color: theme.colors.state.warning,
-        text: `${Math.round(todaySummary.carbsGrams)}g`,
+        text: `${Math.round(todaySummary.carbsGrams)}`,
       },
       {
         value: todaySummary.fatGrams,
         color: theme.colors.state.success,
-        text: `${Math.round(todaySummary.fatGrams)}g`,
+        text: `${Math.round(todaySummary.fatGrams)}`,
       },
     ];
   }, [
@@ -259,28 +259,21 @@ export default function StatsTab() {
           </View>
 
           {macroTotal > 0 ? (
-            <>
+            <View style={styles.macrosContent}>
               <View style={styles.pieChartWrap}>
                 <PieChart
                   data={macroPieData}
                   donut
-                  radius={hs(86)}
-                  innerRadius={hs(58)}
+                  radius={hs(80)}
+                  innerRadius={hs(45)}
                   innerCircleColor={theme.colors.background.surface}
                   strokeColor={theme.colors.background.surface}
                   strokeWidth={2}
                   showText
-                  textColor={theme.colors.text.primary}
+                  textColor={theme.colors.text.onBrand}
                   textSize={12}
+                  fontWeight="700"
                   showValuesAsLabels
-                  centerLabelComponent={() => (
-                    <View style={styles.pieCenter}>
-                      <Text variant="caption" color="secondary">
-                        {t('statsScreen.macros.centerLabel')}
-                      </Text>
-                      <Text variant="h3">{`${Math.round(macroTotal)} ${t('common.units.gram')}`}</Text>
-                    </View>
-                  )}
                 />
               </View>
 
@@ -289,7 +282,7 @@ export default function StatsTab() {
                   <View style={[styles.legendDot, styles.legendDotProtein]} />
                   <View style={styles.legendCopy}>
                     <Text variant="bodySmall">{t('statsScreen.macros.protein')}</Text>
-                    <Text variant="caption" color="secondary">
+                    <Text variant="bodySmall" color="secondary">
                       {`${Math.round(todaySummary.proteinGrams)} ${t('common.units.gram')}`}
                     </Text>
                   </View>
@@ -298,7 +291,7 @@ export default function StatsTab() {
                   <View style={[styles.legendDot, styles.legendDotCarbs]} />
                   <View style={styles.legendCopy}>
                     <Text variant="bodySmall">{t('statsScreen.macros.carbs')}</Text>
-                    <Text variant="caption" color="secondary">
+                    <Text variant="bodySmall" color="secondary">
                       {`${Math.round(todaySummary.carbsGrams)} ${t('common.units.gram')}`}
                     </Text>
                   </View>
@@ -307,13 +300,13 @@ export default function StatsTab() {
                   <View style={[styles.legendDot, styles.legendDotFat]} />
                   <View style={styles.legendCopy}>
                     <Text variant="bodySmall">{t('statsScreen.macros.fat')}</Text>
-                    <Text variant="caption" color="secondary">
+                    <Text variant="bodySmall" color="secondary">
                       {`${Math.round(todaySummary.fatGrams)} ${t('common.units.gram')}`}
                     </Text>
                   </View>
                 </View>
               </View>
-            </>
+            </View>
           ) : (
             <View style={styles.emptyState}>
               <Text variant="bodySmall" color="secondary" align="center">
@@ -415,9 +408,15 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background.section,
   },
   pieChartWrap: {
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: theme.metrics.spacingV.p8,
+  },
+  macrosContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p16,
   },
   pieCenter: {
     alignItems: 'center',
@@ -425,12 +424,17 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacingV.p4,
   },
   macroLegend: {
+    flex: 1,
     gap: theme.metrics.spacingV.p12,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.metrics.spacing.p12,
+    gap: theme.metrics.spacing.p8,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.background.section,
   },
   legendDot: {
     width: theme.metrics.spacing.p12,
@@ -447,7 +451,9 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.state.success,
   },
   legendCopy: {
-    gap: theme.metrics.spacingV.p4,
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
   },
   lineChartWrap: {
     overflow: 'hidden',

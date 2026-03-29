@@ -44,6 +44,7 @@ interface FoodEntryRow {
   carbs_grams: number;
   fat_grams: number;
   notes: string | null;
+  image_uri: string | null;
   created_at: string;
   updated_at: string;
   is_favorite: number;
@@ -60,6 +61,7 @@ interface FavoriteFoodRow {
   carbs_grams: number;
   fat_grams: number;
   notes: string | null;
+  image_uri: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -101,6 +103,7 @@ function mapFoodEntry(row: FoodEntryRow): FoodEntry {
     carbsGrams: row.carbs_grams,
     fatGrams: row.fat_grams,
     notes: row.notes,
+    imageUri: row.image_uri,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     isFavorite: row.is_favorite === 1,
@@ -119,6 +122,7 @@ function mapFavoriteFood(row: FavoriteFoodRow): FavoriteFood {
     carbsGrams: row.carbs_grams,
     fatGrams: row.fat_grams,
     notes: row.notes,
+    imageUri: row.image_uri,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -405,10 +409,11 @@ export async function createFoodEntry(input: FoodEntryInput) {
         carbs_grams,
         fat_grams,
         notes,
+        image_uri,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
       id,
@@ -422,6 +427,7 @@ export async function createFoodEntry(input: FoodEntryInput) {
       input.carbsGrams,
       input.fatGrams,
       input.notes ?? null,
+      input.imageUri ?? null,
       now,
       now,
     ]
@@ -456,6 +462,7 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
         carbs_grams = ?,
         fat_grams = ?,
         notes = ?,
+        image_uri = ?,
         updated_at = ?
       WHERE id = ?;
     `,
@@ -470,6 +477,7 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
       input.carbsGrams,
       input.fatGrams,
       input.notes ?? null,
+      input.imageUri ?? null,
       now,
       entryId,
     ]
@@ -486,7 +494,7 @@ export async function deleteFoodEntry(entryId: string) {
 export async function listFavoriteFoods() {
   const database = await getDatabase();
   const rows = await database.getAllAsync<FavoriteFoodRow>(
-    'SELECT * FROM favorite_foods ORDER BY updated_at DESC;'
+    'SELECT * FROM favorite_foods ORDER BY created_at DESC;'
   );
 
   return rows.map(mapFavoriteFood);
@@ -535,10 +543,11 @@ export async function toggleFavoriteFoodEntry(entryId: string) {
         carbs_grams,
         fat_grams,
         notes,
+        image_uri,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
       createEntityId('favorite'),
@@ -551,6 +560,7 @@ export async function toggleFavoriteFoodEntry(entryId: string) {
       entry.carbsGrams,
       entry.fatGrams,
       entry.notes ?? null,
+      entry.imageUri ?? null,
       now,
       now,
     ]
@@ -562,6 +572,123 @@ export async function toggleFavoriteFoodEntry(entryId: string) {
 export async function deleteFavoriteFood(favoriteId: string) {
   const database = await getDatabase();
   await database.runAsync('DELETE FROM favorite_foods WHERE id = ?;', [favoriteId]);
+}
+
+export async function updateFavoriteFood(
+  favoriteId: string,
+  input: Pick<
+    FavoriteFood,
+    | 'name'
+    | 'quantityLabel'
+    | 'quantityGrams'
+    | 'totalCalories'
+    | 'proteinGrams'
+    | 'carbsGrams'
+    | 'fatGrams'
+    | 'notes'
+    | 'imageUri'
+  >
+) {
+  const database = await getDatabase();
+  const now = nowIsoString();
+
+  await database.runAsync(
+    `
+      UPDATE favorite_foods
+      SET
+        name = ?,
+        quantity_label = ?,
+        quantity_grams = ?,
+        total_calories = ?,
+        protein_grams = ?,
+        carbs_grams = ?,
+        fat_grams = ?,
+        notes = ?,
+        image_uri = ?,
+        updated_at = ?
+      WHERE id = ?;
+    `,
+    [
+      input.name,
+      input.quantityLabel,
+      input.quantityGrams ?? null,
+      input.totalCalories,
+      input.proteinGrams,
+      input.carbsGrams,
+      input.fatGrams,
+      input.notes ?? null,
+      input.imageUri ?? null,
+      now,
+      favoriteId,
+    ]
+  );
+
+  return getFavoriteFoodById(favoriteId);
+}
+
+export async function upsertFavoriteFoodFromInput(
+  input: Pick<
+    FavoriteFood,
+    | 'name'
+    | 'quantityLabel'
+    | 'quantityGrams'
+    | 'totalCalories'
+    | 'proteinGrams'
+    | 'carbsGrams'
+    | 'fatGrams'
+    | 'notes'
+    | 'imageUri'
+  >
+) {
+  const database = await getDatabase();
+  const existingFavorite = await database.getFirstAsync<{ id: string }>(
+    'SELECT id FROM favorite_foods WHERE name = ? COLLATE NOCASE LIMIT 1;',
+    [input.name]
+  );
+
+  if (existingFavorite) {
+    return updateFavoriteFood(existingFavorite.id, input);
+  }
+
+  const now = nowIsoString();
+  const favoriteId = createEntityId('favorite');
+
+  await database.runAsync(
+    `
+      INSERT INTO favorite_foods (
+        id,
+        source_entry_id,
+        name,
+        quantity_label,
+        quantity_grams,
+        total_calories,
+        protein_grams,
+        carbs_grams,
+        fat_grams,
+        notes,
+        image_uri,
+        created_at,
+        updated_at
+      )
+      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `,
+    [
+      favoriteId,
+      input.name,
+      input.quantityLabel,
+      input.quantityGrams ?? null,
+      input.totalCalories,
+      input.proteinGrams,
+      input.carbsGrams,
+      input.fatGrams,
+      input.notes ?? null,
+      input.imageUri ?? null,
+      now,
+      now,
+    ]
+  );
+
+  return getFavoriteFoodById(favoriteId);
 }
 
 export async function createFoodEntryFromFavorite(
@@ -585,6 +712,7 @@ export async function createFoodEntryFromFavorite(
     carbsGrams: favorite.carbsGrams,
     fatGrams: favorite.fatGrams,
     notes: overrides?.notes ?? favorite.notes,
+    imageUri: favorite.imageUri,
     consumedAt: overrides?.consumedAt,
     entryDate: overrides?.entryDate,
   });

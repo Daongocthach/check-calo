@@ -103,7 +103,7 @@ export default function ProfileTab() {
         style: 'cancel',
       },
       {
-        text: t('profileScreen.resetAction'),
+        text: t('common.confirm'),
         style: 'destructive',
         onPress: () => {
           setIsResettingData(true);

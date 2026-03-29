@@ -46,7 +46,9 @@ export const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
   },
   tabBubbleActive: {
-    backgroundColor: theme.colors.brand.primary,
+    backgroundColor: theme.colors.brand.primaryVariant,
+    borderWidth: 1,
+    borderColor: theme.colors.brand.primary,
   },
   tabBubbleInactive: {
     backgroundColor: 'transparent',
@@ -57,7 +59,6 @@ export const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.brand.secondary,
     borderWidth: 6,
     borderColor: theme.colors.background.app,
     shadowColor: theme.colors.shadow.color,
@@ -65,5 +66,12 @@ export const styles = StyleSheet.create((theme) => ({
     shadowOpacity: 0.26,
     shadowRadius: 20,
     elevation: theme.colors.shadow.elevationLarge,
+  },
+  addBubbleGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }));

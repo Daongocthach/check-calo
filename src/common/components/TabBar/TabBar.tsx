@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { ComponentProps } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,7 +14,7 @@ const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }
   index: { active: 'home', inactive: 'home-outline' },
   stats: { active: 'stats-chart', inactive: 'stats-chart-outline' },
   add: { active: 'add', inactive: 'add' },
-  favorites: { active: 'heart', inactive: 'heart-outline' },
+  favorites: { active: 'library', inactive: 'library-outline' },
   profile: { active: 'person', inactive: 'person-outline' },
 };
 
@@ -54,7 +55,7 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
         if (isAddTab) {
           iconColor = theme.colors.icon.inverse;
         } else if (isFocused) {
-          iconColor = theme.colors.icon.onBrand;
+          iconColor = theme.colors.icon.primary;
         }
 
         return (
@@ -67,14 +68,25 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
             accessibilityLabel={options.tabBarAccessibilityLabel}
             style={[styles.tab, isAddTab ? styles.addTab : styles.standardTab]}
           >
-            <View
-              style={[
-                isAddTab ? styles.addBubble : styles.tabBubble,
-                !isAddTab && (isFocused ? styles.tabBubbleActive : styles.tabBubbleInactive),
-              ]}
-            >
-              <Ionicons name={iconName} size={isAddTab ? 24 : 18} color={iconColor} />
-            </View>
+            {isAddTab ? (
+              <View style={styles.addBubble}>
+                <LinearGradient
+                  colors={theme.colors.gradient.accent}
+                  style={styles.addBubbleGradient}
+                >
+                  <Ionicons name={iconName} size={24} color={iconColor} />
+                </LinearGradient>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.tabBubble,
+                  isFocused ? styles.tabBubbleActive : styles.tabBubbleInactive,
+                ]}
+              >
+                <Ionicons name={iconName} size={18} color={iconColor} />
+              </View>
+            )}
           </Pressable>
         );
       })}

@@ -50,8 +50,8 @@ export function Chip({
   if (color !== undefined) {
     if (isFilled) {
       containerColorStyle = { backgroundColor: color, borderColor: color };
-      labelColorStyle = { color: theme.colors.text.inverse };
-      closeIconColor = theme.colors.text.inverse;
+      labelColorStyle = { color: theme.colors.text.primary };
+      closeIconColor = theme.colors.text.primary;
     } else {
       containerColorStyle = { borderColor: color };
       labelColorStyle = { color };

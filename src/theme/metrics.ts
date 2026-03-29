@@ -12,6 +12,8 @@ export const breakpoints = {
 
 const BASE_WIDTH = 390;
 const BASE_HEIGHT = 844;
+const MAX_SCALE_WIDTH = 430;
+const MAX_SCALE_HEIGHT = 932;
 
 export interface Metrics {
   screenWidth: number;
@@ -36,24 +38,24 @@ const metrics: Metrics = {
 };
 
 export function rf(fontSize: number): number {
-  const scaleFactor = SCREEN_WIDTH / BASE_WIDTH;
+  const scaleFactor = Math.min(metrics.screenWidth, MAX_SCALE_WIDTH) / BASE_WIDTH;
   return Math.round(fontSize * scaleFactor);
 }
 
 export function hs(size: number): number {
-  const scaleFactor = SCREEN_WIDTH / BASE_WIDTH;
+  const scaleFactor = Math.min(metrics.screenWidth, MAX_SCALE_WIDTH) / BASE_WIDTH;
   return Math.round(size * scaleFactor);
 }
 
 export function vs(size: number): number {
-  const scaleFactor = SCREEN_HEIGHT / BASE_HEIGHT;
+  const scaleFactor = Math.min(metrics.screenHeight, MAX_SCALE_HEIGHT) / BASE_HEIGHT;
   return Math.round(size * scaleFactor);
 }
 
 export function responsiveWidth(width: number | string): number {
   if (typeof width === 'string' && width.includes('%')) {
     const percentage = parseFloat(width) / 100;
-    return Math.round(SCREEN_WIDTH * percentage);
+    return Math.round(metrics.screenWidth * percentage);
   }
   return hs(width as number);
 }
@@ -61,7 +63,7 @@ export function responsiveWidth(width: number | string): number {
 export function responsiveHeight(height: number | string): number {
   if (typeof height === 'string' && height.includes('%')) {
     const percentage = parseFloat(height) / 100;
-    return Math.round(SCREEN_HEIGHT * percentage);
+    return Math.round(metrics.screenHeight * percentage);
   }
   return vs(height as number);
 }

@@ -1,132 +1,249 @@
+import { Image } from 'expo-image';
+import { createContext, useContext, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Icon, Text } from '@/common/components';
-import type { FoodEntry } from '@/features/nutrition/types';
+import type { FavoriteFood, FoodEntry } from '@/features/nutrition/types';
+import { formatMealWeight } from '@/features/nutrition/utils/quantity';
 
-interface HomeMealCardProps {
-  meal: FoodEntry;
-  onPress: () => void;
-  onToggleFavorite: () => void | Promise<void>;
+export interface HomeMealCardItem {
+  title: string;
+  quantityLabel: string;
+  quantityGrams?: number | null;
+  totalCalories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+  imageUri?: string | null;
+  isFavorite: boolean;
 }
 
-function getQuantityDisplay(meal: FoodEntry, gramUnit: string) {
-  if (typeof meal.quantityGrams === 'number' && !Number.isNaN(meal.quantityGrams)) {
-    return `${Math.round(meal.quantityGrams)} ${gramUnit}`;
+interface HomeMealCardContextValue {
+  item: HomeMealCardItem;
+  quantityDisplay: string;
+}
+
+const HomeMealCardContext = createContext<HomeMealCardContextValue | null>(null);
+
+function useHomeMealCardContext() {
+  const context = useContext(HomeMealCardContext);
+
+  if (!context) {
+    throw new Error('HomeMealCard compound components must be used within HomeMealCard.Root');
   }
 
-  return meal.quantityLabel;
+  return context;
 }
 
-function getPreviewStyle(entry: FoodEntry) {
+function getPreviewStyle(entry: Pick<FoodEntry, 'proteinGrams' | 'carbsGrams' | 'fatGrams'>) {
   if (entry.proteinGrams >= entry.carbsGrams && entry.proteinGrams >= entry.fatGrams) {
     return {
-      icon: 'fish-outline' as const,
+      imageUri:
+        'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=600&q=80',
       previewStyle: 'nightPreview' as const,
     };
   }
 
   if (entry.carbsGrams >= entry.fatGrams) {
     return {
-      icon: 'nutrition-outline' as const,
+      imageUri:
+        'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
       previewStyle: 'sunrisePreview' as const,
     };
   }
 
   return {
-    icon: 'water' as const,
+    imageUri:
+      'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80',
     previewStyle: 'greenPreview' as const,
   };
 }
 
-export function HomeMealCard({ meal, onPress, onToggleFavorite }: HomeMealCardProps) {
+interface RootProps {
+  item: HomeMealCardItem;
+  onPress: () => void;
+  children: ReactNode;
+}
+
+function Root({ item, onPress, children }: RootProps) {
   const { t } = useTranslation();
-  const preview = getPreviewStyle(meal);
-  const quantityDisplay = getQuantityDisplay(meal, t('common.units.gram'));
+  const quantityDisplay = formatMealWeight(
+    item.quantityGrams,
+    item.quantityLabel,
+    t('common.units.gram')
+  );
+
+  return (
+    <HomeMealCardContext.Provider value={{ item, quantityDisplay }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={item.title}
+        style={styles.mealPressable}
+        onPress={onPress}
+      >
+        <Card variant="elevated" style={styles.mealCard}>
+          <View style={styles.mealMainRow}>{children}</View>
+        </Card>
+      </Pressable>
+    </HomeMealCardContext.Provider>
+  );
+}
+
+function Preview() {
+  const { item } = useHomeMealCardContext();
+  const { t } = useTranslation();
+  const preview = getPreviewStyle(item);
+  const previewUri =
+    typeof item.imageUri === 'string' && item.imageUri.length > 0 ? item.imageUri : undefined;
+  const hasImage = typeof previewUri === 'string';
+
+  return (
+    <View
+      style={[
+        styles.mealPreview,
+        hasImage ? styles[preview.previewStyle] : styles.placeholderPreview,
+      ]}
+    >
+      {hasImage ? (
+        <Image source={{ uri: previewUri }} style={styles.previewImage} contentFit="cover" />
+      ) : (
+        <View style={styles.previewPlaceholder}>
+          <Icon name="image-outline" size={24} variant="primary" />
+        </View>
+      )}
+      <View style={styles.previewCalories}>
+        <Text variant="caption" weight="semibold" color="inverse">
+          {`${Math.round(item.totalCalories)} ${t('common.units.kcal')}`}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function Content({ children }: { children: ReactNode }) {
+  return <View style={styles.mealCopy}>{children}</View>;
+}
+
+function Header({ children }: { children?: ReactNode }) {
+  const { item, quantityDisplay } = useHomeMealCardContext();
+
+  return (
+    <View style={styles.mealHeaderRow}>
+      <View style={styles.mealTitleBlock}>
+        <Text variant="h3">{`${item.title} (${quantityDisplay})`}</Text>
+      </View>
+      {children ? <View style={styles.headerActions}>{children}</View> : null}
+    </View>
+  );
+}
+
+function FavoriteAction({ onPress }: { onPress: () => void | Promise<void> }) {
+  const { t } = useTranslation();
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={meal.mealName}
-      style={styles.mealPressable}
-      onPress={onPress}
+      accessibilityLabel={t('common.edit')}
+      style={styles.favoriteButton}
+      onPress={(event) => {
+        event.stopPropagation();
+        void onPress();
+      }}
     >
-      <Card variant="elevated" style={styles.mealCard}>
-        <View style={styles.mealMainRow}>
-          <View style={styles.mealCopy}>
-            <View style={styles.mealHeaderRow}>
-              <View style={styles.mealTitleBlock}>
-                <Text variant="h3">{meal.mealName}</Text>
-                <Text variant="caption" color="secondary">
-                  {quantityDisplay}
-                </Text>
-              </View>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={
-                  meal.isFavorite
-                    ? t('homeScreen.meals.removeFavorite')
-                    : t('homeScreen.meals.addFavorite')
-                }
-                style={styles.favoriteButton}
-                onPress={(event) => {
-                  event.stopPropagation();
-                  void onToggleFavorite();
-                }}
-              >
-                <Icon
-                  name={meal.isFavorite ? 'heart' : 'heart-outline'}
-                  size={18}
-                  variant={meal.isFavorite ? 'accent' : 'muted'}
-                />
-              </Pressable>
-            </View>
-
-            <View style={styles.macroPanel}>
-              <View style={styles.macroColumn}>
-                <Text variant="caption" color="secondary">
-                  {t('statsScreen.macros.protein')}
-                </Text>
-                <Text variant="bodySmall" weight="semibold">
-                  {`${Math.round(meal.proteinGrams)} ${t('common.units.gram')}`}
-                </Text>
-              </View>
-              <View style={styles.macroDivider} />
-              <View style={styles.macroColumn}>
-                <Text variant="caption" color="secondary">
-                  {t('statsScreen.macros.carbs')}
-                </Text>
-                <Text variant="bodySmall" weight="semibold">
-                  {`${Math.round(meal.carbsGrams)} ${t('common.units.gram')}`}
-                </Text>
-              </View>
-              <View style={styles.macroDivider} />
-              <View style={styles.macroColumn}>
-                <Text variant="caption" color="secondary">
-                  {t('statsScreen.macros.fat')}
-                </Text>
-                <Text variant="bodySmall" weight="semibold">
-                  {`${Math.round(meal.fatGrams)} ${t('common.units.gram')}`}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={[styles.mealPreview, styles[preview.previewStyle]]}>
-            <View style={styles.previewPlate}>
-              <Icon name={preview.icon} variant="inverse" size={28} />
-            </View>
-            <View style={styles.previewCalories}>
-              <Text variant="caption" weight="semibold" color="inverse">
-                {`${Math.round(meal.totalCalories)} ${t('common.units.kcal')}`}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Card>
+      <Icon name="create-outline" size={18} variant="primary" />
     </Pressable>
   );
 }
+
+function Macros() {
+  const { item } = useHomeMealCardContext();
+  const { t } = useTranslation();
+
+  return (
+    <View style={styles.macroPanel}>
+      <View style={styles.macroColumn}>
+        <Text variant="caption" color="secondary">
+          {t('statsScreen.macros.protein')}
+        </Text>
+        <View style={styles.macroValueRow}>
+          <Text variant="bodySmall" weight="semibold">
+            {Math.round(item.proteinGrams)}
+          </Text>
+          <Text variant="caption" color="secondary">
+            {t('common.units.gram')}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.macroDivider} />
+      <View style={styles.macroColumn}>
+        <Text variant="caption" color="secondary">
+          {t('statsScreen.macros.carbs')}
+        </Text>
+        <View style={styles.macroValueRow}>
+          <Text variant="bodySmall" weight="semibold">
+            {Math.round(item.carbsGrams)}
+          </Text>
+          <Text variant="caption" color="secondary">
+            {t('common.units.gram')}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.macroDivider} />
+      <View style={styles.macroColumn}>
+        <Text variant="caption" color="secondary">
+          {t('statsScreen.macros.fat')}
+        </Text>
+        <View style={styles.macroValueRow}>
+          <Text variant="bodySmall" weight="semibold">
+            {Math.round(item.fatGrams)}
+          </Text>
+          <Text variant="caption" color="secondary">
+            {t('common.units.gram')}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function Actions({ children }: { children: ReactNode }) {
+  return <View style={styles.actionRow}>{children}</View>;
+}
+
+interface ActionButtonProps {
+  icon: 'create-outline' | 'trash-outline';
+  label: string;
+  onPress: () => void;
+  tone?: 'default' | 'danger';
+}
+
+function ActionButton({ icon, label, onPress, tone = 'default' }: ActionButtonProps) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={[styles.favoriteButton, tone === 'danger' && styles.actionButtonDanger]}
+      onPress={(event) => {
+        event.stopPropagation();
+        onPress();
+      }}
+    >
+      <Icon name={icon} size={16} variant={tone === 'danger' ? 'accent' : 'primary'} />
+    </Pressable>
+  );
+}
+
+export const HomeMealCard = {
+  Root,
+  Preview,
+  Content,
+  Header,
+  FavoriteAction,
+  Macros,
+  Actions,
+  ActionButton,
+};
 
 const styles = StyleSheet.create((theme) => ({
   mealPressable: {
@@ -135,11 +252,13 @@ const styles = StyleSheet.create((theme) => ({
   mealCard: {
     flex: 1,
     backgroundColor: theme.colors.background.surface,
+    paddingHorizontal: theme.metrics.spacing.p8,
+    paddingVertical: theme.metrics.spacingV.p8,
   },
   mealMainRow: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    gap: theme.metrics.spacing.p12,
+    gap: theme.metrics.spacing.p4,
   },
   mealCopy: {
     flex: 1,
@@ -151,10 +270,15 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p8,
+    paddingLeft: theme.metrics.spacing.p8,
   },
   mealTitleBlock: {
     flex: 1,
-    gap: theme.metrics.spacingV.p4,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
   },
   favoriteButton: {
     width: theme.metrics.spacing.p32,
@@ -168,26 +292,30 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     alignItems: 'stretch',
     borderRadius: theme.metrics.borderRadius.lg,
-    backgroundColor: theme.colors.background.section,
-    overflow: 'hidden',
   },
   macroColumn: {
     flex: 1,
     gap: theme.metrics.spacingV.p4,
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p8,
+    paddingHorizontal: theme.metrics.spacing.p8,
+    paddingVertical: theme.metrics.spacingV.p4,
+  },
+  macroValueRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: theme.metrics.spacing.p4,
   },
   macroDivider: {
     width: 1,
-    backgroundColor: theme.colors.border.subtle,
+    marginVertical: theme.metrics.spacingV.p4,
+    backgroundColor: theme.colors.border.default,
   },
   mealPreview: {
-    width: theme.metrics.spacing.p112,
-    minHeight: theme.metrics.spacing.p104,
+    width: theme.metrics.spacing.p88,
+    minHeight: theme.metrics.spacing.p88,
     borderRadius: theme.metrics.borderRadius.lg,
-    padding: theme.metrics.spacing.p8,
     justifyContent: 'flex-end',
     overflow: 'hidden',
+    position: 'relative',
   },
   sunrisePreview: {
     backgroundColor: theme.colors.state.warning,
@@ -198,14 +326,16 @@ const styles = StyleSheet.create((theme) => ({
   nightPreview: {
     backgroundColor: theme.colors.brand.secondary,
   },
-  previewPlate: {
-    alignSelf: 'center',
-    width: theme.metrics.spacing.p52,
-    height: theme.metrics.spacing.p52,
-    borderRadius: theme.metrics.borderRadius.full,
+  placeholderPreview: {
+    backgroundColor: theme.colors.background.section,
+  },
+  previewImage: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  previewPlaceholder: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.overlay.ripple,
   },
   previewCalories: {
     alignSelf: 'center',
@@ -214,4 +344,38 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     backgroundColor: theme.colors.overlay.modal,
   },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+  },
+  actionButtonDanger: {
+    backgroundColor: theme.colors.background.section,
+  },
 }));
+
+export function toHomeMealCardItem(item: {
+  mealName?: string;
+  name?: string;
+  quantityLabel: FoodEntry['quantityLabel'] | FavoriteFood['quantityLabel'];
+  quantityGrams?: FoodEntry['quantityGrams'] | FavoriteFood['quantityGrams'];
+  totalCalories: FoodEntry['totalCalories'] | FavoriteFood['totalCalories'];
+  proteinGrams: FoodEntry['proteinGrams'] | FavoriteFood['proteinGrams'];
+  carbsGrams: FoodEntry['carbsGrams'] | FavoriteFood['carbsGrams'];
+  fatGrams: FoodEntry['fatGrams'] | FavoriteFood['fatGrams'];
+  imageUri?: FoodEntry['imageUri'] | FavoriteFood['imageUri'];
+  isFavorite: boolean;
+}): HomeMealCardItem {
+  return {
+    title:
+      'mealName' in item && typeof item.mealName === 'string' ? item.mealName : (item.name ?? ''),
+    quantityLabel: item.quantityLabel,
+    quantityGrams: item.quantityGrams,
+    totalCalories: item.totalCalories,
+    proteinGrams: item.proteinGrams,
+    carbsGrams: item.carbsGrams,
+    fatGrams: item.fatGrams,
+    imageUri: item.imageUri,
+    isFavorite: item.isFavorite,
+  };
+}

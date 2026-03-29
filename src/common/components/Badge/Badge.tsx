@@ -46,7 +46,7 @@ export function Badge({
         <Text
           variant="caption"
           weight="semibold"
-          color={isSolid ? 'inverse' : undefined}
+          color={isSolid ? 'primary' : undefined}
           style={!isSolid ? styles.badgeText : undefined}
         >
           {displayCount}

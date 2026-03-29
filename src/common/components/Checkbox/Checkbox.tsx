@@ -54,7 +54,7 @@ export function Checkbox({
           {indeterminate ? (
             <View style={styles.indeterminateDash} />
           ) : (
-            checked && <Icon name="checkmark" size={ICON_SIZES[size] ?? 14} variant="inverse" />
+            checked && <Icon name="checkmark" size={ICON_SIZES[size] ?? 14} variant="primary" />
           )}
         </Animated.View>
       </View>

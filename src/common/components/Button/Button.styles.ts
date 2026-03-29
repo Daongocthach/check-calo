@@ -55,13 +55,13 @@ export const styles = StyleSheet.create((theme) => ({
     variants: {
       variant: {
         primary: {
-          color: theme.colors.brand.onBrand,
+          color: theme.colors.text.primary,
         },
         secondary: {
           color: theme.colors.text.primary,
         },
         outline: {
-          color: theme.colors.brand.primary,
+          color: theme.colors.text.primary,
         },
         ghost: {
           color: theme.colors.brand.primary,

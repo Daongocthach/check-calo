@@ -1,15 +1,24 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionList, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Card, Icon, MonthSelector, ProgressBar, ScreenContainer, Text } from '@/common/components';
-import { HomeMealCard } from '@/features/nutrition/components/HomeMealCard';
+import {
+  Button,
+  Card,
+  Icon,
+  MonthSelector,
+  ProgressBar,
+  ScreenContainer,
+  Text,
+} from '@/common/components';
+import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
 import {
   getDailyNutritionSummary,
+  getUserProfile,
   listFoodEntriesByDate,
-  toggleFavoriteFoodEntry,
 } from '@/features/nutrition/services/nutritionDatabase';
 import type { DailyNutritionSummary, FoodEntry } from '@/features/nutrition/types';
 import { vs } from '@/theme/metrics';
@@ -45,20 +54,25 @@ export default function HomeTab() {
     createEmptySummary(new Date())
   );
   const [entries, setEntries] = useState<FoodEntry[]>([]);
+  const [hasProfile, setHasProfile] = useState(false);
 
   const loadNutritionData = useCallback(async (date: Date) => {
-    const [nextSummary, nextEntries] = await Promise.all([
+    const [profile, nextSummary, nextEntries] = await Promise.all([
+      getUserProfile(),
       getDailyNutritionSummary(date),
       listFoodEntriesByDate(date),
     ]);
 
+    setHasProfile(profile !== null);
     setSummary(nextSummary);
     setEntries(nextEntries);
   }, []);
 
-  useEffect(() => {
-    void loadNutritionData(selectedDate);
-  }, [loadNutritionData, selectedDate]);
+  useFocusEffect(
+    useCallback(() => {
+      void loadNutritionData(selectedDate);
+    }, [loadNutritionData, selectedDate])
+  );
 
   const mealSections = useMemo<MealSection[]>(() => {
     return entries.reduce<MealSection[]>((accumulator, entry) => {
@@ -78,11 +92,6 @@ export default function HomeTab() {
       return accumulator;
     }, []);
   }, [entries]);
-
-  const handleFavoriteToggle = async (entryId: string) => {
-    await toggleFavoriteFoodEntry(entryId);
-    await loadNutritionData(selectedDate);
-  };
 
   return (
     <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
@@ -108,19 +117,34 @@ export default function HomeTab() {
               <View style={styles.itemLine} />
             </View>
 
-            <HomeMealCard
-              meal={meal}
+            <HomeMealCard.Root
+              item={toHomeMealCardItem(meal)}
               onPress={() =>
                 router.push({
-                  pathname: '/food-result',
+                  pathname: '/food-form',
                   params: {
-                    mode: 'manual',
                     entryId: meal.id,
                   },
                 })
               }
-              onToggleFavorite={() => handleFavoriteToggle(meal.id)}
-            />
+            >
+              <HomeMealCard.Preview />
+              <HomeMealCard.Content>
+                <HomeMealCard.Header>
+                  <HomeMealCard.FavoriteAction
+                    onPress={() =>
+                      router.push({
+                        pathname: '/food-form',
+                        params: {
+                          entryId: meal.id,
+                        },
+                      })
+                    }
+                  />
+                </HomeMealCard.Header>
+                <HomeMealCard.Macros />
+              </HomeMealCard.Content>
+            </HomeMealCard.Root>
           </View>
         )}
         ListHeaderComponent={
@@ -131,101 +155,122 @@ export default function HomeTab() {
               maxDate={new Date()}
             />
 
-            <LinearGradient colors={theme.colors.gradient.secondary} style={styles.heroCard}>
-              <View style={styles.heroTopRow}>
-                <View style={styles.heroBadge}>
-                  <Icon name="flash" size={14} variant="secondary" />
-                  <Text variant="caption" weight="semibold">
-                    {t('homeScreen.dailyIntake')}
-                  </Text>
-                </View>
-                <View style={styles.dayPill}>
-                  <Text variant="caption" weight="semibold">
-                    {selectedDate.getDate()}/{selectedDate.getMonth() + 1}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.heroStatsRow}>
-                <View style={styles.heroStat}>
-                  <Text variant="caption" color="secondary">
-                    {t('homeScreen.target')}
-                  </Text>
-                  <Text variant="h1">{summary.calorieTarget}</Text>
-                  <Text variant="bodySmall" color="secondary">
-                    {t('homeScreen.kcalToday')}
-                  </Text>
-                </View>
-                <View style={styles.heroStat}>
-                  <Text variant="caption" color="secondary">
-                    {t('homeScreen.remaining')}
-                  </Text>
-                  <Text variant="h2">{summary.remainingCalories}</Text>
-                  <Text variant="bodySmall" color="accent">
-                    {summary.remainingCalories >= 0
-                      ? t('homeScreen.onTrack')
-                      : t('homeScreen.exceeded')}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.progressHeader}>
-                <Text variant="bodySmall" weight="medium">
-                  {t('homeScreen.progress')}
-                </Text>
-                <Text variant="bodySmall" weight="semibold">
-                  {summary.progressPercent}%
-                </Text>
-              </View>
-              <ProgressBar value={summary.progressPercent} size="lg" colorScheme="success" />
-
-              <View style={styles.quickStatsRow}>
-                <View style={[styles.macroTile, styles.macroTileProtein]}>
-                  <View style={styles.macroIconBadge}>
-                    <Icon name="fish-outline" size={12} color={theme.colors.state.info} />
+            {hasProfile ? (
+              <LinearGradient colors={theme.colors.gradient.secondary} style={styles.heroCard}>
+                <View style={styles.heroTopRow}>
+                  <View style={styles.heroBadge}>
+                    <Icon name="flash" size={14} variant="secondary" />
+                    <Text variant="caption" weight="semibold">
+                      {t('homeScreen.dailyIntake')}
+                    </Text>
                   </View>
-                  <Text variant="bodySmall" color="secondary" align="center">
-                    {t('statsScreen.macros.protein')}
-                  </Text>
-                  <View style={styles.macroValueRow}>
-                    <Text variant="h3">{Math.round(summary.proteinGrams)}</Text>
-                    <Text variant="caption" color="secondary">
-                      {t('addScreen.result.metrics.gramsShort')}
+                  <View style={styles.dayPill}>
+                    <Text variant="caption" weight="semibold">
+                      {selectedDate.getDate()}/{selectedDate.getMonth() + 1}
                     </Text>
                   </View>
                 </View>
 
-                <View style={[styles.macroTile, styles.macroTileCarbs]}>
-                  <View style={styles.macroIconBadge}>
-                    <Icon name="nutrition-outline" size={12} color={theme.colors.state.warning} />
-                  </View>
-                  <Text variant="bodySmall" color="secondary" align="center">
-                    {t('statsScreen.macros.carbs')}
-                  </Text>
-                  <View style={styles.macroValueRow}>
-                    <Text variant="h3">{Math.round(summary.carbsGrams)}</Text>
+                <View style={styles.heroStatsRow}>
+                  <View style={styles.heroStat}>
                     <Text variant="caption" color="secondary">
-                      {t('addScreen.result.metrics.gramsShort')}
+                      {t('homeScreen.target')}
+                    </Text>
+                    <Text variant="h1">{summary.calorieTarget}</Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {t('homeScreen.kcalToday')}
+                    </Text>
+                  </View>
+                  <View style={styles.heroStat}>
+                    <Text variant="caption" color="secondary">
+                      {t('homeScreen.remaining')}
+                    </Text>
+                    <Text variant="h2">{summary.remainingCalories}</Text>
+                    <Text variant="bodySmall" color="accent">
+                      {summary.remainingCalories >= 0
+                        ? t('homeScreen.onTrack')
+                        : t('homeScreen.exceeded')}
                     </Text>
                   </View>
                 </View>
 
-                <View style={[styles.macroTile, styles.macroTileFat]}>
-                  <View style={styles.macroIconBadge}>
-                    <Icon name="water" size={12} color={theme.colors.state.success} />
-                  </View>
-                  <Text variant="bodySmall" color="secondary" align="center">
-                    {t('statsScreen.macros.fat')}
+                <View style={styles.progressHeader}>
+                  <Text variant="bodySmall" weight="medium">
+                    {t('homeScreen.progress')}
                   </Text>
-                  <View style={styles.macroValueRow}>
-                    <Text variant="h3">{Math.round(summary.fatGrams)}</Text>
-                    <Text variant="caption" color="secondary">
-                      {t('addScreen.result.metrics.gramsShort')}
+                  <Text variant="bodySmall" weight="semibold">
+                    {summary.progressPercent}%
+                  </Text>
+                </View>
+                <ProgressBar value={summary.progressPercent} size="lg" colorScheme="success" />
+
+                <View style={styles.quickStatsRow}>
+                  <View style={[styles.macroTile, styles.macroTileProtein]}>
+                    <View style={styles.macroIconBadge}>
+                      <Icon name="fish-outline" size={12} color={theme.colors.state.info} />
+                    </View>
+                    <Text variant="bodySmall" color="secondary" align="center">
+                      {t('statsScreen.macros.protein')}
+                    </Text>
+                    <View style={styles.macroValueRow}>
+                      <Text variant="h3">{Math.round(summary.proteinGrams)}</Text>
+                      <Text variant="caption" color="secondary">
+                        {t('addScreen.result.metrics.gramsShort')}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={[styles.macroTile, styles.macroTileCarbs]}>
+                    <View style={styles.macroIconBadge}>
+                      <Icon name="nutrition-outline" size={12} color={theme.colors.state.warning} />
+                    </View>
+                    <Text variant="bodySmall" color="secondary" align="center">
+                      {t('statsScreen.macros.carbs')}
+                    </Text>
+                    <View style={styles.macroValueRow}>
+                      <Text variant="h3">{Math.round(summary.carbsGrams)}</Text>
+                      <Text variant="caption" color="secondary">
+                        {t('addScreen.result.metrics.gramsShort')}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={[styles.macroTile, styles.macroTileFat]}>
+                    <View style={styles.macroIconBadge}>
+                      <Icon name="water" size={12} color={theme.colors.state.success} />
+                    </View>
+                    <Text variant="bodySmall" color="secondary" align="center">
+                      {t('statsScreen.macros.fat')}
+                    </Text>
+                    <View style={styles.macroValueRow}>
+                      <Text variant="h3">{Math.round(summary.fatGrams)}</Text>
+                      <Text variant="caption" color="secondary">
+                        {t('addScreen.result.metrics.gramsShort')}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </LinearGradient>
+            ) : (
+              <Card variant="filled" style={styles.profilePromptCard}>
+                <View style={styles.profilePromptHeader}>
+                  <View style={styles.profilePromptIcon}>
+                    <Icon name="body-outline" size={18} variant="primary" />
+                  </View>
+                  <View style={styles.profilePromptCopy}>
+                    <Text variant="h3">{t('homeScreen.profilePrompt.title')}</Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {t('homeScreen.profilePrompt.subtitle')}
                     </Text>
                   </View>
                 </View>
-              </View>
-            </LinearGradient>
+
+                <Button
+                  title={t('homeScreen.profilePrompt.action')}
+                  onPress={() => router.push('/welcome')}
+                />
+              </Card>
+            )}
 
             {entries.length === 0 ? (
               <Card variant="filled" style={styles.emptyCard}>
@@ -333,6 +378,26 @@ const styles = StyleSheet.create((theme) => ({
   },
   emptyCard: {
     gap: theme.metrics.spacingV.p8,
+  },
+  profilePromptCard: {
+    gap: theme.metrics.spacingV.p16,
+  },
+  profilePromptHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: theme.metrics.spacing.p12,
+  },
+  profilePromptIcon: {
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.section,
+  },
+  profilePromptCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
   },
   mealSection: {
     gap: theme.metrics.spacingV.p12,

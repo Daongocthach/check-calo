@@ -38,18 +38,18 @@ export function AppHeader() {
   const { isTablet } = useScreenDimensions();
   const [currentMode, setCurrentMode] = useState<ThemeModePreference>(() => getThemePreference());
 
-  const isHomeRoute = pathname === '/' || pathname === '/index';
+  const isIndexRoute = pathname === '/' || pathname === '/index';
   const isTabRoute = ['/', '/index', '/stats', '/add', '/favorites', '/profile'].includes(pathname);
   const greeting = getGreetingKey(new Date().getHours());
 
   const pageTitle = useMemo(() => {
+    if (pathname === '/welcome') return t('welcomeScreen.title');
     if (pathname === '/' || pathname === '/index') return t('tabs.home');
     if (pathname === '/stats') return t('tabs.stats');
     if (pathname === '/add') return t('tabs.add');
     if (pathname === '/favorites') return t('tabs.favorites');
     if (pathname === '/profile') return t('tabs.profile');
-    if (pathname === '/food-result') return t('addScreen.result.title');
-    if (pathname === '/manual-food-entry') return t('manualFoodEntry.title');
+    if (pathname === '/food-form') return t('manualFoodEntry.title');
     if (pathname === '/application-form') return t('application.applyTitle');
     if (pathname === '/application-form-success') {
       return t('application.form.successPageTitle');
@@ -81,7 +81,12 @@ export function AppHeader() {
   );
   const selectedThemeOption = themeOptions.find((option) => option.value === currentMode);
   const handleBackPress = () => {
-    if (isTabRoute && !isHomeRoute) {
+    if (pathname === '/welcome') {
+      router.replace('/');
+      return;
+    }
+
+    if (isTabRoute && !isIndexRoute) {
       router.replace('/');
       return;
     }
@@ -100,8 +105,8 @@ export function AppHeader() {
         <Icon name="chevron-back" variant="primary" size={18} />
       </Pressable>
       <Text
-        variant="body"
-        weight="medium"
+        variant="h3"
+        weight="semibold"
         numberOfLines={1}
         ellipsizeMode="tail"
         style={styles.title}
@@ -111,7 +116,7 @@ export function AppHeader() {
     </>
   );
 
-  if (isHomeRoute) {
+  if (isIndexRoute) {
     headerContent = (
       <View style={styles.profileRow}>
         <LinearGradient colors={theme.colors.gradient.highlight} style={styles.avatarBubble}>
@@ -126,28 +131,6 @@ export function AppHeader() {
           </Text>
         </View>
       </View>
-    );
-  } else if (isTabRoute) {
-    headerContent = (
-      <>
-        <Pressable
-          onPress={handleBackPress}
-          accessibilityRole="button"
-          accessibilityLabel={t('header.back')}
-          style={styles.backButtonWrap}
-        >
-          <Icon name="chevron-back" variant="primary" size={18} />
-        </Pressable>
-        <Text
-          variant="h2"
-          weight="bold"
-          numberOfLines={1}
-          ellipsizeMode="tail"
-          style={styles.title}
-        >
-          {pageTitle}
-        </Text>
-      </>
     );
   }
 
@@ -225,10 +208,9 @@ const styles = StyleSheet.create((theme, rt) => ({
   wrapper: {
     width: '100%',
     backgroundColor: theme.colors.background.app,
-    gap: theme.metrics.spacingV.p8,
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: rt.insets.top,
-    paddingBottom: theme.metrics.spacingV.p12,
+    paddingBottom: theme.metrics.spacingV.p4,
   },
   container: {
     width: '100%',
@@ -236,8 +218,9 @@ const styles = StyleSheet.create((theme, rt) => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: theme.metrics.spacing.p40,
     gap: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
   },
   containerTablet: {
     maxWidth: 960,
@@ -246,6 +229,7 @@ const styles = StyleSheet.create((theme, rt) => ({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: theme.metrics.spacing.p40,
     gap: theme.metrics.spacing.p8,
     minWidth: 0,
   },
@@ -256,8 +240,8 @@ const styles = StyleSheet.create((theme, rt) => ({
     minWidth: 0,
   },
   avatarBubble: {
-    width: theme.metrics.spacing.p48,
-    height: theme.metrics.spacing.p48,
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
@@ -266,13 +250,13 @@ const styles = StyleSheet.create((theme, rt) => ({
     flexShrink: 1,
   },
   backButtonWrap: {
-    width: theme.metrics.spacing.p32,
-    height: theme.metrics.spacing.p32,
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: theme.colors.border.default,
-    borderRadius: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.full,
     backgroundColor: theme.colors.background.surface,
   },
   textWrap: {

@@ -22,7 +22,6 @@ export interface CameraCaptureFile {
   height: number;
   fileName: string;
   mimeType: 'image/jpeg';
-  base64: string;
 }
 
 type OpenCamera = () => Promise<CameraCaptureFile | null>;
@@ -167,16 +166,9 @@ export function CameraProvider({ children }: CameraProviderProps) {
 
     try {
       const photo = await cameraRef.current.takePictureAsync({
-        base64: true,
-        quality: 0.9,
+        quality: 0.15,
         shutterSound: false,
       });
-
-      if (!photo.base64) {
-        toast.error(t('camera.captureFailed'));
-        setIsCapturing(false);
-        return;
-      }
 
       closeWithResult({
         uri: photo.uri,
@@ -184,7 +176,6 @@ export function CameraProvider({ children }: CameraProviderProps) {
         height: photo.height,
         fileName: buildFileName(photo.uri),
         mimeType: 'image/jpeg',
-        base64: photo.base64,
       });
     } catch {
       toast.error(t('camera.captureFailed'));

@@ -1,23 +1,137 @@
-import { Image } from 'expo-image';
+import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet';
+import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
-import Animated, { SlideInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Icon, ScreenContainer, Text } from '@/common/components';
+import { Button, Card, Icon, ScreenContainer, SearchBar, Text } from '@/common/components';
+import { AddMealFoodCard } from '@/features/nutrition/components/AddMealFoodCard';
+import {
+  createFoodEntry,
+  listFavoriteFoods,
+} from '@/features/nutrition/services/nutritionDatabase';
+import { useAddMealStore, type DraftMealItem } from '@/features/nutrition/stores/useAddMealStore';
+import type { FavoriteFood } from '@/features/nutrition/types';
+import { formatMealWeight } from '@/features/nutrition/utils/quantity';
+import { useAppAlert } from '@/providers/app-alert';
 import { useOpenCamera, useOpenQrScanner } from '@/providers/camera';
-import { hs, vs } from '@/theme/metrics';
+import { hs } from '@/theme/metrics';
+import { toast } from '@/utils/toast';
 
-const PREVIEW_IMAGE_URI =
-  'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80';
+const PREVIEW_IMAGE_URIS = {
+  protein:
+    'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=600&q=80',
+  carbs:
+    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
+  fat: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80',
+} as const;
+
+function getPreviewImageUri(item: Pick<DraftMealItem, 'proteinGrams' | 'carbsGrams' | 'fatGrams'>) {
+  if (item.proteinGrams >= item.carbsGrams && item.proteinGrams >= item.fatGrams) {
+    return PREVIEW_IMAGE_URIS.protein;
+  }
+
+  if (item.carbsGrams >= item.fatGrams) {
+    return PREVIEW_IMAGE_URIS.carbs;
+  }
+
+  return PREVIEW_IMAGE_URIS.fat;
+}
+
+function toDraftMealFavoriteItem(favorite: FavoriteFood) {
+  return {
+    sourceKey: `favorite:${favorite.id}`,
+    title: favorite.name,
+    quantityLabel: favorite.quantityLabel,
+    quantityGrams: favorite.quantityGrams,
+    totalCalories: favorite.totalCalories,
+    proteinGrams: favorite.proteinGrams,
+    carbsGrams: favorite.carbsGrams,
+    fatGrams: favorite.fatGrams,
+    notes: favorite.notes,
+    imageUri: favorite.imageUri ?? getPreviewImageUri(favorite),
+  };
+}
 
 export default function AddCaloriesTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
+  const insets = useSafeAreaInsets();
+  const appAlert = useAppAlert();
   const openCamera = useOpenCamera();
   const openQrScanner = useOpenQrScanner();
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const [favoriteFoods, setFavoriteFoods] = useState<FavoriteFood[]>([]);
+  const [searchValue, setSearchValue] = useState('');
+  const [isSavingMeal, setIsSavingMeal] = useState(false);
+  const items = useAddMealStore((state) => state.items);
+  const addItem = useAddMealStore((state) => state.addItem);
+  const increaseServings = useAddMealStore((state) => state.increaseServings);
+  const decreaseServings = useAddMealStore((state) => state.decreaseServings);
+  const clearMeal = useAddMealStore((state) => state.clearMeal);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      void listFavoriteFoods().then((favorites) => {
+        if (active) {
+          setFavoriteFoods(favorites);
+        }
+      });
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
+  const favoriteQuantities = useMemo(
+    () =>
+      items.reduce<Record<string, number>>((accumulator, item) => {
+        if (item.sourceKey?.startsWith('favorite:')) {
+          accumulator[item.sourceKey] = item.servings;
+        }
+
+        return accumulator;
+      }, {}),
+    [items]
+  );
+
+  const filteredFavorites = useMemo(() => {
+    const normalizedQuery = searchValue.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return favoriteFoods;
+    }
+
+    return favoriteFoods.filter((favorite) =>
+      favorite.name.toLowerCase().includes(normalizedQuery)
+    );
+  }, [favoriteFoods, searchValue]);
+
+  const mealTotals = useMemo(
+    () =>
+      items.reduce(
+        (totals, item) => ({
+          calories: totals.calories + item.totalCalories * item.servings,
+          protein: totals.protein + item.proteinGrams * item.servings,
+          carbs: totals.carbs + item.carbsGrams * item.servings,
+          fat: totals.fat + item.fatGrams * item.servings,
+          weight: totals.weight + (item.quantityGrams ?? 0) * item.servings,
+        }),
+        { calories: 0, protein: 0, carbs: 0, fat: 0, weight: 0 }
+      ),
+    [items]
+  );
+
+  const proteinLabel = t('statsScreen.macros.protein');
+  const carbsLabel = t('statsScreen.macros.carbs');
+  const fatLabel = t('statsScreen.macros.fat');
 
   const handleCaptureFood = useCallback(async () => {
     const photo = await openCamera();
@@ -27,13 +141,19 @@ export default function AddCaloriesTab() {
     }
 
     router.push({
-      pathname: '/food-result',
+      pathname: '/food-form',
       params: {
-        mode: 'scanFood',
         imageUri: photo.uri,
+        context: 'addMeal',
+        foodName: t('addScreen.result.presets.scanFood.title'),
+        quantityLabel: '250',
+        calories: '615',
+        carbs: '93',
+        protein: '18',
+        fat: '22',
       },
     });
-  }, [openCamera]);
+  }, [openCamera, t]);
 
   const handleBarcodeScan = useCallback(async () => {
     const barcodeValue = await openQrScanner();
@@ -43,48 +163,277 @@ export default function AddCaloriesTab() {
     }
 
     router.push({
-      pathname: '/food-result',
+      pathname: '/food-form',
       params: {
-        mode: 'barcode',
-        barcodeValue,
+        context: 'addMeal',
+        notes: barcodeValue,
+        foodName: t('addScreen.result.presets.barcode.title'),
+        quantityLabel: '100',
+        calories: '235',
+        carbs: '29',
+        protein: '12',
+        fat: '9',
       },
     });
-  }, [openQrScanner]);
+  }, [openQrScanner, t]);
 
   const handleManualEntry = useCallback(() => {
-    router.push('/manual-food-entry');
+    router.push({
+      pathname: '/food-form',
+      params: {
+        context: 'addMeal',
+      },
+    });
   }, []);
+
+  const handleClearMeal = useCallback(() => {
+    appAlert.alert(t('addScreen.clearMealTitle'), t('addScreen.clearMealMessage'), [
+      {
+        text: t('common.cancel'),
+        style: 'cancel',
+      },
+      {
+        text: t('addScreen.clearMeal'),
+        style: 'destructive',
+        onPress: () => {
+          clearMeal();
+        },
+      },
+    ]);
+  }, [appAlert, clearMeal, t]);
+
+  const handleSaveMeal = useCallback(async () => {
+    if (items.length === 0 || isSavingMeal) {
+      return;
+    }
+
+    setIsSavingMeal(true);
+
+    try {
+      const consumedAt = new Date().toISOString();
+
+      await Promise.all(
+        items.map((item, index) => {
+          const totalQuantityGrams =
+            item.quantityGrams !== null && item.quantityGrams !== undefined
+              ? item.quantityGrams * item.servings
+              : null;
+
+          return createFoodEntry({
+            mealName: item.title,
+            quantityLabel: formatMealWeight(
+              totalQuantityGrams,
+              item.quantityLabel,
+              t('common.units.gram')
+            ),
+            quantityGrams: totalQuantityGrams,
+            totalCalories: item.totalCalories * item.servings,
+            proteinGrams: item.proteinGrams * item.servings,
+            carbsGrams: item.carbsGrams * item.servings,
+            fatGrams: item.fatGrams * item.servings,
+            notes: item.notes,
+            imageUri: item.imageUri,
+            consumedAt: new Date(new Date(consumedAt).getTime() - index * 60000).toISOString(),
+          });
+        })
+      );
+
+      clearMeal();
+      toast.success(t('addScreen.saveSuccess'));
+      router.replace('/');
+    } catch {
+      toast.error(t('addScreen.saveError'));
+    } finally {
+      setIsSavingMeal(false);
+    }
+  }, [clearMeal, isSavingMeal, items, t]);
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        pressBehavior="close"
+      />
+    ),
+    []
+  );
 
   return (
     <ScreenContainer edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
-        <Image source={{ uri: PREVIEW_IMAGE_URI }} style={styles.previewImage} contentFit="cover" />
-        <LinearGradient
-          colors={[theme.colors.overlay.focus, theme.colors.overlay.modal]}
-          style={styles.backdrop}
-        >
-          <View style={styles.focusWrap}>
-            <View style={styles.focusFrame}>
-              <View style={styles.cornerTopLeft} />
-              <View style={styles.cornerTopRight} />
-              <View style={styles.cornerBottomLeft} />
-              <View style={styles.cornerBottomRight} />
+        <Card variant="elevated" style={styles.summaryCard}>
+          <View style={styles.summaryHeader}>
+            <View style={styles.headerCopy}>
+              <Text variant="h3">{t('addScreen.currentMealTitle')}</Text>
+              <Text variant="bodySmall" color="secondary">
+                {t('addScreen.currentMealSubtitle')}
+              </Text>
             </View>
           </View>
+          <View style={styles.headerActions}>
+            <Button
+              title={t('addScreen.clearMeal')}
+              variant="outline"
+              size="sm"
+              leftIcon={<Icon name="refresh-outline" variant="primary" size={16} />}
+              disabled={items.length === 0 || isSavingMeal}
+              onPress={handleClearMeal}
+            />
+            <Button
+              title={t('addScreen.saveMeal')}
+              size="sm"
+              leftIcon={<Icon name="save-outline" variant="primary" size={16} />}
+              disabled={items.length === 0}
+              loading={isSavingMeal}
+              onPress={() => {
+                void handleSaveMeal();
+              }}
+            />
+          </View>
 
-          <Animated.View
-            entering={SlideInDown.springify().damping(18).stiffness(180)}
-            style={styles.modalCard}
-          >
-            <View style={styles.modalHandle} />
-            <Text variant="h3" align="center">
-              {t('addScreen.modalTitle')}
+          <LinearGradient colors={theme.colors.gradient.primary} style={styles.totalCaloriesCard}>
+            <Text variant="caption" color="secondary">
+              {t('addScreen.totalCalories')}
             </Text>
-            <Text variant="bodySmall" color="secondary" align="center">
-              {t('addScreen.modalSubtitle')}
+            <Text variant="h2" weight="bold">
+              {Math.round(mealTotals.calories)}
+              <Text variant="caption" weight="semibold" color="secondary">
+                {` ${t('common.units.kcal')}`}
+              </Text>
             </Text>
+            <View style={styles.summaryMetricsRow}>
+              <View style={styles.summaryMetricItem}>
+                <Text variant="caption" color="secondary">
+                  {proteinLabel}
+                </Text>
+                <Text variant="bodySmall" weight="semibold">
+                  {Math.round(mealTotals.protein)}
+                  <Text variant="caption" weight="semibold" color="secondary">
+                    {t('common.units.gram')}
+                  </Text>
+                </Text>
+              </View>
+              <View style={styles.summaryMetricItem}>
+                <Text variant="caption" color="secondary">
+                  {carbsLabel}
+                </Text>
+                <Text variant="bodySmall" weight="semibold">
+                  {Math.round(mealTotals.carbs)}
+                  <Text variant="caption" weight="semibold" color="secondary">
+                    {t('common.units.gram')}
+                  </Text>
+                </Text>
+              </View>
+              <View style={styles.summaryMetricItem}>
+                <Text variant="caption" color="secondary">
+                  {fatLabel}
+                </Text>
+                <Text variant="bodySmall" weight="semibold">
+                  {Math.round(mealTotals.fat)}
+                  <Text variant="caption" weight="semibold" color="secondary">
+                    {t('common.units.gram')}
+                  </Text>
+                </Text>
+              </View>
+              <View style={styles.summaryMetricItem}>
+                <Text variant="caption" color="secondary">
+                  {t('addScreen.totalWeight')}
+                </Text>
+                <Text variant="bodySmall" weight="semibold">
+                  {Math.round(mealTotals.weight)}
+                  <Text variant="caption" weight="semibold" color="secondary">
+                    {t('common.units.gram')}
+                  </Text>
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
+
+          <View style={styles.sectionHeader}>
+            <Text variant="body" weight="semibold">
+              {t('addScreen.addedItemsTitle')}
+            </Text>
+            <Text variant="caption" color="secondary">
+              {t('addScreen.addedItemsCount', { count: items.length })}
+            </Text>
+          </View>
+
+          <View style={styles.mealList}>
+            {items.length === 0 ? (
+              <Card variant="filled" style={styles.emptyCard}>
+                <Text variant="body" weight="semibold" align="center">
+                  {t('addScreen.emptyTitle')}
+                </Text>
+                <Text variant="bodySmall" color="secondary" align="center">
+                  {t('addScreen.emptySubtitle')}
+                </Text>
+              </Card>
+            ) : (
+              items.map((item) => {
+                const quantityDisplay = formatMealWeight(
+                  item.quantityGrams,
+                  item.quantityLabel,
+                  t('common.units.gram')
+                );
+                const imageUri = item.imageUri ?? getPreviewImageUri(item);
+
+                return (
+                  <AddMealFoodCard
+                    key={item.id}
+                    title={item.title}
+                    quantityDisplay={quantityDisplay}
+                    imageUri={imageUri}
+                    totalCalories={item.totalCalories}
+                    proteinGrams={item.proteinGrams}
+                    carbsGrams={item.carbsGrams}
+                    fatGrams={item.fatGrams}
+                    servings={item.servings}
+                    proteinLabel={proteinLabel}
+                    carbsLabel={carbsLabel}
+                    fatLabel={fatLabel}
+                    gramUnit={t('common.units.gram')}
+                    kcalUnit={t('common.units.kcal')}
+                    decreaseLabel={t('addScreen.decreasePortion')}
+                    increaseLabel={t('addScreen.increasePortion')}
+                    onDecrease={() => decreaseServings(item.id)}
+                    onIncrease={() => increaseServings(item.id)}
+                  />
+                );
+              })
+            )}
+          </View>
+
+          <View style={styles.quickActionsBlock}>
+            <View style={styles.sectionHeader}>
+              <Text variant="body" weight="semibold">
+                {t('addScreen.addFoodTitle')}
+              </Text>
+              <Button
+                title={t('addScreen.favoriteFoodsAction')}
+                variant="outline"
+                size="sm"
+                leftIcon={<Icon name="library-outline" variant="primary" size={16} />}
+                onPress={() => bottomSheetRef.current?.present()}
+              />
+            </View>
 
             <View style={styles.actionsList}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('addScreen.captureModes.manual')}
+                style={styles.actionButton}
+                onPress={handleManualEntry}
+              >
+                <View style={styles.actionIconWrap}>
+                  <Icon name="create-outline" variant="primary" size={20} />
+                </View>
+                <Text variant="caption" weight="semibold" align="center" style={styles.actionLabel}>
+                  {t('addScreen.captureModes.manual')}
+                </Text>
+              </Pressable>
+
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('addScreen.captureModes.scanFood')}
@@ -94,18 +443,11 @@ export default function AddCaloriesTab() {
                 }}
               >
                 <View style={styles.actionIconWrap}>
-                  <Icon name="camera-outline" variant="primary" size={22} />
+                  <Icon name="camera-outline" variant="primary" size={20} />
                 </View>
-                <View style={styles.actionCopy}>
-                  <Text
-                    variant="caption"
-                    weight="semibold"
-                    align="center"
-                    style={styles.actionLabel}
-                  >
-                    {t('addScreen.captureModes.scanFood')}
-                  </Text>
-                </View>
+                <Text variant="caption" weight="semibold" align="center" style={styles.actionLabel}>
+                  {t('addScreen.captureModes.scanFood')}
+                </Text>
               </Pressable>
 
               <Pressable
@@ -117,44 +459,109 @@ export default function AddCaloriesTab() {
                 }}
               >
                 <View style={styles.actionIconWrap}>
-                  <Icon name="barcode-outline" variant="primary" size={22} />
+                  <Icon name="barcode-outline" variant="primary" size={20} />
                 </View>
-                <View style={styles.actionCopy}>
-                  <Text
-                    variant="caption"
-                    weight="semibold"
-                    align="center"
-                    style={styles.actionLabel}
-                  >
-                    {t('addScreen.captureModes.barcode')}
-                  </Text>
-                </View>
-              </Pressable>
-
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('addScreen.captureModes.manual')}
-                style={styles.actionButton}
-                onPress={handleManualEntry}
-              >
-                <View style={styles.actionIconWrap}>
-                  <Icon name="create-outline" variant="primary" size={22} />
-                </View>
-                <View style={styles.actionCopy}>
-                  <Text
-                    variant="caption"
-                    weight="semibold"
-                    align="center"
-                    style={styles.actionLabel}
-                  >
-                    {t('addScreen.captureModes.manual')}
-                  </Text>
-                </View>
+                <Text variant="caption" weight="semibold" align="center" style={styles.actionLabel}>
+                  {t('addScreen.captureModes.barcode')}
+                </Text>
               </Pressable>
             </View>
-          </Animated.View>
-        </LinearGradient>
+          </View>
+        </Card>
       </View>
+
+      <BottomSheetModal
+        ref={bottomSheetRef}
+        snapPoints={['65%', '88%']}
+        enableDynamicSizing={false}
+        enablePanDownToClose
+        topInset={insets.top}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.sheetBackground}
+        handleIndicatorStyle={styles.sheetHandle}
+      >
+        <View style={styles.sheetContent}>
+          <View style={styles.sheetHeader}>
+            <View style={styles.headerCopy}>
+              <Text variant="h3">{t('addScreen.favoriteFoodsTitle')}</Text>
+              <Text variant="bodySmall" color="secondary">
+                {t('addScreen.favoriteFoodsSubtitle')}
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close')}
+              style={styles.sheetCloseButton}
+              onPress={() => bottomSheetRef.current?.dismiss()}
+            >
+              <Icon name="close" variant="muted" size={18} />
+            </Pressable>
+          </View>
+
+          <SearchBar
+            value={searchValue}
+            onChangeText={setSearchValue}
+            placeholder={t('addScreen.favoriteSearchPlaceholder')}
+          />
+
+          <BottomSheetFlatList
+            data={filteredFavorites}
+            keyExtractor={(item: FavoriteFood) => item.id}
+            contentContainerStyle={styles.sheetList}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={
+              <Card variant="filled" style={styles.sheetEmptyCard}>
+                <Text variant="body" weight="semibold" align="center">
+                  {t('addScreen.favoriteEmptyTitle')}
+                </Text>
+                <Text variant="bodySmall" color="secondary" align="center">
+                  {t('addScreen.favoriteEmptySubtitle')}
+                </Text>
+              </Card>
+            }
+            renderItem={({ item }: { item: FavoriteFood }) => {
+              const sourceKey = `favorite:${item.id}`;
+              const currentQuantity = favoriteQuantities[sourceKey] ?? 0;
+              const draftItem = toDraftMealFavoriteItem(item);
+              const quantityDisplay = formatMealWeight(
+                item.quantityGrams,
+                item.quantityLabel,
+                t('common.units.gram')
+              );
+
+              return (
+                <AddMealFoodCard
+                  title={item.name}
+                  quantityDisplay={quantityDisplay}
+                  imageUri={draftItem.imageUri ?? getPreviewImageUri(draftItem)}
+                  totalCalories={item.totalCalories}
+                  proteinGrams={item.proteinGrams}
+                  carbsGrams={item.carbsGrams}
+                  fatGrams={item.fatGrams}
+                  servings={currentQuantity}
+                  proteinLabel={proteinLabel}
+                  carbsLabel={carbsLabel}
+                  fatLabel={fatLabel}
+                  gramUnit={t('common.units.gram')}
+                  kcalUnit={t('common.units.kcal')}
+                  decreaseLabel={t('addScreen.decreasePortion')}
+                  increaseLabel={t('addScreen.increasePortion')}
+                  onDecrease={() => {
+                    const existingItem = items.find(
+                      (draftMealItem) => draftMealItem.sourceKey === sourceKey
+                    );
+
+                    if (existingItem) {
+                      decreaseServings(existingItem.id);
+                    }
+                  }}
+                  onIncrease={() => addItem(draftItem)}
+                />
+              );
+            }}
+          />
+        </View>
+      </BottomSheetModal>
     </ScreenContainer>
   );
 }
@@ -162,128 +569,121 @@ export default function AddCaloriesTab() {
 const styles = StyleSheet.create((theme) => ({
   screen: {
     flex: 1,
-    overflow: 'hidden',
-    borderRadius: theme.metrics.borderRadius.xl,
-    marginHorizontal: theme.metrics.spacing.p16,
-    marginTop: theme.metrics.spacingV.p12,
-    marginBottom: theme.metrics.spacingV.p24,
-    backgroundColor: theme.colors.background.surface,
-  },
-  previewImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  backdrop: {
-    flex: 1,
-    justifyContent: 'space-between',
     paddingHorizontal: theme.metrics.spacing.p16,
-    paddingTop: theme.metrics.spacingV.p28,
+    paddingTop: theme.metrics.spacingV.p12,
     paddingBottom: theme.metrics.spacingV.p24,
   },
-  focusWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  focusFrame: {
-    width: '84%',
-    aspectRatio: 0.92,
-    borderRadius: theme.metrics.borderRadius.xl,
-    position: 'relative',
-  },
-  cornerTopLeft: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: hs(44),
-    height: vs(44),
-    borderTopWidth: 4,
-    borderLeftWidth: 4,
-    borderColor: theme.colors.text.inverse,
-    borderTopLeftRadius: theme.metrics.borderRadius.lg,
-  },
-  cornerTopRight: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: hs(44),
-    height: vs(44),
-    borderTopWidth: 4,
-    borderRightWidth: 4,
-    borderColor: theme.colors.text.inverse,
-    borderTopRightRadius: theme.metrics.borderRadius.lg,
-  },
-  cornerBottomLeft: {
-    position: 'absolute',
-    bottom: vs(36),
-    left: 0,
-    width: hs(44),
-    height: vs(44),
-    borderBottomWidth: 4,
-    borderLeftWidth: 4,
-    borderColor: theme.colors.text.inverse,
-    borderBottomLeftRadius: theme.metrics.borderRadius.lg,
-  },
-  cornerBottomRight: {
-    position: 'absolute',
-    bottom: vs(36),
-    right: 0,
-    width: hs(44),
-    height: vs(44),
-    borderBottomWidth: 4,
-    borderRightWidth: 4,
-    borderColor: theme.colors.text.inverse,
-    borderBottomRightRadius: theme.metrics.borderRadius.lg,
-  },
-  modalCard: {
-    borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.surface,
+  summaryCard: {
+    gap: theme.metrics.spacingV.p16,
     paddingHorizontal: theme.metrics.spacing.p16,
-    paddingTop: theme.metrics.spacingV.p16,
-    paddingBottom: theme.metrics.spacingV.p20,
-    gap: theme.metrics.spacingV.p12,
-    borderWidth: 1,
-    borderColor: theme.colors.border.subtle,
+    paddingVertical: theme.metrics.spacingV.p16,
+    backgroundColor: theme.colors.background.surface,
   },
-  modalHandle: {
-    alignSelf: 'center',
-    width: hs(42),
-    height: vs(5),
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.border.default,
+  headerCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  summaryHeader: {
+    gap: theme.metrics.spacingV.p4,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p8,
+  },
+  totalCaloriesCard: {
+    gap: theme.metrics.spacingV.p8,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p12,
+    borderRadius: theme.metrics.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.brand.primary,
+  },
+  summaryMetricsRow: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+  },
+  summaryMetricItem: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  mealList: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  emptyCard: {
+    gap: theme.metrics.spacingV.p8,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingVertical: theme.metrics.spacingV.p20,
+  },
+  quickActionsBlock: {
+    gap: theme.metrics.spacingV.p12,
   },
   actionsList: {
     flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
   },
   actionButton: {
-    width: '31.5%',
-    minWidth: 0,
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
     gap: theme.metrics.spacingV.p8,
-    minHeight: vs(100),
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p16,
     borderRadius: theme.metrics.borderRadius.lg,
     backgroundColor: theme.colors.background.section,
-    paddingHorizontal: theme.metrics.spacing.p8,
-    paddingVertical: theme.metrics.spacingV.p12,
-    flexDirection: 'column',
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
   },
   actionIconWrap: {
-    width: theme.metrics.spacing.p40,
-    height: theme.metrics.spacing.p40,
+    width: hs(44),
+    height: hs(44),
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background.surface,
   },
-  actionCopy: {
+  actionLabel: {
+    minHeight: theme.metrics.spacingV.p28,
+  },
+  sheetBackground: {
+    backgroundColor: theme.colors.background.app,
+  },
+  sheetHandle: {
+    backgroundColor: theme.colors.border.default,
+  },
+  sheetContent: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p12,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingBottom: theme.metrics.spacingV.p12,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  sheetCloseButton: {
+    width: theme.metrics.spacing.p36,
+    height: theme.metrics.spacing.p36,
+    borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    minHeight: vs(28),
+    backgroundColor: theme.colors.background.section,
   },
-  actionLabel: {
-    flexShrink: 1,
+  sheetList: {
+    gap: theme.metrics.spacingV.p12,
+    paddingBottom: theme.metrics.spacingV.p20,
+  },
+  sheetEmptyCard: {
+    gap: theme.metrics.spacingV.p8,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingVertical: theme.metrics.spacingV.p20,
   },
 }));

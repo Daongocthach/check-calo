@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import Toast from 'react-native-toast-message';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { AppHeader } from '@/common/components/AppHeader';
 import { ErrorBoundary } from '@/common/components/ErrorBoundary';
 import { QueryProvider } from '@/providers';
 import { AppAlertProvider } from '@/providers/app-alert/AppAlertProvider';
@@ -37,7 +38,7 @@ function RootNavigator() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        header: () => <AppHeader />,
         contentStyle: { backgroundColor: theme.colors.background.app },
       }}
       initialRouteName="welcome"

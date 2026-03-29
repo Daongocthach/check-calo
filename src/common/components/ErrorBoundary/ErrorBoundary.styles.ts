@@ -30,6 +30,6 @@ export const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.lg,
   },
   buttonText: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.primary,
   },
 }));

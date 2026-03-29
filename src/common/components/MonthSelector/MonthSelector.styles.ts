@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native-unistyles';
 
-export const DAY_ITEM_WIDTH = 56;
+export const DAY_ITEM_WIDTH = 64;
 
 export const styles = StyleSheet.create((theme) => ({
   container: {
@@ -39,8 +39,8 @@ export const styles = StyleSheet.create((theme) => ({
     textTransform: 'uppercase',
   },
   dayNumberWrap: {
-    width: 34,
-    height: 34,
+    width: 38,
+    height: 38,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
@@ -52,6 +52,6 @@ export const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text.primary,
   },
   dayNumberTextSelected: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.primary,
   },
 }));

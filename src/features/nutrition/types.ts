@@ -51,6 +51,7 @@ export interface FoodEntryInput {
   carbsGrams: number;
   fatGrams: number;
   notes?: string | null;
+  imageUri?: string | null;
   consumedAt?: string;
   entryDate?: string;
 }
@@ -76,6 +77,7 @@ export interface FavoriteFood {
   carbsGrams: number;
   fatGrams: number;
   notes: string | null;
+  imageUri: string | null;
   createdAt: string;
   updatedAt: string;
 }
