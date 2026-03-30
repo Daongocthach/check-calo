@@ -162,7 +162,6 @@ All image assets live in `assets/images/`. Replace every file in place, keeping 
 - [ ] Replace `icon.png` — 1024x1024 px, PNG with transparency
 - [ ] Replace `splash-icon.png` — your logo centered, PNG with transparency
 - [ ] Replace `adaptive-icon.png` — Android adaptive icon foreground, 1024x1024 px
-- [ ] Replace `favicon.png` — 48x48 px for web
 
 > **Common Mistake:** Changing asset filenames and forgetting to update `app.json`. Always keep filenames identical when replacing assets.
 

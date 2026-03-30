@@ -82,7 +82,6 @@ The app can boot without Supabase credentials. Auth-related features simply stay
 npm start
 npm run ios
 npm run android
-npm run web
 
 # Quality
 npm run type-check

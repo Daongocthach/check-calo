@@ -219,7 +219,11 @@
     },
     "trends": {
       "title": "Calorie trends",
-      "subtitle": "Total calorie intake grouped by day, week, and month."
+      "subtitle": "Total calorie intake grouped by day and month."
+    },
+    "macroDistribution": {
+      "title": "Macro distribution by period",
+      "subtitle": "Stacked bars showing protein, carbs, and fat for each day or month."
     }
   },
   "addScreen": {

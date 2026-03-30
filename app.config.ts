@@ -11,6 +11,9 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.gempixel.checkcalo',
+    icon: {
+      light: './assets/ios-light.png',
+    },
     infoPlist: {
       CFBundleDisplayName: 'Check Calo',
       CFBundleAllowMixedLocalizations: true,
@@ -26,10 +29,6 @@ const config: ExpoConfig = {
       backgroundColor: '#ffffff',
     },
     package: 'com.gempixel.checkcalo',
-  },
-  web: {
-    output: 'static',
-    favicon: './assets/favicon.png',
   },
   extra: {
     router: {},
@@ -54,7 +53,7 @@ const config: ExpoConfig = {
         image: './assets/splash-icon.png',
         imageWidth: 200,
         resizeMode: 'contain',
-        backgroundColor: '#0F172A',
+        backgroundColor: '#F6F9E8',
         dark: {
           image: './assets/splash-icon.png',
           backgroundColor: '#020617',

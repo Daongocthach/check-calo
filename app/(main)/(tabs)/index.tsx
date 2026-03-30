@@ -16,11 +16,13 @@ import {
 } from '@/common/components';
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
 import {
+  deleteFoodEntry,
   getDailyNutritionSummary,
   getUserProfile,
   listFoodEntriesByDate,
 } from '@/features/nutrition/services/nutritionDatabase';
 import type { DailyNutritionSummary, FoodEntry } from '@/features/nutrition/types';
+import { useAppAlert } from '@/providers/app-alert';
 import { vs } from '@/theme/metrics';
 
 interface MealSection {
@@ -49,6 +51,7 @@ function createEmptySummary(date: Date): DailyNutritionSummary {
 export default function HomeTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
+  const appAlert = useAppAlert();
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [summary, setSummary] = useState<DailyNutritionSummary>(() =>
     createEmptySummary(new Date())
@@ -93,6 +96,31 @@ export default function HomeTab() {
     }, []);
   }, [entries]);
 
+  const handleDeleteMeal = useCallback(
+    (meal: FoodEntry) => {
+      appAlert.alert(
+        t('foodDetail.deleteTitle'),
+        t('foodDetail.deleteMessage', { mealName: meal.mealName }),
+        [
+          {
+            text: t('common.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('foodDetail.deleteAction'),
+            style: 'destructive',
+            onPress: () => {
+              void deleteFoodEntry(meal.id).then(() => {
+                void loadNutritionData(selectedDate);
+              });
+            },
+          },
+        ]
+      );
+    },
+    [appAlert, loadNutritionData, selectedDate, t]
+  );
+
   return (
     <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
       <SectionList
@@ -131,15 +159,13 @@ export default function HomeTab() {
               <HomeMealCard.Preview />
               <HomeMealCard.Content>
                 <HomeMealCard.Header>
-                  <HomeMealCard.FavoriteAction
-                    onPress={() =>
-                      router.push({
-                        pathname: '/food-form',
-                        params: {
-                          entryId: meal.id,
-                        },
-                      })
-                    }
+                  <HomeMealCard.ActionButton
+                    icon="trash-outline"
+                    label={t('common.delete')}
+                    tone="danger"
+                    onPress={() => {
+                      handleDeleteMeal(meal);
+                    }}
                   />
                 </HomeMealCard.Header>
                 <HomeMealCard.Macros />
@@ -199,7 +225,7 @@ export default function HomeTab() {
                     {t('homeScreen.progress')}
                   </Text>
                   <Text variant="bodySmall" weight="semibold">
-                    {summary.progressPercent}%
+                    {`${summary.consumedCalories} ${t('common.units.kcal')} (${summary.progressPercent}%)`}
                   </Text>
                 </View>
                 <ProgressBar value={summary.progressPercent} size="lg" colorScheme="success" />

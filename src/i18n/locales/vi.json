@@ -219,7 +219,11 @@
     },
     "trends": {
       "title": "Xu hướng calories",
-      "subtitle": "Tổng lượng calories ăn vào theo ngày, tuần và tháng."
+      "subtitle": "Tổng lượng calories ăn vào theo ngày và tháng."
+    },
+    "macroDistribution": {
+      "title": "Phân bổ macro theo giai đoạn",
+      "subtitle": "Biểu đồ cột chồng hiển thị protein, carb và fat theo từng ngày hoặc tháng."
     }
   },
   "addScreen": {

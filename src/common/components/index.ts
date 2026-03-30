@@ -15,6 +15,8 @@ export { Chip } from './Chip';
 export type { ChipProps, ChipVariant, ChipSize } from './Chip';
 export { ListItem } from './ListItem';
 export type { ListItemProps } from './ListItem';
+export { LineTrendChart } from './LineTrendChart';
+export type { LineTrendChartPoint, LineTrendChartProps } from './LineTrendChart';
 
 // Disclosure
 export { Accordion } from './Accordion';
@@ -32,6 +34,8 @@ export { Skeleton } from './Skeleton';
 export type { SkeletonProps, SkeletonVariant } from './Skeleton';
 export { Snackbar } from './Snackbar';
 export type { SnackbarProps, SnackbarAction, SnackbarVariant } from './Snackbar';
+export { StackedMacroBarChart } from './StackedMacroBarChart';
+export type { StackedMacroBarChartPoint, StackedMacroBarChartProps } from './StackedMacroBarChart';
 
 // Form
 export { Checkbox } from './Checkbox';

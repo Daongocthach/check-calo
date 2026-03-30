@@ -1,15 +1,18 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useWindowDimensions, View } from 'react-native';
-import {
-  LineChart,
-  PieChart,
-  type lineDataItem,
-  type pieDataItem,
-} from 'react-native-gifted-charts';
+import { View } from 'react-native';
+import { PieChart, type pieDataItem } from 'react-native-gifted-charts';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Card, ProgressBar, ScreenContainer, SegmentedControl, Text } from '@/common/components';
+import {
+  Card,
+  LineTrendChart,
+  ProgressBar,
+  ScreenContainer,
+  SegmentedControl,
+  StackedMacroBarChart,
+  Text,
+} from '@/common/components';
 import {
   getDailyNutritionSummary,
   listDailyNutritionSummaries,
@@ -17,9 +20,9 @@ import {
 import type { DailyNutritionSummary, NutritionTrendPoint } from '@/features/nutrition/types';
 import { hs, vs } from '@/theme/metrics';
 
-type TrendMode = 'day' | 'week' | 'month';
+type TrendMode = 'day' | 'month';
 
-const TREND_MODE_OPTIONS: TrendMode[] = ['day', 'week', 'month'];
+const TREND_MODE_OPTIONS: TrendMode[] = ['day', 'month'];
 
 function createEmptySummary(date: Date): DailyNutritionSummary {
   const year = date.getFullYear();
@@ -44,59 +47,84 @@ function getWeekdayLabel(date: Date, t: ReturnType<typeof useTranslation>['t']) 
   return t(`statsScreen.days.${weekdayKeys[date.getDay()]}`);
 }
 
-function getStartOfWeek(date: Date) {
-  const nextDate = new Date(date);
-  nextDate.setHours(0, 0, 0, 0);
-  const weekdayIndex = (nextDate.getDay() + 6) % 7;
-  nextDate.setDate(nextDate.getDate() - weekdayIndex);
-  return nextDate;
+function createEmptyDailyTrendPoint(
+  date: Date,
+  t: ReturnType<typeof useTranslation>['t']
+): NutritionTrendPoint {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return {
+    date: `${year}-${month}-${day}`,
+    label: getWeekdayLabel(date, t),
+    calorieTarget: 0,
+    consumedCalories: 0,
+    remainingCalories: 0,
+    progressPercent: 0,
+    proteinGrams: 0,
+    carbsGrams: 0,
+    fatGrams: 0,
+  };
 }
 
-function getMonthLabel(date: Date) {
-  return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)}`;
+function getMonthLabel(date: Date, locale: string) {
+  if (locale.startsWith('vi')) {
+    return `Th${date.getMonth() + 1}`;
+  }
+
+  return new Intl.DateTimeFormat(locale, { month: 'short' })
+    .format(date)
+    .replace('.', '')
+    .toLowerCase();
+}
+
+function createEmptyTrendPoint(date: Date, locale: string): NutritionTrendPoint {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+
+  return {
+    date: `${year}-${month}-01`,
+    label: getMonthLabel(date, locale),
+    calorieTarget: 0,
+    consumedCalories: 0,
+    remainingCalories: 0,
+    progressPercent: 0,
+    proteinGrams: 0,
+    carbsGrams: 0,
+    fatGrams: 0,
+  };
 }
 
 function aggregateTrendData(
   points: NutritionTrendPoint[],
   mode: TrendMode,
-  t: ReturnType<typeof useTranslation>['t']
+  t: ReturnType<typeof useTranslation>['t'],
+  locale: string,
+  referenceDate: Date
 ) {
   if (mode === 'day') {
-    return points.slice(-7).map((point) => {
-      const pointDate = new Date(`${point.date}T00:00:00`);
-      return {
-        ...point,
-        label: getWeekdayLabel(pointDate, t),
-      };
-    });
-  }
-
-  if (mode === 'week') {
-    const weekMap = new Map<string, NutritionTrendPoint>();
+    const weekdayMap = new Map<number, NutritionTrendPoint>();
 
     points.forEach((point) => {
       const pointDate = new Date(`${point.date}T00:00:00`);
-      const weekStart = getStartOfWeek(pointDate);
-      const key = weekStart.toISOString();
-      const existing = weekMap.get(key);
-
-      if (existing) {
-        existing.consumedCalories += point.consumedCalories;
-        existing.proteinGrams += point.proteinGrams;
-        existing.carbsGrams += point.carbsGrams;
-        existing.fatGrams += point.fatGrams;
-        existing.calorieTarget += point.calorieTarget;
-        existing.remainingCalories += point.remainingCalories;
-        return;
-      }
-
-      weekMap.set(key, {
+      weekdayMap.set(pointDate.getDay(), {
         ...point,
-        label: `${String(weekStart.getDate()).padStart(2, '0')}/${String(weekStart.getMonth() + 1).padStart(2, '0')}`,
+        label: getWeekdayLabel(pointDate, t),
       });
     });
 
-    return Array.from(weekMap.values()).slice(-8);
+    return Array.from({ length: 7 }, (_, index) => {
+      const dayPoint = weekdayMap.get(index);
+
+      if (dayPoint) {
+        return dayPoint;
+      }
+
+      const fallbackDate = new Date(referenceDate);
+      fallbackDate.setDate(referenceDate.getDate() - ((referenceDate.getDay() - index + 7) % 7));
+      return createEmptyDailyTrendPoint(fallbackDate, t);
+    });
   }
 
   const monthMap = new Map<string, NutritionTrendPoint>();
@@ -118,18 +146,31 @@ function aggregateTrendData(
 
     monthMap.set(key, {
       ...point,
-      label: getMonthLabel(pointDate),
+      label: getMonthLabel(pointDate, locale),
     });
   });
 
-  return Array.from(monthMap.values()).slice(-6);
+  return Array.from({ length: 12 }, (_, index) => {
+    const monthDate = new Date(referenceDate.getFullYear(), index, 1);
+    const key = `${monthDate.getFullYear()}-${monthDate.getMonth()}`;
+    const point = monthMap.get(key);
+
+    if (!point) {
+      return createEmptyTrendPoint(monthDate, locale);
+    }
+
+    return {
+      ...point,
+      label: getMonthLabel(monthDate, locale),
+    };
+  });
 }
 
 export default function StatsTab() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
-  const { width } = useWindowDimensions();
   const [trendMode, setTrendMode] = useState<TrendMode>('day');
+  const [macroTrendMode, setMacroTrendMode] = useState<TrendMode>('day');
   const [todaySummary, setTodaySummary] = useState<DailyNutritionSummary>(() =>
     createEmptySummary(new Date())
   );
@@ -195,11 +236,11 @@ export default function StatsTab() {
   ]);
 
   const aggregatedTrendPoints = useMemo(
-    () => aggregateTrendData(dailyPoints, trendMode, t),
-    [dailyPoints, t, trendMode]
+    () => aggregateTrendData(dailyPoints, trendMode, t, i18n.language, new Date()),
+    [dailyPoints, i18n.language, t, trendMode]
   );
 
-  const lineData = useMemo<lineDataItem[]>(
+  const lineData = useMemo(
     () =>
       aggregatedTrendPoints.map((point) => ({
         value: Math.round(point.consumedCalories),
@@ -208,7 +249,21 @@ export default function StatsTab() {
     [aggregatedTrendPoints]
   );
 
-  const lineChartWidth = Math.max(width - hs(72), hs(320));
+  const aggregatedMacroTrendPoints = useMemo(
+    () => aggregateTrendData(dailyPoints, macroTrendMode, t, i18n.language, new Date()),
+    [dailyPoints, i18n.language, macroTrendMode, t]
+  );
+
+  const stackedMacroData = useMemo(
+    () =>
+      aggregatedMacroTrendPoints.map((point) => ({
+        label: point.label,
+        proteinValue: Math.round(point.proteinGrams),
+        carbsValue: Math.round(point.carbsGrams),
+        fatValue: Math.round(point.fatGrams),
+      })),
+    [aggregatedMacroTrendPoints]
+  );
 
   return (
     <ScreenContainer scrollable padded edges={['bottom']} tabBarAware>
@@ -337,35 +392,38 @@ export default function StatsTab() {
           />
 
           <View style={styles.lineChartWrap}>
-            <LineChart
-              data={lineData}
-              areaChart
-              curved
-              height={vs(220)}
-              width={lineChartWidth}
-              color={theme.colors.brand.secondary}
-              startFillColor={theme.colors.brand.primary}
-              endFillColor={theme.colors.brand.primary}
-              startOpacity={0.28}
-              endOpacity={0.04}
-              thickness={3}
-              hideDataPoints={false}
-              dataPointsRadius={4}
-              dataPointsColor={theme.colors.brand.secondary}
-              yAxisTextStyle={styles.axisText}
-              xAxisLabelTextStyle={styles.axisText}
-              yAxisColor={theme.colors.border.subtle}
-              xAxisColor={theme.colors.border.subtle}
-              rulesColor={theme.colors.border.subtle}
-              noOfSections={4}
-              initialSpacing={12}
-              endSpacing={12}
-              spacing={
-                lineData.length > 1 ? Math.max(42, lineChartWidth / lineData.length - 8) : 64
-              }
-              maxValue={Math.max(100, ...lineData.map((item) => item.value ?? 0))}
-            />
+            <LineTrendChart data={lineData} scrollEnabled={trendMode === 'month'} />
           </View>
+        </Card>
+
+        <Card variant="elevated" style={styles.chartCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.headerCopy}>
+              <Text variant="h3">{t('statsScreen.macroDistribution.title')}</Text>
+              <Text variant="bodySmall" color="secondary">
+                {t('statsScreen.macroDistribution.subtitle')}
+              </Text>
+            </View>
+          </View>
+
+          <SegmentedControl
+            value={macroTrendMode}
+            onChange={(value) => setMacroTrendMode(value as TrendMode)}
+            options={TREND_MODE_OPTIONS.map((mode) => ({
+              label: t(`statsScreen.modes.${mode}`),
+              value: mode,
+            }))}
+            size="sm"
+          />
+
+          <StackedMacroBarChart
+            data={stackedMacroData}
+            proteinLabel={t('statsScreen.macros.protein')}
+            carbsLabel={t('statsScreen.macros.carbs')}
+            fatLabel={t('statsScreen.macros.fat')}
+            gramUnit={t('common.units.gram')}
+            scrollEnabled={macroTrendMode === 'month'}
+          />
         </Card>
       </View>
     </ScreenContainer>
@@ -457,10 +515,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   lineChartWrap: {
     overflow: 'hidden',
-  },
-  axisText: {
-    color: theme.colors.text.secondary,
-    fontSize: 12,
   },
   emptyState: {
     minHeight: vs(180),
