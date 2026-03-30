@@ -14,33 +14,13 @@ import {
   createFoodEntry,
   listFavoriteFoods,
 } from '@/features/nutrition/services/nutritionDatabase';
-import { useAddMealStore, type DraftMealItem } from '@/features/nutrition/stores/useAddMealStore';
+import { useAddMealStore } from '@/features/nutrition/stores/useAddMealStore';
 import type { FavoriteFood } from '@/features/nutrition/types';
 import { formatMealWeight } from '@/features/nutrition/utils/quantity';
 import { useAppAlert } from '@/providers/app-alert';
 import { useOpenCamera, useOpenQrScanner } from '@/providers/camera';
 import { hs } from '@/theme/metrics';
 import { toast } from '@/utils/toast';
-
-const PREVIEW_IMAGE_URIS = {
-  protein:
-    'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=600&q=80',
-  carbs:
-    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
-  fat: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80',
-} as const;
-
-function getPreviewImageUri(item: Pick<DraftMealItem, 'proteinGrams' | 'carbsGrams' | 'fatGrams'>) {
-  if (item.proteinGrams >= item.carbsGrams && item.proteinGrams >= item.fatGrams) {
-    return PREVIEW_IMAGE_URIS.protein;
-  }
-
-  if (item.carbsGrams >= item.fatGrams) {
-    return PREVIEW_IMAGE_URIS.carbs;
-  }
-
-  return PREVIEW_IMAGE_URIS.fat;
-}
 
 function toDraftMealFavoriteItem(favorite: FavoriteFood) {
   return {
@@ -53,7 +33,7 @@ function toDraftMealFavoriteItem(favorite: FavoriteFood) {
     carbsGrams: favorite.carbsGrams,
     fatGrams: favorite.fatGrams,
     notes: favorite.notes,
-    imageUri: favorite.imageUri ?? getPreviewImageUri(favorite),
+    imageUri: favorite.imageUri ?? null,
   };
 }
 
@@ -261,7 +241,7 @@ export default function AddCaloriesTab() {
   );
 
   return (
-    <ScreenContainer edges={['bottom']} tabBarAware>
+    <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
         <Card variant="elevated" style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
@@ -377,14 +357,12 @@ export default function AddCaloriesTab() {
                   item.quantityLabel,
                   t('common.units.gram')
                 );
-                const imageUri = item.imageUri ?? getPreviewImageUri(item);
-
                 return (
                   <AddMealFoodCard
                     key={item.id}
                     title={item.title}
                     quantityDisplay={quantityDisplay}
-                    imageUri={imageUri}
+                    imageUri={item.imageUri}
                     totalCalories={item.totalCalories}
                     proteinGrams={item.proteinGrams}
                     carbsGrams={item.carbsGrams}
@@ -533,7 +511,7 @@ export default function AddCaloriesTab() {
                 <AddMealFoodCard
                   title={item.name}
                   quantityDisplay={quantityDisplay}
-                  imageUri={draftItem.imageUri ?? getPreviewImageUri(draftItem)}
+                  imageUri={draftItem.imageUri}
                   totalCalories={item.totalCalories}
                   proteinGrams={item.proteinGrams}
                   carbsGrams={item.carbsGrams}
@@ -568,7 +546,6 @@ export default function AddCaloriesTab() {
 
 const styles = StyleSheet.create((theme) => ({
   screen: {
-    flex: 1,
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: theme.metrics.spacingV.p12,
     paddingBottom: theme.metrics.spacingV.p24,

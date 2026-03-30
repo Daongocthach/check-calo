@@ -1,9 +1,9 @@
-import { Image } from 'expo-image';
 import { createContext, useContext, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Icon, Text } from '@/common/components';
+import { FoodImagePreview } from '@/features/nutrition/components/FoodImagePreview';
 import type { FavoriteFood, FoodEntry } from '@/features/nutrition/types';
 import { formatMealWeight } from '@/features/nutrition/utils/quantity';
 
@@ -34,30 +34,6 @@ function useHomeMealCardContext() {
   }
 
   return context;
-}
-
-function getPreviewStyle(entry: Pick<FoodEntry, 'proteinGrams' | 'carbsGrams' | 'fatGrams'>) {
-  if (entry.proteinGrams >= entry.carbsGrams && entry.proteinGrams >= entry.fatGrams) {
-    return {
-      imageUri:
-        'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=600&q=80',
-      previewStyle: 'nightPreview' as const,
-    };
-  }
-
-  if (entry.carbsGrams >= entry.fatGrams) {
-    return {
-      imageUri:
-        'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
-      previewStyle: 'sunrisePreview' as const,
-    };
-  }
-
-  return {
-    imageUri:
-      'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80',
-    previewStyle: 'greenPreview' as const,
-  };
 }
 
 interface RootProps {
@@ -93,31 +69,15 @@ function Root({ item, onPress, children }: RootProps) {
 function Preview() {
   const { item } = useHomeMealCardContext();
   const { t } = useTranslation();
-  const preview = getPreviewStyle(item);
-  const previewUri =
-    typeof item.imageUri === 'string' && item.imageUri.length > 0 ? item.imageUri : undefined;
-  const hasImage = typeof previewUri === 'string';
 
   return (
-    <View
-      style={[
-        styles.mealPreview,
-        hasImage ? styles[preview.previewStyle] : styles.placeholderPreview,
-      ]}
-    >
-      {hasImage ? (
-        <Image source={{ uri: previewUri }} style={styles.previewImage} contentFit="cover" />
-      ) : (
-        <View style={styles.previewPlaceholder}>
-          <Icon name="image-outline" size={24} variant="primary" />
-        </View>
-      )}
+    <FoodImagePreview imageUri={item.imageUri} style={styles.mealPreview}>
       <View style={styles.previewCalories}>
-        <Text variant="caption" weight="semibold" color="inverse">
+        <Text variant="caption" weight="semibold" color="onBrand">
           {`${Math.round(item.totalCalories)} ${t('common.units.kcal')}`}
         </Text>
       </View>
-    </View>
+    </FoodImagePreview>
   );
 }
 
@@ -314,28 +274,6 @@ const styles = StyleSheet.create((theme) => ({
     minHeight: theme.metrics.spacing.p88,
     borderRadius: theme.metrics.borderRadius.lg,
     justifyContent: 'flex-end',
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  sunrisePreview: {
-    backgroundColor: theme.colors.state.warning,
-  },
-  greenPreview: {
-    backgroundColor: theme.colors.state.success,
-  },
-  nightPreview: {
-    backgroundColor: theme.colors.brand.secondary,
-  },
-  placeholderPreview: {
-    backgroundColor: theme.colors.background.section,
-  },
-  previewImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  previewPlaceholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   previewCalories: {
     alignSelf: 'center',

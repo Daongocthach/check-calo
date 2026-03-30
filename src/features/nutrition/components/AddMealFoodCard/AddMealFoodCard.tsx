@@ -1,12 +1,12 @@
-import { Image } from 'expo-image';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Icon, Text } from '@/common/components';
+import { FoodImagePreview } from '@/features/nutrition/components/FoodImagePreview';
 
 export interface AddMealFoodCardProps {
   title: string;
   quantityDisplay?: string;
-  imageUri: string;
+  imageUri?: string | null;
   totalCalories: number;
   proteinGrams: number;
   carbsGrams: number;
@@ -44,14 +44,13 @@ export function AddMealFoodCard({
 }: AddMealFoodCardProps) {
   return (
     <Card variant="filled" style={styles.card}>
-      <View style={styles.imageWrap}>
-        <Image source={{ uri: imageUri }} style={styles.image} contentFit="cover" />
+      <FoodImagePreview imageUri={imageUri} style={styles.imageWrap}>
         <View style={styles.caloriesBadge}>
           <Text variant="caption" weight="semibold" color="inverse">
             {`${Math.round(totalCalories)} ${kcalUnit}`}
           </Text>
         </View>
-      </View>
+      </FoodImagePreview>
 
       <View style={styles.copy}>
         <Text variant="body" weight="semibold" numberOfLines={1}>
@@ -107,12 +106,6 @@ const styles = StyleSheet.create((theme) => ({
     width: theme.metrics.spacing.p56,
     height: theme.metrics.spacing.p56,
     borderRadius: theme.metrics.borderRadius.md,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
   },
   caloriesBadge: {
     position: 'absolute',
