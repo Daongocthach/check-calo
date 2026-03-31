@@ -3,6 +3,7 @@ import Constants from 'expo-constants';
 interface EnvConfig {
   supabaseUrl: string;
   supabaseAnonKey: string;
+  supabaseFoodImageBucket: string;
   apiBaseUrl: string;
   sentryDsn: string;
   appEnv: 'development' | 'staging' | 'production';
@@ -17,6 +18,7 @@ function getEnvVar(key: string, fallback = ''): string {
 export const env: EnvConfig = {
   supabaseUrl: getEnvVar('EXPO_PUBLIC_SUPABASE_URL'),
   supabaseAnonKey: getEnvVar('EXPO_PUBLIC_SUPABASE_PUBLISHED_KEY'),
+  supabaseFoodImageBucket: getEnvVar('EXPO_PUBLIC_SUPABASE_FOOD_IMAGE_BUCKET', 'food-entry-images'),
   apiBaseUrl: getEnvVar('EXPO_PUBLIC_API_BASE_URL', 'https://api.example.com'),
   sentryDsn: getEnvVar('EXPO_PUBLIC_SENTRY_DSN'),
   appEnv: getEnvVar('EXPO_PUBLIC_APP_ENV', 'development') as EnvConfig['appEnv'],

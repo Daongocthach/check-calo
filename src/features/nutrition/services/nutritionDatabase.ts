@@ -486,6 +486,31 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
   return getFoodEntryById(entryId);
 }
 
+export async function replaceImageUriReferences(previousUri: string, nextUri: string | null) {
+  const database = await getDatabase();
+  const now = nowIsoString();
+
+  await database.withTransactionAsync(async () => {
+    await database.runAsync(
+      `
+        UPDATE food_entries
+        SET image_uri = ?, updated_at = ?
+        WHERE image_uri = ?;
+      `,
+      [nextUri, now, previousUri]
+    );
+
+    await database.runAsync(
+      `
+        UPDATE favorite_foods
+        SET image_uri = ?, updated_at = ?
+        WHERE image_uri = ?;
+      `,
+      [nextUri, now, previousUri]
+    );
+  });
+}
+
 export async function deleteFoodEntry(entryId: string) {
   const database = await getDatabase();
   await database.runAsync('DELETE FROM food_entries WHERE id = ?;', [entryId]);

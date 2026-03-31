@@ -9,6 +9,10 @@ import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboa
 import { StyleSheet } from 'react-native-unistyles';
 import { Button, Icon, Input, ScreenContainer, Text, TextArea } from '@/common/components';
 import {
+  persistFoodEntryImageLocally,
+  syncFoodEntryImageToSupabase,
+} from '@/features/nutrition/services/foodEntryImageSync';
+import {
   createFoodEntry,
   getFavoriteFoodById,
   getFoodEntryById,
@@ -187,6 +191,8 @@ export default function FoodFormScreen() {
 
     setIsSaving(true);
 
+    const persistedImageUri = imageUri ? await persistFoodEntryImageLocally(imageUri) : null;
+
     const payload = {
       mealName: form.foodName.trim(),
       quantityLabel: formatMealWeight(quantityGrams, null, t('common.units.gram')),
@@ -196,7 +202,7 @@ export default function FoodFormScreen() {
       carbsGrams: parseNumber(form.carbs),
       fatGrams: parseNumber(form.fat),
       notes: form.notes.trim() ? form.notes.trim() : null,
-      imageUri,
+      imageUri: persistedImageUri,
     };
 
     const syncedFavorite = !isEditingFavorite
@@ -258,6 +264,10 @@ export default function FoodFormScreen() {
     if (!entry) {
       return;
     }
+
+    void syncFoodEntryImageToSupabase(entry.id).catch(() => {
+      // Local-first flow keeps the local image when sync is unavailable or fails.
+    });
 
     router.back();
   };
