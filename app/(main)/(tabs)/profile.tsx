@@ -11,14 +11,12 @@ import {
   resetNutritionData,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useAppAlert } from '@/providers/app-alert';
-import { getCurrentMode, toggleDarkMode } from '@/theme/themeManager';
 import { toast } from '@/utils/toast';
 
 export default function ProfileTab() {
   const { t } = useTranslation();
   const router = useRouter();
   const appAlert = useAppAlert();
-  const [isDarkMode, setIsDarkMode] = useState(getCurrentMode() === 'dark');
   const [isDeletingProfile, setIsDeletingProfile] = useState(false);
   const [isResettingData, setIsResettingData] = useState(false);
   const [profileSummary, setProfileSummary] = useState<{
@@ -61,12 +59,6 @@ export default function ProfileTab() {
       };
     }, [t])
   );
-
-  const handleDarkModeChange = () => {
-    const nextValue = !isDarkMode;
-    setIsDarkMode(nextValue);
-    toggleDarkMode(nextValue);
-  };
 
   const handleDeleteProfile = useCallback(() => {
     appAlert.alert(t('profileScreen.deleteConfirmTitle'), t('profileScreen.deleteConfirmMessage'), [
@@ -220,25 +212,6 @@ export default function ProfileTab() {
           </Card>
         )}
 
-        <Card variant="filled" style={styles.preferencesCard}>
-          <View style={styles.preferenceRow}>
-            <View style={styles.preferenceCopy}>
-              <Text variant="body" weight="medium">
-                {t('settings.darkMode')}
-              </Text>
-              <Text variant="caption" color="secondary">
-                {t('settings.appearance')}
-              </Text>
-            </View>
-            <Button
-              title={isDarkMode ? t('profileScreen.theme.dark') : t('profileScreen.theme.light')}
-              variant="outline"
-              size="sm"
-              onPress={handleDarkModeChange}
-            />
-          </View>
-        </Card>
-
         <Card variant="filled" style={styles.dangerCard}>
           <View style={styles.dangerCopy}>
             <Text variant="h3">{t('profileScreen.dangerTitle')}</Text>
@@ -323,23 +296,10 @@ const styles = StyleSheet.create((theme) => ({
   emptyCard: {
     gap: theme.metrics.spacingV.p12,
   },
-  preferencesCard: {
-    gap: theme.metrics.spacingV.p12,
-  },
   dangerCard: {
     gap: theme.metrics.spacingV.p12,
   },
   dangerCopy: {
-    gap: theme.metrics.spacingV.p4,
-  },
-  preferenceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p12,
-  },
-  preferenceCopy: {
-    flex: 1,
     gap: theme.metrics.spacingV.p4,
   },
 }));

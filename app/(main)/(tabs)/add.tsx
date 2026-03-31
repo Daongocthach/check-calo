@@ -244,14 +244,6 @@ export default function AddCaloriesTab() {
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
         <Card variant="elevated" style={styles.summaryCard}>
-          <View style={styles.summaryHeader}>
-            <View style={styles.headerCopy}>
-              <Text variant="h3">{t('addScreen.currentMealTitle')}</Text>
-              <Text variant="bodySmall" color="secondary">
-                {t('addScreen.currentMealSubtitle')}
-              </Text>
-            </View>
-          </View>
           <View style={styles.headerActions}>
             <Button
               title={t('addScreen.clearMeal')}
@@ -558,9 +550,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   headerCopy: {
     flex: 1,
-    gap: theme.metrics.spacingV.p4,
-  },
-  summaryHeader: {
     gap: theme.metrics.spacingV.p4,
   },
   headerActions: {

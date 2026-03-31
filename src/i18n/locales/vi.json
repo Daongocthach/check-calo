@@ -107,7 +107,7 @@
   "homeScreen": {
     "greetingTitle": "Chào {{name}}",
     "alerts": "Thông báo",
-    "dailyIntake": "Lượng nạp hôm nay",
+    "dailyIntake": "Lượng nạp trong ngày",
     "dayCount": "Ngày 4",
     "target": "Mục tiêu",
     "today": "hôm nay",
@@ -437,7 +437,7 @@
     "bodyMetricsTitle": "Chỉ số cơ thể",
     "emptyTitle": "Chưa có hồ sơ",
     "emptySubtitle": "Hãy hoàn tất màn chào để app tính mục tiêu calo theo cơ thể của bạn.",
-    "dangerTitle": "Dữ liệu dinh dưỡng",
+    "dangerTitle": "Quản lý dữ liệu",
     "dangerSubtitle": "Các thao tác này sẽ xóa dữ liệu đã lưu trên thiết bị.",
     "deleteConfirmTitle": "Xóa hồ sơ dinh dưỡng",
     "deleteConfirmMessage": "Bạn có chắc muốn xóa hồ sơ dinh dưỡng hiện tại không?",

@@ -437,7 +437,7 @@
     "bodyMetricsTitle": "Body metrics",
     "emptyTitle": "No profile yet",
     "emptySubtitle": "Complete the welcome setup so the app can calculate your calorie target.",
-    "dangerTitle": "Nutrition data",
+    "dangerTitle": "Data management",
     "dangerSubtitle": "These actions will remove saved data from this device.",
     "deleteConfirmTitle": "Delete nutrition profile",
     "deleteConfirmMessage": "Are you sure you want to delete the current nutrition profile?",
