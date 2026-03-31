@@ -8,10 +8,11 @@ import { Pressable, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { StyleSheet } from 'react-native-unistyles';
 import { Button, Icon, Input, ScreenContainer, Text, TextArea } from '@/common/components';
+import { persistFoodEntryImageLocally } from '@/features/nutrition/services/foodEntryImageSync';
 import {
-  persistFoodEntryImageLocally,
-  syncFoodEntryImageToSupabase,
-} from '@/features/nutrition/services/foodEntryImageSync';
+  enqueueFoodEntryImageSync,
+  processPendingFoodEntryImageSyncQueue,
+} from '@/features/nutrition/services/foodEntrySyncQueue';
 import {
   createFoodEntry,
   getFavoriteFoodById,
@@ -265,9 +266,8 @@ export default function FoodFormScreen() {
       return;
     }
 
-    void syncFoodEntryImageToSupabase(entry.id).catch(() => {
-      // Local-first flow keeps the local image when sync is unavailable or fails.
-    });
+    await enqueueFoodEntryImageSync(entry.id);
+    void processPendingFoodEntryImageSyncQueue();
 
     router.back();
   };

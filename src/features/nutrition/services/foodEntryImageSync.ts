@@ -61,6 +61,11 @@ async function getAuthenticatedUserId() {
   return user?.id ?? null;
 }
 
+export async function hasAuthenticatedSupabaseUser() {
+  const userId = await getAuthenticatedUserId();
+  return Boolean(userId);
+}
+
 function buildRemoteImagePath(userId: string, entryId: string, localUri: string) {
   return `users/${userId}/food-entries/${entryId}.${getFileExtension(localUri)}`;
 }

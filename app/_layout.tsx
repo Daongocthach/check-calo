@@ -10,6 +10,7 @@ import Toast from 'react-native-toast-message';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { AppHeader } from '@/common/components/AppHeader';
 import { ErrorBoundary } from '@/common/components/ErrorBoundary';
+import { useFoodEntrySyncQueue } from '@/features/nutrition/hooks/useFoodEntrySyncQueue';
 import { QueryProvider } from '@/providers';
 import { AppAlertProvider } from '@/providers/app-alert/AppAlertProvider';
 import { useAuthStore } from '@/providers/auth/authStore';
@@ -52,6 +53,7 @@ function RootNavigator() {
 
 function AppContent() {
   useAuthInit();
+  useFoodEntrySyncQueue();
 
   return (
     <View style={styles.appContainer}>
