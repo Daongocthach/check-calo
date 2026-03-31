@@ -41,6 +41,36 @@ function getGreetingKey(hour: number): 'morning' | 'afternoon' | 'evening' {
   return 'evening';
 }
 
+function getDisplayName(user: ReturnType<typeof useAuthStore.getState>['user']) {
+  if (!user) {
+    return 'Guest';
+  }
+
+  if (user.isAnonymous) {
+    return 'Anonymous';
+  }
+
+  if (user.email) {
+    return user.email.split('@')[0] || 'User';
+  }
+
+  return 'User';
+}
+
+function getInitials(label: string) {
+  const parts = label.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length === 0) {
+    return 'GU';
+  }
+
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
+}
+
 function getSyncIndicatorState(
   hasSyncSession: boolean,
   syncSummary: {
@@ -88,6 +118,7 @@ export function AppHeader() {
   const pathname = usePathname();
   const { theme } = useUnistyles();
   const { isTablet } = useScreenDimensions();
+  const authUser = useAuthStore((state) => state.user);
   const authSession = useAuthStore((state) => state.session);
   const [currentMode, setCurrentMode] = useState<ThemeModePreference>(() => getThemePreference());
   const [syncSummary, setSyncSummary] = useState({
@@ -101,6 +132,8 @@ export function AppHeader() {
   const isIndexRoute = pathname === '/' || pathname === '/index';
   const isTabRoute = ['/', '/index', '/stats', '/add', '/favorites', '/profile'].includes(pathname);
   const greeting = getGreetingKey(new Date().getHours());
+  const displayName = getDisplayName(authUser);
+  const avatarLabel = getInitials(displayName);
 
   const pageTitle = useMemo(() => {
     if (pathname === '/welcome') return t('welcomeScreen.title');
@@ -181,11 +214,11 @@ export function AppHeader() {
       <View style={styles.profileRow}>
         <LinearGradient colors={theme.colors.gradient.highlight} style={styles.avatarBubble}>
           <Text variant="body" weight="bold">
-            AL
+            {avatarLabel}
           </Text>
         </LinearGradient>
         <View style={styles.textWrap}>
-          <Text variant="h3">{t('homeScreen.greetingTitle', { name: 'Alex' })}</Text>
+          <Text variant="h3">{t('homeScreen.greetingTitle', { name: displayName })}</Text>
           <Text variant="bodySmall" color="secondary">
             {t(`homeScreen.greetings.${greeting}`)}
           </Text>

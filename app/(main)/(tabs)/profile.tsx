@@ -5,7 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Button, Card, Chip, Icon, ScreenContainer, Text } from '@/common/components';
-import { logout } from '@/features/auth/services/authService';
+import {
+  deleteCurrentUserCloudNutritionData,
+  disconnectCurrentSyncAccount,
+  logout,
+  resetAnonymousSession,
+} from '@/features/auth/services/authService';
 import {
   deleteUserProfile,
   getUserProfile,
@@ -23,6 +28,8 @@ export default function ProfileTab() {
   const [isDeletingProfile, setIsDeletingProfile] = useState(false);
   const [isResettingData, setIsResettingData] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isDeletingSyncAccount, setIsDeletingSyncAccount] = useState(false);
+  const [isResettingAnonymousSession, setIsResettingAnonymousSession] = useState(false);
   const [profileSummary, setProfileSummary] = useState<{
     bmi: string;
     calorieTarget: string;
@@ -104,13 +111,21 @@ export default function ProfileTab() {
         onPress: () => {
           setIsResettingData(true);
 
-          void resetNutritionData()
+          void (async () => {
+            if (!authUser?.isAnonymous) {
+              await deleteCurrentUserCloudNutritionData();
+            }
+
+            await resetNutritionData();
+          })()
             .then(() => {
               setProfileSummary(null);
               toast.success(t('profileScreen.resetSuccess'));
             })
-            .catch(() => {
-              toast.error(t('profileScreen.actionError'));
+            .catch((error: unknown) => {
+              const message =
+                error instanceof Error ? error.message : t('profileScreen.actionError');
+              toast.error(message);
             })
             .finally(() => {
               setIsResettingData(false);
@@ -118,6 +133,39 @@ export default function ProfileTab() {
         },
       },
     ]);
+  }, [appAlert, authUser?.isAnonymous, t]);
+
+  const handleDeleteSyncAccount = useCallback(() => {
+    appAlert.alert(
+      t('profileScreen.deleteSyncAccountConfirmTitle'),
+      t('profileScreen.deleteSyncAccountConfirmMessage'),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('profileScreen.deleteSyncAccountAction'),
+          style: 'destructive',
+          onPress: () => {
+            setIsDeletingSyncAccount(true);
+
+            void disconnectCurrentSyncAccount()
+              .then(() => {
+                toast.success(t('profileScreen.deleteSyncAccountSuccess'));
+              })
+              .catch((error: unknown) => {
+                const message =
+                  error instanceof Error ? error.message : t('profileScreen.actionError');
+                toast.error(message);
+              })
+              .finally(() => {
+                setIsDeletingSyncAccount(false);
+              });
+          },
+        },
+      ]
+    );
   }, [appAlert, t]);
 
   const handleSignOut = useCallback(() => {
@@ -147,6 +195,39 @@ export default function ProfileTab() {
         },
       },
     ]);
+  }, [appAlert, t]);
+
+  const handleResetAnonymousSession = useCallback(() => {
+    appAlert.alert(
+      t('profileScreen.debug.resetAnonymousSessionTitle'),
+      t('profileScreen.debug.resetAnonymousSessionMessage'),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('profileScreen.debug.resetAnonymousSessionAction'),
+          style: 'destructive',
+          onPress: () => {
+            setIsResettingAnonymousSession(true);
+
+            void resetAnonymousSession()
+              .then(() => {
+                toast.success(t('profileScreen.debug.resetAnonymousSessionSuccess'));
+              })
+              .catch((error: unknown) => {
+                const message =
+                  error instanceof Error ? error.message : t('profileScreen.actionError');
+                toast.error(message);
+              })
+              .finally(() => {
+                setIsResettingAnonymousSession(false);
+              });
+          },
+        },
+      ]
+    );
   }, [appAlert, t]);
 
   return (
@@ -233,6 +314,13 @@ export default function ProfileTab() {
                   {`${profileSummary.weight} ${t('common.units.kg')}`}
                 </Text>
               </View>
+              <Button
+                title={t('profileScreen.deleteAction')}
+                variant="outline"
+                loading={isDeletingProfile}
+                disabled={isResettingData || isDeletingSyncAccount || isSigningOut}
+                onPress={handleDeleteProfile}
+              />
             </Card>
           </>
         ) : (
@@ -245,68 +333,60 @@ export default function ProfileTab() {
           </Card>
         )}
 
-        <Card variant="filled" style={styles.dangerCard}>
-          <View style={styles.dangerCopy}>
-            <Text variant="h3">{t('profileScreen.dangerTitle')}</Text>
-            <Text variant="bodySmall" color="secondary">
-              {t('profileScreen.dangerSubtitle')}
-            </Text>
-          </View>
-
-          <Button
-            title={t('profileScreen.deleteAction')}
-            variant="secondary"
-            loading={isDeletingProfile}
-            disabled={isResettingData}
-            onPress={handleDeleteProfile}
-          />
+        <Card variant="filled" style={styles.authCard}>
+          <Text variant="h3">{t('profileScreen.account.dangerTitle')}</Text>
 
           <Button
             title={t('profileScreen.resetAction')}
             variant="outline"
             loading={isResettingData}
-            disabled={isDeletingProfile}
+            disabled={isDeletingProfile || isDeletingSyncAccount || isSigningOut}
             onPress={handleResetData}
           />
+
+          {!authUser?.isAnonymous ? (
+            <Button
+              title={t('profileScreen.deleteSyncAccountAction')}
+              variant="outline"
+              loading={isDeletingSyncAccount}
+              disabled={isDeletingProfile || isResettingData || isSigningOut}
+              onPress={handleDeleteSyncAccount}
+            />
+          ) : null}
+
+          {!authUser?.isAnonymous ? (
+            <View style={styles.authCopy}>
+              <Text variant="bodySmall" color="secondary">
+                {t('profileScreen.account.connectedSubtitle')}
+              </Text>
+            </View>
+          ) : null}
+
+          {__DEV__ ? (
+            <Button
+              title={t('profileScreen.debug.resetAnonymousSessionAction')}
+              variant="outline"
+              loading={isResettingAnonymousSession}
+              disabled={
+                isDeletingProfile || isResettingData || isDeletingSyncAccount || isSigningOut
+              }
+              onPress={handleResetAnonymousSession}
+            />
+          ) : null}
+
+          <Button
+            title={authUser?.isAnonymous ? t('auth.signIn') : t('profileScreen.logoutAction')}
+            variant="primary"
+            loading={isSigningOut}
+            disabled={
+              isDeletingProfile ||
+              isResettingData ||
+              isDeletingSyncAccount ||
+              isResettingAnonymousSession
+            }
+            onPress={authUser?.isAnonymous ? () => router.push('/(auth)/login') : handleSignOut}
+          />
         </Card>
-
-        {authUser?.isAnonymous ? (
-          <Card variant="filled" style={styles.authCard}>
-            <View style={styles.authCopy}>
-              <Text variant="h3">{t('profileScreen.account.title')}</Text>
-              <Text variant="bodySmall" color="secondary">
-                {t('profileScreen.account.anonymousSubtitle')}
-              </Text>
-            </View>
-
-            <Button
-              title={t('profileScreen.account.linkEmailAction')}
-              onPress={() => router.push('/(auth)/register')}
-            />
-
-            <Button
-              title={t('auth.goToLogin')}
-              variant="outline"
-              onPress={() => router.push('/(auth)/login')}
-            />
-          </Card>
-        ) : (
-          <Card variant="filled" style={styles.authCard}>
-            <View style={styles.authCopy}>
-              <Text variant="h3">{t('profileScreen.account.connectedBadge')}</Text>
-              <Text variant="bodySmall" color="secondary">
-                {authUser?.email || t('profileScreen.account.providerLinked')}
-              </Text>
-            </View>
-
-            <Button
-              title={t('profileScreen.logoutAction')}
-              variant="outline"
-              loading={isSigningOut}
-              onPress={handleSignOut}
-            />
-          </Card>
-        )}
       </View>
     </ScreenContainer>
   );
@@ -372,9 +452,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   authCopy: {
     gap: theme.metrics.spacingV.p4,
-  },
-  dangerCard: {
-    gap: theme.metrics.spacingV.p12,
   },
   dangerCopy: {
     gap: theme.metrics.spacingV.p4,
