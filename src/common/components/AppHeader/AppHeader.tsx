@@ -1,17 +1,23 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePathname, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Icon } from '@/common/components/Icon';
 import { Select } from '@/common/components/Select';
 import { Text } from '@/common/components/Text';
+import {
+  getFoodEntryImageSyncQueueStatus,
+  processPendingFoodEntryImageSyncQueue,
+} from '@/features/nutrition/services/foodEntrySyncQueue';
 import { useScreenDimensions } from '@/hooks/useScreenDimensions';
 import i18n from '@/i18n/config';
+import { useAuthStore } from '@/providers/auth/authStore';
 import { getThemePreference, setThemeMode, type ThemeModePreference } from '@/theme/themeManager';
 import { setItem, STORAGE_KEYS } from '@/utils/storage';
+import { toast } from '@/utils/toast';
 import DarkModeIcon from '../../../../assets/dark-mode-icon.png';
 import LightModeIcon from '../../../../assets/light-mode-icon.png';
 import SystemModeIcon from '../../../../assets/system-mode-icon.png';
@@ -19,6 +25,11 @@ import UnitedStatesFlagIcon from '../../../../assets/united-states-flag-icon.png
 import VietnamFlagIcon from '../../../../assets/vietnam-flag-icon.png';
 
 type LanguageValue = 'vi' | 'en';
+type SyncIndicatorState = {
+  iconName: 'cloud-offline-outline' | 'sync-outline' | 'cloud-done-outline';
+  iconVariant: 'muted' | 'secondary' | 'accent';
+  label: string;
+};
 
 function toLanguageValue(language: string): LanguageValue {
   return language === 'en' ? 'en' : 'vi';
@@ -30,13 +41,62 @@ function getGreetingKey(hour: number): 'morning' | 'afternoon' | 'evening' {
   return 'evening';
 }
 
+function getSyncIndicatorState(
+  hasSyncSession: boolean,
+  syncSummary: {
+    pendingCount: number;
+    failedCount: number;
+    processingCount: number;
+    isProcessing: boolean;
+  },
+  t: ReturnType<typeof useTranslation>['t']
+): SyncIndicatorState {
+  if (syncSummary.failedCount > 0) {
+    return {
+      iconName: 'cloud-offline-outline',
+      iconVariant: 'secondary',
+      label: t('common.syncStatus.failed'),
+    };
+  }
+
+  if (syncSummary.isProcessing || syncSummary.pendingCount > 0 || syncSummary.processingCount > 0) {
+    return {
+      iconName: 'sync-outline',
+      iconVariant: 'accent',
+      label: t('common.syncStatus.syncing'),
+    };
+  }
+
+  if (hasSyncSession) {
+    return {
+      iconName: 'cloud-done-outline',
+      iconVariant: 'accent',
+      label: t('common.syncStatus.synced'),
+    };
+  }
+
+  return {
+    iconName: 'cloud-offline-outline',
+    iconVariant: 'muted',
+    label: t('common.syncStatus.localOnly'),
+  };
+}
+
 export function AppHeader() {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const { theme } = useUnistyles();
   const { isTablet } = useScreenDimensions();
+  const authSession = useAuthStore((state) => state.session);
   const [currentMode, setCurrentMode] = useState<ThemeModePreference>(() => getThemePreference());
+  const [syncSummary, setSyncSummary] = useState({
+    pendingCount: 0,
+    failedCount: 0,
+    processingCount: 0,
+    totalQueuedCount: 0,
+    isProcessing: false,
+  });
 
   const isIndexRoute = pathname === '/' || pathname === '/index';
   const isTabRoute = ['/', '/index', '/stats', '/add', '/favorites', '/profile'].includes(pathname);
@@ -152,12 +212,68 @@ export function AppHeader() {
     setCurrentMode(value);
   };
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const refreshSyncSummary = async () => {
+      const nextSummary = await getFoodEntryImageSyncQueueStatus();
+
+      if (isMounted) {
+        setSyncSummary(nextSummary);
+      }
+    };
+
+    void refreshSyncSummary();
+    const intervalId = setInterval(() => {
+      void refreshSyncSummary();
+    }, 4000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [authSession, pathname]);
+
+  const hasSyncSession = Boolean(authSession);
+  const syncState = getSyncIndicatorState(hasSyncSession, syncSummary, t);
+
+  const handleSyncStatusPress = () => {
+    if (!hasSyncSession) {
+      toast.info(t('common.syncStatus.localOnly'));
+      return;
+    }
+
+    void processPendingFoodEntryImageSyncQueue()
+      .then(() => getFoodEntryImageSyncQueueStatus())
+      .then((nextSummary) => {
+        setSyncSummary(nextSummary);
+        toast.success(t('common.syncStatus.syncNow'));
+      })
+      .catch(() => {
+        toast.error(t('common.syncStatus.failed'));
+      });
+  };
+
   return (
     <View style={styles.wrapper}>
       <View style={[styles.container, isTablet && styles.containerTablet]}>
         <View style={styles.brandWrap}>{headerContent}</View>
 
         <View style={styles.actionsWrap}>
+          <Pressable
+            onPress={handleSyncStatusPress}
+            accessibilityRole="button"
+            accessibilityLabel={syncState.label}
+            style={styles.iconShell}
+          >
+            <Icon
+              name={syncState.iconName}
+              variant={syncState.iconVariant}
+              size={20}
+              accessibilityLabel={syncState.label}
+            />
+          </Pressable>
+
           <View style={styles.themeSelectWrap}>
             <Select
               value={currentMode}

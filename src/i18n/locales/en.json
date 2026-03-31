@@ -24,6 +24,7 @@
     "syncStatus": {
       "syncNow": "Sync now",
       "loginToSync": "Log in to sync",
+      "localOnly": "Local only",
       "failed": "Sync failed",
       "syncing": "Syncing",
       "synced": "Synced"
@@ -445,7 +446,29 @@
     "resetConfirmMessage": "Are you sure you want to delete your profile, nutrition history, and saved meals?",
     "deleteSuccess": "Nutrition profile deleted.",
     "resetSuccess": "All nutrition data has been reset.",
+    "logoutAction": "Log out",
+    "logoutConfirmTitle": "Log out",
+    "logoutConfirmMessage": "Are you sure you want to log out of this linked account?",
+    "logoutSuccess": "Logged out successfully.",
     "actionError": "Unable to update data right now. Please try again.",
+    "account": {
+      "title": "Sync account",
+      "anonymousSubtitle": "Protect your synced meals and photos by linking this anonymous session to a real account.",
+      "connectedSubtitle": "Your synced data is already attached to an account you can use on another device.",
+      "connectedBadge": "Account linked",
+      "providerLinked": "A sign-in provider is linked to this account.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "name@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "linkEmailAction": "Link email account",
+      "linkGoogleAction": "Link Google",
+      "linkAppleAction": "Link Apple",
+      "linkEmailSuccess": "Check your email to finish linking this account.",
+      "linkGoogleSuccess": "Google account linked successfully.",
+      "linkAppleSuccess": "Apple account linked successfully.",
+      "actionError": "Unable to link this account right now."
+    },
     "metrics": {
       "bmi": "BMI",
       "gender": "Gender",
@@ -455,6 +478,30 @@
       "light": "Light",
       "dark": "Dark"
     }
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "emailPlaceholder": "name@example.com",
+    "passwordPlaceholder": "At least 8 characters",
+    "confirmPasswordPlaceholder": "Repeat your password",
+    "signIn": "Log in",
+    "signUp": "Create account",
+    "upgradeAccount": "Protect this account",
+    "goToLogin": "I already have an account",
+    "goToRegister": "Create a sync account",
+    "loginTitle": "Log in to your sync account",
+    "loginSubtitle": "Use an existing account to load your synced nutrition data on this device.",
+    "loginSubtitleAnonymous": "Log in only if you already have an account. To protect this anonymous session, use Create account instead.",
+    "registerTitle": "Create a sync account",
+    "registerSubtitle": "Create a new account so your nutrition data can be recovered on another device.",
+    "registerUpgradeTitle": "Protect this synced data",
+    "registerUpgradeSubtitle": "Link this anonymous session to email, Google, or Apple so you can recover your data later.",
+    "loginSuccess": "Logged in successfully.",
+    "loginFailed": "Unable to log in right now.",
+    "registerSuccess": "Account created successfully.",
+    "registerFailed": "Unable to create or protect this account right now."
   },
   "foodDetail": {
     "deleteTitle": "Delete meal",

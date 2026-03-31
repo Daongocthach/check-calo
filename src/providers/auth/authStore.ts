@@ -34,9 +34,17 @@ interface AuthState {
 let authSubscription: { unsubscribe: () => void } | null = null;
 let networkSubscription: (() => void) | null = null;
 let anonymousSignInPromise: Promise<void> | null = null;
+let isAnonymousAuthUnavailable = false;
 
 function hasSupabaseAuthConfigured() {
   return Boolean(env.supabaseUrl && env.supabaseAnonKey);
+}
+
+function isAnonymousAuthDisabledError(error: unknown) {
+  return (
+    error instanceof Error &&
+    error.message.toLowerCase().includes('anonymous sign-ins are disabled')
+  );
 }
 
 function mapAuthUser(user: User | null): AuthUser | null {
@@ -81,7 +89,12 @@ async function ensureAnonymousSession(
   set: (partial: Partial<AuthState>) => void,
   get: () => AuthState
 ) {
-  if (!hasSupabaseAuthConfigured() || get().session || anonymousSignInPromise) {
+  if (
+    !hasSupabaseAuthConfigured() ||
+    get().session ||
+    anonymousSignInPromise ||
+    isAnonymousAuthUnavailable
+  ) {
     return;
   }
 
@@ -97,6 +110,18 @@ async function ensureAnonymousSession(
     const { data, error } = await supabase.auth.signInAnonymously();
 
     if (error) {
+      if (isAnonymousAuthDisabledError(error)) {
+        isAnonymousAuthUnavailable = true;
+
+        if (__DEV__) {
+          console.warn(
+            'Anonymous auth is disabled in Supabase. App will stay in local-only mode until a user signs in manually.'
+          );
+        }
+
+        return;
+      }
+
       if (__DEV__) {
         console.error('Failed to create anonymous auth session', error);
       }

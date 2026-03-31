@@ -24,6 +24,7 @@
     "syncStatus": {
       "syncNow": "Đồng bộ ngay",
       "loginToSync": "Đăng nhập để đồng bộ",
+      "localOnly": "Chỉ lưu trên máy",
       "failed": "Đồng bộ thất bại",
       "syncing": "Đang đồng bộ",
       "synced": "Đã đồng bộ"
@@ -445,7 +446,29 @@
     "resetConfirmMessage": "Bạn có chắc muốn xóa toàn bộ hồ sơ, lịch sử dinh dưỡng và các món ăn đã lưu không?",
     "deleteSuccess": "Đã xóa hồ sơ dinh dưỡng.",
     "resetSuccess": "Đã đặt lại toàn bộ dữ liệu dinh dưỡng.",
+    "logoutAction": "Đăng xuất",
+    "logoutConfirmTitle": "Đăng xuất",
+    "logoutConfirmMessage": "Bạn có chắc muốn đăng xuất khỏi tài khoản đã liên kết này không?",
+    "logoutSuccess": "Đã đăng xuất thành công.",
     "actionError": "Không thể cập nhật dữ liệu lúc này. Vui lòng thử lại.",
+    "account": {
+      "title": "Tài khoản đồng bộ",
+      "anonymousSubtitle": "Liên kết phiên ẩn danh này với tài khoản thật để bảo vệ dữ liệu món ăn và ảnh đã đồng bộ.",
+      "connectedSubtitle": "Dữ liệu đã đồng bộ của bạn đã được gắn với một tài khoản có thể dùng trên thiết bị khác.",
+      "connectedBadge": "Đã liên kết tài khoản",
+      "providerLinked": "Tài khoản này đã được liên kết với một phương thức đăng nhập.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "name@example.com",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Ít nhất 8 ký tự",
+      "linkEmailAction": "Liên kết bằng email",
+      "linkGoogleAction": "Liên kết Google",
+      "linkAppleAction": "Liên kết Apple",
+      "linkEmailSuccess": "Hãy kiểm tra email để hoàn tất liên kết tài khoản.",
+      "linkGoogleSuccess": "Đã liên kết tài khoản Google thành công.",
+      "linkAppleSuccess": "Đã liên kết tài khoản Apple thành công.",
+      "actionError": "Không thể liên kết tài khoản lúc này."
+    },
     "metrics": {
       "bmi": "BMI",
       "gender": "Giới tính",
@@ -455,6 +478,30 @@
       "light": "Sáng",
       "dark": "Tối"
     }
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "emailPlaceholder": "name@example.com",
+    "passwordPlaceholder": "Ít nhất 8 ký tự",
+    "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
+    "signIn": "Đăng nhập",
+    "signUp": "Tạo tài khoản",
+    "upgradeAccount": "Bảo vệ tài khoản này",
+    "goToLogin": "Tôi đã có tài khoản",
+    "goToRegister": "Tạo tài khoản đồng bộ",
+    "loginTitle": "Đăng nhập tài khoản đồng bộ",
+    "loginSubtitle": "Dùng tài khoản có sẵn để lấy dữ liệu dinh dưỡng đã đồng bộ trên thiết bị này.",
+    "loginSubtitleAnonymous": "Chỉ đăng nhập nếu bạn đã có tài khoản. Nếu muốn giữ dữ liệu của phiên ẩn danh này, hãy dùng Tạo tài khoản.",
+    "registerTitle": "Tạo tài khoản đồng bộ",
+    "registerSubtitle": "Tạo tài khoản mới để có thể khôi phục dữ liệu dinh dưỡng trên thiết bị khác.",
+    "registerUpgradeTitle": "Bảo vệ dữ liệu đã đồng bộ",
+    "registerUpgradeSubtitle": "Liên kết phiên ẩn danh này với email, Google hoặc Apple để có thể khôi phục dữ liệu sau này.",
+    "loginSuccess": "Đăng nhập thành công.",
+    "loginFailed": "Không thể đăng nhập lúc này.",
+    "registerSuccess": "Tạo tài khoản thành công.",
+    "registerFailed": "Không thể tạo hoặc bảo vệ tài khoản lúc này."
   },
   "foodDetail": {
     "deleteTitle": "Xóa món ăn",

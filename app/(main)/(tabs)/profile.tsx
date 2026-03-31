@@ -5,20 +5,24 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Button, Card, Chip, Icon, ScreenContainer, Text } from '@/common/components';
+import { logout } from '@/features/auth/services/authService';
 import {
   deleteUserProfile,
   getUserProfile,
   resetNutritionData,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useAppAlert } from '@/providers/app-alert';
+import { useAuthStore } from '@/providers/auth/authStore';
 import { toast } from '@/utils/toast';
 
 export default function ProfileTab() {
   const { t } = useTranslation();
   const router = useRouter();
   const appAlert = useAppAlert();
+  const authUser = useAuthStore((state) => state.user);
   const [isDeletingProfile, setIsDeletingProfile] = useState(false);
   const [isResettingData, setIsResettingData] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [profileSummary, setProfileSummary] = useState<{
     bmi: string;
     calorieTarget: string;
@@ -110,6 +114,35 @@ export default function ProfileTab() {
             })
             .finally(() => {
               setIsResettingData(false);
+            });
+        },
+      },
+    ]);
+  }, [appAlert, t]);
+
+  const handleSignOut = useCallback(() => {
+    appAlert.alert(t('profileScreen.logoutConfirmTitle'), t('profileScreen.logoutConfirmMessage'), [
+      {
+        text: t('common.cancel'),
+        style: 'cancel',
+      },
+      {
+        text: t('profileScreen.logoutAction'),
+        style: 'destructive',
+        onPress: () => {
+          setIsSigningOut(true);
+
+          void logout()
+            .then(() => {
+              toast.success(t('profileScreen.logoutSuccess'));
+            })
+            .catch((error: unknown) => {
+              const message =
+                error instanceof Error ? error.message : t('profileScreen.actionError');
+              toast.error(message);
+            })
+            .finally(() => {
+              setIsSigningOut(false);
             });
         },
       },
@@ -236,6 +269,44 @@ export default function ProfileTab() {
             onPress={handleResetData}
           />
         </Card>
+
+        {authUser?.isAnonymous ? (
+          <Card variant="filled" style={styles.authCard}>
+            <View style={styles.authCopy}>
+              <Text variant="h3">{t('profileScreen.account.title')}</Text>
+              <Text variant="bodySmall" color="secondary">
+                {t('profileScreen.account.anonymousSubtitle')}
+              </Text>
+            </View>
+
+            <Button
+              title={t('profileScreen.account.linkEmailAction')}
+              onPress={() => router.push('/(auth)/register')}
+            />
+
+            <Button
+              title={t('auth.goToLogin')}
+              variant="outline"
+              onPress={() => router.push('/(auth)/login')}
+            />
+          </Card>
+        ) : (
+          <Card variant="filled" style={styles.authCard}>
+            <View style={styles.authCopy}>
+              <Text variant="h3">{t('profileScreen.account.connectedBadge')}</Text>
+              <Text variant="bodySmall" color="secondary">
+                {authUser?.email || t('profileScreen.account.providerLinked')}
+              </Text>
+            </View>
+
+            <Button
+              title={t('profileScreen.logoutAction')}
+              variant="outline"
+              loading={isSigningOut}
+              onPress={handleSignOut}
+            />
+          </Card>
+        )}
       </View>
     </ScreenContainer>
   );
@@ -295,6 +366,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   emptyCard: {
     gap: theme.metrics.spacingV.p12,
+  },
+  authCard: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  authCopy: {
+    gap: theme.metrics.spacingV.p4,
   },
   dangerCard: {
     gap: theme.metrics.spacingV.p12,

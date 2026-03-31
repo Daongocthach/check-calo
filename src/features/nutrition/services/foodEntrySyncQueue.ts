@@ -11,6 +11,14 @@ const MAX_RETRY_DELAY_MINUTES = 30;
 
 let isProcessingQueue = false;
 
+export interface FoodEntrySyncQueueStatus {
+  pendingCount: number;
+  failedCount: number;
+  processingCount: number;
+  totalQueuedCount: number;
+  isProcessing: boolean;
+}
+
 interface SyncQueueRow {
   id: string;
   entity_type: SyncQueueRecord['entityType'];
@@ -46,6 +54,36 @@ function mapSyncQueueRecord(row: SyncQueueRow): SyncQueueRecord {
 function buildRetryAt(retryCount: number) {
   const delayMinutes = Math.min(2 ** Math.max(retryCount - 1, 0), MAX_RETRY_DELAY_MINUTES);
   return new Date(Date.now() + delayMinutes * 60 * 1000).toISOString();
+}
+
+export async function getFoodEntryImageSyncQueueStatus(): Promise<FoodEntrySyncQueueStatus> {
+  const database = await getDatabase();
+  const row = await database.getFirstAsync<{
+    pending_count: number | null;
+    failed_count: number | null;
+    processing_count: number | null;
+    total_queued_count: number | null;
+  }>(
+    `
+      SELECT
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed_count,
+        SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) AS processing_count,
+        SUM(CASE WHEN status IN ('pending', 'failed', 'processing') THEN 1 ELSE 0 END) AS total_queued_count
+      FROM sync_queue
+      WHERE entity_type = ?
+        AND operation = ?;
+    `,
+    [FOOD_ENTRY_IMAGE_SYNC_ENTITY_TYPE, FOOD_ENTRY_IMAGE_SYNC_OPERATION]
+  );
+
+  return {
+    pendingCount: row?.pending_count ?? 0,
+    failedCount: row?.failed_count ?? 0,
+    processingCount: row?.processing_count ?? 0,
+    totalQueuedCount: row?.total_queued_count ?? 0,
+    isProcessing: isProcessingQueue,
+  };
 }
 
 async function getPendingFoodEntryImageJobs() {
