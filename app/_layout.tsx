@@ -15,6 +15,7 @@ import { AppAlertProvider } from '@/providers/app-alert/AppAlertProvider';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { CameraProvider } from '@/providers/camera';
 import { initializeDatabase } from '@/services/database/sqlite';
+import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
 import InterBold from '../assets/fonts/Inter-Bold.ttf';
 import InterMedium from '../assets/fonts/Inter-Medium.ttf';
 import InterRegular from '../assets/fonts/Inter-Regular.ttf';
@@ -73,9 +74,10 @@ export default function RootLayout() {
     let active = true;
 
     void initializeDatabase()
+      .then(() => ensureDeviceLocalId())
       .catch((error: unknown) => {
         if (__DEV__) {
-          console.error('Failed to initialize database', error);
+          console.error('Failed to initialize local persistence', error);
         }
       })
       .finally(() => {

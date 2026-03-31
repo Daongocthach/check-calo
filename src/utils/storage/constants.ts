@@ -1,4 +1,7 @@
 export const STORAGE_KEYS = {
+  device: {
+    localId: 'device_local_id',
+  },
   preferences: {
     theme: 'user_theme_preference',
     themePreset: 'user_theme_preset',

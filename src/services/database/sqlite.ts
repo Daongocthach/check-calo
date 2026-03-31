@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 2;
+const DATABASE_VERSION = 3;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -93,6 +93,142 @@ async function runVersion2Migration(database: SQLite.SQLiteDatabase) {
   `);
 }
 
+async function runVersion3Migration(database: SQLite.SQLiteDatabase) {
+  await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS app_device (
+      id TEXT PRIMARY KEY NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS meals (
+      local_id TEXT PRIMARY KEY NOT NULL,
+      remote_id TEXT,
+      owner_type TEXT NOT NULL CHECK (owner_type IN ('device', 'user')),
+      device_local_id TEXT NOT NULL,
+      user_id TEXT,
+      meal_type TEXT NOT NULL CHECK (meal_type IN ('breakfast', 'lunch', 'dinner', 'snack', 'other')),
+      note TEXT,
+      eaten_at TEXT NOT NULL,
+      total_calories REAL NOT NULL DEFAULT 0,
+      total_protein_grams REAL NOT NULL DEFAULT 0,
+      total_carbs_grams REAL NOT NULL DEFAULT 0,
+      total_fat_grams REAL NOT NULL DEFAULT 0,
+      sync_status TEXT NOT NULL CHECK (
+        sync_status IN ('local_only', 'pending', 'syncing', 'synced', 'failed')
+      ),
+      sync_error TEXT,
+      last_synced_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      deleted_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS meal_images (
+      local_id TEXT PRIMARY KEY NOT NULL,
+      remote_id TEXT,
+      meal_local_id TEXT NOT NULL,
+      meal_remote_id TEXT,
+      owner_type TEXT NOT NULL CHECK (owner_type IN ('device', 'user')),
+      device_local_id TEXT NOT NULL,
+      user_id TEXT,
+      local_uri TEXT,
+      thumbnail_uri TEXT,
+      remote_path TEXT,
+      mime_type TEXT,
+      file_name TEXT,
+      file_size INTEGER,
+      width INTEGER,
+      height INTEGER,
+      taken_at TEXT,
+      upload_status TEXT NOT NULL CHECK (
+        upload_status IN ('local_only', 'pending', 'uploading', 'uploaded', 'failed', 'deleted_local')
+      ),
+      upload_error TEXT,
+      last_uploaded_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      deleted_at TEXT,
+      FOREIGN KEY (meal_local_id) REFERENCES meals(local_id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS meal_items (
+      local_id TEXT PRIMARY KEY NOT NULL,
+      remote_id TEXT,
+      meal_local_id TEXT NOT NULL,
+      meal_remote_id TEXT,
+      owner_type TEXT NOT NULL CHECK (owner_type IN ('device', 'user')),
+      device_local_id TEXT NOT NULL,
+      user_id TEXT,
+      source_key TEXT,
+      title TEXT NOT NULL,
+      quantity_label TEXT NOT NULL,
+      quantity_grams REAL,
+      servings REAL NOT NULL DEFAULT 1,
+      total_calories REAL NOT NULL DEFAULT 0,
+      protein_grams REAL NOT NULL DEFAULT 0,
+      carbs_grams REAL NOT NULL DEFAULT 0,
+      fat_grams REAL NOT NULL DEFAULT 0,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      deleted_at TEXT,
+      FOREIGN KEY (meal_local_id) REFERENCES meals(local_id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS sync_queue (
+      id TEXT PRIMARY KEY NOT NULL,
+      entity_type TEXT NOT NULL CHECK (
+        entity_type IN ('meal', 'meal_item', 'meal_image', 'delete_meal', 'delete_meal_image')
+      ),
+      entity_local_id TEXT NOT NULL,
+      operation TEXT NOT NULL CHECK (
+        operation IN ('create', 'update', 'delete', 'upload')
+      ),
+      priority INTEGER NOT NULL DEFAULT 100,
+      status TEXT NOT NULL CHECK (
+        status IN ('pending', 'processing', 'done', 'failed')
+      ),
+      retry_count INTEGER NOT NULL DEFAULT 0,
+      last_error TEXT,
+      next_retry_at TEXT,
+      payload_json TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_meals_device_local_id
+      ON meals(device_local_id);
+
+    CREATE INDEX IF NOT EXISTS idx_meals_user_id
+      ON meals(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_meals_sync_status
+      ON meals(sync_status);
+
+    CREATE INDEX IF NOT EXISTS idx_meals_eaten_at
+      ON meals(eaten_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_meal_images_meal_local_id
+      ON meal_images(meal_local_id);
+
+    CREATE INDEX IF NOT EXISTS idx_meal_images_device_local_id
+      ON meal_images(device_local_id);
+
+    CREATE INDEX IF NOT EXISTS idx_meal_images_user_id
+      ON meal_images(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_meal_images_upload_status
+      ON meal_images(upload_status);
+
+    CREATE INDEX IF NOT EXISTS idx_meal_items_meal_local_id
+      ON meal_items(meal_local_id);
+
+    CREATE INDEX IF NOT EXISTS idx_sync_queue_status_priority
+      ON sync_queue(status, priority, created_at);
+  `);
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -104,6 +240,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 2) {
     await runVersion2Migration(database);
+  }
+
+  if (currentVersion < 3) {
+    await runVersion3Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {
