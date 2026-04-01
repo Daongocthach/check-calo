@@ -47,31 +47,6 @@ function isAnonymousAuthDisabledError(error: unknown) {
   );
 }
 
-function getTokenPreview(token?: string | null) {
-  if (!token) {
-    return null;
-  }
-
-  return `${token.slice(0, 12)}...`;
-}
-
-function logAuthSessionDebug(label: string, session: Session | null, userOverride?: User | null) {
-  if (!__DEV__) {
-    return;
-  }
-
-  const user = userOverride ?? session?.user ?? null;
-
-  console.warn(`[auth] ${label}`, {
-    hasSession: Boolean(session),
-    userId: user?.id ?? null,
-    email: user?.email ?? null,
-    isAnonymous: Boolean(user?.is_anonymous),
-    accessTokenPreview: getTokenPreview(session?.access_token),
-    refreshTokenPreview: getTokenPreview(session?.refresh_token),
-  });
-}
-
 function mapAuthUser(user: User | null): AuthUser | null {
   if (!user) {
     return null;
@@ -101,8 +76,6 @@ function applyAuthState(
   userOverride?: User | null
 ) {
   const user = userOverride ?? session?.user ?? null;
-
-  logAuthSessionDebug('applyAuthState', session, user);
 
   set({
     user: mapAuthUser(user),
@@ -137,10 +110,6 @@ async function ensureAnonymousSession(
   }
 
   anonymousSignInPromise = (async () => {
-    if (__DEV__) {
-      console.warn('[auth] attempting anonymous sign-in');
-    }
-
     const { data, error } = await supabase.auth.signInAnonymously();
 
     if (error) {
@@ -162,7 +131,6 @@ async function ensureAnonymousSession(
       return;
     }
 
-    logAuthSessionDebug('anonymousSignInSuccess', data.session, data.user);
     applyAuthState(set, data.session, data.user);
   })()
     .catch((error: unknown) => {
@@ -191,10 +159,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   clearSession: () => {
-    if (__DEV__) {
-      console.warn('[auth] clearSession called');
-    }
-
     set({ user: null, session: null, isAuthenticated: false });
     void ensureAnonymousSession(set, get);
   },
@@ -219,16 +183,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
       set({ isLoading: false });
     } else {
-      logAuthSessionDebug('initialize:getSession', session);
       applyAuthState(set, session);
     }
 
     authSubscription = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (__DEV__) {
-        console.warn('[auth] onAuthStateChange', { event });
-      }
-
-      logAuthSessionDebug(`onAuthStateChange:${event}`, nextSession);
       applyAuthState(set, nextSession);
 
       if (!nextSession) {

@@ -1,12 +1,22 @@
 import { Image } from 'expo-image';
-import { type ReactNode } from 'react';
-import { View, type ImageStyle, type StyleProp, type ViewStyle } from 'react-native';
+import { type ReactNode, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  Modal,
+  Pressable,
+  View,
+  type ImageStyle,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
+import ImageViewer from 'react-native-image-zoom-viewer';
 import { StyleSheet } from 'react-native-unistyles';
 import { Icon, Text } from '@/common/components';
 
 export interface FoodImagePreviewProps {
   imageUri?: string | null;
   thumbnailUri?: string | null;
+  devSyncBadgeLabel?: string | null;
   style?: StyleProp<ViewStyle>;
   imageStyle?: StyleProp<ImageStyle>;
   iconSize?: number;
@@ -32,38 +42,97 @@ function getDevSyncBadgeLabel(imageUri?: string | null) {
 export function FoodImagePreview({
   imageUri,
   thumbnailUri,
+  devSyncBadgeLabel,
   style,
   imageStyle,
   iconSize = 24,
   children,
 }: FoodImagePreviewProps) {
+  const { t } = useTranslation();
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
   const resolvedImageUri =
     typeof thumbnailUri === 'string' && thumbnailUri.length > 0 ? thumbnailUri : imageUri;
   const hasImage = typeof resolvedImageUri === 'string' && resolvedImageUri.length > 0;
-  const devSyncBadgeLabel = __DEV__ ? getDevSyncBadgeLabel(imageUri) : null;
+  const viewerImageUri =
+    typeof imageUri === 'string' && imageUri.length > 0 ? imageUri : resolvedImageUri;
+  const resolvedDevSyncBadgeLabel = __DEV__
+    ? (devSyncBadgeLabel ?? getDevSyncBadgeLabel(imageUri))
+    : null;
 
   return (
-    <View style={[styles.container, style]}>
-      {hasImage ? (
-        <Image
-          source={{ uri: resolvedImageUri }}
-          style={[styles.image, imageStyle]}
-          contentFit="cover"
-        />
-      ) : (
-        <View style={styles.placeholder}>
-          <Icon name="image-outline" variant="primary" size={iconSize} />
+    <>
+      <Pressable
+        accessibilityRole={hasImage ? 'button' : undefined}
+        accessibilityLabel={hasImage ? t('manualFoodEntry.openImageViewer') : undefined}
+        disabled={!hasImage}
+        onPress={() => {
+          setIsViewerVisible(true);
+        }}
+      >
+        <View style={[styles.container, style]}>
+          {hasImage ? (
+            <Image
+              source={{ uri: resolvedImageUri }}
+              style={[styles.image, imageStyle]}
+              contentFit="cover"
+            />
+          ) : (
+            <View style={styles.placeholder}>
+              <Icon name="image-outline" variant="primary" size={iconSize} />
+            </View>
+          )}
+          {resolvedDevSyncBadgeLabel ? (
+            <View style={styles.devBadge}>
+              <Text variant="caption" weight="bold" color="inverse" numberOfLines={1}>
+                {resolvedDevSyncBadgeLabel}
+              </Text>
+            </View>
+          ) : null}
+          {hasImage ? (
+            <View style={styles.zoomBadge}>
+              <Icon name="expand-outline" variant="inverse" size={22} />
+            </View>
+          ) : null}
+          {children}
         </View>
-      )}
-      {devSyncBadgeLabel ? (
-        <View style={styles.devBadge}>
-          <Text variant="caption" weight="bold" color="inverse" numberOfLines={1}>
-            {devSyncBadgeLabel}
-          </Text>
-        </View>
+      </Pressable>
+
+      {hasImage && viewerImageUri ? (
+        <Modal
+          animationType="fade"
+          visible={isViewerVisible}
+          onRequestClose={() => {
+            setIsViewerVisible(false);
+          }}
+        >
+          <View style={styles.viewerContainer}>
+            <ImageViewer
+              imageUrls={[{ url: viewerImageUri }]}
+              backgroundColor="black"
+              enableSwipeDown
+              onCancel={() => {
+                setIsViewerVisible(false);
+              }}
+              onClick={() => {
+                setIsViewerVisible(false);
+              }}
+              saveToLocalByLongPress={false}
+            />
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('manualFoodEntry.closeImageViewer')}
+              onPress={() => {
+                setIsViewerVisible(false);
+              }}
+              style={styles.closeButton}
+            >
+              <Icon name="close-outline" variant="inverse" size={22} />
+            </Pressable>
+          </View>
+        </Modal>
       ) : null}
-      {children}
-    </View>
+    </>
   );
 }
 
@@ -88,6 +157,34 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.metrics.spacing.p8,
     paddingVertical: theme.metrics.spacingV.p4,
     borderRadius: theme.metrics.borderRadius.sm,
+    backgroundColor: theme.colors.overlay.modal,
+  },
+  zoomBadge: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
+    marginLeft: -theme.metrics.spacing.p20,
+    marginTop: -theme.metrics.spacingV.p20,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.overlay.focus,
+  },
+  viewerContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.overlay.modal,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: theme.metrics.spacingV.p48,
+    right: theme.metrics.spacing.p16,
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: theme.colors.overlay.modal,
   },
 }));

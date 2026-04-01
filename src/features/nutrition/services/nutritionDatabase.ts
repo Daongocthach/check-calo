@@ -451,8 +451,14 @@ export async function createFoodEntry(input: FoodEntryInput) {
 export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
   const database = await getDatabase();
   const now = nowIsoString();
-  const consumedAt = input.consumedAt ?? now;
-  const entryDate = formatDateKey(input.entryDate ?? consumedAt);
+  const existingEntry = await getFoodEntryById(entryId);
+
+  if (!existingEntry) {
+    throw new Error('Food entry not found');
+  }
+
+  const consumedAt = input.consumedAt ?? existingEntry.consumedAt;
+  const entryDate = formatDateKey(input.entryDate ?? existingEntry.entryDate);
 
   await database.runAsync(
     `

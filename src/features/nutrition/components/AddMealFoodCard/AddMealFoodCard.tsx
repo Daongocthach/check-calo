@@ -20,6 +20,8 @@ export interface AddMealFoodCardProps {
   kcalUnit: string;
   increaseLabel: string;
   decreaseLabel: string;
+  editLabel?: string;
+  onPress?: () => void;
   onIncrease: () => void;
   onDecrease: () => void;
 }
@@ -41,35 +43,45 @@ export function AddMealFoodCard({
   kcalUnit,
   increaseLabel,
   decreaseLabel,
+  editLabel,
+  onPress,
   onIncrease,
   onDecrease,
 }: AddMealFoodCardProps) {
   return (
     <Card variant="filled" style={styles.card}>
-      <FoodImagePreview imageUri={imageUri} thumbnailUri={thumbnailUri} style={styles.imageWrap}>
-        <View style={styles.caloriesBadge}>
-          <Text variant="caption" weight="semibold" color="inverse">
-            {`${Math.round(totalCalories)} ${kcalUnit}`}
-          </Text>
-        </View>
-      </FoodImagePreview>
+      <Pressable
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={editLabel}
+        disabled={!onPress}
+        onPress={onPress}
+        style={styles.contentPressable}
+      >
+        <FoodImagePreview imageUri={imageUri} thumbnailUri={thumbnailUri} style={styles.imageWrap}>
+          <View style={styles.caloriesBadge}>
+            <Text variant="caption" weight="semibold" color="inverse">
+              {`${Math.round(totalCalories)} ${kcalUnit}`}
+            </Text>
+          </View>
+        </FoodImagePreview>
 
-      <View style={styles.copy}>
-        <Text variant="body" weight="semibold" numberOfLines={1}>
-          {quantityDisplay ? `${title} (${quantityDisplay})` : title}
-        </Text>
-        <View style={styles.metaRow}>
-          <Text variant="caption" color="secondary">
-            {`${proteinLabel} ${Math.round(proteinGrams)}${gramUnit}`}
+        <View style={styles.copy}>
+          <Text variant="body" weight="semibold" numberOfLines={1}>
+            {quantityDisplay ? `${title} (${quantityDisplay})` : title}
           </Text>
-          <Text variant="caption" color="secondary">
-            {`${carbsLabel} ${Math.round(carbsGrams)}${gramUnit}`}
-          </Text>
-          <Text variant="caption" color="secondary">
-            {`${fatLabel} ${Math.round(fatGrams)}${gramUnit}`}
-          </Text>
+          <View style={styles.metaRow}>
+            <Text variant="caption" color="secondary">
+              {`${proteinLabel} ${Math.round(proteinGrams)}${gramUnit}`}
+            </Text>
+            <Text variant="caption" color="secondary">
+              {`${carbsLabel} ${Math.round(carbsGrams)}${gramUnit}`}
+            </Text>
+            <Text variant="caption" color="secondary">
+              {`${fatLabel} ${Math.round(fatGrams)}${gramUnit}`}
+            </Text>
+          </View>
         </View>
-      </View>
+      </Pressable>
 
       <View style={styles.stepper}>
         <Pressable
@@ -103,6 +115,12 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacing.p12,
     paddingHorizontal: theme.metrics.spacing.p12,
     paddingVertical: theme.metrics.spacingV.p12,
+  },
+  contentPressable: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
   },
   imageWrap: {
     width: theme.metrics.spacing.p56,

@@ -14,6 +14,7 @@ import {
   enqueueFoodEntryImageSync,
   processPendingFoodEntryImageSyncQueue,
 } from '@/features/nutrition/services/foodEntrySyncQueue';
+import { analyzeFoodPhotoWithGemini } from '@/features/nutrition/services/geminiFoodAnalyzer';
 import {
   createFoodEntry,
   listFavoriteFoods,
@@ -53,6 +54,7 @@ export default function AddCaloriesTab() {
   const [favoriteFoods, setFavoriteFoods] = useState<FavoriteFood[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [isSavingMeal, setIsSavingMeal] = useState(false);
+  const [isAnalyzingPhoto, setIsAnalyzingPhoto] = useState(false);
   const items = useAddMealStore((state) => state.items);
   const addItem = useAddMealStore((state) => state.addItem);
   const increaseServings = useAddMealStore((state) => state.increaseServings);
@@ -118,27 +120,86 @@ export default function AddCaloriesTab() {
   const carbsLabel = t('statsScreen.macros.carbs');
   const fatLabel = t('statsScreen.macros.fat');
 
+  const handleEditDraftItem = useCallback(
+    (itemId: string) => {
+      const item = items.find((draftItem) => draftItem.id === itemId);
+
+      if (!item) {
+        return;
+      }
+
+      router.push({
+        pathname: '/food-form',
+        params: {
+          context: 'addMeal',
+          draftItemId: item.id,
+          foodName: item.title,
+          quantityLabel:
+            item.quantityGrams !== null && item.quantityGrams !== undefined
+              ? String(item.quantityGrams)
+              : item.quantityLabel,
+          calories: String(item.totalCalories),
+          protein: String(item.proteinGrams),
+          carbs: String(item.carbsGrams),
+          fat: String(item.fatGrams),
+          notes: item.notes ?? '',
+          imageUri: item.imageUri ?? undefined,
+        },
+      });
+    },
+    [items]
+  );
+
+  const openFoodFormFromPhoto = useCallback((imageUri: string, params?: Record<string, string>) => {
+    router.push({
+      pathname: '/food-form',
+      params: {
+        imageUri,
+        context: 'addMeal',
+        ...params,
+      },
+    });
+  }, []);
+
   const handleCaptureFood = useCallback(async () => {
+    if (isAnalyzingPhoto) {
+      return;
+    }
+
     const photo = await openCamera();
 
     if (!photo) {
       return;
     }
 
-    router.push({
-      pathname: '/food-form',
-      params: {
-        imageUri: photo.uri,
-        context: 'addMeal',
-        foodName: t('addScreen.result.presets.scanFood.title'),
-        quantityLabel: '250',
-        calories: '615',
-        carbs: '93',
-        protein: '18',
-        fat: '22',
-      },
-    });
-  }, [openCamera, t]);
+    setIsAnalyzingPhoto(true);
+
+    try {
+      const result = await analyzeFoodPhotoWithGemini(photo.uri);
+
+      if (result.status === 'ready') {
+        openFoodFormFromPhoto(photo.uri, {
+          foodName: result.draft.mealName,
+          quantityLabel: result.draft.quantityGrams ? String(result.draft.quantityGrams) : '',
+          calories: String(result.draft.calories),
+          carbs: String(result.draft.carbsGrams),
+          protein: String(result.draft.proteinGrams),
+          fat: String(result.draft.fatGrams),
+          notes: result.draft.notes ?? '',
+        });
+        return;
+      }
+
+      toast.error(result.assistantMessage ?? t('addScreen.aiAnalysisFallback'));
+      openFoodFormFromPhoto(photo.uri);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('addScreen.aiAnalysisError');
+      toast.error(message);
+      openFoodFormFromPhoto(photo.uri);
+    } finally {
+      setIsAnalyzingPhoto(false);
+    }
+  }, [isAnalyzingPhoto, openCamera, openFoodFormFromPhoto, t]);
 
   const handleBarcodeScan = useCallback(async () => {
     const barcodeValue = await openQrScanner();
@@ -381,6 +442,8 @@ export default function AddCaloriesTab() {
                     fatLabel={fatLabel}
                     gramUnit={t('common.units.gram')}
                     kcalUnit={t('common.units.kcal')}
+                    editLabel={t('addScreen.editItem', { mealName: item.title })}
+                    onPress={() => handleEditDraftItem(item.id)}
                     decreaseLabel={t('addScreen.decreasePortion')}
                     increaseLabel={t('addScreen.increasePortion')}
                     onDecrease={() => decreaseServings(item.id)}
@@ -422,8 +485,14 @@ export default function AddCaloriesTab() {
 
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={t('addScreen.captureModes.scanFood')}
-                style={styles.actionButton}
+                accessibilityLabel={
+                  isAnalyzingPhoto
+                    ? t('addScreen.captureModes.scanFoodAnalyzing')
+                    : t('addScreen.captureModes.scanFood')
+                }
+                accessibilityState={{ disabled: isAnalyzingPhoto }}
+                disabled={isAnalyzingPhoto}
+                style={[styles.actionButton, isAnalyzingPhoto && styles.actionButtonDisabled]}
                 onPress={() => {
                   void handleCaptureFood();
                 }}
@@ -432,7 +501,9 @@ export default function AddCaloriesTab() {
                   <Icon name="camera-outline" variant="primary" size={20} />
                 </View>
                 <Text variant="caption" weight="semibold" align="center" style={styles.actionLabel}>
-                  {t('addScreen.captureModes.scanFood')}
+                  {isAnalyzingPhoto
+                    ? t('addScreen.captureModes.scanFoodAnalyzing')
+                    : t('addScreen.captureModes.scanFood')}
                 </Text>
               </Pressable>
 
@@ -531,6 +602,7 @@ export default function AddCaloriesTab() {
                   fatLabel={fatLabel}
                   gramUnit={t('common.units.gram')}
                   kcalUnit={t('common.units.kcal')}
+                  editLabel={t('addScreen.editItem', { mealName: item.name })}
                   decreaseLabel={t('addScreen.decreasePortion')}
                   increaseLabel={t('addScreen.increasePortion')}
                   onDecrease={() => {
@@ -622,6 +694,9 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background.section,
     borderWidth: 1,
     borderColor: theme.colors.border.subtle,
+  },
+  actionButtonDisabled: {
+    opacity: 0.6,
   },
   actionIconWrap: {
     width: hs(44),

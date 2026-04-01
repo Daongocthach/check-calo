@@ -19,6 +19,11 @@ export interface FoodEntrySyncQueueStatus {
   isProcessing: boolean;
 }
 
+export interface FoodEntryImageSyncState {
+  status: SyncQueueRecord['status'];
+  errorMessage: string | null;
+}
+
 interface SyncQueueRow {
   id: string;
   entity_type: SyncQueueRecord['entityType'];
@@ -84,6 +89,38 @@ export async function getFoodEntryImageSyncQueueStatus(): Promise<FoodEntrySyncQ
     totalQueuedCount: row?.total_queued_count ?? 0,
     isProcessing: isProcessingQueue,
   };
+}
+
+export async function getFoodEntryImageSyncStateMap(entryIds: string[]) {
+  if (entryIds.length === 0) {
+    return {} satisfies Record<string, FoodEntryImageSyncState>;
+  }
+
+  const database = await getDatabase();
+  const placeholders = entryIds.map(() => '?').join(', ');
+  const rows = await database.getAllAsync<SyncQueueRow>(
+    `
+      SELECT *
+      FROM sync_queue
+      WHERE entity_type = ?
+        AND operation = ?
+        AND entity_local_id IN (${placeholders})
+      ORDER BY created_at DESC;
+    `,
+    [FOOD_ENTRY_IMAGE_SYNC_ENTITY_TYPE, FOOD_ENTRY_IMAGE_SYNC_OPERATION, ...entryIds]
+  );
+
+  return rows.reduce<Record<string, FoodEntryImageSyncState>>((accumulator, row) => {
+    if (accumulator[row.entity_local_id]) {
+      return accumulator;
+    }
+
+    accumulator[row.entity_local_id] = {
+      status: row.status,
+      errorMessage: row.last_error,
+    };
+    return accumulator;
+  }, {});
 }
 
 async function getPendingFoodEntryImageJobs() {

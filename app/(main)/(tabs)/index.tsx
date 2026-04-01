@@ -16,6 +16,7 @@ import {
 } from '@/common/components';
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
 import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
+import { getFoodEntryImageSyncStateMap } from '@/features/nutrition/services/foodEntrySyncQueue';
 import {
   deleteFoodEntry,
   getDailyNutritionSummary,
@@ -28,7 +29,43 @@ import { vs } from '@/theme/metrics';
 
 interface MealSection {
   title: string;
-  data: FoodEntry[];
+  data: FoodEntryWithSyncDebug[];
+}
+
+type FoodEntryWithSyncDebug = FoodEntry & {
+  devSyncBadgeLabel?: string | null;
+};
+
+function toDevSyncBadgeLabel(
+  imageUri: string | null | undefined,
+  syncState?: { status: 'pending' | 'processing' | 'done' | 'failed'; errorMessage: string | null }
+) {
+  if (!__DEV__) {
+    return null;
+  }
+
+  if (syncState?.status === 'failed') {
+    const reason = syncState.errorMessage?.trim();
+    return reason ? `_DEV_ FAILED: ${reason}` : '_DEV_ FAILED';
+  }
+
+  if (syncState?.status === 'processing') {
+    return '_DEV_ SYNCING';
+  }
+
+  if (syncState?.status === 'pending') {
+    return '_DEV_ QUEUED';
+  }
+
+  if (typeof imageUri === 'string' && imageUri.startsWith('http')) {
+    return '_DEV_ SYNCED';
+  }
+
+  if (typeof imageUri === 'string' && imageUri.startsWith('file://')) {
+    return '_DEV_ LOCAL';
+  }
+
+  return null;
 }
 
 function formatTimeLabel(consumedAt: string) {
@@ -57,7 +94,7 @@ export default function HomeTab() {
   const [summary, setSummary] = useState<DailyNutritionSummary>(() =>
     createEmptySummary(new Date())
   );
-  const [entries, setEntries] = useState<FoodEntry[]>([]);
+  const [entries, setEntries] = useState<FoodEntryWithSyncDebug[]>([]);
   const [hasProfile, setHasProfile] = useState(false);
 
   const loadNutritionData = useCallback(async (date: Date) => {
@@ -66,10 +103,15 @@ export default function HomeTab() {
       getDailyNutritionSummary(date),
       listFoodEntriesByDate(date),
     ]);
+    const syncStateMap = await getFoodEntryImageSyncStateMap(nextEntries.map((entry) => entry.id));
+    const entriesWithSyncDebug = nextEntries.map((entry) => ({
+      ...entry,
+      devSyncBadgeLabel: toDevSyncBadgeLabel(entry.imageUri, syncStateMap[entry.id]),
+    }));
 
     setHasProfile(profile !== null);
     setSummary(nextSummary);
-    setEntries(nextEntries);
+    setEntries(entriesWithSyncDebug);
   }, []);
 
   useFocusEffect(

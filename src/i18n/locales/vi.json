@@ -235,6 +235,7 @@
     "totalWeight": "Khối lượng",
     "addedItemsTitle": "Các món đã thêm",
     "addedItemsCount": "{{count}} món",
+    "editItem": "Sửa món {{mealName}}",
     "emptyTitle": "Chưa có món nào trong bữa này",
     "emptySubtitle": "Chọn từ yêu thích hoặc thêm bằng nhập tay, chụp ảnh, barcode.",
     "addFoodTitle": "Thêm món vào bữa",
@@ -247,6 +248,8 @@
     "saveMeal": "Lưu bữa ăn",
     "saveSuccess": "Đã lưu bữa ăn vào nhật ký hôm nay.",
     "saveError": "Không thể lưu bữa ăn. Vui lòng thử lại.",
+    "aiAnalysisFallback": "AI chưa chắc chắn về món này. Bạn hãy kiểm tra và chỉnh lại trong form.",
+    "aiAnalysisError": "Không thể phân tích ảnh món ăn lúc này.",
     "clearMeal": "Đặt lại",
     "clearMealTitle": "Xóa bữa ăn hiện tại",
     "clearMealMessage": "Bạn có chắc muốn xóa toàn bộ món đang thêm không?",
@@ -256,6 +259,7 @@
     "modalSubtitle": "Chọn cách bạn muốn tạo mục món ăn này.",
     "captureModes": {
       "scanFood": "Chụp ảnh",
+      "scanFoodAnalyzing": "Đang phân tích",
       "barcode": "Barcode",
       "manual": "Nhập tay"
     },
@@ -329,6 +333,8 @@
     "photoAction": "Chụp ảnh món ăn",
     "photoRetakeAction": "Chụp lại ảnh món ăn",
     "photoHint": "Chạm vào khung ảnh để chụp hoặc thay đổi ảnh món ăn.",
+    "openImageViewer": "Mở ảnh món ăn toàn màn hình",
+    "closeImageViewer": "Đóng ảnh món ăn toàn màn hình",
     "favoriteSectionTitle": "Chọn nhanh từ yêu thích",
     "favoriteSectionHint": "Chạm để nạp dữ liệu lên form, giữ lâu để lưu thẳng vào hôm nay.",
     "fields": {

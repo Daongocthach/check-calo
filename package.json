@@ -61,6 +61,7 @@
     "react-native-edge-to-edge": "^1.8.1",
     "react-native-gesture-handler": "^2.30.0",
     "react-native-gifted-charts": "^1.4.76",
+    "react-native-image-zoom-viewer": "^3.0.1",
     "react-native-keyboard-controller": "1.20.7",
     "react-native-mmkv": "^4.1.2",
     "react-native-nitro-modules": "^0.33.8",

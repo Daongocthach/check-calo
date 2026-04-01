@@ -17,6 +17,7 @@ export interface HomeMealCardItem {
   fatGrams: number;
   imageUri?: string | null;
   thumbnailUri?: string | null;
+  devSyncBadgeLabel?: string | null;
   isFavorite: boolean;
 }
 
@@ -75,6 +76,7 @@ function Preview() {
     <FoodImagePreview
       imageUri={item.imageUri}
       thumbnailUri={item.thumbnailUri}
+      devSyncBadgeLabel={item.devSyncBadgeLabel}
       style={styles.mealPreview}
     >
       <View style={styles.previewCalories}>
@@ -308,6 +310,7 @@ export function toHomeMealCardItem(item: {
   fatGrams: FoodEntry['fatGrams'] | FavoriteFood['fatGrams'];
   imageUri?: FoodEntry['imageUri'] | FavoriteFood['imageUri'];
   thumbnailUri?: FoodEntry['thumbnailUri'] | FavoriteFood['thumbnailUri'];
+  devSyncBadgeLabel?: string | null;
   isFavorite: boolean;
 }): HomeMealCardItem {
   return {
@@ -321,6 +324,7 @@ export function toHomeMealCardItem(item: {
     fatGrams: item.fatGrams,
     imageUri: item.imageUri,
     thumbnailUri: item.thumbnailUri,
+    devSyncBadgeLabel: item.devSyncBadgeLabel ?? null,
     isFavorite: item.isFavorite,
   };
 }

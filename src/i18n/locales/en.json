@@ -235,6 +235,7 @@
     "totalWeight": "Weight",
     "addedItemsTitle": "Added items",
     "addedItemsCount": "{{count}} items",
+    "editItem": "Edit {{mealName}}",
     "emptyTitle": "No items in this meal yet",
     "emptySubtitle": "Pick from favorites or add one manually, from a photo, or from barcode.",
     "addFoodTitle": "Add more food",
@@ -247,6 +248,8 @@
     "saveMeal": "Save meal",
     "saveSuccess": "Meal saved to today's log.",
     "saveError": "Could not save the meal. Please try again.",
+    "aiAnalysisFallback": "AI is not fully confident about this meal yet. Please review it in the form.",
+    "aiAnalysisError": "Unable to analyze the food photo right now.",
     "clearMeal": "Clear current meal",
     "clearMealTitle": "Clear current meal",
     "clearMealMessage": "Are you sure you want to remove every item from this meal?",
@@ -256,6 +259,7 @@
     "modalSubtitle": "Pick how you want to capture this food entry.",
     "captureModes": {
       "scanFood": "Capture food",
+      "scanFoodAnalyzing": "Analyzing...",
       "barcode": "Barcode",
       "manual": "Manual"
     },
@@ -329,6 +333,8 @@
     "photoAction": "Take food photo",
     "photoRetakeAction": "Retake food photo",
     "photoHint": "Tap the photo area to capture or replace the current food image.",
+    "openImageViewer": "Open full screen food image",
+    "closeImageViewer": "Close full screen food image",
     "favoriteSectionTitle": "Quick pick from favorites",
     "favoriteSectionHint": "Tap to load values into the form, or long press to save it straight to today.",
     "fields": {

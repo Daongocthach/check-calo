@@ -36,6 +36,7 @@ export interface DraftMealItem {
 interface AddMealState {
   items: DraftMealItem[];
   addItem: (item: DraftMealItemInput) => void;
+  updateItem: (itemId: string, item: DraftMealItemInput) => void;
   increaseServings: (itemId: string) => void;
   decreaseServings: (itemId: string) => void;
   clearMeal: () => void;
@@ -87,6 +88,22 @@ export const useAddMealStore = create<AddMealState>((set) => ({
         items: [toDraftMealItem(item), ...state.items],
       };
     }),
+
+  updateItem: (itemId, item) =>
+    set((state) => ({
+      items: state.items.map((draftItem) =>
+        draftItem.id === itemId
+          ? {
+              ...toDraftMealItem({
+                ...draftItem,
+                ...item,
+                id: draftItem.id,
+                servings: draftItem.servings,
+              }),
+            }
+          : draftItem
+      ),
+    })),
 
   increaseServings: (itemId) =>
     set((state) => ({

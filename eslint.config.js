@@ -26,6 +26,7 @@ module.exports = [
       'jest.setup.ts',
       'index.ts',
       'scripts/',
+      'supabase/functions/',
     ],
   },
   {

@@ -66,6 +66,7 @@ export default function FoodFormScreen() {
   const params = useLocalSearchParams<{
     entryId?: string;
     favoriteId?: string;
+    draftItemId?: string;
     context?: string;
     foodName?: string;
     quantityLabel?: string;
@@ -81,6 +82,7 @@ export default function FoodFormScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const addMealItem = useAddMealStore((state) => state.addItem);
+  const updateMealItem = useAddMealStore((state) => state.updateItem);
   const {
     control,
     handleSubmit,
@@ -235,7 +237,7 @@ export default function FoodFormScreen() {
         : null;
 
       if (isAddMealFlow) {
-        addMealItem({
+        const nextDraftItem = {
           sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
           title: payload.mealName,
           quantityLabel: payload.quantityLabel,
@@ -247,7 +249,13 @@ export default function FoodFormScreen() {
           notes: payload.notes,
           imageUri: payload.imageUri,
           thumbnailUri: payload.thumbnailUri,
-        });
+        };
+
+        if (typeof params.draftItemId === 'string' && params.draftItemId.length > 0) {
+          updateMealItem(params.draftItemId, nextDraftItem);
+        } else {
+          addMealItem(nextDraftItem);
+        }
         router.replace('/add');
         return;
       }
@@ -312,15 +320,6 @@ export default function FoodFormScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.screen}>
-            <View style={styles.headerBlock}>
-              <Text variant="h2">
-                {isEditing ? t('manualFoodEntry.editTitle') : t('manualFoodEntry.title')}
-              </Text>
-              <Text variant="bodySmall" color="secondary">
-                {t('manualFoodEntry.subtitle')}
-              </Text>
-            </View>
-
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('manualFoodEntry.photoAction')}
@@ -403,8 +402,8 @@ export default function FoodFormScreen() {
                 </View>
               </View>
 
-              <View style={styles.row}>
-                <View style={styles.rowField}>
+              <View style={styles.macroRow}>
+                <View style={styles.macroField}>
                   <Controller
                     control={control}
                     name="protein"
@@ -422,7 +421,7 @@ export default function FoodFormScreen() {
                     )}
                   />
                 </View>
-                <View style={styles.rowField}>
+                <View style={styles.macroField}>
                   <Controller
                     control={control}
                     name="carbs"
@@ -440,24 +439,25 @@ export default function FoodFormScreen() {
                     )}
                   />
                 </View>
-              </View>
-
-              <Controller
-                control={control}
-                name="fat"
-                rules={{ required: t('validation.required') }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label={t('manualFoodEntry.fields.fat')}
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={errors.fat?.message}
-                    keyboardType="decimal-pad"
-                    placeholder={t('manualFoodEntry.placeholders.macro')}
+                <View style={styles.macroField}>
+                  <Controller
+                    control={control}
+                    name="fat"
+                    rules={{ required: t('validation.required') }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        label={t('manualFoodEntry.fields.fat')}
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        error={errors.fat?.message}
+                        keyboardType="decimal-pad"
+                        placeholder={t('manualFoodEntry.placeholders.macro')}
+                      />
+                    )}
                   />
-                )}
-              />
+                </View>
+              </View>
 
               <Controller
                 control={control}
@@ -516,9 +516,6 @@ const styles = StyleSheet.create((theme) => ({
   screen: {
     gap: theme.metrics.spacingV.p16,
   },
-  headerBlock: {
-    gap: theme.metrics.spacingV.p4,
-  },
   photoCard: {
     minHeight: theme.metrics.spacing.p120,
     borderRadius: theme.metrics.borderRadius.xl,
@@ -564,6 +561,14 @@ const styles = StyleSheet.create((theme) => ({
   },
   rowField: {
     flex: 1,
+  },
+  macroRow: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+  },
+  macroField: {
+    flex: 1,
+    minWidth: 0,
   },
   footerSticky: {
     position: 'absolute',
