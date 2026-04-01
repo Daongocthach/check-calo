@@ -11,6 +11,10 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Card, Icon, ScreenContainer, SearchBar, Text } from '@/common/components';
 import { AddMealFoodCard } from '@/features/nutrition/components/AddMealFoodCard';
 import {
+  enqueueFoodEntryImageSync,
+  processPendingFoodEntryImageSyncQueue,
+} from '@/features/nutrition/services/foodEntrySyncQueue';
+import {
   createFoodEntry,
   listFavoriteFoods,
 } from '@/features/nutrition/services/nutritionDatabase';
@@ -34,6 +38,7 @@ function toDraftMealFavoriteItem(favorite: FavoriteFood) {
     fatGrams: favorite.fatGrams,
     notes: favorite.notes,
     imageUri: favorite.imageUri ?? null,
+    thumbnailUri: favorite.thumbnailUri ?? favorite.imageUri ?? null,
   };
 }
 
@@ -192,7 +197,7 @@ export default function AddCaloriesTab() {
     try {
       const consumedAt = new Date().toISOString();
 
-      await Promise.all(
+      const createdEntries = await Promise.all(
         items.map((item, index) => {
           const totalQuantityGrams =
             item.quantityGrams !== null && item.quantityGrams !== undefined
@@ -213,10 +218,20 @@ export default function AddCaloriesTab() {
             fatGrams: item.fatGrams * item.servings,
             notes: item.notes,
             imageUri: item.imageUri,
+            thumbnailUri: item.thumbnailUri,
             consumedAt: new Date(new Date(consumedAt).getTime() - index * 60000).toISOString(),
           });
         })
       );
+
+      await Promise.all(
+        createdEntries
+          .filter(
+            (entry) => typeof entry.imageUri === 'string' && entry.imageUri.startsWith('file://')
+          )
+          .map((entry) => enqueueFoodEntryImageSync(entry.id))
+      );
+      void processPendingFoodEntryImageSyncQueue();
 
       clearMeal();
       toast.success(t('addScreen.saveSuccess'));
@@ -355,6 +370,7 @@ export default function AddCaloriesTab() {
                     title={item.title}
                     quantityDisplay={quantityDisplay}
                     imageUri={item.imageUri}
+                    thumbnailUri={item.thumbnailUri}
                     totalCalories={item.totalCalories}
                     proteinGrams={item.proteinGrams}
                     carbsGrams={item.carbsGrams}
@@ -504,6 +520,7 @@ export default function AddCaloriesTab() {
                   title={item.name}
                   quantityDisplay={quantityDisplay}
                   imageUri={draftItem.imageUri}
+                  thumbnailUri={draftItem.thumbnailUri}
                   totalCalories={item.totalCalories}
                   proteinGrams={item.proteinGrams}
                   carbsGrams={item.carbsGrams}

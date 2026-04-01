@@ -45,6 +45,7 @@ interface FoodEntryRow {
   fat_grams: number;
   notes: string | null;
   image_uri: string | null;
+  thumbnail_uri: string | null;
   created_at: string;
   updated_at: string;
   is_favorite: number;
@@ -62,6 +63,7 @@ interface FavoriteFoodRow {
   fat_grams: number;
   notes: string | null;
   image_uri: string | null;
+  thumbnail_uri: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -104,6 +106,7 @@ function mapFoodEntry(row: FoodEntryRow): FoodEntry {
     fatGrams: row.fat_grams,
     notes: row.notes,
     imageUri: row.image_uri,
+    thumbnailUri: row.thumbnail_uri,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     isFavorite: row.is_favorite === 1,
@@ -123,6 +126,7 @@ function mapFavoriteFood(row: FavoriteFoodRow): FavoriteFood {
     fatGrams: row.fat_grams,
     notes: row.notes,
     imageUri: row.image_uri,
+    thumbnailUri: row.thumbnail_uri,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -410,10 +414,11 @@ export async function createFoodEntry(input: FoodEntryInput) {
         fat_grams,
         notes,
         image_uri,
+        thumbnail_uri,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
       id,
@@ -428,6 +433,7 @@ export async function createFoodEntry(input: FoodEntryInput) {
       input.fatGrams,
       input.notes ?? null,
       input.imageUri ?? null,
+      input.thumbnailUri ?? null,
       now,
       now,
     ]
@@ -463,6 +469,7 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
         fat_grams = ?,
         notes = ?,
         image_uri = ?,
+        thumbnail_uri = ?,
         updated_at = ?
       WHERE id = ?;
     `,
@@ -478,6 +485,7 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
       input.fatGrams,
       input.notes ?? null,
       input.imageUri ?? null,
+      input.thumbnailUri ?? null,
       now,
       entryId,
     ]
@@ -509,6 +517,47 @@ export async function replaceImageUriReferences(previousUri: string, nextUri: st
       [nextUri, now, previousUri]
     );
   });
+}
+
+export async function replaceThumbnailUriReferences(previousUri: string, nextUri: string | null) {
+  const database = await getDatabase();
+  const now = nowIsoString();
+
+  await database.withTransactionAsync(async () => {
+    await database.runAsync(
+      `
+        UPDATE food_entries
+        SET thumbnail_uri = ?, updated_at = ?
+        WHERE thumbnail_uri = ?;
+      `,
+      [nextUri, now, previousUri]
+    );
+
+    await database.runAsync(
+      `
+        UPDATE favorite_foods
+        SET thumbnail_uri = ?, updated_at = ?
+        WHERE thumbnail_uri = ?;
+      `,
+      [nextUri, now, previousUri]
+    );
+  });
+}
+
+export async function countImageAssetReferences(uri: string) {
+  const database = await getDatabase();
+  const row = await database.getFirstAsync<{ reference_count: number | null }>(
+    `
+      SELECT (
+        SELECT COUNT(*) FROM food_entries WHERE image_uri = ? OR thumbnail_uri = ?
+      ) + (
+        SELECT COUNT(*) FROM favorite_foods WHERE image_uri = ? OR thumbnail_uri = ?
+      ) AS reference_count;
+    `,
+    [uri, uri, uri, uri]
+  );
+
+  return row?.reference_count ?? 0;
 }
 
 export async function deleteFoodEntry(entryId: string) {
@@ -569,10 +618,11 @@ export async function toggleFavoriteFoodEntry(entryId: string) {
         fat_grams,
         notes,
         image_uri,
+        thumbnail_uri,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
       createEntityId('favorite'),
@@ -586,6 +636,7 @@ export async function toggleFavoriteFoodEntry(entryId: string) {
       entry.fatGrams,
       entry.notes ?? null,
       entry.imageUri ?? null,
+      entry.thumbnailUri ?? entry.imageUri ?? null,
       now,
       now,
     ]
@@ -612,6 +663,7 @@ export async function updateFavoriteFood(
     | 'fatGrams'
     | 'notes'
     | 'imageUri'
+    | 'thumbnailUri'
   >
 ) {
   const database = await getDatabase();
@@ -630,6 +682,7 @@ export async function updateFavoriteFood(
         fat_grams = ?,
         notes = ?,
         image_uri = ?,
+        thumbnail_uri = ?,
         updated_at = ?
       WHERE id = ?;
     `,
@@ -643,6 +696,7 @@ export async function updateFavoriteFood(
       input.fatGrams,
       input.notes ?? null,
       input.imageUri ?? null,
+      input.thumbnailUri ?? input.imageUri ?? null,
       now,
       favoriteId,
     ]
@@ -663,6 +717,7 @@ export async function upsertFavoriteFoodFromInput(
     | 'fatGrams'
     | 'notes'
     | 'imageUri'
+    | 'thumbnailUri'
   >
 ) {
   const database = await getDatabase();
@@ -692,10 +747,11 @@ export async function upsertFavoriteFoodFromInput(
         fat_grams,
         notes,
         image_uri,
+        thumbnail_uri,
         created_at,
         updated_at
       )
-      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
       favoriteId,
@@ -708,6 +764,7 @@ export async function upsertFavoriteFoodFromInput(
       input.fatGrams,
       input.notes ?? null,
       input.imageUri ?? null,
+      input.thumbnailUri ?? input.imageUri ?? null,
       now,
       now,
     ]
@@ -738,6 +795,7 @@ export async function createFoodEntryFromFavorite(
     fatGrams: favorite.fatGrams,
     notes: overrides?.notes ?? favorite.notes,
     imageUri: favorite.imageUri,
+    thumbnailUri: favorite.thumbnailUri,
     consumedAt: overrides?.consumedAt,
     entryDate: overrides?.entryDate,
   });

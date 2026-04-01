@@ -3,9 +3,14 @@ import { env } from '@/config/env';
 import { supabase } from '@/integrations/supabase';
 import { STORAGE_KEYS, getItem } from '@/utils/storage';
 import type { FoodEntry } from '../types';
-import { getFoodEntryById, replaceImageUriReferences } from './nutritionDatabase';
+import {
+  countImageAssetReferences,
+  getFoodEntryById,
+  replaceImageUriReferences,
+} from './nutritionDatabase';
 
 const FOOD_ENTRY_IMAGE_DIRECTORY = `${FileSystem.documentDirectory ?? ''}food-entry-images/`;
+const FOOD_ENTRY_THUMBNAIL_DIRECTORY = `${FileSystem.documentDirectory ?? ''}food-entry-thumbnails/`;
 const SUPABASE_FOOD_ENTRIES_TABLE = 'food_entries';
 
 function isLocalFileUri(uri: string | null | undefined): uri is string {
@@ -28,18 +33,18 @@ function toStorageContentType(uri: string) {
   }
 }
 
-function buildManagedImageUri(sourceUri: string) {
-  return `${FOOD_ENTRY_IMAGE_DIRECTORY}${Date.now()}-${Math.random()
+function buildManagedAssetUri(directory: string, sourceUri: string) {
+  return `${directory}${Date.now()}-${Math.random()
     .toString(36)
     .slice(2, 10)}.${getFileExtension(sourceUri)}`;
 }
 
-async function ensureManagedImageDirectory() {
+async function ensureManagedDirectory(directory: string) {
   if (!FileSystem.documentDirectory) {
     throw new Error('Document directory is unavailable');
   }
 
-  await FileSystem.makeDirectoryAsync(FOOD_ENTRY_IMAGE_DIRECTORY, {
+  await FileSystem.makeDirectoryAsync(directory, {
     intermediates: true,
   });
 }
@@ -127,15 +132,45 @@ export async function persistFoodEntryImageLocally(imageUri: string) {
     return imageUri;
   }
 
-  await ensureManagedImageDirectory();
+  await ensureManagedDirectory(FOOD_ENTRY_IMAGE_DIRECTORY);
 
-  const destinationUri = buildManagedImageUri(imageUri);
+  const destinationUri = buildManagedAssetUri(FOOD_ENTRY_IMAGE_DIRECTORY, imageUri);
   await FileSystem.copyAsync({
     from: imageUri,
     to: destinationUri,
   });
 
   return destinationUri;
+}
+
+export async function persistFoodEntryThumbnailLocally(imageUri: string) {
+  if (!isLocalFileUri(imageUri)) {
+    return imageUri;
+  }
+
+  if (imageUri.startsWith(FOOD_ENTRY_THUMBNAIL_DIRECTORY)) {
+    return imageUri;
+  }
+
+  await ensureManagedDirectory(FOOD_ENTRY_THUMBNAIL_DIRECTORY);
+
+  const destinationUri = buildManagedAssetUri(FOOD_ENTRY_THUMBNAIL_DIRECTORY, imageUri);
+  await FileSystem.copyAsync({
+    from: imageUri,
+    to: destinationUri,
+  });
+
+  return destinationUri;
+}
+
+export async function persistFoodEntryAssetsLocally(imageUri: string) {
+  const persistedImageUri = await persistFoodEntryImageLocally(imageUri);
+  const persistedThumbnailUri = await persistFoodEntryThumbnailLocally(persistedImageUri);
+
+  return {
+    imageUri: persistedImageUri,
+    thumbnailUri: persistedThumbnailUri,
+  };
 }
 
 export async function deleteLocalFoodEntryImage(imageUri: string | null | undefined) {
@@ -146,6 +181,36 @@ export async function deleteLocalFoodEntryImage(imageUri: string | null | undefi
   await FileSystem.deleteAsync(imageUri, {
     idempotent: true,
   });
+}
+
+export async function deleteLocalFoodEntryAssets(...imageUris: Array<string | null | undefined>) {
+  await Promise.all(imageUris.map((imageUri) => deleteLocalFoodEntryImage(imageUri)));
+}
+
+export async function deleteOrphanedFoodEntryAssets(
+  ...imageUris: Array<string | null | undefined>
+) {
+  for (const imageUri of imageUris) {
+    if (!isLocalFileUri(imageUri)) {
+      continue;
+    }
+
+    const referenceCount = await countImageAssetReferences(imageUri);
+
+    if (referenceCount === 0) {
+      await deleteLocalFoodEntryImage(imageUri);
+    }
+  }
+}
+
+export async function clearManagedFoodEntryImageCache() {
+  await Promise.all(
+    [FOOD_ENTRY_IMAGE_DIRECTORY, FOOD_ENTRY_THUMBNAIL_DIRECTORY].map((directory) =>
+      FileSystem.deleteAsync(directory, {
+        idempotent: true,
+      })
+    )
+  );
 }
 
 export async function syncFoodEntryImageToSupabase(entryId: string) {
@@ -168,7 +233,7 @@ export async function syncFoodEntryImageToSupabase(entryId: string) {
     await uploadLocalImage(entry.imageUri, remotePath);
     syncedImageUri = buildRemoteImageUri(remotePath);
     await replaceImageUriReferences(entry.imageUri, syncedImageUri);
-    await deleteLocalFoodEntryImage(entry.imageUri);
+    await deleteOrphanedFoodEntryAssets(entry.imageUri);
   }
 
   const refreshedEntry = (await getFoodEntryById(entryId)) ?? entry;

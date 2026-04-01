@@ -6,6 +6,7 @@ import { Pressable, SectionList, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Icon, MonthSelector, ScreenContainer, SearchBar, Text } from '@/common/components';
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
+import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import {
   deleteFavoriteFood,
   listFavoriteFoods,
@@ -131,8 +132,9 @@ export default function FavoritesTab() {
           text: t('common.confirm'),
           style: 'destructive',
           onPress: () => {
-            void deleteFavoriteFood(favorite.id).then(() => {
-              void loadFavorites();
+            void deleteFavoriteFood(favorite.id).then(async () => {
+              await deleteOrphanedFoodEntryAssets(favorite.imageUri, favorite.thumbnailUri);
+              await loadFavorites();
             });
           },
         },

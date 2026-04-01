@@ -7,6 +7,7 @@ export interface AddMealFoodCardProps {
   title: string;
   quantityDisplay?: string;
   imageUri?: string | null;
+  thumbnailUri?: string | null;
   totalCalories: number;
   proteinGrams: number;
   carbsGrams: number;
@@ -27,6 +28,7 @@ export function AddMealFoodCard({
   title,
   quantityDisplay,
   imageUri,
+  thumbnailUri,
   totalCalories,
   proteinGrams,
   carbsGrams,
@@ -44,7 +46,7 @@ export function AddMealFoodCard({
 }: AddMealFoodCardProps) {
   return (
     <Card variant="filled" style={styles.card}>
-      <FoodImagePreview imageUri={imageUri} style={styles.imageWrap}>
+      <FoodImagePreview imageUri={imageUri} thumbnailUri={thumbnailUri} style={styles.imageWrap}>
         <View style={styles.caloriesBadge}>
           <Text variant="caption" weight="semibold" color="inverse">
             {`${Math.round(totalCalories)} ${kcalUnit}`}

@@ -15,6 +15,7 @@ import {
   Text,
 } from '@/common/components';
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
+import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import {
   deleteFoodEntry,
   getDailyNutritionSummary,
@@ -110,8 +111,9 @@ export default function HomeTab() {
             text: t('foodDetail.deleteAction'),
             style: 'destructive',
             onPress: () => {
-              void deleteFoodEntry(meal.id).then(() => {
-                void loadNutritionData(selectedDate);
+              void deleteFoodEntry(meal.id).then(async () => {
+                await deleteOrphanedFoodEntryAssets(meal.imageUri, meal.thumbnailUri);
+                await loadNutritionData(selectedDate);
               });
             },
           },

@@ -13,6 +13,7 @@ export interface DraftMealItemInput {
   fatGrams: number;
   notes?: string | null;
   imageUri?: string | null;
+  thumbnailUri?: string | null;
   servings?: number;
 }
 
@@ -28,6 +29,7 @@ export interface DraftMealItem {
   fatGrams: number;
   notes: string | null;
   imageUri: string | null;
+  thumbnailUri: string | null;
   servings: number;
 }
 
@@ -52,6 +54,7 @@ function toDraftMealItem(input: DraftMealItemInput): DraftMealItem {
     fatGrams: input.fatGrams,
     notes: input.notes ?? null,
     imageUri: input.imageUri ?? null,
+    thumbnailUri: input.thumbnailUri ?? input.imageUri ?? null,
     servings: Math.max(1, input.servings ?? 1),
   };
 }

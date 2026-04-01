@@ -16,6 +16,7 @@ export interface HomeMealCardItem {
   carbsGrams: number;
   fatGrams: number;
   imageUri?: string | null;
+  thumbnailUri?: string | null;
   isFavorite: boolean;
 }
 
@@ -71,7 +72,11 @@ function Preview() {
   const { t } = useTranslation();
 
   return (
-    <FoodImagePreview imageUri={item.imageUri} style={styles.mealPreview}>
+    <FoodImagePreview
+      imageUri={item.imageUri}
+      thumbnailUri={item.thumbnailUri}
+      style={styles.mealPreview}
+    >
       <View style={styles.previewCalories}>
         <Text variant="caption" weight="semibold" color="onBrand">
           {`${Math.round(item.totalCalories)} ${t('common.units.kcal')}`}
@@ -302,6 +307,7 @@ export function toHomeMealCardItem(item: {
   carbsGrams: FoodEntry['carbsGrams'] | FavoriteFood['carbsGrams'];
   fatGrams: FoodEntry['fatGrams'] | FavoriteFood['fatGrams'];
   imageUri?: FoodEntry['imageUri'] | FavoriteFood['imageUri'];
+  thumbnailUri?: FoodEntry['thumbnailUri'] | FavoriteFood['thumbnailUri'];
   isFavorite: boolean;
 }): HomeMealCardItem {
   return {
@@ -314,6 +320,7 @@ export function toHomeMealCardItem(item: {
     carbsGrams: item.carbsGrams,
     fatGrams: item.fatGrams,
     imageUri: item.imageUri,
+    thumbnailUri: item.thumbnailUri,
     isFavorite: item.isFavorite,
   };
 }

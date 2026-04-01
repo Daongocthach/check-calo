@@ -11,6 +11,7 @@ import {
   logout,
   resetAnonymousSession,
 } from '@/features/auth/services/authService';
+import { clearManagedFoodEntryImageCache } from '@/features/nutrition/services/foodEntryImageSync';
 import {
   deleteUserProfile,
   getUserProfile,
@@ -117,6 +118,7 @@ export default function ProfileTab() {
             }
 
             await resetNutritionData();
+            await clearManagedFoodEntryImageCache();
           })()
             .then(() => {
               setProfileSummary(null);

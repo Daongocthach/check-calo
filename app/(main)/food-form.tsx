@@ -8,7 +8,10 @@ import { Pressable, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { StyleSheet } from 'react-native-unistyles';
 import { Button, Icon, Input, ScreenContainer, Text, TextArea } from '@/common/components';
-import { persistFoodEntryImageLocally } from '@/features/nutrition/services/foodEntryImageSync';
+import {
+  deleteOrphanedFoodEntryAssets,
+  persistFoodEntryAssetsLocally,
+} from '@/features/nutrition/services/foodEntryImageSync';
 import {
   enqueueFoodEntryImageSync,
   processPendingFoodEntryImageSyncQueue,
@@ -192,22 +195,65 @@ export default function FoodFormScreen() {
 
     setIsSaving(true);
 
-    const persistedImageUri = imageUri ? await persistFoodEntryImageLocally(imageUri) : null;
+    try {
+      const persistedAssets = imageUri ? await persistFoodEntryAssetsLocally(imageUri) : null;
+      const previousEntry =
+        isEditingEntry && typeof params.entryId === 'string'
+          ? await getFoodEntryById(params.entryId)
+          : null;
+      const previousFavorite =
+        isEditingFavorite && typeof params.favoriteId === 'string'
+          ? await getFavoriteFoodById(params.favoriteId)
+          : null;
 
-    const payload = {
-      mealName: form.foodName.trim(),
-      quantityLabel: formatMealWeight(quantityGrams, null, t('common.units.gram')),
-      quantityGrams,
-      totalCalories: parseNumber(form.calories),
-      proteinGrams: parseNumber(form.protein),
-      carbsGrams: parseNumber(form.carbs),
-      fatGrams: parseNumber(form.fat),
-      notes: form.notes.trim() ? form.notes.trim() : null,
-      imageUri: persistedImageUri,
-    };
+      const payload = {
+        mealName: form.foodName.trim(),
+        quantityLabel: formatMealWeight(quantityGrams, null, t('common.units.gram')),
+        quantityGrams,
+        totalCalories: parseNumber(form.calories),
+        proteinGrams: parseNumber(form.protein),
+        carbsGrams: parseNumber(form.carbs),
+        fatGrams: parseNumber(form.fat),
+        notes: form.notes.trim() ? form.notes.trim() : null,
+        imageUri: persistedAssets?.imageUri ?? null,
+        thumbnailUri: persistedAssets?.thumbnailUri ?? null,
+      };
 
-    const syncedFavorite = !isEditingFavorite
-      ? await upsertFavoriteFoodFromInput({
+      const syncedFavorite = !isEditingFavorite
+        ? await upsertFavoriteFoodFromInput({
+            name: payload.mealName,
+            quantityLabel: payload.quantityLabel,
+            quantityGrams: payload.quantityGrams ?? null,
+            totalCalories: payload.totalCalories,
+            proteinGrams: payload.proteinGrams,
+            carbsGrams: payload.carbsGrams,
+            fatGrams: payload.fatGrams,
+            notes: payload.notes,
+            imageUri: payload.imageUri,
+            thumbnailUri: payload.thumbnailUri,
+          })
+        : null;
+
+      if (isAddMealFlow) {
+        addMealItem({
+          sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
+          title: payload.mealName,
+          quantityLabel: payload.quantityLabel,
+          quantityGrams: payload.quantityGrams,
+          totalCalories: payload.totalCalories,
+          proteinGrams: payload.proteinGrams,
+          carbsGrams: payload.carbsGrams,
+          fatGrams: payload.fatGrams,
+          notes: payload.notes,
+          imageUri: payload.imageUri,
+          thumbnailUri: payload.thumbnailUri,
+        });
+        router.replace('/add');
+        return;
+      }
+
+      if (isEditingFavorite && typeof params.favoriteId === 'string') {
+        await updateFavoriteFood(params.favoriteId, {
           name: payload.mealName,
           quantityLabel: payload.quantityLabel,
           quantityGrams: payload.quantityGrams ?? null,
@@ -217,59 +263,36 @@ export default function FoodFormScreen() {
           fatGrams: payload.fatGrams,
           notes: payload.notes,
           imageUri: payload.imageUri,
-        })
-      : null;
+          thumbnailUri: payload.thumbnailUri,
+        });
+        await deleteOrphanedFoodEntryAssets(
+          previousFavorite?.imageUri,
+          previousFavorite?.thumbnailUri
+        );
+        router.replace('/favorites');
+        return;
+      }
 
-    if (isAddMealFlow) {
-      addMealItem({
-        sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
-        title: payload.mealName,
-        quantityLabel: payload.quantityLabel,
-        quantityGrams: payload.quantityGrams,
-        totalCalories: payload.totalCalories,
-        proteinGrams: payload.proteinGrams,
-        carbsGrams: payload.carbsGrams,
-        fatGrams: payload.fatGrams,
-        notes: payload.notes,
-        imageUri: payload.imageUri,
-      });
+      const entry =
+        isEditingEntry && typeof params.entryId === 'string'
+          ? await updateFoodEntry(params.entryId, payload)
+          : await createFoodEntry(payload);
+
+      if (!entry) {
+        return;
+      }
+
+      await deleteOrphanedFoodEntryAssets(previousEntry?.imageUri, previousEntry?.thumbnailUri);
+
+      if (entry.imageUri?.startsWith('file://')) {
+        await enqueueFoodEntryImageSync(entry.id);
+        void processPendingFoodEntryImageSyncQueue();
+      }
+
+      router.back();
+    } finally {
       setIsSaving(false);
-      router.replace('/add');
-      return;
     }
-
-    if (isEditingFavorite && typeof params.favoriteId === 'string') {
-      await updateFavoriteFood(params.favoriteId, {
-        name: payload.mealName,
-        quantityLabel: payload.quantityLabel,
-        quantityGrams: payload.quantityGrams ?? null,
-        totalCalories: payload.totalCalories,
-        proteinGrams: payload.proteinGrams,
-        carbsGrams: payload.carbsGrams,
-        fatGrams: payload.fatGrams,
-        notes: payload.notes,
-        imageUri: payload.imageUri,
-      });
-      setIsSaving(false);
-      router.replace('/favorites');
-      return;
-    }
-
-    const entry =
-      isEditingEntry && typeof params.entryId === 'string'
-        ? await updateFoodEntry(params.entryId, payload)
-        : await createFoodEntry(payload);
-
-    setIsSaving(false);
-
-    if (!entry) {
-      return;
-    }
-
-    await enqueueFoodEntryImageSync(entry.id);
-    void processPendingFoodEntryImageSyncQueue();
-
-    router.back();
   };
 
   if (isLoading) {
