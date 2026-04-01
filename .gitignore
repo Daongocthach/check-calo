@@ -56,3 +56,4 @@ jest-results/
 
 # Supabase CLI local metadata
 supabase/.temp/
+check-calo.db
