@@ -53,3 +53,6 @@ jest-results/
 
 # Sentry
 .sentryclirc
+
+# Supabase CLI local metadata
+supabase/.temp/
