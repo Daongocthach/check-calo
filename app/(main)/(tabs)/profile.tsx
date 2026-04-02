@@ -229,6 +229,22 @@ export default function ProfileTab() {
           />
         </Card>
 
+        {authUser?.isAnonymous ? (
+          <Card variant="filled" style={styles.loginCard}>
+            <View style={styles.authCopy}>
+              <Text variant="h3">{t('auth.signIn')}</Text>
+              <Text variant="bodySmall" color="secondary">
+                {t('profileScreen.account.anonymousSubtitle')}
+              </Text>
+            </View>
+            <Button
+              title={t('auth.signIn')}
+              variant="primary"
+              onPress={() => router.push('/(auth)/login')}
+            />
+          </Card>
+        ) : null}
+
         {profileSummary ? (
           <>
             <Card variant="filled" style={styles.goalCard}>
@@ -449,6 +465,9 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacing.p12,
   },
   emptyCard: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  loginCard: {
     gap: theme.metrics.spacingV.p12,
   },
   authCard: {

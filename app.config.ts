@@ -1,6 +1,14 @@
 import type { ExpoConfig } from '@expo/config-types';
 import 'tsx/cjs';
 
+const publicEnv = {
+  EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
+  EXPO_PUBLIC_SUPABASE_PUBLISHED_KEY: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHED_KEY,
+  EXPO_PUBLIC_SUPABASE_FOOD_IMAGE_BUCKET: process.env.EXPO_PUBLIC_SUPABASE_FOOD_IMAGE_BUCKET,
+  EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL,
+  EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV,
+};
+
 const config: ExpoConfig = {
   name: 'Check Calo',
   slug: 'check-calo',
@@ -35,6 +43,7 @@ const config: ExpoConfig = {
     eas: {
       projectId: '',
     },
+    ...publicEnv,
   },
   plugins: [
     [

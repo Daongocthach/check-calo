@@ -49,6 +49,24 @@ async function ensureManagedDirectory(directory: string) {
   });
 }
 
+async function clearManagedDirectory(directory: string) {
+  const directoryInfo = await FileSystem.getInfoAsync(directory);
+
+  if (!directoryInfo.exists || !directoryInfo.isDirectory) {
+    return;
+  }
+
+  const fileNames = await FileSystem.readDirectoryAsync(directory);
+
+  await Promise.all(
+    fileNames.map((fileName) =>
+      FileSystem.deleteAsync(`${directory}${fileName}`, {
+        idempotent: true,
+      })
+    )
+  );
+}
+
 async function getAuthenticatedUserId() {
   if (!env.supabaseUrl || !env.supabaseAnonKey) {
     return null;
@@ -206,9 +224,7 @@ export async function deleteOrphanedFoodEntryAssets(
 export async function clearManagedFoodEntryImageCache() {
   await Promise.all(
     [FOOD_ENTRY_IMAGE_DIRECTORY, FOOD_ENTRY_THUMBNAIL_DIRECTORY].map((directory) =>
-      FileSystem.deleteAsync(directory, {
-        idempotent: true,
-      })
+      clearManagedDirectory(directory)
     )
   );
 }

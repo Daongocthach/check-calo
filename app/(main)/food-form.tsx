@@ -4,7 +4,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { Modal, Pressable, View } from 'react-native';
+import ImageViewer from 'react-native-image-zoom-viewer';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { StyleSheet } from 'react-native-unistyles';
 import {
@@ -125,6 +126,7 @@ export default function FoodFormScreen() {
   const openCamera = useOpenCamera();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const addMealItem = useAddMealStore((state) => state.addItem);
   const updateMealItem = useAddMealStore((state) => state.updateItem);
@@ -403,6 +405,19 @@ export default function FoodFormScreen() {
               {imageUri ? (
                 <Image source={{ uri: imageUri }} style={styles.photoImage} contentFit="cover" />
               ) : null}
+              {imageUri ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('manualFoodEntry.openImageViewer')}
+                  onPress={(event) => {
+                    event.stopPropagation();
+                    setIsPreviewVisible(true);
+                  }}
+                  style={styles.previewButton}
+                >
+                  <Icon name="expand-outline" variant="inverse" size={18} />
+                </Pressable>
+              ) : null}
               <View
                 style={[
                   styles.photoOverlay,
@@ -590,6 +605,42 @@ export default function FoodFormScreen() {
           </View>
         </KeyboardStickyView>
       </View>
+
+      {imageUri ? (
+        <Modal
+          animationType="fade"
+          visible={isPreviewVisible}
+          onRequestClose={() => {
+            setIsPreviewVisible(false);
+          }}
+        >
+          <View style={styles.viewerContainer}>
+            <ImageViewer
+              imageUrls={[{ url: imageUri }]}
+              backgroundColor="black"
+              enableSwipeDown
+              onCancel={() => {
+                setIsPreviewVisible(false);
+              }}
+              onClick={() => {
+                setIsPreviewVisible(false);
+              }}
+              saveToLocalByLongPress={false}
+            />
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('manualFoodEntry.closeImageViewer')}
+              onPress={() => {
+                setIsPreviewVisible(false);
+              }}
+              style={styles.closePreviewButton}
+            >
+              <Icon name="close-outline" variant="inverse" size={22} />
+            </Pressable>
+          </View>
+        </Modal>
+      ) : null}
     </ScreenContainer>
   );
 }
@@ -620,6 +671,18 @@ const styles = StyleSheet.create((theme) => ({
   photoImage: {
     ...StyleSheet.absoluteFillObject,
   },
+  previewButton: {
+    position: 'absolute',
+    right: theme.metrics.spacing.p12,
+    bottom: theme.metrics.spacingV.p12,
+    zIndex: 2,
+    width: theme.metrics.spacing.p36,
+    height: theme.metrics.spacing.p36,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.overlay.modal,
+  },
   photoOverlay: {
     flex: 1,
     alignItems: 'center',
@@ -636,6 +699,21 @@ const styles = StyleSheet.create((theme) => ({
   cameraBadge: {
     width: theme.metrics.spacing.p48,
     height: theme.metrics.spacing.p48,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.overlay.modal,
+  },
+  viewerContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.overlay.modal,
+  },
+  closePreviewButton: {
+    position: 'absolute',
+    top: theme.metrics.spacingV.p48,
+    right: theme.metrics.spacing.p16,
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',

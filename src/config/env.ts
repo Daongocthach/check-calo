@@ -11,13 +11,21 @@ interface EnvConfig {
   isProd: boolean;
 }
 
+const expoExtra = (Constants.expoConfig?.extra ?? {}) as Record<string, string | undefined>;
+
 function getEnvVar(key: string, fallback = ''): string {
-  return process.env[key] ?? (Constants.expoConfig?.extra?.[key] as string | undefined) ?? fallback;
+  return expoExtra[key] ?? process.env[key] ?? fallback;
+}
+
+function getSupabaseAnonKey(): string {
+  return (
+    getEnvVar('EXPO_PUBLIC_SUPABASE_PUBLISHED_KEY') || getEnvVar('EXPO_PUBLIC_SUPABASE_ANON_KEY')
+  );
 }
 
 export const env: EnvConfig = {
   supabaseUrl: getEnvVar('EXPO_PUBLIC_SUPABASE_URL'),
-  supabaseAnonKey: getEnvVar('EXPO_PUBLIC_SUPABASE_PUBLISHED_KEY'),
+  supabaseAnonKey: getSupabaseAnonKey(),
   supabaseFoodImageBucket: getEnvVar('EXPO_PUBLIC_SUPABASE_FOOD_IMAGE_BUCKET', 'food-entry-images'),
   apiBaseUrl: getEnvVar('EXPO_PUBLIC_API_BASE_URL', 'https://api.example.com'),
   sentryDsn: getEnvVar('EXPO_PUBLIC_SENTRY_DSN'),
@@ -33,6 +41,8 @@ export const env: EnvConfig = {
 export function validateEnv(): string[] {
   const warnings: string[] = [];
   if (!env.supabaseUrl) warnings.push('EXPO_PUBLIC_SUPABASE_URL is not set');
-  if (!env.supabaseAnonKey) warnings.push('EXPO_PUBLIC_SUPABASE_PUBLISHED_KEY is not set');
+  if (!env.supabaseAnonKey) {
+    warnings.push('EXPO_PUBLIC_SUPABASE_PUBLISHED_KEY or EXPO_PUBLIC_SUPABASE_ANON_KEY is not set');
+  }
   return warnings;
 }

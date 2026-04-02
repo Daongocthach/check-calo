@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Card, Icon, ScreenContainer, SearchBar, Text } from '@/common/components';
 import { AddMealFoodCard } from '@/features/nutrition/components/AddMealFoodCard';
+import { lookupFoodByBarcode } from '@/features/nutrition/services/barcodeFoodLookup';
 import {
   enqueueFoodEntryImageSync,
   processPendingFoodEntryImageSyncQueue,
@@ -214,17 +215,41 @@ export default function AddCaloriesTab() {
       return;
     }
 
+    try {
+      const lookupResult = await lookupFoodByBarcode(barcodeValue);
+
+      router.push({
+        pathname: '/food-form',
+        params: {
+          context: 'addMeal',
+          notes: lookupResult?.notes || barcodeValue,
+          foodName: lookupResult?.foodName || '',
+          quantityLabel: lookupResult?.quantityLabel || '',
+          calories: lookupResult?.calories || '',
+          carbs: lookupResult?.carbs || '',
+          protein: lookupResult?.protein || '',
+          fat: lookupResult?.fat || '',
+          imageUri: lookupResult?.imageUri,
+        },
+      });
+
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('addScreen.aiAnalysisError');
+      toast.error(message);
+    }
+
     router.push({
       pathname: '/food-form',
       params: {
         ...INSTANT_ADD_MEAL_PARAMS,
         notes: barcodeValue,
-        foodName: t('addScreen.result.presets.barcode.title'),
-        quantityLabel: '100',
-        calories: '235',
-        carbs: '29',
-        protein: '12',
-        fat: '9',
+        foodName: '',
+        quantityLabel: '',
+        calories: '',
+        carbs: '',
+        protein: '',
+        fat: '',
       },
     });
   }, [openQrScanner, t]);

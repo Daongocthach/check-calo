@@ -1,4 +1,5 @@
 import { CameraView, type BarcodeScanningResult, useCameraPermissions } from 'expo-camera';
+import * as ImageManipulator from 'expo-image-manipulator';
 import {
   type ReactNode,
   createContext,
@@ -43,6 +44,8 @@ interface CameraProviderProps {
 const SCAN_ZOOM = 0.25;
 const MIN_ZOOM = 0;
 const MAX_ZOOM = 1;
+const MAX_CAPTURE_WIDTH = 1280;
+const CAPTURE_COMPRESSION = 0.08;
 
 function clampZoom(value: number) {
   return Math.min(Math.max(value, MIN_ZOOM), MAX_ZOOM);
@@ -56,6 +59,26 @@ function buildFileName(uri: string) {
   }
 
   return `capture-${Date.now()}.jpg`;
+}
+
+async function optimizeCapturedPhoto(photo: { uri: string; width: number; height: number }) {
+  const manipulator = ImageManipulator.ImageManipulator.manipulate(photo.uri);
+
+  if (photo.width > MAX_CAPTURE_WIDTH) {
+    manipulator.resize({ width: MAX_CAPTURE_WIDTH, height: null });
+  }
+
+  const renderedImage = await manipulator.renderAsync();
+  const optimizedImage = await renderedImage.saveAsync({
+    compress: CAPTURE_COMPRESSION,
+    format: ImageManipulator.SaveFormat.JPEG,
+  });
+
+  return {
+    uri: optimizedImage.uri,
+    width: optimizedImage.width,
+    height: optimizedImage.height,
+  };
 }
 
 export function CameraProvider({ children }: CameraProviderProps) {
@@ -166,15 +189,16 @@ export function CameraProvider({ children }: CameraProviderProps) {
 
     try {
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.15,
+        quality: 0.1,
         shutterSound: false,
       });
+      const optimizedPhoto = await optimizeCapturedPhoto(photo);
 
       closeWithResult({
-        uri: photo.uri,
-        width: photo.width,
-        height: photo.height,
-        fileName: buildFileName(photo.uri),
+        uri: optimizedPhoto.uri,
+        width: optimizedPhoto.width,
+        height: optimizedPhoto.height,
+        fileName: buildFileName(optimizedPhoto.uri),
         mimeType: 'image/jpeg',
       });
     } catch {
@@ -253,6 +277,7 @@ export function CameraProvider({ children }: CameraProviderProps) {
                         barcodeTypes: [
                           'ean13',
                           'ean8',
+                          'qr',
                           'upc_a',
                           'upc_e',
                           'code128',
