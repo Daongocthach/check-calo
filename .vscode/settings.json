@@ -23,5 +23,6 @@
     {
       "text": "Use the imperative, present tense: 'change' not 'changed' or 'changes'."
     }
-  ]
+  ],
+  "i18n-ally.keystyle": "nested"
 }
