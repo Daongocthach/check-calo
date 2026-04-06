@@ -5,6 +5,19 @@ export const styles = StyleSheet.create((theme, rt) => ({
     flex: 1,
     backgroundColor: theme.colors.background.app,
   },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
   padded: {
     paddingHorizontal: {
       xs: theme.metrics.spacing.p12,

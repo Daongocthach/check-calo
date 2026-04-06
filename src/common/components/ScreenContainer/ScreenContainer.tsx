@@ -1,5 +1,7 @@
-import { View, ScrollView } from 'react-native';
+import { Image } from 'expo-image';
+import { ScrollView, View } from 'react-native';
 import { useBottomPadding } from '@/hooks';
+import ScreenBackgroundImage from '../../../../assets/background.png';
 import { styles } from './ScreenContainer.styles';
 import type { ScreenContainerProps } from './ScreenContainer.types';
 
@@ -32,33 +34,40 @@ export function ScreenContainer({
 
   if (scrollable) {
     return (
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
+      <View style={styles.container}>
+        <Image source={ScreenBackgroundImage} style={styles.backgroundImage} contentFit="cover" />
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.content,
+            hasTop && styles.edgeTop,
+            bottomStyle,
+            padded && styles.padded,
+            style,
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {children}
+        </ScrollView>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Image source={ScreenBackgroundImage} style={styles.backgroundImage} contentFit="cover" />
+      <View
+        style={[
+          styles.content,
           hasTop && styles.edgeTop,
           bottomStyle,
           padded && styles.padded,
           style,
         ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
       >
         {children}
-      </ScrollView>
-    );
-  }
-
-  return (
-    <View
-      style={[
-        styles.container,
-        hasTop && styles.edgeTop,
-        bottomStyle,
-        padded && styles.padded,
-        style,
-      ]}
-    >
-      {children}
+      </View>
     </View>
   );
 }

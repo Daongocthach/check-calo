@@ -35,11 +35,11 @@ export function IconButton({
     colors: {
       text: { primary: string };
       brand: { primary: string };
-      icon: { primary: string };
+      icon: { primary: string; onBrand: string };
     };
   }) => {
     const colorMap = {
-      primary: theme.colors.text.primary,
+      primary: theme.colors.icon.onBrand,
       secondary: theme.colors.text.primary,
       outline: theme.colors.brand.primary,
       ghost: theme.colors.icon.primary,
