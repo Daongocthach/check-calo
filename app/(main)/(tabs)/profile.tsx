@@ -3,13 +3,12 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Card, Chip, Icon, ScreenContainer, Text } from '@/common/components';
 import {
   deleteCurrentUserCloudNutritionData,
   disconnectCurrentSyncAccount,
   logout,
-  resetAnonymousSession,
 } from '@/features/auth/services/authService';
 import { clearManagedFoodEntryImageCache } from '@/features/nutrition/services/foodEntryImageSync';
 import {
@@ -23,6 +22,7 @@ import { toast } from '@/utils/toast';
 
 export default function ProfileTab() {
   const { t } = useTranslation();
+  const { theme } = useUnistyles();
   const router = useRouter();
   const appAlert = useAppAlert();
   const authUser = useAuthStore((state) => state.user);
@@ -30,10 +30,14 @@ export default function ProfileTab() {
   const [isResettingData, setIsResettingData] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeletingSyncAccount, setIsDeletingSyncAccount] = useState(false);
-  const [isResettingAnonymousSession, setIsResettingAnonymousSession] = useState(false);
   const [profileSummary, setProfileSummary] = useState<{
     bmi: string;
+    maintenanceCalorieTarget: string;
     calorieTarget: string;
+    desiredWeight: string;
+    proteinTarget: string;
+    carbsTarget: string;
+    fatTarget: string;
     age: string;
     height: string;
     weight: string;
@@ -57,7 +61,12 @@ export default function ProfileTab() {
 
         setProfileSummary({
           bmi: profile.bmi.toFixed(1),
+          maintenanceCalorieTarget: String(profile.maintenanceCalorieTarget),
           calorieTarget: String(profile.dailyCalorieTarget),
+          desiredWeight: String(profile.desiredWeightKg),
+          proteinTarget: String(profile.proteinTargetGrams),
+          carbsTarget: String(profile.carbsTargetGrams),
+          fatTarget: String(profile.fatTargetGrams),
           age: String(profile.age),
           height: String(profile.heightCm),
           weight: String(profile.weightKg),
@@ -199,39 +208,6 @@ export default function ProfileTab() {
     ]);
   }, [appAlert, t]);
 
-  const handleResetAnonymousSession = useCallback(() => {
-    appAlert.alert(
-      t('profileScreen.debug.resetAnonymousSessionTitle'),
-      t('profileScreen.debug.resetAnonymousSessionMessage'),
-      [
-        {
-          text: t('common.cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('profileScreen.debug.resetAnonymousSessionAction'),
-          style: 'destructive',
-          onPress: () => {
-            setIsResettingAnonymousSession(true);
-
-            void resetAnonymousSession()
-              .then(() => {
-                toast.success(t('profileScreen.debug.resetAnonymousSessionSuccess'));
-              })
-              .catch((error: unknown) => {
-                const message =
-                  error instanceof Error ? error.message : t('profileScreen.actionError');
-                toast.error(message);
-              })
-              .finally(() => {
-                setIsResettingAnonymousSession(false);
-              });
-          },
-        },
-      ]
-    );
-  }, [appAlert, t]);
-
   return (
     <ScreenContainer scrollable padded edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
@@ -273,10 +249,10 @@ export default function ProfileTab() {
                 </View>
                 <View style={styles.goalMetric}>
                   <Text variant="caption" color="secondary">
-                    {t('profileScreen.metrics.gender')}
+                    {t('profileScreen.metrics.desiredWeight')}
                   </Text>
                   <Text variant="body" weight="semibold">
-                    {profileSummary.gender}
+                    {`${profileSummary.desiredWeight} ${t('common.units.kg')}`}
                   </Text>
                 </View>
                 <View style={styles.goalMetric}>
@@ -288,6 +264,28 @@ export default function ProfileTab() {
                   </Text>
                 </View>
               </View>
+              <View style={styles.goalChipRow}>
+                <Chip
+                  text={`${t('profileScreen.metrics.proteinTarget')} ${profileSummary.proteinTarget}${t('common.units.gram')}`}
+                  size="sm"
+                  variant="solid"
+                  icon={<Icon name="fish-outline" size={14} color={theme.colors.state.info} />}
+                />
+                <Chip
+                  text={`${t('profileScreen.metrics.carbsTarget')} ${profileSummary.carbsTarget}${t('common.units.gram')}`}
+                  size="sm"
+                  variant="solid"
+                  icon={
+                    <Icon name="nutrition-outline" size={14} color={theme.colors.state.warning} />
+                  }
+                />
+                <Chip
+                  text={`${t('profileScreen.metrics.fatTarget')} ${profileSummary.fatTarget}${t('common.units.gram')}`}
+                  size="sm"
+                  variant="solid"
+                  icon={<Icon name="water" size={14} color={theme.colors.state.success} />}
+                />
+              </View>
             </Card>
 
             <Card variant="filled" style={styles.detailCard}>
@@ -298,6 +296,14 @@ export default function ProfileTab() {
                 </Text>
                 <Text variant="body" weight="semibold">
                   {profileSummary.age}
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text variant="bodySmall" color="secondary">
+                  {t('profileScreen.metrics.gender')}
+                </Text>
+                <Text variant="body" weight="semibold">
+                  {profileSummary.gender}
                 </Text>
               </View>
               <View style={styles.detailRow}>
@@ -314,6 +320,14 @@ export default function ProfileTab() {
                 </Text>
                 <Text variant="body" weight="semibold">
                   {`${profileSummary.weight} ${t('common.units.kg')}`}
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text variant="bodySmall" color="secondary">
+                  {t('profileScreen.metrics.maintenanceCalories')}
+                </Text>
+                <Text variant="body" weight="semibold">
+                  {`${profileSummary.maintenanceCalorieTarget} ${t('common.units.kcal')}`}
                 </Text>
               </View>
               <Button
@@ -364,28 +378,11 @@ export default function ProfileTab() {
             </View>
           ) : null}
 
-          {__DEV__ ? (
-            <Button
-              title={t('profileScreen.debug.resetAnonymousSessionAction')}
-              variant="outline"
-              loading={isResettingAnonymousSession}
-              disabled={
-                isDeletingProfile || isResettingData || isDeletingSyncAccount || isSigningOut
-              }
-              onPress={handleResetAnonymousSession}
-            />
-          ) : null}
-
           <Button
             title={authUser?.isAnonymous ? t('auth.signIn') : t('profileScreen.logoutAction')}
             variant="primary"
             loading={isSigningOut}
-            disabled={
-              isDeletingProfile ||
-              isResettingData ||
-              isDeletingSyncAccount ||
-              isResettingAnonymousSession
-            }
+            disabled={isDeletingProfile || isResettingData || isDeletingSyncAccount}
             onPress={authUser?.isAnonymous ? () => router.push('/(auth)/login') : handleSignOut}
           />
         </Card>
@@ -428,6 +425,11 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.metrics.spacing.p12,
+  },
+  goalChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.metrics.spacing.p8,
   },
   goalMetric: {
     flex: 1,

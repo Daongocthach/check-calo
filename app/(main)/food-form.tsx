@@ -7,7 +7,15 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { StyleSheet } from 'react-native-unistyles';
-import { Button, Icon, Input, ScreenContainer, Text, TextArea } from '@/common/components';
+import {
+  Button,
+  DateTimeField,
+  Icon,
+  Input,
+  ScreenContainer,
+  Text,
+  TextArea,
+} from '@/common/components';
 import {
   deleteOrphanedFoodEntryAssets,
   persistFoodEntryAssetsLocally,
@@ -27,10 +35,12 @@ import {
 import { useAddMealStore } from '@/features/nutrition/stores/useAddMealStore';
 import { formatMealWeight, parseMealWeightInput } from '@/features/nutrition/utils/quantity';
 import { useOpenCamera } from '@/providers/camera';
+import { toast } from '@/utils/toast';
 
 interface FoodFormState {
   foodName: string;
   quantityLabel: string;
+  consumedAt: string;
   calories: string;
   protein: string;
   carbs: string;
@@ -41,12 +51,45 @@ interface FoodFormState {
 const DEFAULT_FORM: FoodFormState = {
   foodName: '',
   quantityLabel: '',
+  consumedAt: '',
   calories: '',
   protein: '',
   carbs: '',
   fat: '',
   notes: '',
 };
+
+function pad(value: number) {
+  return `${value}`.padStart(2, '0');
+}
+
+function formatDateTimeInputValue(value: string | Date) {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return formatDateTimeInputValue(new Date());
+  }
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function parseDateTimeInputValue(value: string) {
+  const [datePart = '', timePart = ''] = value.trim().split(' ');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute] = timePart.split(':').map(Number);
+
+  if (
+    Number.isNaN(year) ||
+    Number.isNaN(month) ||
+    Number.isNaN(day) ||
+    Number.isNaN(hour) ||
+    Number.isNaN(minute)
+  ) {
+    return new Date();
+  }
+
+  return new Date(year, month - 1, day, hour, minute);
+}
 
 function toRoundedString(value: number | null | undefined) {
   if (value === null || value === undefined) {
@@ -68,6 +111,8 @@ export default function FoodFormScreen() {
     favoriteId?: string;
     draftItemId?: string;
     context?: string;
+    submitMode?: string;
+    consumedAt?: string;
     foodName?: string;
     quantityLabel?: string;
     calories?: string;
@@ -102,6 +147,7 @@ export default function FoodFormScreen() {
   );
   const isEditing = isEditingEntry || isEditingFavorite;
   const isAddMealFlow = params.context === 'addMeal' && !isEditing;
+  const isInstantAddMealFlow = isAddMealFlow && params.submitMode === 'instant';
 
   const loadScreenData = useCallback(async () => {
     setIsLoading(true);
@@ -116,6 +162,7 @@ export default function FoodFormScreen() {
             entry.quantityGrams !== null && entry.quantityGrams !== undefined
               ? toRoundedString(entry.quantityGrams)
               : entry.quantityLabel,
+          consumedAt: formatDateTimeInputValue(entry.consumedAt),
           calories: toRoundedString(entry.totalCalories),
           protein: toRoundedString(entry.proteinGrams),
           carbs: toRoundedString(entry.carbsGrams),
@@ -134,6 +181,7 @@ export default function FoodFormScreen() {
             favorite.quantityGrams !== null && favorite.quantityGrams !== undefined
               ? toRoundedString(favorite.quantityGrams)
               : favorite.quantityLabel,
+          consumedAt: formatDateTimeInputValue(new Date()),
           calories: toRoundedString(favorite.totalCalories),
           protein: toRoundedString(favorite.proteinGrams),
           carbs: toRoundedString(favorite.carbsGrams),
@@ -146,6 +194,10 @@ export default function FoodFormScreen() {
       reset({
         foodName: typeof params.foodName === 'string' ? params.foodName : '',
         quantityLabel: typeof params.quantityLabel === 'string' ? params.quantityLabel : '',
+        consumedAt:
+          typeof params.consumedAt === 'string' && params.consumedAt.length > 0
+            ? formatDateTimeInputValue(params.consumedAt)
+            : formatDateTimeInputValue(new Date()),
         calories: typeof params.calories === 'string' ? params.calories : '',
         protein: typeof params.protein === 'string' ? params.protein : '',
         carbs: typeof params.carbs === 'string' ? params.carbs : '',
@@ -161,6 +213,7 @@ export default function FoodFormScreen() {
     isEditingFavorite,
     params.calories,
     params.carbs,
+    params.consumedAt,
     params.entryId,
     params.fat,
     params.favoriteId,
@@ -212,6 +265,7 @@ export default function FoodFormScreen() {
         mealName: form.foodName.trim(),
         quantityLabel: formatMealWeight(quantityGrams, null, t('common.units.gram')),
         quantityGrams,
+        consumedAt: parseDateTimeInputValue(form.consumedAt).toISOString(),
         totalCalories: parseNumber(form.calories),
         proteinGrams: parseNumber(form.protein),
         carbsGrams: parseNumber(form.carbs),
@@ -237,6 +291,23 @@ export default function FoodFormScreen() {
         : null;
 
       if (isAddMealFlow) {
+        if (isInstantAddMealFlow) {
+          const entry = await createFoodEntry(payload);
+
+          if (!entry) {
+            return;
+          }
+
+          if (entry.imageUri?.startsWith('file://')) {
+            await enqueueFoodEntryImageSync(entry.id);
+            void processPendingFoodEntryImageSyncQueue();
+          }
+
+          toast.success(t('addScreen.saveSuccess'));
+          router.replace('/');
+          return;
+        }
+
         const nextDraftItem = {
           sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
           title: payload.mealName,
@@ -249,6 +320,7 @@ export default function FoodFormScreen() {
           notes: payload.notes,
           imageUri: payload.imageUri,
           thumbnailUri: payload.thumbnailUri,
+          consumedAt: payload.consumedAt,
         };
 
         if (typeof params.draftItemId === 'string' && params.draftItemId.length > 0) {
@@ -473,6 +545,23 @@ export default function FoodFormScreen() {
                   />
                 )}
               />
+
+              {!isEditingFavorite ? (
+                <Controller
+                  control={control}
+                  name="consumedAt"
+                  render={({ field: { onChange, value } }) => (
+                    <DateTimeField
+                      label={t('manualFoodEntry.fields.consumedAt')}
+                      title={t('manualFoodEntry.fields.consumedAt')}
+                      mode="datetime"
+                      value={value}
+                      onChange={onChange}
+                      placeholder={t('manualFoodEntry.placeholders.consumedAt')}
+                    />
+                  )}
+                />
+              ) : null}
             </View>
           </View>
         </KeyboardAwareScrollView>

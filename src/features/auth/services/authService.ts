@@ -151,6 +151,45 @@ export async function linkAnonymousAccountWithProvider(provider: SupportedIdenti
   return { linked: true };
 }
 
+export async function signInWithProvider(provider: SupportedIdentityProvider) {
+  const redirectTo = getAuthRedirectUrl();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo,
+      skipBrowserRedirect: true,
+    },
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.url) {
+    throw new Error('Unable to start sign-in flow.');
+  }
+
+  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+
+  if (result.type !== 'success' || !result.url) {
+    return { signedIn: false };
+  }
+
+  const authCode = extractAuthCode(result.url);
+
+  if (!authCode) {
+    return { signedIn: false };
+  }
+
+  const exchangeResult = await supabase.auth.exchangeCodeForSession(authCode);
+
+  if (exchangeResult.error) {
+    throw exchangeResult.error;
+  }
+
+  return { signedIn: true };
+}
+
 async function getCurrentUserId() {
   const {
     data: { user },

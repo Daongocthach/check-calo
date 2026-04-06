@@ -15,6 +15,7 @@ import {
   Text,
 } from '@/common/components';
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
+import { MacroGoalCard } from '@/features/nutrition/components/MacroGoalCard';
 import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import { getFoodEntryImageSyncStateMap } from '@/features/nutrition/services/foodEntrySyncQueue';
 import {
@@ -23,7 +24,7 @@ import {
   getUserProfile,
   listFoodEntriesByDate,
 } from '@/features/nutrition/services/nutritionDatabase';
-import type { DailyNutritionSummary, FoodEntry } from '@/features/nutrition/types';
+import type { DailyNutritionSummary, FoodEntry, UserProfile } from '@/features/nutrition/types';
 import { useAppAlert } from '@/providers/app-alert';
 import { vs } from '@/theme/metrics';
 
@@ -96,9 +97,10 @@ export default function HomeTab() {
   );
   const [entries, setEntries] = useState<FoodEntryWithSyncDebug[]>([]);
   const [hasProfile, setHasProfile] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   const loadNutritionData = useCallback(async (date: Date) => {
-    const [profile, nextSummary, nextEntries] = await Promise.all([
+    const [nextProfile, nextSummary, nextEntries] = await Promise.all([
       getUserProfile(),
       getDailyNutritionSummary(date),
       listFoodEntriesByDate(date),
@@ -109,7 +111,8 @@ export default function HomeTab() {
       devSyncBadgeLabel: toDevSyncBadgeLabel(entry.imageUri, syncStateMap[entry.id]),
     }));
 
-    setHasProfile(profile !== null);
+    setHasProfile(nextProfile !== null);
+    setProfile(nextProfile);
     setSummary(nextSummary);
     setEntries(entriesWithSyncDebug);
   }, []);
@@ -231,7 +234,7 @@ export default function HomeTab() {
                   <View style={styles.heroBadge}>
                     <Icon name="flash" size={14} variant="secondary" />
                     <Text variant="caption" weight="semibold">
-                      {t('homeScreen.dailyIntake')}
+                      {`${t('profileScreen.metrics.maintenanceCalories')} ${profile?.maintenanceCalorieTarget ?? 0} ${t('common.units.kcal')}`}
                     </Text>
                   </View>
                   <View style={styles.dayPill}>
@@ -246,17 +249,19 @@ export default function HomeTab() {
                     <Text variant="caption" color="secondary">
                       {t('homeScreen.target')}
                     </Text>
-                    <Text variant="h1">{summary.calorieTarget}</Text>
+                    <Text variant="h2">{summary.calorieTarget}</Text>
                     <Text variant="bodySmall" color="secondary">
                       {t('homeScreen.kcalToday')}
                     </Text>
                   </View>
-                  <View style={styles.heroStat}>
+                  <View style={[styles.heroStat, styles.heroStatEnd]}>
                     <Text variant="caption" color="secondary">
                       {t('homeScreen.remaining')}
                     </Text>
-                    <Text variant="h2">{summary.remainingCalories}</Text>
-                    <Text variant="bodySmall" color="accent">
+                    <Text variant="h2" align="right">
+                      {summary.remainingCalories}
+                    </Text>
+                    <Text variant="bodySmall" color="accent" align="right">
                       {summary.remainingCalories >= 0
                         ? t('homeScreen.onTrack')
                         : t('homeScreen.exceeded')}
@@ -274,50 +279,44 @@ export default function HomeTab() {
                 </View>
                 <ProgressBar value={summary.progressPercent} size="lg" colorScheme="success" />
 
-                <View style={styles.quickStatsRow}>
-                  <View style={[styles.macroTile, styles.macroTileProtein]}>
-                    <View style={styles.macroIconBadge}>
-                      <Icon name="fish-outline" size={12} color={theme.colors.state.info} />
-                    </View>
-                    <Text variant="bodySmall" color="secondary" align="center">
-                      {t('statsScreen.macros.protein')}
-                    </Text>
-                    <View style={styles.macroValueRow}>
-                      <Text variant="h3">{Math.round(summary.proteinGrams)}</Text>
-                      <Text variant="caption" color="secondary">
-                        {t('addScreen.result.metrics.gramsShort')}
-                      </Text>
-                    </View>
-                  </View>
+                <View style={styles.macroGoalSection}>
+                  <Text
+                    variant="bodySmall"
+                    weight="semibold"
+                    align="center"
+                    style={styles.macroGoalTitle}
+                  >
+                    {t('statsScreen.macros.title')}
+                  </Text>
 
-                  <View style={[styles.macroTile, styles.macroTileCarbs]}>
-                    <View style={styles.macroIconBadge}>
-                      <Icon name="nutrition-outline" size={12} color={theme.colors.state.warning} />
-                    </View>
-                    <Text variant="bodySmall" color="secondary" align="center">
-                      {t('statsScreen.macros.carbs')}
-                    </Text>
-                    <View style={styles.macroValueRow}>
-                      <Text variant="h3">{Math.round(summary.carbsGrams)}</Text>
-                      <Text variant="caption" color="secondary">
-                        {t('addScreen.result.metrics.gramsShort')}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={[styles.macroTile, styles.macroTileFat]}>
-                    <View style={styles.macroIconBadge}>
-                      <Icon name="water" size={12} color={theme.colors.state.success} />
-                    </View>
-                    <Text variant="bodySmall" color="secondary" align="center">
-                      {t('statsScreen.macros.fat')}
-                    </Text>
-                    <View style={styles.macroValueRow}>
-                      <Text variant="h3">{Math.round(summary.fatGrams)}</Text>
-                      <Text variant="caption" color="secondary">
-                        {t('addScreen.result.metrics.gramsShort')}
-                      </Text>
-                    </View>
+                  <View style={styles.quickStatsRow}>
+                    <MacroGoalCard
+                      current={summary.proteinGrams}
+                      target={profile?.proteinTargetGrams ?? 0}
+                      label={t('statsScreen.macros.protein')}
+                      iconName="fish"
+                      iconColor={theme.colors.state.info}
+                      ringColor={theme.colors.state.info}
+                      ringTrackColor={theme.colors.state.infoBg}
+                    />
+                    <MacroGoalCard
+                      current={summary.carbsGrams}
+                      target={profile?.carbsTargetGrams ?? 0}
+                      label={t('statsScreen.macros.carbs')}
+                      iconName="nutrition"
+                      iconColor={theme.colors.state.warning}
+                      ringColor={theme.colors.state.warning}
+                      ringTrackColor={theme.colors.state.warningBg}
+                    />
+                    <MacroGoalCard
+                      current={summary.fatGrams}
+                      target={profile?.fatTargetGrams ?? 0}
+                      label={t('statsScreen.macros.fat')}
+                      iconName="water"
+                      iconColor={theme.colors.state.success}
+                      ringColor={theme.colors.state.success}
+                      ringTrackColor={theme.colors.state.successBg}
+                    />
                   </View>
                 </View>
               </LinearGradient>
@@ -397,54 +396,28 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     gap: theme.metrics.spacingV.p4,
   },
+  heroStatEnd: {
+    alignItems: 'flex-end',
+  },
   progressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  macroGoalSection: {
+    gap: theme.metrics.spacingV.p16,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p16,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+  },
+  macroGoalTitle: {
+    letterSpacing: 0.4,
+  },
   quickStatsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
-  },
-  macroTile: {
-    flex: 1,
-    minHeight: theme.metrics.spacing.p84,
-    borderRadius: theme.metrics.borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: theme.metrics.spacingV.p4,
-    backgroundColor: theme.colors.background.surface,
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p8,
-    position: 'relative',
-  },
-  macroTileProtein: {
-    backgroundColor: theme.colors.background.elevated,
-  },
-  macroTileCarbs: {
-    backgroundColor: theme.colors.background.elevated,
-  },
-  macroTileFat: {
-    backgroundColor: theme.colors.background.elevated,
-  },
-  macroValueRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    gap: theme.metrics.spacing.p4,
-    marginTop: theme.metrics.spacingV.p4,
-  },
-  macroIconBadge: {
-    position: 'absolute',
-    top: theme.metrics.spacing.p8,
-    right: theme.metrics.spacing.p8,
-    width: theme.metrics.spacing.p20,
-    height: theme.metrics.spacing.p20,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.modal,
   },
   emptyCard: {
     gap: theme.metrics.spacingV.p8,

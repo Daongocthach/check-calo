@@ -15,6 +15,9 @@ export const styles = StyleSheet.create((theme, rt) => ({
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   content: {
     flex: 1,
   },

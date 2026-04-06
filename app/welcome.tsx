@@ -18,6 +18,7 @@ interface ProfileFormState {
   age: string;
   height: string;
   weight: string;
+  desiredWeight: string;
   activityLevel: ActivityLevel;
 }
 
@@ -26,8 +27,18 @@ const DEFAULT_FORM: ProfileFormState = {
   age: '18',
   height: '170',
   weight: '65',
+  desiredWeight: '65',
   activityLevel: 'moderate',
 };
+
+interface ProfileSummaryState {
+  bmi: number;
+  maintenanceCalories: number;
+  targetCalories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+}
 
 function isPositiveNumber(value: string) {
   const parsedValue = Number(value);
@@ -41,8 +52,7 @@ export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [currentBmi, setCurrentBmi] = useState<number | null>(null);
-  const [currentTarget, setCurrentTarget] = useState<number | null>(null);
+  const [profileSummary, setProfileSummary] = useState<ProfileSummaryState | null>(null);
   const {
     control,
     handleSubmit,
@@ -62,20 +72,26 @@ export default function WelcomeScreen() {
     const profile = await getUserProfile();
 
     if (!profile) {
-      setCurrentBmi(null);
-      setCurrentTarget(null);
+      setProfileSummary(null);
       reset(DEFAULT_FORM);
       setIsLoading(false);
       return;
     }
 
-    setCurrentBmi(profile.bmi);
-    setCurrentTarget(profile.dailyCalorieTarget);
+    setProfileSummary({
+      bmi: profile.bmi,
+      maintenanceCalories: profile.maintenanceCalorieTarget,
+      targetCalories: profile.dailyCalorieTarget,
+      proteinGrams: profile.proteinTargetGrams,
+      carbsGrams: profile.carbsTargetGrams,
+      fatGrams: profile.fatTargetGrams,
+    });
     reset({
       gender: profile.gender,
       age: String(profile.age),
       height: String(profile.heightCm),
       weight: String(profile.weightKg),
+      desiredWeight: String(profile.desiredWeightKg),
       activityLevel: profile.activityLevel,
     });
     setIsLoading(false);
@@ -95,11 +111,22 @@ export default function WelcomeScreen() {
       age: Number(form.age),
       heightCm: Number(form.height),
       weightKg: Number(form.weight),
+      desiredWeightKg: Number(form.desiredWeight),
       activityLevel: form.activityLevel,
     });
 
-    setCurrentBmi(profile?.bmi ?? null);
-    setCurrentTarget(profile?.dailyCalorieTarget ?? null);
+    setProfileSummary(
+      profile
+        ? {
+            bmi: profile.bmi,
+            maintenanceCalories: profile.maintenanceCalorieTarget,
+            targetCalories: profile.dailyCalorieTarget,
+            proteinGrams: profile.proteinTargetGrams,
+            carbsGrams: profile.carbsTargetGrams,
+            fatGrams: profile.fatTargetGrams,
+          }
+        : null
+    );
     setIsSaving(false);
     router.replace('/(main)/(tabs)');
   };
@@ -225,6 +252,27 @@ export default function WelcomeScreen() {
                 </View>
               </View>
 
+              <Controller
+                control={control}
+                name="desiredWeight"
+                rules={{
+                  required: t('validation.required'),
+                  validate: (value) =>
+                    isPositiveNumber(value) || t('welcomeScreen.validation.positive'),
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input
+                    label={t('welcomeScreen.fields.desiredWeight')}
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    keyboardType="number-pad"
+                    error={errors.desiredWeight?.message}
+                    placeholder={t('welcomeScreen.placeholders.desiredWeight')}
+                  />
+                )}
+              />
+
               <View style={styles.optionGroup}>
                 <Text variant="label">{t('welcomeScreen.fields.activityLevel')}</Text>
                 <View style={styles.optionWrap}>
@@ -255,13 +303,13 @@ export default function WelcomeScreen() {
               </View>
             </Card>
 
-            {currentBmi !== null && currentTarget !== null ? (
+            {profileSummary ? (
               <Card variant="filled" style={styles.summaryCard}>
                 <Text variant="h3">{t('welcomeScreen.summaryTitle')}</Text>
                 <Text variant="bodySmall" color="secondary">
                   {t('welcomeScreen.summaryBody', {
-                    bmi: currentBmi.toFixed(1),
-                    calorieTarget: currentTarget,
+                    bmi: profileSummary.bmi.toFixed(1),
+                    calorieTarget: profileSummary.targetCalories,
                   })}
                 </Text>
               </Card>

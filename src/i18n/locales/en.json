@@ -341,6 +341,7 @@
       "foodName": "Food name",
       "quantity": "Meal weight (g)",
       "quantityLabel": "Meal weight (g)",
+      "consumedAt": "Meal date and time",
       "calories": "Calories",
       "protein": "Protein",
       "carbs": "Carb",
@@ -350,6 +351,7 @@
     "placeholders": {
       "foodName": "Example: Chicken salad",
       "quantity": "Example: 250",
+      "consumedAt": "Choose meal date and time",
       "calories": "Example: 420",
       "macro": "Example: 24",
       "notes": "Example: extra greens, less sauce"
@@ -396,9 +398,9 @@
     "subtitle": "Set up your BMI details once so the app can personalize daily calorie goals.",
     "profileStatus": "BMI profile",
     "formTitle": "Tell us about you",
-    "formSubtitle": "We use age, gender, height, weight, and activity to estimate your daily calorie goal.",
+    "formSubtitle": "We use age, gender, height, current weight, desired weight, and activity to estimate daily calories and macro targets.",
     "summaryTitle": "Your current profile",
-    "summaryBody": "BMI {{bmi}} and a target of {{calorieTarget}} kcal per day.",
+    "summaryBody": "BMI {{bmi}}, maintenance at {{maintenanceCalories}} kcal/day, and target at {{calorieTarget}} kcal/day.",
     "saveAction": "Save and start",
     "continueAction": "Continue to dashboard",
     "status": {
@@ -410,6 +412,7 @@
       "age": "Age",
       "height": "Height (cm)",
       "weight": "Weight (kg)",
+      "desiredWeight": "Desired weight (kg)",
       "activityLevel": "Activity level"
     },
     "genderOptions": {
@@ -427,7 +430,8 @@
     "placeholders": {
       "age": "Enter age",
       "height": "Enter height",
-      "weight": "Enter weight"
+      "weight": "Enter weight",
+      "desiredWeight": "Enter desired weight"
     },
     "validation": {
       "number": "Please enter a valid number",
@@ -436,7 +440,7 @@
   },
   "profileScreen": {
     "title": "Nutrition profile",
-    "subtitle": "Quick view of BMI, calorie goal, and your baseline body stats.",
+    "subtitle": "Quick view of BMI, maintenance calories, target calories, and your macro goals.",
     "editAction": "Edit profile",
     "deleteAction": "Delete nutrition profile",
     "resetAction": "Reset all data",
@@ -488,7 +492,13 @@
     "metrics": {
       "bmi": "BMI",
       "gender": "Gender",
-      "activity": "Activity"
+      "activity": "Activity",
+      "maintenanceCalories": "Required",
+      "desiredWeight": "Weight",
+      "targetCalories": "Calories",
+      "proteinTarget": "Protein",
+      "carbsTarget": "Carb",
+      "fatTarget": "Fat"
     },
     "theme": {
       "light": "Light",
@@ -499,15 +509,19 @@
     "email": "Email",
     "password": "Password",
     "confirmPassword": "Confirm password",
+    "welcomeBack": "Welcome back!",
+    "welcomeBackSubtitle": "Sign in to continue tracking your nutrition and keep your data in sync.",
     "emailPlaceholder": "name@example.com",
     "passwordPlaceholder": "At least 8 characters",
     "confirmPasswordPlaceholder": "Repeat your password",
     "signIn": "Log in",
+    "signInWithGoogle": "Sign in with Google",
     "signUp": "Create account",
     "upgradeAccount": "Protect this account",
     "goToLogin": "I already have an account",
     "goToRegister": "Create a sync account",
     "loginTitle": "Log in to your sync account",
+    "loginCardSubtitle": "Sign in with your credentials.",
     "loginSubtitle": "Use an existing account to load your synced nutrition data on this device.",
     "loginSubtitleAnonymous": "Log in only if you already have an account. To protect this anonymous session, use Create account instead.",
     "registerTitle": "Create a sync account",

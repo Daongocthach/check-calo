@@ -4,7 +4,7 @@ export const styles = StyleSheet.create((theme) => ({
   container: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    backgroundColor: theme.colors.background.input,
+    backgroundColor: theme.colors.background.surface,
     borderRadius: theme.metrics.borderRadius.lg,
     borderWidth: 1,
     borderColor: theme.colors.border.default,

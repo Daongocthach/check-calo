@@ -39,7 +39,7 @@ export function ScreenContainer({
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[
-            styles.content,
+            styles.scrollContent,
             hasTop && styles.edgeTop,
             bottomStyle,
             padded && styles.padded,

@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 4;
+const DATABASE_VERSION = 5;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -236,6 +236,48 @@ async function runVersion4Migration(database: SQLite.SQLiteDatabase) {
   `);
 }
 
+async function runVersion5Migration(database: SQLite.SQLiteDatabase) {
+  await database.execAsync(`
+    ALTER TABLE user_profile ADD COLUMN desired_weight_kg REAL NOT NULL DEFAULT 0;
+    ALTER TABLE user_profile ADD COLUMN maintenance_calorie_target INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE user_profile ADD COLUMN protein_target_grams REAL NOT NULL DEFAULT 0;
+    ALTER TABLE user_profile ADD COLUMN carbs_target_grams REAL NOT NULL DEFAULT 0;
+    ALTER TABLE user_profile ADD COLUMN fat_target_grams REAL NOT NULL DEFAULT 0;
+
+    UPDATE user_profile
+    SET
+      desired_weight_kg = CASE
+        WHEN desired_weight_kg <= 0 THEN weight_kg
+        ELSE desired_weight_kg
+      END,
+      maintenance_calorie_target = CASE
+        WHEN maintenance_calorie_target <= 0 THEN daily_calorie_target
+        ELSE maintenance_calorie_target
+      END,
+      protein_target_grams = CASE
+        WHEN protein_target_grams <= 0 THEN ROUND(MAX(weight_kg * 1.8, 60))
+        ELSE protein_target_grams
+      END,
+      fat_target_grams = CASE
+        WHEN fat_target_grams <= 0 THEN ROUND(MAX(weight_kg * 0.8, (daily_calorie_target * 0.25) / 9))
+        ELSE fat_target_grams
+      END,
+      carbs_target_grams = CASE
+        WHEN carbs_target_grams <= 0 THEN MAX(
+          0,
+          ROUND(
+            (
+              daily_calorie_target
+              - ROUND(MAX(weight_kg * 1.8, 60)) * 4
+              - ROUND(MAX(weight_kg * 0.8, (daily_calorie_target * 0.25) / 9)) * 9
+            ) / 4
+          )
+        )
+        ELSE carbs_target_grams
+      END;
+  `);
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -255,6 +297,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 4) {
     await runVersion4Migration(database);
+  }
+
+  if (currentVersion < 5) {
+    await runVersion5Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {

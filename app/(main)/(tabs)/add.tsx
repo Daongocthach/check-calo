@@ -43,6 +43,11 @@ function toDraftMealFavoriteItem(favorite: FavoriteFood) {
   };
 }
 
+const INSTANT_ADD_MEAL_PARAMS = {
+  context: 'addMeal',
+  submitMode: 'instant',
+} as const;
+
 export default function AddCaloriesTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
@@ -144,6 +149,7 @@ export default function AddCaloriesTab() {
           fat: String(item.fatGrams),
           notes: item.notes ?? '',
           imageUri: item.imageUri ?? undefined,
+          consumedAt: item.consumedAt ?? undefined,
         },
       });
     },
@@ -155,7 +161,7 @@ export default function AddCaloriesTab() {
       pathname: '/food-form',
       params: {
         imageUri,
-        context: 'addMeal',
+        ...INSTANT_ADD_MEAL_PARAMS,
         ...params,
       },
     });
@@ -211,7 +217,7 @@ export default function AddCaloriesTab() {
     router.push({
       pathname: '/food-form',
       params: {
-        context: 'addMeal',
+        ...INSTANT_ADD_MEAL_PARAMS,
         notes: barcodeValue,
         foodName: t('addScreen.result.presets.barcode.title'),
         quantityLabel: '100',
@@ -227,7 +233,7 @@ export default function AddCaloriesTab() {
     router.push({
       pathname: '/food-form',
       params: {
-        context: 'addMeal',
+        ...INSTANT_ADD_MEAL_PARAMS,
       },
     });
   }, []);
@@ -280,7 +286,9 @@ export default function AddCaloriesTab() {
             notes: item.notes,
             imageUri: item.imageUri,
             thumbnailUri: item.thumbnailUri,
-            consumedAt: new Date(new Date(consumedAt).getTime() - index * 60000).toISOString(),
+            consumedAt:
+              item.consumedAt ??
+              new Date(new Date(consumedAt).getTime() - index * 60000).toISOString(),
           });
         })
       );
@@ -452,22 +460,16 @@ export default function AddCaloriesTab() {
                 );
               })
             )}
+            <Button
+              title={t('addScreen.favoriteFoodsAction')}
+              variant="outline"
+              size="sm"
+              leftIcon={<Icon name="library-outline" variant="primary" size={16} />}
+              onPress={() => bottomSheetRef.current?.present()}
+            />
           </View>
 
           <View style={styles.quickActionsBlock}>
-            <View style={styles.sectionHeader}>
-              <Text variant="body" weight="semibold">
-                {t('addScreen.addFoodTitle')}
-              </Text>
-              <Button
-                title={t('addScreen.favoriteFoodsAction')}
-                variant="outline"
-                size="sm"
-                leftIcon={<Icon name="library-outline" variant="primary" size={16} />}
-                onPress={() => bottomSheetRef.current?.present()}
-              />
-            </View>
-
             <View style={styles.actionsList}>
               <Pressable
                 accessibilityRole="button"

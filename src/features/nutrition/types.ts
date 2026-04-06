@@ -25,6 +25,7 @@ export interface UserProfileInput {
   age: number;
   heightCm: number;
   weightKg: number;
+  desiredWeightKg: number;
   activityLevel: ActivityLevel;
 }
 
@@ -32,7 +33,11 @@ export interface UserProfile extends UserProfileInput {
   id: number;
   activityFactor: number;
   bmi: number;
+  maintenanceCalorieTarget: number;
   dailyCalorieTarget: number;
+  proteinTargetGrams: number;
+  carbsTargetGrams: number;
+  fatTargetGrams: number;
   createdAt: string;
   updatedAt: string;
 }
