@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
@@ -15,6 +15,12 @@ import {
 } from '@/features/nutrition/constants';
 import { getUserProfile, upsertUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import type { ActivityLevel, Gender } from '@/features/nutrition/types';
+import {
+  calculateBmi,
+  calculateDailyCalorieTarget,
+  calculateMacroTargets,
+  calculateMaintenanceCalorieTarget,
+} from '@/features/nutrition/utils/calorie';
 import { vs } from '@/theme/metrics';
 
 interface ProfileFormState {
@@ -64,6 +70,55 @@ function isPositiveNumber(value: string) {
   return !Number.isNaN(parsedValue) && parsedValue > 0;
 }
 
+function buildProfileSummary(form: ProfileFormState): ProfileSummaryState | null {
+  if (
+    !isPositiveNumber(form.age) ||
+    !isPositiveNumber(form.height) ||
+    !isPositiveNumber(form.weight)
+  ) {
+    return null;
+  }
+
+  const profileInput = {
+    gender: form.gender,
+    age: Number(form.age),
+    heightCm: Number(form.height),
+    weightKg: Number(form.weight),
+    monthlyWeightLossKg: form.monthlyWeightLossKg,
+    activityLevel: form.activityLevel,
+  };
+  const bmi = Number(calculateBmi(profileInput.heightCm, profileInput.weightKg).toFixed(1));
+  const maintenanceCalories = calculateMaintenanceCalorieTarget(profileInput);
+  const targetCalories = calculateDailyCalorieTarget(profileInput);
+  const { proteinTargetGrams, carbsTargetGrams, fatTargetGrams } =
+    calculateMacroTargets(profileInput);
+
+  return {
+    bmi,
+    maintenanceCalories,
+    targetCalories,
+    proteinGrams: proteinTargetGrams,
+    carbsGrams: carbsTargetGrams,
+    fatGrams: fatTargetGrams,
+  };
+}
+
+function useDebouncedValue<T>(value: T, delayMs: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delayMs);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [delayMs, value]);
+
+  return debouncedValue;
+}
+
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -71,7 +126,6 @@ export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [profileSummary, setProfileSummary] = useState<ProfileSummaryState | null>(null);
   const {
     control,
     handleSubmit,
@@ -86,26 +140,35 @@ export default function WelcomeScreen() {
   const selectedGender = watch('gender');
   const selectedActivityLevel = watch('activityLevel');
   const selectedMonthlyWeightLossKg = watch('monthlyWeightLossKg');
+  const ageValue = watch('age');
+  const heightValue = watch('height');
+  const weightValue = watch('weight');
+  const debouncedProfileForm = useDebouncedValue(
+    {
+      gender: selectedGender,
+      age: ageValue,
+      height: heightValue,
+      weight: weightValue,
+      monthlyWeightLossKg: selectedMonthlyWeightLossKg,
+      activityLevel: selectedActivityLevel,
+    },
+    250
+  );
+  const profileSummary = useMemo(
+    () => buildProfileSummary(debouncedProfileForm),
+    [debouncedProfileForm]
+  );
 
   const loadProfile = useCallback(async () => {
     setIsLoading(true);
     const profile = await getUserProfile();
 
     if (!profile) {
-      setProfileSummary(null);
       reset(DEFAULT_FORM);
       setIsLoading(false);
       return;
     }
 
-    setProfileSummary({
-      bmi: profile.bmi,
-      maintenanceCalories: profile.maintenanceCalorieTarget,
-      targetCalories: profile.dailyCalorieTarget,
-      proteinGrams: profile.proteinTargetGrams,
-      carbsGrams: profile.carbsTargetGrams,
-      fatGrams: profile.fatTargetGrams,
-    });
     reset({
       gender: profile.gender,
       age: String(profile.age),
@@ -126,7 +189,7 @@ export default function WelcomeScreen() {
   const onSubmit = async (form: ProfileFormState) => {
     setIsSaving(true);
 
-    const profile = await upsertUserProfile({
+    await upsertUserProfile({
       gender: form.gender,
       age: Number(form.age),
       heightCm: Number(form.height),
@@ -134,19 +197,6 @@ export default function WelcomeScreen() {
       monthlyWeightLossKg: form.monthlyWeightLossKg,
       activityLevel: form.activityLevel,
     });
-
-    setProfileSummary(
-      profile
-        ? {
-            bmi: profile.bmi,
-            maintenanceCalories: profile.maintenanceCalorieTarget,
-            targetCalories: profile.dailyCalorieTarget,
-            proteinGrams: profile.proteinTargetGrams,
-            carbsGrams: profile.carbsTargetGrams,
-            fatGrams: profile.fatTargetGrams,
-          }
-        : null
-    );
     setIsSaving(false);
     router.replace('/(main)/(tabs)');
   };
@@ -335,13 +385,32 @@ export default function WelcomeScreen() {
             {profileSummary ? (
               <Card variant="filled" style={styles.summaryCard}>
                 <Text variant="h3">{t('welcomeScreen.summaryTitle')}</Text>
-                <Text variant="bodySmall" color="secondary">
-                  {t('welcomeScreen.summaryBody', {
-                    bmi: profileSummary.bmi.toFixed(1),
-                    maintenanceCalories: profileSummary.maintenanceCalories,
-                    calorieTarget: profileSummary.targetCalories,
-                  })}
-                </Text>
+                <View style={styles.summaryList}>
+                  <View style={styles.summaryListItem}>
+                    <Text variant="bodySmall" color="secondary">
+                      -
+                    </Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {`BMI: ${profileSummary.bmi.toFixed(1)}`}
+                    </Text>
+                  </View>
+                  <View style={styles.summaryListItem}>
+                    <Text variant="bodySmall" color="secondary">
+                      -
+                    </Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {`${t('profileScreen.metrics.maintenanceCalories')}: ${profileSummary.maintenanceCalories} ${t('common.units.kcal')} / ${t('common.units.day')}`}
+                    </Text>
+                  </View>
+                  <View style={styles.summaryListItem}>
+                    <Text variant="bodySmall" color="secondary">
+                      -
+                    </Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {`${t('profileScreen.metrics.targetCalories')}: ${profileSummary.targetCalories} ${t('common.units.kcal')} / ${t('common.units.day')}`}
+                    </Text>
+                  </View>
+                </View>
               </Card>
             ) : null}
           </View>
@@ -427,6 +496,14 @@ const styles = StyleSheet.create((theme) => ({
   summaryCard: {
     gap: vs(6),
     backgroundColor: theme.colors.background.section,
+  },
+  summaryList: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  summaryListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
   },
   footer: {
     paddingHorizontal: theme.metrics.spacing.p16,

@@ -11,6 +11,7 @@ export const STORAGE_KEYS = {
   },
   auth: {
     lastEmail: 'auth_last_email',
+    anonymousSessionAttempted: 'auth_anonymous_session_attempted',
   },
   profile: {
     bmiProfile: 'profile_bmi_data',

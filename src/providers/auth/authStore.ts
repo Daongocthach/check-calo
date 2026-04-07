@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { create } from 'zustand';
 import { env } from '@/config/env';
 import { supabase } from '@/integrations/supabase';
+import { STORAGE_KEYS, getItem, setItem } from '@/utils/storage';
 
 interface AuthUser {
   id: string;
@@ -109,6 +110,15 @@ async function ensureAnonymousSession(
     return;
   }
 
+  const anonymousSessionAttempted = getItem<boolean>(
+    STORAGE_KEYS.auth.anonymousSessionAttempted
+  ).data;
+
+  if (anonymousSessionAttempted) {
+    set({ isLoading: false });
+    return;
+  }
+
   anonymousSignInPromise = (async () => {
     const { data, error } = await supabase.auth.signInAnonymously();
 
@@ -131,6 +141,7 @@ async function ensureAnonymousSession(
       return;
     }
 
+    setItem(STORAGE_KEYS.auth.anonymousSessionAttempted, true);
     applyAuthState(set, data.session, data.user);
   })()
     .catch((error: unknown) => {

@@ -3,7 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { env } from '@/config/env';
 import { supabase } from '@/integrations/supabase';
 import { useAuthStore } from '@/providers/auth/authStore';
-import { STORAGE_KEYS, setItem } from '@/utils/storage';
+import { STORAGE_KEYS, removeItem, setItem } from '@/utils/storage';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -88,6 +88,7 @@ export async function resetAnonymousSession() {
     throw error;
   }
 
+  removeItem(STORAGE_KEYS.auth.anonymousSessionAttempted);
   useAuthStore.getState().clearSession();
 }
 

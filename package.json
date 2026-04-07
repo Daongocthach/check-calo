@@ -20,7 +20,9 @@
     "scaffold": "node scripts/scaffold.js",
     "doctor": "node scripts/doctor.js",
     "i18n:check": "node scripts/i18n-check.js",
-    "check-env": "node scripts/check-env.js"
+    "check-env": "node scripts/check-env.js",
+    "cleanup:anonymous:dry-run": "tsx scripts/cleanup-anonymous-users.ts --dry-run --min-age-days 7 --only-test",
+    "cleanup:anonymous": "tsx scripts/cleanup-anonymous-users.ts --min-age-days 7 --only-test"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

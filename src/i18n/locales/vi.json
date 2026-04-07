@@ -19,7 +19,8 @@
       "cm": "cm",
       "kg": "kg",
       "kcal": "kcal",
-      "gram": "g"
+      "gram": "g",
+      "day": "ngày"
     },
     "syncStatus": {
       "syncNow": "Đồng bộ ngay",
@@ -498,9 +499,9 @@
       "bmi": "BMI",
       "gender": "Giới tính",
       "activity": "Vận động",
-      "maintenanceCalories": "Cần thiết",
+      "maintenanceCalories": "Calories cần thiết",
       "monthlyWeightPlan": "Kế hoạch",
-      "targetCalories": "Calories",
+      "targetCalories": "Calories mục tiêu",
       "proteinTarget": "Protein",
       "carbsTarget": "Carb",
       "fatTarget": "Fat"

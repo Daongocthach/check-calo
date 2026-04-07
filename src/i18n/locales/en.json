@@ -19,7 +19,8 @@
       "cm": "cm",
       "kg": "kg",
       "kcal": "kcal",
-      "gram": "g"
+      "gram": "g",
+      "day": "day"
     },
     "syncStatus": {
       "syncNow": "Sync now",
@@ -498,9 +499,9 @@
       "bmi": "BMI",
       "gender": "Gender",
       "activity": "Activity",
-      "maintenanceCalories": "Required",
+      "maintenanceCalories": "Calories needed",
       "monthlyWeightPlan": "Plan",
-      "targetCalories": "Calories",
+      "targetCalories": "Calorie target",
       "proteinTarget": "Protein",
       "carbsTarget": "Carb",
       "fatTarget": "Fat"
