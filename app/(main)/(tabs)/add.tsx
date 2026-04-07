@@ -221,7 +221,7 @@ export default function AddCaloriesTab() {
       router.push({
         pathname: '/food-form',
         params: {
-          context: 'addMeal',
+          ...INSTANT_ADD_MEAL_PARAMS,
           notes: lookupResult?.notes || barcodeValue,
           foodName: lookupResult?.foodName || '',
           quantityLabel: lookupResult?.quantityLabel || '',
