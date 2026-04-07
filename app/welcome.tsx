@@ -8,7 +8,11 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Card, Input, ScreenContainer, Text } from '@/common/components';
-import { ACTIVITY_LEVEL_KEYS, GENDER_KEYS } from '@/features/nutrition/constants';
+import {
+  ACTIVITY_LEVEL_KEYS,
+  GENDER_KEYS,
+  MONTHLY_WEIGHT_LOSS_OPTIONS,
+} from '@/features/nutrition/constants';
 import { getUserProfile, upsertUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import type { ActivityLevel, Gender } from '@/features/nutrition/types';
 import { vs } from '@/theme/metrics';
@@ -18,7 +22,7 @@ interface ProfileFormState {
   age: string;
   height: string;
   weight: string;
-  desiredWeight: string;
+  monthlyWeightLossKg: number;
   activityLevel: ActivityLevel;
 }
 
@@ -27,7 +31,7 @@ const DEFAULT_FORM: ProfileFormState = {
   age: '18',
   height: '170',
   weight: '65',
-  desiredWeight: '65',
+  monthlyWeightLossKg: 0,
   activityLevel: 'moderate',
 };
 
@@ -38,6 +42,21 @@ interface ProfileSummaryState {
   proteinGrams: number;
   carbsGrams: number;
   fatGrams: number;
+}
+
+function getMonthlyWeightPlanKey(value: number) {
+  switch (value) {
+    case 0:
+      return 'welcomeScreen.monthlyWeightPlans.0' as const;
+    case 0.5:
+      return 'welcomeScreen.monthlyWeightPlans.0_5' as const;
+    case 1:
+      return 'welcomeScreen.monthlyWeightPlans.1' as const;
+    case 2:
+      return 'welcomeScreen.monthlyWeightPlans.2' as const;
+    default:
+      return 'welcomeScreen.monthlyWeightPlans.0' as const;
+  }
 }
 
 function isPositiveNumber(value: string) {
@@ -66,6 +85,7 @@ export default function WelcomeScreen() {
 
   const selectedGender = watch('gender');
   const selectedActivityLevel = watch('activityLevel');
+  const selectedMonthlyWeightLossKg = watch('monthlyWeightLossKg');
 
   const loadProfile = useCallback(async () => {
     setIsLoading(true);
@@ -91,7 +111,7 @@ export default function WelcomeScreen() {
       age: String(profile.age),
       height: String(profile.heightCm),
       weight: String(profile.weightKg),
-      desiredWeight: String(profile.desiredWeightKg),
+      monthlyWeightLossKg: profile.monthlyWeightLossKg,
       activityLevel: profile.activityLevel,
     });
     setIsLoading(false);
@@ -111,7 +131,7 @@ export default function WelcomeScreen() {
       age: Number(form.age),
       heightCm: Number(form.height),
       weightKg: Number(form.weight),
-      desiredWeightKg: Number(form.desiredWeight),
+      monthlyWeightLossKg: form.monthlyWeightLossKg,
       activityLevel: form.activityLevel,
     });
 
@@ -252,26 +272,35 @@ export default function WelcomeScreen() {
                 </View>
               </View>
 
-              <Controller
-                control={control}
-                name="desiredWeight"
-                rules={{
-                  required: t('validation.required'),
-                  validate: (value) =>
-                    isPositiveNumber(value) || t('welcomeScreen.validation.positive'),
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label={t('welcomeScreen.fields.desiredWeight')}
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    keyboardType="number-pad"
-                    error={errors.desiredWeight?.message}
-                    placeholder={t('welcomeScreen.placeholders.desiredWeight')}
-                  />
-                )}
-              />
+              <View style={styles.optionGroup}>
+                <Text variant="label">{t('welcomeScreen.fields.monthlyWeightPlan')}</Text>
+                <View style={styles.optionWrap}>
+                  {MONTHLY_WEIGHT_LOSS_OPTIONS.map((option) => {
+                    const isActive = selectedMonthlyWeightLossKg === option;
+                    const optionKey = getMonthlyWeightPlanKey(option);
+
+                    return (
+                      <Pressable
+                        key={option}
+                        accessibilityRole="button"
+                        accessibilityLabel={t(optionKey)}
+                        style={[styles.optionPill, isActive && styles.optionPillActive]}
+                        onPress={() =>
+                          setValue('monthlyWeightLossKg', option, { shouldValidate: true })
+                        }
+                      >
+                        <Text
+                          variant="caption"
+                          weight="semibold"
+                          color={isActive ? 'primary' : 'secondary'}
+                        >
+                          {t(optionKey)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
 
               <View style={styles.optionGroup}>
                 <Text variant="label">{t('welcomeScreen.fields.activityLevel')}</Text>
@@ -309,6 +338,7 @@ export default function WelcomeScreen() {
                 <Text variant="bodySmall" color="secondary">
                   {t('welcomeScreen.summaryBody', {
                     bmi: profileSummary.bmi.toFixed(1),
+                    maintenanceCalories: profileSummary.maintenanceCalories,
                     calorieTarget: profileSummary.targetCalories,
                   })}
                 </Text>

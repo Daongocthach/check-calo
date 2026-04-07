@@ -398,7 +398,7 @@
     "subtitle": "Nhập thông tin BMI một lần để app cá nhân hóa mục tiêu calo mỗi ngày.",
     "profileStatus": "Trạng thái BMI",
     "formTitle": "Thông tin cơ bản",
-    "formSubtitle": "Tuổi, giới tính, chiều cao, cân nặng hiện tại, cân nặng mong muốn và mức vận động sẽ giúp app tính mục tiêu calories và macro phù hợp.",
+    "formSubtitle": "Tuổi, giới tính, chiều cao, cân nặng hiện tại, kế hoạch giảm cân theo tháng và mức vận động sẽ giúp app tính mục tiêu calories và macro phù hợp.",
     "summaryTitle": "Hồ sơ hiện tại",
     "summaryBody": "BMI {{bmi}}, mục tiêu {{calorieTarget}} kcal/ngày.",
     "saveAction": "Lưu và bắt đầu",
@@ -412,7 +412,7 @@
       "age": "Tuổi",
       "height": "Chiều cao (cm)",
       "weight": "Cân nặng (kg)",
-      "desiredWeight": "Cân nặng mong muốn (kg)",
+      "monthlyWeightPlan": "Kế hoạch cân nặng",
       "activityLevel": "Hệ số vận động"
     },
     "genderOptions": {
@@ -427,11 +427,16 @@
       "active": "Vận động nhiều",
       "very_active": "Rất năng động"
     },
+    "monthlyWeightPlans": {
+      "0": "Giữ nguyên cân nặng",
+      "0_5": "Giảm 0.5 kg/tháng",
+      "1": "Giảm 1 kg/tháng",
+      "2": "Giảm 2 kg/tháng"
+    },
     "placeholders": {
       "age": "Nhập tuổi",
       "height": "Nhập chiều cao",
-      "weight": "Nhập cân nặng",
-      "desiredWeight": "Nhập cân nặng mong muốn"
+      "weight": "Nhập cân nặng"
     },
     "validation": {
       "number": "Vui lòng nhập số hợp lệ",
@@ -494,7 +499,7 @@
       "gender": "Giới tính",
       "activity": "Vận động",
       "maintenanceCalories": "Cần thiết",
-      "desiredWeight": "Cân nặng",
+      "monthlyWeightPlan": "Kế hoạch",
       "targetCalories": "Calories",
       "proteinTarget": "Protein",
       "carbsTarget": "Carb",

@@ -20,6 +20,21 @@ import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { toast } from '@/utils/toast';
 
+function getMonthlyWeightPlanKey(value: number) {
+  switch (value) {
+    case 0:
+      return 'welcomeScreen.monthlyWeightPlans.0' as const;
+    case 0.5:
+      return 'welcomeScreen.monthlyWeightPlans.0_5' as const;
+    case 1:
+      return 'welcomeScreen.monthlyWeightPlans.1' as const;
+    case 2:
+      return 'welcomeScreen.monthlyWeightPlans.2' as const;
+    default:
+      return 'welcomeScreen.monthlyWeightPlans.0' as const;
+  }
+}
+
 export default function ProfileTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
@@ -34,7 +49,7 @@ export default function ProfileTab() {
     bmi: string;
     maintenanceCalorieTarget: string;
     calorieTarget: string;
-    desiredWeight: string;
+    monthlyWeightPlan: string;
     proteinTarget: string;
     carbsTarget: string;
     fatTarget: string;
@@ -63,7 +78,7 @@ export default function ProfileTab() {
           bmi: profile.bmi.toFixed(1),
           maintenanceCalorieTarget: String(profile.maintenanceCalorieTarget),
           calorieTarget: String(profile.dailyCalorieTarget),
-          desiredWeight: String(profile.desiredWeightKg),
+          monthlyWeightPlan: t(getMonthlyWeightPlanKey(profile.monthlyWeightLossKg)),
           proteinTarget: String(profile.proteinTargetGrams),
           carbsTarget: String(profile.carbsTargetGrams),
           fatTarget: String(profile.fatTargetGrams),
@@ -229,22 +244,6 @@ export default function ProfileTab() {
           />
         </Card>
 
-        {authUser?.isAnonymous ? (
-          <Card variant="filled" style={styles.loginCard}>
-            <View style={styles.authCopy}>
-              <Text variant="h3">{t('auth.signIn')}</Text>
-              <Text variant="bodySmall" color="secondary">
-                {t('profileScreen.account.anonymousSubtitle')}
-              </Text>
-            </View>
-            <Button
-              title={t('auth.signIn')}
-              variant="primary"
-              onPress={() => router.push('/(auth)/login')}
-            />
-          </Card>
-        ) : null}
-
         {profileSummary ? (
           <>
             <Card variant="filled" style={styles.goalCard}>
@@ -265,10 +264,18 @@ export default function ProfileTab() {
                 </View>
                 <View style={styles.goalMetric}>
                   <Text variant="caption" color="secondary">
-                    {t('profileScreen.metrics.desiredWeight')}
+                    {t('profileScreen.metrics.maintenanceCalories')}
                   </Text>
                   <Text variant="body" weight="semibold">
-                    {`${profileSummary.desiredWeight} ${t('common.units.kg')}`}
+                    {`${profileSummary.maintenanceCalorieTarget} ${t('common.units.kcal')}`}
+                  </Text>
+                </View>
+                <View style={styles.goalMetric}>
+                  <Text variant="caption" color="secondary">
+                    {t('profileScreen.metrics.monthlyWeightPlan')}
+                  </Text>
+                  <Text variant="body" weight="semibold">
+                    {profileSummary.monthlyWeightPlan}
                   </Text>
                 </View>
                 <View style={styles.goalMetric}>

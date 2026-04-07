@@ -2,7 +2,7 @@ import { ACTIVITY_LEVEL_FACTORS } from '../constants';
 import type { ActivityLevel, Gender, UserProfileInput } from '../types';
 
 const KCAL_PER_KG = 7700;
-const GOAL_WINDOW_DAYS = 42;
+const DAYS_PER_MONTH = 30;
 
 export function getActivityFactor(activityLevel: ActivityLevel) {
   return ACTIVITY_LEVEL_FACTORS[activityLevel];
@@ -28,22 +28,21 @@ export function calculateMaintenanceCalorieTarget(profile: UserProfileInput) {
 
 export function calculateDailyCalorieTarget(profile: UserProfileInput) {
   const maintenanceCalories = calculateMaintenanceCalorieTarget(profile);
-  const weightDelta = profile.desiredWeightKg - profile.weightKg;
 
-  if (Math.abs(weightDelta) < 0.1) {
+  if (profile.monthlyWeightLossKg <= 0) {
     return maintenanceCalories;
   }
 
-  const dailyAdjustment = Math.round((weightDelta * KCAL_PER_KG) / GOAL_WINDOW_DAYS);
+  const dailyAdjustment = Math.round((profile.monthlyWeightLossKg * KCAL_PER_KG) / DAYS_PER_MONTH);
 
-  return Math.max(1200, maintenanceCalories + dailyAdjustment);
+  return Math.max(1200, maintenanceCalories - dailyAdjustment);
 }
 
 export function calculateMacroTargets(profile: UserProfileInput) {
   const dailyCalorieTarget = calculateDailyCalorieTarget(profile);
-  const proteinTargetGrams = Math.round(Math.max(profile.desiredWeightKg * 1.8, 60));
+  const proteinTargetGrams = Math.round(Math.max(profile.weightKg * 1.8, 60));
   const fatTargetGrams = Math.round(
-    Math.max(profile.desiredWeightKg * 0.8, (dailyCalorieTarget * 0.25) / 9)
+    Math.max(profile.weightKg * 0.8, (dailyCalorieTarget * 0.25) / 9)
   );
   const carbsTargetGrams = Math.max(
     0,

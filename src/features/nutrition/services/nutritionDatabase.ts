@@ -26,7 +26,7 @@ interface UserProfileRow {
   age: number;
   height_cm: number;
   weight_kg: number;
-  desired_weight_kg: number;
+  monthly_weight_loss_kg: number;
   activity_level: UserProfile['activityLevel'];
   activity_factor: number;
   bmi: number;
@@ -90,7 +90,7 @@ function mapProfile(row: UserProfileRow): UserProfile {
     age: row.age,
     heightCm: row.height_cm,
     weightKg: row.weight_kg,
-    desiredWeightKg: row.desired_weight_kg,
+    monthlyWeightLossKg: row.monthly_weight_loss_kg,
     activityLevel: row.activity_level,
     activityFactor: row.activity_factor,
     bmi: row.bmi,
@@ -170,7 +170,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
         age,
         height_cm,
         weight_kg,
-        desired_weight_kg,
+        monthly_weight_loss_kg,
         activity_level,
         activity_factor,
         bmi,
@@ -188,7 +188,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
         age = excluded.age,
         height_cm = excluded.height_cm,
         weight_kg = excluded.weight_kg,
-        desired_weight_kg = excluded.desired_weight_kg,
+        monthly_weight_loss_kg = excluded.monthly_weight_loss_kg,
         activity_level = excluded.activity_level,
         activity_factor = excluded.activity_factor,
         bmi = excluded.bmi,
@@ -204,7 +204,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
       profile.age,
       profile.heightCm,
       profile.weightKg,
-      profile.desiredWeightKg,
+      profile.monthlyWeightLossKg,
       profile.activityLevel,
       activityFactor,
       bmi,

@@ -398,7 +398,7 @@
     "subtitle": "Set up your BMI details once so the app can personalize daily calorie goals.",
     "profileStatus": "BMI profile",
     "formTitle": "Tell us about you",
-    "formSubtitle": "We use age, gender, height, current weight, desired weight, and activity to estimate daily calories and macro targets.",
+    "formSubtitle": "We use age, gender, height, current weight, monthly weight plan, and activity to estimate daily calories and macro targets.",
     "summaryTitle": "Your current profile",
     "summaryBody": "BMI {{bmi}}, maintenance at {{maintenanceCalories}} kcal/day, and target at {{calorieTarget}} kcal/day.",
     "saveAction": "Save and start",
@@ -412,7 +412,7 @@
       "age": "Age",
       "height": "Height (cm)",
       "weight": "Weight (kg)",
-      "desiredWeight": "Desired weight (kg)",
+      "monthlyWeightPlan": "Weight plan",
       "activityLevel": "Activity level"
     },
     "genderOptions": {
@@ -427,11 +427,16 @@
       "active": "Active",
       "very_active": "Very active"
     },
+    "monthlyWeightPlans": {
+      "0": "Maintain current weight",
+      "0_5": "Lose 0.5 kg/month",
+      "1": "Lose 1 kg/month",
+      "2": "Lose 2 kg/month"
+    },
     "placeholders": {
       "age": "Enter age",
       "height": "Enter height",
-      "weight": "Enter weight",
-      "desiredWeight": "Enter desired weight"
+      "weight": "Enter weight"
     },
     "validation": {
       "number": "Please enter a valid number",
@@ -494,7 +499,7 @@
       "gender": "Gender",
       "activity": "Activity",
       "maintenanceCalories": "Required",
-      "desiredWeight": "Weight",
+      "monthlyWeightPlan": "Plan",
       "targetCalories": "Calories",
       "proteinTarget": "Protein",
       "carbsTarget": "Carb",

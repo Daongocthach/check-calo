@@ -17,3 +17,5 @@ export const ACTIVITY_LEVEL_KEYS: ActivityLevel[] = [
 ];
 
 export const GENDER_KEYS: Gender[] = ['male', 'female', 'other'];
+
+export const MONTHLY_WEIGHT_LOSS_OPTIONS = [0, 0.5, 1, 2] as const;

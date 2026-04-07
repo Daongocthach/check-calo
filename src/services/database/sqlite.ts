@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 5;
+const DATABASE_VERSION = 6;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -278,6 +278,19 @@ async function runVersion5Migration(database: SQLite.SQLiteDatabase) {
   `);
 }
 
+async function runVersion6Migration(database: SQLite.SQLiteDatabase) {
+  await database.execAsync(`
+    ALTER TABLE user_profile ADD COLUMN monthly_weight_loss_kg REAL NOT NULL DEFAULT 0;
+
+    UPDATE user_profile
+    SET monthly_weight_loss_kg = CASE
+      WHEN desired_weight_kg < weight_kg
+        THEN ROUND(((weight_kg - desired_weight_kg) * 30 / 42) * 10) / 10
+      ELSE 0
+    END;
+  `);
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -301,6 +314,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 5) {
     await runVersion5Migration(database);
+  }
+
+  if (currentVersion < 6) {
+    await runVersion6Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {

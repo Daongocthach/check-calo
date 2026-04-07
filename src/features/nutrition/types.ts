@@ -25,7 +25,7 @@ export interface UserProfileInput {
   age: number;
   heightCm: number;
   weightKg: number;
-  desiredWeightKg: number;
+  monthlyWeightLossKg: number;
   activityLevel: ActivityLevel;
 }
 
