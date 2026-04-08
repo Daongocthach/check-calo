@@ -422,7 +422,7 @@ export default function StatsTab() {
             carbsLabel={t('statsScreen.macros.carbs')}
             fatLabel={t('statsScreen.macros.fat')}
             gramUnit={t('common.units.gram')}
-            scrollEnabled={macroTrendMode === 'month'}
+            scrollEnabled
           />
         </Card>
       </View>

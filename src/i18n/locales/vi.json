@@ -141,6 +141,10 @@
       "subtitle": "Nhập chiều cao, cân nặng, tuổi và mức vận động để app tính mục tiêu calories mỗi ngày cho bạn.",
       "action": "Nhập thông tin BMI"
     },
+    "monthStatus": {
+      "goalMet": "Đạt mục tiêu",
+      "goalExceeded": "Vượt mục tiêu"
+    },
     "meals": {
       "title": "Bữa ăn hôm nay",
       "subtitle": "Món ăn mới nhất ở trên",

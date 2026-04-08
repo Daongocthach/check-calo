@@ -22,6 +22,7 @@ import {
   deleteFoodEntry,
   getDailyNutritionSummary,
   getUserProfile,
+  listLoggedDailyStatuses,
   listFoodEntriesByDate,
 } from '@/features/nutrition/services/nutritionDatabase';
 import type { DailyNutritionSummary, FoodEntry, UserProfile } from '@/features/nutrition/types';
@@ -98,6 +99,23 @@ export default function HomeTab() {
   const [entries, setEntries] = useState<FoodEntryWithSyncDebug[]>([]);
   const [hasProfile, setHasProfile] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [visibleMonth, setVisibleMonth] = useState(() => new Date());
+  const [monthStatuses, setMonthStatuses] = useState<Partial<Record<string, 'success' | 'failed'>>>(
+    {}
+  );
+
+  const loadMonthStatuses = useCallback(async (month: Date) => {
+    const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+    const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+    const statuses = await listLoggedDailyStatuses(monthStart, monthEnd);
+
+    setMonthStatuses(
+      statuses.reduce<Partial<Record<string, 'success' | 'failed'>>>((accumulator, item) => {
+        accumulator[item.date] = item.status;
+        return accumulator;
+      }, {})
+    );
+  }, []);
 
   const loadNutritionData = useCallback(async (date: Date) => {
     const [nextProfile, nextSummary, nextEntries] = await Promise.all([
@@ -120,7 +138,8 @@ export default function HomeTab() {
   useFocusEffect(
     useCallback(() => {
       void loadNutritionData(selectedDate);
-    }, [loadNutritionData, selectedDate])
+      void loadMonthStatuses(visibleMonth);
+    }, [loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth])
   );
 
   const mealSections = useMemo<MealSection[]>(() => {
@@ -226,6 +245,8 @@ export default function HomeTab() {
               selectedDate={selectedDate}
               onChange={setSelectedDate}
               maxDate={new Date()}
+              dayStatuses={monthStatuses}
+              onMonthChange={setVisibleMonth}
             />
 
             {hasProfile ? (

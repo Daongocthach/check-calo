@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, View, type ListRenderItem } from 'react-native';
 import { useUnistyles } from 'react-native-unistyles';
+import { Icon } from '@/common/components/Icon';
 import { IconButton } from '@/common/components/IconButton';
 import { Text } from '@/common/components/Text';
 import { DAY_ITEM_WIDTH, styles } from './MonthSelector.styles';
@@ -38,6 +39,8 @@ export function MonthSelector({
   minDate,
   maxDate,
   locale,
+  dayStatuses,
+  onMonthChange,
 }: MonthSelectorProps) {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
@@ -98,6 +101,10 @@ export function MonthSelector({
   }, [normalizedSelectedDate]);
 
   useEffect(() => {
+    onMonthChange?.(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1));
+  }, [currentMonth, onMonthChange]);
+
+  useEffect(() => {
     const selectedIndex = daysInMonth.findIndex((day) => isSameDay(day, normalizedSelectedDate));
     if (selectedIndex < 0) {
       return;
@@ -122,6 +129,29 @@ export function MonthSelector({
   const renderItem: ListRenderItem<Date> = ({ item }) => {
     const isSelected = isSameDay(item, normalizedSelectedDate);
     const disabled = isDateDisabled(item);
+    const dateKey = item.toISOString().slice(0, 10);
+    const status = dayStatuses?.[dateKey];
+
+    let statusIcon = null;
+    if (status === 'success') {
+      statusIcon = (
+        <Icon
+          name="trophy"
+          size={14}
+          color={theme.colors.state.warning}
+          accessibilityLabel={t('homeScreen.monthStatus.goalMet')}
+        />
+      );
+    } else if (status === 'failed') {
+      statusIcon = (
+        <Icon
+          name="alert-circle"
+          size={14}
+          color={theme.colors.state.error}
+          accessibilityLabel={t('homeScreen.monthStatus.goalExceeded')}
+        />
+      );
+    }
 
     return (
       <Pressable
@@ -148,6 +178,7 @@ export function MonthSelector({
             {dayFormatter.format(item)}
           </Text>
         </View>
+        <View style={styles.statusWrap}>{statusIcon}</View>
       </Pressable>
     );
   };

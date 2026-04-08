@@ -29,7 +29,7 @@ export const styles = StyleSheet.create((theme) => ({
   dayItem: {
     width: DAY_ITEM_WIDTH,
     alignItems: 'center',
-    gap: theme.metrics.spacingV.p8,
+    gap: theme.metrics.spacingV.p4,
   },
   dayItemDisabled: {
     opacity: 0.3,
@@ -53,5 +53,10 @@ export const styles = StyleSheet.create((theme) => ({
   },
   dayNumberTextSelected: {
     color: theme.colors.text.primary,
+  },
+  statusWrap: {
+    minHeight: theme.metrics.iconSize.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }));

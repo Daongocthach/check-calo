@@ -141,6 +141,10 @@
       "subtitle": "Add your height, weight, age, and activity level so we can calculate a daily calorie target for you.",
       "action": "Enter BMI information"
     },
+    "monthStatus": {
+      "goalMet": "Goal met",
+      "goalExceeded": "Goal exceeded"
+    },
     "meals": {
       "title": "Meals for today",
       "subtitle": "Most recent first",

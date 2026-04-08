@@ -384,6 +384,32 @@ export async function listDailyNutritionSummaries(
   return points;
 }
 
+export async function listLoggedDailyStatuses(
+  startDate: string | Date,
+  endDate: string | Date
+): Promise<Array<{ date: string; status: 'success' | 'failed' }>> {
+  const summaries = await listDailyNutritionSummaries(startDate, endDate);
+
+  return summaries.flatMap((summary) => {
+    const hasEntries =
+      summary.consumedCalories > 0 ||
+      summary.proteinGrams > 0 ||
+      summary.carbsGrams > 0 ||
+      summary.fatGrams > 0;
+
+    if (!hasEntries) {
+      return [];
+    }
+
+    return [
+      {
+        date: summary.date,
+        status: summary.remainingCalories >= 0 ? 'success' : 'failed',
+      },
+    ];
+  });
+}
+
 export async function listFoodEntriesByDate(date: string | Date) {
   const database = await getDatabase();
   const normalizedDate = formatDateKey(date);
