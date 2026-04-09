@@ -114,9 +114,11 @@
     "target": "Target",
     "today": "today",
     "kcalToday": "kcal / today",
-    "remaining": "Remaining",
+    "remaining": "To target",
     "onTrack": "On track",
-    "exceeded": "Over target",
+    "goalMet": "Goal met",
+    "belowTarget": "Below target",
+    "overTarget": "Over target",
     "progress": "Progress",
     "steps": "Step to walk",
     "stepsValue": "steps",
@@ -191,7 +193,7 @@
       "weightToLose": "kg to goal",
       "caloriesConsumed": "Calories today",
       "calorieTarget": "Today's target",
-      "remainingCalories": "Remaining calories"
+      "remainingCalories": "Calories to target"
     },
     "days": {
       "sat": "Sat",
@@ -402,7 +404,7 @@
     "subtitle": "Set up your BMI details once so the app can personalize daily calorie goals.",
     "profileStatus": "BMI profile",
     "formTitle": "Tell us about you",
-    "formSubtitle": "We use age, gender, height, current weight, monthly weight plan, and activity to estimate daily calories and macro targets.",
+    "formSubtitle": "We use age, gender, height, current weight, your monthly weight plan, and activity to estimate daily calories and macro targets.",
     "summaryTitle": "Your current profile",
     "summaryBody": "BMI {{bmi}}, maintenance at {{maintenanceCalories}} kcal/day, and target at {{calorieTarget}} kcal/day.",
     "saveAction": "Save and start",
@@ -433,9 +435,10 @@
     },
     "monthlyWeightPlans": {
       "0": "Maintain current weight",
-      "0_5": "Lose 0.5 kg/month",
-      "1": "Lose 1 kg/month",
-      "2": "Lose 2 kg/month"
+      "lose_0_5": "Lose 0.5 kg/month",
+      "lose_1": "Lose 1 kg/month",
+      "gain_0_5": "Gain 0.5 kg/month",
+      "gain_1": "Gain 1 kg/month"
     },
     "placeholders": {
       "age": "Enter age",

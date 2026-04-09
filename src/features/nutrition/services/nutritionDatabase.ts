@@ -16,8 +16,9 @@ import {
   calculateMaintenanceCalorieTarget,
   createEntityId,
   formatDateKey,
-  nowIsoString,
   getActivityFactor,
+  getDailyCalorieGoalState,
+  nowIsoString,
 } from '../utils/calorie';
 
 interface UserProfileRow {
@@ -389,6 +390,7 @@ export async function listLoggedDailyStatuses(
   endDate: string | Date
 ): Promise<Array<{ date: string; status: 'success' | 'failed' }>> {
   const summaries = await listDailyNutritionSummaries(startDate, endDate);
+  const profile = await getUserProfile();
 
   return summaries.flatMap((summary) => {
     const hasLoggedCalories = summary.consumedCalories > 0;
@@ -400,7 +402,11 @@ export async function listLoggedDailyStatuses(
     return [
       {
         date: summary.date,
-        status: summary.consumedCalories <= summary.calorieTarget ? 'success' : 'failed',
+        status:
+          getDailyCalorieGoalState(profile, summary.calorieTarget, summary.consumedCalories) ===
+          'on_target'
+            ? 'success'
+            : 'failed',
       },
     ];
   });

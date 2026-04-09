@@ -114,9 +114,11 @@
     "target": "Mục tiêu",
     "today": "hôm nay",
     "kcalToday": "kcal / hôm nay",
-    "remaining": "Còn lại",
+    "remaining": "Cách mục tiêu",
     "onTrack": "Giữ phong độ",
-    "exceeded": "Vượt mục tiêu",
+    "goalMet": "Đạt mục tiêu",
+    "belowTarget": "Chưa đạt mục tiêu",
+    "overTarget": "Vượt mục tiêu",
     "progress": "Tiến độ",
     "steps": "Bước chân",
     "stepsValue": "bước",
@@ -191,7 +193,7 @@
       "weightToLose": "kg tới mục tiêu",
       "caloriesConsumed": "Calories hôm nay",
       "calorieTarget": "Mục tiêu hôm nay",
-      "remainingCalories": "Calories còn lại"
+      "remainingCalories": "Calories cách mục tiêu"
     },
     "days": {
       "sat": "T7",
@@ -402,7 +404,7 @@
     "subtitle": "Nhập thông tin BMI một lần để app cá nhân hóa mục tiêu calo mỗi ngày.",
     "profileStatus": "Trạng thái BMI",
     "formTitle": "Thông tin cơ bản",
-    "formSubtitle": "Tuổi, giới tính, chiều cao, cân nặng hiện tại, kế hoạch giảm cân theo tháng và mức vận động sẽ giúp app tính mục tiêu calories và macro phù hợp.",
+    "formSubtitle": "Tuổi, giới tính, chiều cao, cân nặng hiện tại, kế hoạch thay đổi cân nặng theo tháng và mức vận động sẽ giúp app tính mục tiêu calories và macro phù hợp.",
     "summaryTitle": "Hồ sơ hiện tại",
     "summaryBody": "BMI {{bmi}}, mục tiêu {{calorieTarget}} kcal/ngày.",
     "saveAction": "Lưu và bắt đầu",
@@ -433,9 +435,10 @@
     },
     "monthlyWeightPlans": {
       "0": "Giữ nguyên cân nặng",
-      "0_5": "Giảm 0.5 kg/tháng",
-      "1": "Giảm 1 kg/tháng",
-      "2": "Giảm 2 kg/tháng"
+      "lose_0_5": "Giảm 0.5 kg/tháng",
+      "lose_1": "Giảm 1 kg/tháng",
+      "gain_0_5": "Tăng 0.5 kg/tháng",
+      "gain_1": "Tăng 1 kg/tháng"
     },
     "placeholders": {
       "age": "Nhập tuổi",

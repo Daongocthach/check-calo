@@ -15,9 +15,15 @@ import {
 } from '@/common/components';
 import {
   getDailyNutritionSummary,
+  getUserProfile,
   listDailyNutritionSummaries,
 } from '@/features/nutrition/services/nutritionDatabase';
-import type { DailyNutritionSummary, NutritionTrendPoint } from '@/features/nutrition/types';
+import type {
+  DailyNutritionSummary,
+  NutritionTrendPoint,
+  UserProfile,
+} from '@/features/nutrition/types';
+import { getDailyCalorieGoalState } from '@/features/nutrition/utils/calorie';
 import { hs, vs } from '@/theme/metrics';
 
 type TrendMode = 'day' | 'month';
@@ -175,6 +181,7 @@ export default function StatsTab() {
     createEmptySummary(new Date())
   );
   const [dailyPoints, setDailyPoints] = useState<NutritionTrendPoint[]>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -185,9 +192,10 @@ export default function StatsTab() {
         const startDate = new Date(today);
         startDate.setDate(today.getDate() - 179);
 
-        const [summary, trendPoints] = await Promise.all([
+        const [summary, trendPoints, nextProfile] = await Promise.all([
           getDailyNutritionSummary(today),
           listDailyNutritionSummaries(startDate, today),
+          getUserProfile(),
         ]);
 
         if (!active) {
@@ -196,6 +204,7 @@ export default function StatsTab() {
 
         setTodaySummary(summary);
         setDailyPoints(trendPoints);
+        setProfile(nextProfile);
       };
 
       void loadStats();
@@ -254,6 +263,20 @@ export default function StatsTab() {
     [dailyPoints, i18n.language, macroTrendMode, t]
   );
 
+  const todayGoalState = useMemo(
+    () =>
+      getDailyCalorieGoalState(profile, todaySummary.calorieTarget, todaySummary.consumedCalories),
+    [profile, todaySummary.calorieTarget, todaySummary.consumedCalories]
+  );
+
+  let progressColorScheme: 'success' | 'warning' | 'error' = 'success';
+
+  if (todayGoalState === 'below_target') {
+    progressColorScheme = 'warning';
+  } else if (todayGoalState === 'above_target') {
+    progressColorScheme = 'error';
+  }
+
   const stackedMacroData = useMemo(
     () =>
       aggregatedMacroTrendPoints.map((point) => ({
@@ -279,7 +302,11 @@ export default function StatsTab() {
             <Text variant="h2">{`${todaySummary.progressPercent}%`}</Text>
           </View>
 
-          <ProgressBar value={todaySummary.progressPercent} size="lg" colorScheme="success" />
+          <ProgressBar
+            value={todaySummary.progressPercent}
+            size="lg"
+            colorScheme={progressColorScheme}
+          />
 
           <View style={styles.metricGrid}>
             <Card variant="filled" style={[styles.metricCard, styles.metricCardLarge]}>
@@ -295,7 +322,7 @@ export default function StatsTab() {
               </Text>
             </Card>
             <Card variant="filled" style={styles.metricCard}>
-              <Text variant="h3">{todaySummary.remainingCalories}</Text>
+              <Text variant="h3">{Math.abs(todaySummary.remainingCalories)}</Text>
               <Text variant="bodySmall" color="secondary">
                 {t('statsScreen.metrics.remainingCalories')}
               </Text>

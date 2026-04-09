@@ -26,6 +26,7 @@ import {
   listFoodEntriesByDate,
 } from '@/features/nutrition/services/nutritionDatabase';
 import type { DailyNutritionSummary, FoodEntry, UserProfile } from '@/features/nutrition/types';
+import { getDailyCalorieGoalState, getWeightGoalMode } from '@/features/nutrition/utils/calorie';
 import { useAppAlert } from '@/providers/app-alert';
 import { vs } from '@/theme/metrics';
 
@@ -85,6 +86,48 @@ function createEmptySummary(date: Date): DailyNutritionSummary {
     proteinGrams: 0,
     carbsGrams: 0,
     fatGrams: 0,
+  };
+}
+
+function getHomeBalanceCopy(
+  profile: UserProfile | null,
+  summary: DailyNutritionSummary
+): {
+  value: number;
+  labelKey:
+    | 'homeScreen.onTrack'
+    | 'homeScreen.goalMet'
+    | 'homeScreen.belowTarget'
+    | 'homeScreen.overTarget';
+  color: 'link' | 'accent' | 'secondary';
+} {
+  const goalMode = getWeightGoalMode(profile?.monthlyWeightLossKg ?? 0);
+  const goalState = getDailyCalorieGoalState(
+    profile,
+    summary.calorieTarget,
+    summary.consumedCalories
+  );
+
+  if (goalState === 'on_target') {
+    return {
+      value: 0,
+      labelKey: goalMode === 'lose' ? 'homeScreen.onTrack' : 'homeScreen.goalMet',
+      color: 'link',
+    };
+  }
+
+  if (goalState === 'below_target') {
+    return {
+      value: Math.abs(summary.remainingCalories),
+      labelKey: 'homeScreen.belowTarget',
+      color: 'secondary',
+    };
+  }
+
+  return {
+    value: Math.abs(summary.remainingCalories),
+    labelKey: 'homeScreen.overTarget',
+    color: 'accent',
   };
 }
 
@@ -160,6 +203,21 @@ export default function HomeTab() {
       return accumulator;
     }, []);
   }, [entries]);
+
+  const balanceCopy = useMemo(() => getHomeBalanceCopy(profile, summary), [profile, summary]);
+  const progressColorScheme = useMemo(() => {
+    const goalState = getDailyCalorieGoalState(
+      profile,
+      summary.calorieTarget,
+      summary.consumedCalories
+    );
+
+    if (goalState === 'on_target') {
+      return 'success' as const;
+    }
+
+    return goalState === 'below_target' ? 'warning' : 'error';
+  }, [profile, summary.calorieTarget, summary.consumedCalories]);
 
   const handleDeleteMeal = useCallback(
     (meal: FoodEntry) => {
@@ -283,19 +341,17 @@ export default function HomeTab() {
                     <Text
                       variant="h2"
                       align="right"
-                      style={summary.remainingCalories < 0 ? styles.remainingOverText : undefined}
+                      style={balanceCopy.color === 'accent' ? styles.remainingOverText : undefined}
                     >
-                      {summary.remainingCalories}
+                      {balanceCopy.value}
                     </Text>
                     <Text
                       variant="bodySmall"
-                      color={summary.remainingCalories >= 0 ? 'link' : 'accent'}
+                      color={balanceCopy.color}
                       align="right"
-                      style={summary.remainingCalories < 0 ? styles.remainingOverText : undefined}
+                      style={balanceCopy.color === 'accent' ? styles.remainingOverText : undefined}
                     >
-                      {summary.remainingCalories >= 0
-                        ? t('homeScreen.onTrack')
-                        : t('homeScreen.exceeded')}
+                      {t(balanceCopy.labelKey)}
                     </Text>
                   </View>
                 </View>
@@ -311,7 +367,7 @@ export default function HomeTab() {
                 <ProgressBar
                   value={summary.progressPercent}
                   size="lg"
-                  colorScheme={summary.progressPercent >= 100 ? 'error' : 'success'}
+                  colorScheme={progressColorScheme}
                 />
 
                 <View style={styles.macroGoalSection}>

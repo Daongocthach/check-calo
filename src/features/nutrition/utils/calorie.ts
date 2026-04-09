@@ -3,6 +3,10 @@ import type { ActivityLevel, Gender, UserProfileInput } from '../types';
 
 const KCAL_PER_KG = 7700;
 const DAYS_PER_MONTH = 30;
+const MAINTENANCE_TOLERANCE_KCAL = 100;
+
+export type WeightGoalMode = 'lose' | 'maintain' | 'gain';
+export type DailyCalorieGoalState = 'below_target' | 'on_target' | 'above_target';
 
 export function getActivityFactor(activityLevel: ActivityLevel) {
   return ACTIVITY_LEVEL_FACTORS[activityLevel];
@@ -29,13 +33,19 @@ export function calculateMaintenanceCalorieTarget(profile: UserProfileInput) {
 export function calculateDailyCalorieTarget(profile: UserProfileInput) {
   const maintenanceCalories = calculateMaintenanceCalorieTarget(profile);
 
-  if (profile.monthlyWeightLossKg <= 0) {
+  if (profile.monthlyWeightLossKg === 0) {
     return maintenanceCalories;
   }
 
-  const dailyAdjustment = Math.round((profile.monthlyWeightLossKg * KCAL_PER_KG) / DAYS_PER_MONTH);
+  const dailyAdjustment = Math.round(
+    (Math.abs(profile.monthlyWeightLossKg) * KCAL_PER_KG) / DAYS_PER_MONTH
+  );
 
-  return Math.max(1200, maintenanceCalories - dailyAdjustment);
+  if (profile.monthlyWeightLossKg > 0) {
+    return Math.max(1200, maintenanceCalories - dailyAdjustment);
+  }
+
+  return maintenanceCalories + dailyAdjustment;
 }
 
 export function calculateMacroTargets(profile: UserProfileInput) {
@@ -54,6 +64,45 @@ export function calculateMacroTargets(profile: UserProfileInput) {
     carbsTargetGrams,
     fatTargetGrams,
   };
+}
+
+export function getWeightGoalMode(monthlyWeightLossKg: number): WeightGoalMode {
+  if (monthlyWeightLossKg > 0) {
+    return 'lose';
+  }
+
+  if (monthlyWeightLossKg < 0) {
+    return 'gain';
+  }
+
+  return 'maintain';
+}
+
+export function getDailyCalorieGoalState(
+  profile: Pick<UserProfileInput, 'monthlyWeightLossKg'> | null | undefined,
+  calorieTarget: number,
+  consumedCalories: number
+): DailyCalorieGoalState {
+  if (calorieTarget <= 0) {
+    return 'below_target';
+  }
+
+  const goalMode = getWeightGoalMode(profile?.monthlyWeightLossKg ?? 0);
+  const calorieDelta = consumedCalories - calorieTarget;
+
+  if (goalMode === 'lose') {
+    return calorieDelta > 0 ? 'above_target' : 'on_target';
+  }
+
+  if (goalMode === 'gain') {
+    return calorieDelta < 0 ? 'below_target' : 'on_target';
+  }
+
+  if (Math.abs(calorieDelta) <= MAINTENANCE_TOLERANCE_KCAL) {
+    return 'on_target';
+  }
+
+  return calorieDelta < 0 ? 'below_target' : 'above_target';
 }
 
 export function formatDateKey(value: string | Date) {

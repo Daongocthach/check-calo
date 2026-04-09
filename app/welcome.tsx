@@ -52,14 +52,16 @@ interface ProfileSummaryState {
 
 function getMonthlyWeightPlanKey(value: number) {
   switch (value) {
+    case -1:
+      return 'welcomeScreen.monthlyWeightPlans.gain_1' as const;
+    case -0.5:
+      return 'welcomeScreen.monthlyWeightPlans.gain_0_5' as const;
     case 0:
       return 'welcomeScreen.monthlyWeightPlans.0' as const;
     case 0.5:
-      return 'welcomeScreen.monthlyWeightPlans.0_5' as const;
+      return 'welcomeScreen.monthlyWeightPlans.lose_0_5' as const;
     case 1:
-      return 'welcomeScreen.monthlyWeightPlans.1' as const;
-    case 2:
-      return 'welcomeScreen.monthlyWeightPlans.2' as const;
+      return 'welcomeScreen.monthlyWeightPlans.lose_1' as const;
     default:
       return 'welcomeScreen.monthlyWeightPlans.0' as const;
   }
