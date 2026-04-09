@@ -1,7 +1,5 @@
-import { Image } from 'expo-image';
 import { ScrollView, View } from 'react-native';
 import { useBottomPadding } from '@/hooks';
-import ScreenBackgroundImage from '../../../../assets/background.png';
 import { styles } from './ScreenContainer.styles';
 import type { ScreenContainerProps } from './ScreenContainer.types';
 
@@ -35,7 +33,6 @@ export function ScreenContainer({
   if (scrollable) {
     return (
       <View style={styles.container}>
-        <Image source={ScreenBackgroundImage} style={styles.backgroundImage} contentFit="cover" />
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[
@@ -56,7 +53,6 @@ export function ScreenContainer({
 
   return (
     <View style={styles.container}>
-      <Image source={ScreenBackgroundImage} style={styles.backgroundImage} contentFit="cover" />
       <View
         style={[
           styles.content,

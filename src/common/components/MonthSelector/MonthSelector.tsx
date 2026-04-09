@@ -1,10 +1,11 @@
+import { Image } from 'expo-image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, View, type ListRenderItem } from 'react-native';
 import { useUnistyles } from 'react-native-unistyles';
-import { Icon } from '@/common/components/Icon';
 import { IconButton } from '@/common/components/IconButton';
 import { Text } from '@/common/components/Text';
+import CrownIcon from '../../../../assets/crown.png';
 import { DAY_ITEM_WIDTH, styles } from './MonthSelector.styles';
 import type { MonthSelectorProps } from './MonthSelector.types';
 
@@ -131,24 +132,16 @@ export function MonthSelector({
     const disabled = isDateDisabled(item);
     const dateKey = item.toISOString().slice(0, 10);
     const status = dayStatuses?.[dateKey];
+    const isFailed = status === 'failed';
 
     let statusIcon = null;
     if (status === 'success') {
       statusIcon = (
-        <Icon
-          name="trophy"
-          size={14}
-          color={theme.colors.state.warning}
+        <Image
+          source={CrownIcon}
+          style={styles.crownIcon}
+          contentFit="contain"
           accessibilityLabel={t('homeScreen.monthStatus.goalMet')}
-        />
-      );
-    } else if (status === 'failed') {
-      statusIcon = (
-        <Icon
-          name="alert-circle"
-          size={14}
-          color={theme.colors.state.error}
-          accessibilityLabel={t('homeScreen.monthStatus.goalExceeded')}
         />
       );
     }
@@ -166,19 +159,32 @@ export function MonthSelector({
         onPress={() => onChange(startOfDay(item))}
         style={[styles.dayItem, disabled ? styles.dayItemDisabled : undefined]}
       >
-        <Text variant="caption" style={styles.dayName}>
+        <Text
+          variant="caption"
+          style={[styles.dayName, isFailed ? styles.dayNameFailed : undefined]}
+        >
           {weekdayFormatter.format(item)}
         </Text>
-        <View style={[styles.dayNumberWrap, isSelected ? styles.dayNumberWrapSelected : undefined]}>
+        <View style={styles.statusWrap}>{statusIcon}</View>
+        <View
+          style={[
+            styles.dayNumberWrap,
+            isSelected && !isFailed ? styles.dayNumberWrapSelected : undefined,
+            isFailed ? styles.dayNumberWrapFailed : undefined,
+          ]}
+        >
           <Text
             variant="bodySmall"
             weight="semibold"
-            style={[styles.dayNumberText, isSelected ? styles.dayNumberTextSelected : undefined]}
+            style={[
+              styles.dayNumberText,
+              isSelected && !isFailed ? styles.dayNumberTextSelected : undefined,
+              isFailed ? styles.dayNumberTextFailed : undefined,
+            ]}
           >
             {dayFormatter.format(item)}
           </Text>
         </View>
-        <View style={styles.statusWrap}>{statusIcon}</View>
       </Pressable>
     );
   };

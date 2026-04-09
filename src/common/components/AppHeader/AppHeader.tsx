@@ -241,7 +241,7 @@ export function AppHeader() {
 const styles = StyleSheet.create((theme, rt) => ({
   wrapper: {
     width: '100%',
-    backgroundColor: theme.colors.background.app,
+    backgroundColor: 'transparent',
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: rt.insets.top,
     paddingBottom: theme.metrics.spacingV.p4,
@@ -304,10 +304,19 @@ const styles = StyleSheet.create((theme, rt) => ({
     gap: theme.metrics.spacing.p16,
   },
   themeSelectWrap: {
-    width: theme.metrics.spacing.p20,
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
     flexShrink: 0,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
   },
   themeSelectContent: {
+    width: theme.metrics.spacing.p24,
+    height: theme.metrics.spacing.p24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -316,10 +325,19 @@ const styles = StyleSheet.create((theme, rt) => ({
     height: theme.metrics.spacing.p20,
   },
   selectWrap: {
-    width: theme.metrics.spacing.p20,
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
     flexShrink: 0,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
   },
   languageSelectContent: {
+    width: theme.metrics.spacing.p24,
+    height: theme.metrics.spacing.p24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -330,6 +348,6 @@ const styles = StyleSheet.create((theme, rt) => ({
   separator: {
     height: 1,
     marginHorizontal: -theme.metrics.spacing.p16,
-    backgroundColor: theme.colors.border.default,
+    backgroundColor: 'transparent',
   },
 }));

@@ -244,10 +244,6 @@ export default function FavoritesTab() {
                 onChangeText={setSearchValue}
                 placeholder={t('favoritesScreen.searchPlaceholder')}
               />
-
-              <Text variant="caption" color="secondary">
-                {t('favoritesScreen.filterHint')}
-              </Text>
             </View>
 
             {items.length === 0 ? (

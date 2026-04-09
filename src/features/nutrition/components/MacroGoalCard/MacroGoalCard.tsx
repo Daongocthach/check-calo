@@ -29,6 +29,7 @@ export function MacroGoalCard({
   const circumference = 2 * Math.PI * radius;
   const progress = target > 0 ? Math.min(current / target, 1) : 0;
   const strokeDashoffset = circumference * (1 - progress);
+  const isOverTarget = target > 0 && current > target;
 
   return (
     <View style={styles.card}>
@@ -61,7 +62,12 @@ export function MacroGoalCard({
           <Text variant="bodySmall" weight="semibold" align="center">
             {label}
           </Text>
-          <Text variant="caption" color="secondary" align="center">
+          <Text
+            variant="caption"
+            color="secondary"
+            align="center"
+            style={isOverTarget ? styles.targetExceededText : undefined}
+          >
             {`${Math.round(current)}/${Math.round(target)}g`}
           </Text>
         </View>
@@ -93,5 +99,8 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.metrics.spacingV.p4,
+  },
+  targetExceededText: {
+    color: theme.colors.state.error,
   },
 }));

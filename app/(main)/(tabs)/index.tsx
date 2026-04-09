@@ -194,6 +194,7 @@ export default function HomeTab() {
         keyExtractor={(item) => item.id}
         stickySectionHeadersEnabled={false}
         showsVerticalScrollIndicator={false}
+        style={styles.list}
         contentContainerStyle={styles.listContent}
         renderSectionHeader={({ section }) => (
           <View style={styles.mealSection}>
@@ -279,10 +280,19 @@ export default function HomeTab() {
                     <Text variant="caption" color="secondary">
                       {t('homeScreen.remaining')}
                     </Text>
-                    <Text variant="h2" align="right">
+                    <Text
+                      variant="h2"
+                      align="right"
+                      style={summary.remainingCalories < 0 ? styles.remainingOverText : undefined}
+                    >
                       {summary.remainingCalories}
                     </Text>
-                    <Text variant="bodySmall" color="accent" align="right">
+                    <Text
+                      variant="bodySmall"
+                      color={summary.remainingCalories >= 0 ? 'link' : 'accent'}
+                      align="right"
+                      style={summary.remainingCalories < 0 ? styles.remainingOverText : undefined}
+                    >
                       {summary.remainingCalories >= 0
                         ? t('homeScreen.onTrack')
                         : t('homeScreen.exceeded')}
@@ -298,7 +308,11 @@ export default function HomeTab() {
                     {`${summary.consumedCalories} ${t('common.units.kcal')} (${summary.progressPercent}%)`}
                   </Text>
                 </View>
-                <ProgressBar value={summary.progressPercent} size="lg" colorScheme="success" />
+                <ProgressBar
+                  value={summary.progressPercent}
+                  size="lg"
+                  colorScheme={summary.progressPercent >= 100 ? 'error' : 'success'}
+                />
 
                 <View style={styles.macroGoalSection}>
                   <Text
@@ -378,6 +392,10 @@ export default function HomeTab() {
 }
 
 const styles = StyleSheet.create((theme) => ({
+  list: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
   header: {
     gap: theme.metrics.spacingV.p20,
     paddingBottom: theme.metrics.spacingV.p24,
@@ -419,6 +437,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   heroStatEnd: {
     alignItems: 'flex-end',
+  },
+  remainingOverText: {
+    color: theme.colors.state.error,
   },
   progressHeader: {
     flexDirection: 'row',

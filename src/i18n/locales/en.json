@@ -370,7 +370,6 @@
     "heroSubtitle": "Your personal food collection",
     "addFavoriteAction": "Add a new food to the library",
     "searchPlaceholder": "Search your food library",
-    "filterHint": "Shows meals added on or before the selected day.",
     "savedItem": "Library item",
     "removeTitle": "Remove from library",
     "removeMessage": "Are you sure you want to remove {{mealName}} from the food library?",

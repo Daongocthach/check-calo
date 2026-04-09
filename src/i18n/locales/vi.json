@@ -370,7 +370,6 @@
     "heroSubtitle": "Kho món ăn cá nhân của bạn",
     "addFavoriteAction": "Thêm món mới vào thư viện",
     "searchPlaceholder": "Tìm món trong thư viện",
-    "filterHint": "Hiển thị các món được thêm từ ngày đã chọn trở về trước.",
     "savedItem": "Món trong thư viện",
     "removeTitle": "Xóa khỏi thư viện",
     "removeMessage": "Bạn có chắc muốn xóa {{mealName}} khỏi thư viện món không?",

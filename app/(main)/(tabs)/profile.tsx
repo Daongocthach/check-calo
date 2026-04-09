@@ -422,6 +422,13 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.metrics.spacing.p12,
+    backgroundColor:
+      theme.colors.mode === 'dark'
+        ? theme.colors.background.surfaceAlt
+        : theme.colors.background.elevated,
+    borderWidth: 1,
+    borderColor:
+      theme.colors.mode === 'dark' ? theme.colors.border.default : theme.colors.border.subtle,
   },
   heroIcon: {
     width: theme.metrics.spacing.p48,
@@ -429,7 +436,8 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.brand.secondary,
+    backgroundColor:
+      theme.colors.mode === 'dark' ? theme.colors.brand.primary : theme.colors.brand.secondary,
   },
   heroCopy: {
     flex: 1,
@@ -437,6 +445,13 @@ const styles = StyleSheet.create((theme) => ({
   },
   goalCard: {
     gap: theme.metrics.spacingV.p16,
+    backgroundColor:
+      theme.colors.mode === 'dark'
+        ? theme.colors.background.surfaceAlt
+        : theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor:
+      theme.colors.mode === 'dark' ? theme.colors.border.default : theme.colors.border.subtle,
   },
   goalHeader: {
     flexDirection: 'row',
@@ -460,25 +475,56 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacingV.p4,
     padding: theme.metrics.spacing.p12,
     borderRadius: theme.metrics.borderRadius.lg,
-    backgroundColor: theme.colors.background.section,
+    backgroundColor:
+      theme.colors.mode === 'dark'
+        ? theme.colors.background.elevated
+        : theme.colors.background.section,
+    borderWidth: 1,
+    borderColor:
+      theme.colors.mode === 'dark' ? theme.colors.border.subtle : theme.colors.border.default,
   },
   detailCard: {
     gap: theme.metrics.spacingV.p12,
+    backgroundColor:
+      theme.colors.mode === 'dark'
+        ? theme.colors.background.surface
+        : theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor:
+      theme.colors.mode === 'dark' ? theme.colors.border.default : theme.colors.border.subtle,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
+    borderBottomWidth: 1,
+    borderBottomColor:
+      theme.colors.mode === 'dark' ? theme.colors.border.subtle : theme.colors.border.subtle,
   },
   emptyCard: {
     gap: theme.metrics.spacingV.p12,
+    backgroundColor:
+      theme.colors.mode === 'dark'
+        ? theme.colors.background.surfaceAlt
+        : theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor:
+      theme.colors.mode === 'dark' ? theme.colors.border.default : theme.colors.border.subtle,
   },
   loginCard: {
     gap: theme.metrics.spacingV.p12,
   },
   authCard: {
     gap: theme.metrics.spacingV.p12,
+    backgroundColor:
+      theme.colors.mode === 'dark'
+        ? theme.colors.background.surfaceAlt
+        : theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor:
+      theme.colors.mode === 'dark' ? theme.colors.state.errorBg : theme.colors.border.subtle,
   },
   authCopy: {
     gap: theme.metrics.spacingV.p4,

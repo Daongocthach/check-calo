@@ -29,7 +29,7 @@ export const styles = StyleSheet.create((theme) => ({
   dayItem: {
     width: DAY_ITEM_WIDTH,
     alignItems: 'center',
-    gap: theme.metrics.spacingV.p4,
+    gap: 0,
   },
   dayItemDisabled: {
     opacity: 0.3,
@@ -38,15 +38,25 @@ export const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text.secondary,
     textTransform: 'uppercase',
   },
+  dayNameFailed: {
+    color: theme.colors.state.error,
+  },
   dayNumberWrap: {
     width: 38,
     height: 38,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   dayNumberWrapSelected: {
     backgroundColor: theme.colors.brand.primary,
+    borderColor: theme.colors.brand.primary,
+  },
+  dayNumberWrapFailed: {
+    backgroundColor: theme.colors.state.errorBg,
+    borderColor: theme.colors.state.error,
   },
   dayNumberText: {
     color: theme.colors.text.primary,
@@ -54,9 +64,18 @@ export const styles = StyleSheet.create((theme) => ({
   dayNumberTextSelected: {
     color: theme.colors.text.primary,
   },
+  dayNumberTextFailed: {
+    color: theme.colors.state.error,
+  },
   statusWrap: {
-    minHeight: theme.metrics.iconSize.sm,
+    height: theme.metrics.spacing.p20,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: -theme.metrics.spacingV.p8,
+    zIndex: 1,
+  },
+  crownIcon: {
+    width: theme.metrics.spacing.p20,
+    height: theme.metrics.spacing.p20,
   },
 }));

@@ -3,23 +3,19 @@ import { StyleSheet, type UnistylesVariants } from 'react-native-unistyles';
 export const styles = StyleSheet.create((theme, rt) => ({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.app,
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
+    backgroundColor: 'transparent',
   },
   scrollView: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   scrollContent: {
     flexGrow: 1,
+    backgroundColor: 'transparent',
   },
   content: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   padded: {
     paddingHorizontal: {

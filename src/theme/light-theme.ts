@@ -75,8 +75,8 @@ export const lightColors: ThemeColors = {
   },
 
   gradient: {
-    primary: ['#F1F8B2', '#E3F45A'],
-    secondary: ['#F6FBE0', '#DFF17A'],
+    primary: ['#F7F1A2', '#E3F45A'],
+    secondary: ['#FAF4BD', '#DFF17A'],
     accent: ['#FFD37A', '#FF9E3D'],
     success: ['#B9E67A', '#57A645'],
     error: ['#B91C1C', '#F87171'],

@@ -391,20 +391,16 @@ export async function listLoggedDailyStatuses(
   const summaries = await listDailyNutritionSummaries(startDate, endDate);
 
   return summaries.flatMap((summary) => {
-    const hasEntries =
-      summary.consumedCalories > 0 ||
-      summary.proteinGrams > 0 ||
-      summary.carbsGrams > 0 ||
-      summary.fatGrams > 0;
+    const hasLoggedCalories = summary.consumedCalories > 0;
 
-    if (!hasEntries) {
+    if (!hasLoggedCalories || summary.calorieTarget <= 0) {
       return [];
     }
 
     return [
       {
         date: summary.date,
-        status: summary.remainingCalories >= 0 ? 'success' : 'failed',
+        status: summary.consumedCalories <= summary.calorieTarget ? 'success' : 'failed',
       },
     ];
   });

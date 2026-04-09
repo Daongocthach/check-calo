@@ -1,5 +1,6 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useFonts } from 'expo-font';
+import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
@@ -7,7 +8,7 @@ import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import Toast from 'react-native-toast-message';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 import { AppHeader } from '@/common/components/AppHeader';
 import { ErrorBoundary } from '@/common/components/ErrorBoundary';
 import { useFoodEntrySyncQueue } from '@/features/nutrition/hooks/useFoodEntrySyncQueue';
@@ -17,6 +18,7 @@ import { useAuthStore } from '@/providers/auth/authStore';
 import { CameraProvider } from '@/providers/camera';
 import { initializeDatabase } from '@/services/database/sqlite';
 import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
+import AppBackground from '../assets/background.png';
 import InterBold from '../assets/fonts/Inter-Bold.ttf';
 import InterMedium from '../assets/fonts/Inter-Medium.ttf';
 import InterRegular from '../assets/fonts/Inter-Regular.ttf';
@@ -35,13 +37,11 @@ function useAuthInit() {
 }
 
 function RootNavigator() {
-  const { theme } = useUnistyles();
-
   return (
     <Stack
       screenOptions={{
-        header: () => <AppHeader />,
-        contentStyle: { backgroundColor: theme.colors.background.app },
+        headerShown: false,
+        contentStyle: { backgroundColor: 'transparent' },
       }}
       initialRouteName="welcome"
     >
@@ -57,6 +57,8 @@ function AppContent() {
 
   return (
     <View style={styles.appContainer}>
+      <Image source={AppBackground} style={styles.backgroundImage} contentFit="cover" />
+      <AppHeader />
       <RootNavigator />
       <Toast />
     </View>
@@ -130,5 +132,9 @@ const styles = StyleSheet.create((theme) => ({
   appContainer: {
     flex: 1,
     backgroundColor: theme.colors.background.app,
+  },
+  backgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.92,
   },
 }));
