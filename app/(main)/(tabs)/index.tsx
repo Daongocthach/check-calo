@@ -8,6 +8,7 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import {
   Button,
   Card,
+  Chip,
   Icon,
   MonthSelector,
   ProgressBar,
@@ -19,16 +20,30 @@ import { MacroGoalCard } from '@/features/nutrition/components/MacroGoalCard';
 import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import { getFoodEntryImageSyncStateMap } from '@/features/nutrition/services/foodEntrySyncQueue';
 import {
+  continueLatestCompletedGoal,
+  startWeightGoal,
+  syncGoalTracking,
+} from '@/features/nutrition/services/goalTrackingService';
+import {
   deleteFoodEntry,
   getDailyNutritionSummary,
   getUserProfile,
   listLoggedDailyStatuses,
   listFoodEntriesByDate,
 } from '@/features/nutrition/services/nutritionDatabase';
-import type { DailyNutritionSummary, FoodEntry, UserProfile } from '@/features/nutrition/types';
+import type {
+  AchievementKey,
+  DailyNutritionSummary,
+  FoodEntry,
+  GoalTrackingSnapshot,
+  UserProfile,
+  WeightGoalMode,
+  WeightGoalProgress,
+} from '@/features/nutrition/types';
 import { getDailyCalorieGoalState, getWeightGoalMode } from '@/features/nutrition/utils/calorie';
 import { useAppAlert } from '@/providers/app-alert';
 import { vs } from '@/theme/metrics';
+import { toast } from '@/utils/toast';
 
 interface MealSection {
   title: string;
@@ -131,6 +146,53 @@ function getHomeBalanceCopy(
   };
 }
 
+function getGoalTitleKey(mode: WeightGoalMode) {
+  switch (mode) {
+    case 'gain':
+      return 'goalTracking.goalNames.gain' as const;
+    case 'maintain':
+      return 'goalTracking.goalNames.maintain' as const;
+    default:
+      return 'goalTracking.goalNames.lose' as const;
+  }
+}
+
+function getAchievementTitleKey(achievementKey: AchievementKey) {
+  switch (achievementKey) {
+    case 'fire_keeper_7':
+      return 'achievements.items.fire_keeper_7.title' as const;
+    case 'fire_keeper_14':
+      return 'achievements.items.fire_keeper_14.title' as const;
+    case 'first_maintain_goal':
+      return 'achievements.items.first_maintain_goal.title' as const;
+    default:
+      return 'achievements.items.goal_crusher.title' as const;
+  }
+}
+
+function getGoalProgressCopy(
+  t: ReturnType<typeof useTranslation>['t'],
+  goalProgress: WeightGoalProgress
+) {
+  if (goalProgress.unit === 'days') {
+    return {
+      progressLabel: t('goalTracking.progressDays', {
+        current: goalProgress.progressValue,
+        target: goalProgress.targetValue,
+      }),
+      remainingLabel: t('goalTracking.remainingDays', { value: goalProgress.remainingValue }),
+    };
+  }
+
+  return {
+    progressLabel: t('goalTracking.progressKcal', {
+      current: goalProgress.progressValue,
+      target: goalProgress.targetValue,
+    }),
+    remainingLabel: t('goalTracking.remainingKcal', { value: goalProgress.remainingValue }),
+  };
+}
+
 export default function HomeTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
@@ -146,6 +208,7 @@ export default function HomeTab() {
   const [monthStatuses, setMonthStatuses] = useState<Partial<Record<string, 'success' | 'failed'>>>(
     {}
   );
+  const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
 
   const loadMonthStatuses = useCallback(async (month: Date) => {
     const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -178,11 +241,31 @@ export default function HomeTab() {
     setEntries(entriesWithSyncDebug);
   }, []);
 
+  const loadGoalTracking = useCallback(async () => {
+    const snapshot = await syncGoalTracking();
+    setGoalTracking(snapshot);
+
+    if (snapshot.justCompletedGoal) {
+      toast.success(t('goalTracking.toasts.goalCompleted'));
+    }
+
+    if (snapshot.newlyUnlockedAchievements.length > 0) {
+      const newestAchievement =
+        snapshot.newlyUnlockedAchievements[snapshot.newlyUnlockedAchievements.length - 1];
+      toast.success(
+        t('goalTracking.toasts.achievementUnlocked', {
+          title: t(getAchievementTitleKey(newestAchievement)),
+        })
+      );
+    }
+  }, [t]);
+
   useFocusEffect(
     useCallback(() => {
       void loadNutritionData(selectedDate);
       void loadMonthStatuses(visibleMonth);
-    }, [loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth])
+      void loadGoalTracking();
+    }, [loadGoalTracking, loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth])
   );
 
   const mealSections = useMemo<MealSection[]>(() => {
@@ -219,6 +302,45 @@ export default function HomeTab() {
     return goalState === 'below_target' ? 'warning' : 'error';
   }, [profile, summary.calorieTarget, summary.consumedCalories]);
 
+  const activeGoalProgress = goalTracking?.activeGoal ?? null;
+  const latestCompletedGoal = goalTracking?.latestCompletedGoal ?? null;
+  const activeGoalCopy = useMemo(
+    () => (activeGoalProgress ? getGoalProgressCopy(t, activeGoalProgress) : null),
+    [activeGoalProgress, t]
+  );
+  const unlockedAchievementPreview = goalTracking?.unlockedAchievements.slice(0, 2) ?? [];
+
+  const handleChooseNewGoal = useCallback(() => {
+    appAlert.alert(t('goalTracking.actions.chooseNew'), t('goalTracking.choosePrompt'), [
+      {
+        text: t('goalTracking.actions.lose1kg'),
+        onPress: () => {
+          void startWeightGoal('lose').then(loadGoalTracking);
+        },
+      },
+      {
+        text: t('goalTracking.actions.maintain7Days'),
+        onPress: () => {
+          void startWeightGoal('maintain').then(loadGoalTracking);
+        },
+      },
+      {
+        text: t('goalTracking.actions.gain1kg'),
+        onPress: () => {
+          void startWeightGoal('gain').then(loadGoalTracking);
+        },
+      },
+    ]);
+  }, [appAlert, loadGoalTracking, t]);
+
+  const handleContinueGoal = useCallback(() => {
+    void continueLatestCompletedGoal().then((didContinue) => {
+      if (didContinue) {
+        void loadGoalTracking();
+      }
+    });
+  }, [loadGoalTracking]);
+
   const handleDeleteMeal = useCallback(
     (meal: FoodEntry) => {
       appAlert.alert(
@@ -236,14 +358,92 @@ export default function HomeTab() {
               void deleteFoodEntry(meal.id).then(async () => {
                 await deleteOrphanedFoodEntryAssets(meal.imageUri, meal.thumbnailUri);
                 await loadNutritionData(selectedDate);
+                await loadGoalTracking();
               });
             },
           },
         ]
       );
     },
-    [appAlert, loadNutritionData, selectedDate, t]
+    [appAlert, loadGoalTracking, loadNutritionData, selectedDate, t]
   );
+
+  let goalTrackingSection = null;
+
+  if (hasProfile && activeGoalProgress) {
+    goalTrackingSection = (
+      <Card variant="filled" style={styles.goalTrackingCard}>
+        <View style={styles.goalTrackingHeader}>
+          <View style={styles.goalTrackingCopy}>
+            <Text variant="h3">{t('goalTracking.activeTitle')}</Text>
+            <Text variant="bodySmall" color="secondary">
+              {t(getGoalTitleKey(activeGoalProgress.goal.mode))}
+            </Text>
+          </View>
+          <Chip
+            label={`${activeGoalProgress.progressPercent}%`}
+            variant="outline"
+            icon={<Icon name="trophy-outline" variant="accent" size={14} />}
+          />
+        </View>
+        <Text variant="bodySmall" color="secondary">
+          {activeGoalCopy?.progressLabel}
+        </Text>
+        <ProgressBar value={activeGoalProgress.progressPercent} size="md" colorScheme="success" />
+        <Text variant="bodySmall" color="secondary">
+          {activeGoalCopy?.remainingLabel}
+        </Text>
+        <Button
+          title={t('goalTracking.actions.chooseNew')}
+          variant="outline"
+          size="sm"
+          onPress={handleChooseNewGoal}
+        />
+      </Card>
+    );
+  } else if (hasProfile && latestCompletedGoal) {
+    goalTrackingSection = (
+      <Card variant="filled" style={styles.goalTrackingCard}>
+        <View style={styles.goalTrackingCopy}>
+          <Text variant="h3">{t('goalTracking.completedTitle')}</Text>
+          <Text variant="bodySmall" color="secondary">
+            {t(getGoalTitleKey(latestCompletedGoal.goal.mode))}
+          </Text>
+        </View>
+        <View style={styles.goalActionRow}>
+          <Button
+            title={t('goalTracking.actions.continueGoal')}
+            variant="primary"
+            size="sm"
+            onPress={handleContinueGoal}
+          />
+          <Button
+            title={t('goalTracking.actions.chooseNew')}
+            variant="outline"
+            size="sm"
+            onPress={handleChooseNewGoal}
+          />
+        </View>
+      </Card>
+    );
+  } else if (hasProfile) {
+    goalTrackingSection = (
+      <Card variant="filled" style={styles.goalTrackingCard}>
+        <View style={styles.goalTrackingCopy}>
+          <Text variant="h3">{t('goalTracking.emptyTitle')}</Text>
+          <Text variant="bodySmall" color="secondary">
+            {t('goalTracking.emptySubtitle')}
+          </Text>
+        </View>
+        <Button
+          title={t('goalTracking.actions.startGoal')}
+          variant="primary"
+          size="sm"
+          onPress={handleChooseNewGoal}
+        />
+      </Card>
+    );
+  }
 
   return (
     <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
@@ -432,6 +632,48 @@ export default function HomeTab() {
               </Card>
             )}
 
+            {goalTrackingSection}
+
+            {goalTracking ? (
+              <Card variant="filled" style={styles.achievementCard}>
+                <View style={styles.goalTrackingHeader}>
+                  <View style={styles.goalTrackingCopy}>
+                    <Text variant="h3">{t('achievements.title')}</Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {t('achievements.subtitle')}
+                    </Text>
+                  </View>
+                  <Chip
+                    label={t('achievements.count', {
+                      count: goalTracking.unlockedAchievements.length,
+                    })}
+                    variant="outline"
+                  />
+                </View>
+                <View style={styles.achievementRow}>
+                  <Text variant="bodySmall" color="secondary">
+                    {t('achievements.currentStreak')}
+                  </Text>
+                  <Text variant="body" weight="semibold">
+                    {t('achievements.currentStreakValue', { count: goalTracking.currentStreak })}
+                  </Text>
+                </View>
+                {unlockedAchievementPreview.map((achievement) => (
+                  <View key={achievement.id} style={styles.achievementRow}>
+                    <Text variant="bodySmall">
+                      {t(getAchievementTitleKey(achievement.achievementKey))}
+                    </Text>
+                    <Icon name="flame-outline" variant="accent" size={16} />
+                  </View>
+                ))}
+                {goalTracking.unlockedAchievements.length === 0 ? (
+                  <Text variant="bodySmall" color="secondary">
+                    {t('achievements.empty')}
+                  </Text>
+                ) : null}
+              </Card>
+            ) : null}
+
             {entries.length === 0 ? (
               <Card variant="filled" style={styles.emptyCard}>
                 <Text variant="h3">{t('homeScreen.meals.emptyTitle')}</Text>
@@ -539,6 +781,32 @@ const styles = StyleSheet.create((theme) => ({
   profilePromptCopy: {
     flex: 1,
     gap: theme.metrics.spacingV.p4,
+  },
+  goalTrackingCard: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  achievementCard: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  goalTrackingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  goalTrackingCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  goalActionRow: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p12,
+  },
+  achievementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
   },
   mealSection: {
     gap: theme.metrics.spacingV.p12,

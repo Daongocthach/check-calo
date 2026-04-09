@@ -11,11 +11,13 @@ import {
   logout,
 } from '@/features/auth/services/authService';
 import { clearManagedFoodEntryImageCache } from '@/features/nutrition/services/foodEntryImageSync';
+import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
 import {
   deleteUserProfile,
   getUserProfile,
   resetNutritionData,
 } from '@/features/nutrition/services/nutritionDatabase';
+import type { AchievementKey, GoalTrackingSnapshot } from '@/features/nutrition/types';
 import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { toast } from '@/utils/toast';
@@ -37,6 +39,30 @@ function getMonthlyWeightPlanKey(value: number) {
   }
 }
 
+function getGoalTitleKey(mode: 'lose' | 'gain' | 'maintain') {
+  switch (mode) {
+    case 'gain':
+      return 'goalTracking.goalNames.gain' as const;
+    case 'maintain':
+      return 'goalTracking.goalNames.maintain' as const;
+    default:
+      return 'goalTracking.goalNames.lose' as const;
+  }
+}
+
+function getAchievementTitleKey(achievementKey: AchievementKey) {
+  switch (achievementKey) {
+    case 'fire_keeper_7':
+      return 'achievements.items.fire_keeper_7.title' as const;
+    case 'fire_keeper_14':
+      return 'achievements.items.fire_keeper_14.title' as const;
+    case 'first_maintain_goal':
+      return 'achievements.items.first_maintain_goal.title' as const;
+    default:
+      return 'achievements.items.goal_crusher.title' as const;
+  }
+}
+
 export default function ProfileTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
@@ -47,6 +73,7 @@ export default function ProfileTab() {
   const [isResettingData, setIsResettingData] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeletingSyncAccount, setIsDeletingSyncAccount] = useState(false);
+  const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
   const [profileSummary, setProfileSummary] = useState<{
     bmi: string;
     maintenanceCalorieTarget: string;
@@ -90,6 +117,13 @@ export default function ProfileTab() {
           activityLevel: t(`welcomeScreen.activityLevels.${profile.activityLevel}`),
           gender: t(`welcomeScreen.genderOptions.${profile.gender}`),
         });
+      });
+      void syncGoalTracking().then((snapshot) => {
+        if (!active) {
+          return;
+        }
+
+        setGoalTracking(snapshot);
       });
 
       return () => {
@@ -225,6 +259,59 @@ export default function ProfileTab() {
     ]);
   }, [appAlert, t]);
 
+  let goalProgressContent = null;
+
+  if (goalTracking?.activeGoal) {
+    const goalProgressLabel =
+      goalTracking.activeGoal.unit === 'days'
+        ? t('goalTracking.progressDays', {
+            current: goalTracking.activeGoal.progressValue,
+            target: goalTracking.activeGoal.targetValue,
+          })
+        : t('goalTracking.progressKcal', {
+            current: goalTracking.activeGoal.progressValue,
+            target: goalTracking.activeGoal.targetValue,
+          });
+
+    goalProgressContent = (
+      <>
+        <View style={styles.detailRow}>
+          <Text variant="bodySmall" color="secondary">
+            {t('goalTracking.activeTitle')}
+          </Text>
+          <Text variant="body" weight="semibold">
+            {t(getGoalTitleKey(goalTracking.activeGoal.goal.mode))}
+          </Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Text variant="bodySmall" color="secondary">
+            {t('goalTracking.progressLabel')}
+          </Text>
+          <Text variant="body" weight="semibold">
+            {goalProgressLabel}
+          </Text>
+        </View>
+      </>
+    );
+  } else if (goalTracking?.latestCompletedGoal) {
+    goalProgressContent = (
+      <View style={styles.detailRow}>
+        <Text variant="bodySmall" color="secondary">
+          {t('goalTracking.completedTitle')}
+        </Text>
+        <Text variant="body" weight="semibold">
+          {t(getGoalTitleKey(goalTracking.latestCompletedGoal.goal.mode))}
+        </Text>
+      </View>
+    );
+  } else if (goalTracking) {
+    goalProgressContent = (
+      <Text variant="bodySmall" color="secondary">
+        {t('goalTracking.emptySubtitle')}
+      </Text>
+    );
+  }
+
   return (
     <ScreenContainer scrollable padded edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
@@ -312,6 +399,43 @@ export default function ProfileTab() {
                 />
               </View>
             </Card>
+
+            {goalTracking ? (
+              <>
+                <Card variant="filled" style={styles.detailCard}>
+                  <Text variant="h3">{t('goalTracking.profileTitle')}</Text>
+                  {goalProgressContent}
+                </Card>
+
+                <Card variant="filled" style={styles.detailCard}>
+                  <Text variant="h3">{t('achievements.title')}</Text>
+                  <View style={styles.detailRow}>
+                    <Text variant="bodySmall" color="secondary">
+                      {t('achievements.currentStreak')}
+                    </Text>
+                    <Text variant="body" weight="semibold">
+                      {t('achievements.currentStreakValue', {
+                        count: goalTracking.currentStreak,
+                      })}
+                    </Text>
+                  </View>
+                  {goalTracking.unlockedAchievements.length === 0 ? (
+                    <Text variant="bodySmall" color="secondary">
+                      {t('achievements.empty')}
+                    </Text>
+                  ) : (
+                    goalTracking.unlockedAchievements.map((achievement) => (
+                      <View key={achievement.id} style={styles.detailRow}>
+                        <Text variant="bodySmall">
+                          {t(getAchievementTitleKey(achievement.achievementKey))}
+                        </Text>
+                        <Icon name="flame-outline" variant="accent" size={16} />
+                      </View>
+                    ))
+                  )}
+                </Card>
+              </>
+            ) : null}
 
             <Card variant="filled" style={styles.detailCard}>
               <Text variant="h3">{t('profileScreen.bodyMetricsTitle')}</Text>

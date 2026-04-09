@@ -517,6 +517,58 @@
       "dark": "Tối"
     }
   },
+  "goalTracking": {
+    "activeTitle": "Mục tiêu hiện tại",
+    "completedTitle": "Đã hoàn thành mục tiêu",
+    "profileTitle": "Tiến độ mục tiêu",
+    "progressLabel": "Tiến độ",
+    "emptyTitle": "Chọn mục tiêu tiếp theo",
+    "emptySubtitle": "Tiếp tục đi bằng mục tiêu calories hoặc chuỗi ngày giữ cân.",
+    "choosePrompt": "Chọn mục tiêu bạn muốn bắt đầu tiếp theo.",
+    "progressKcal": "{{current}} / {{target}} kcal",
+    "progressDays": "{{current}} / {{target}} ngày",
+    "remainingKcal": "Còn {{value}} kcal",
+    "remainingDays": "Còn {{value}} ngày",
+    "goalNames": {
+      "lose": "Giảm 1 kg",
+      "gain": "Tăng 1 kg",
+      "maintain": "Giữ cân 7 ngày"
+    },
+    "actions": {
+      "startGoal": "Bắt đầu mục tiêu",
+      "chooseNew": "Chọn mục tiêu mới",
+      "continueGoal": "Tiếp tục mục tiêu này",
+      "lose1kg": "Giảm 1 kg",
+      "gain1kg": "Tăng 1 kg",
+      "maintain7Days": "Giữ cân 7 ngày"
+    },
+    "toasts": {
+      "goalCompleted": "Bạn đã hoàn thành mục tiêu. Hãy chọn bước tiếp theo.",
+      "achievementUnlocked": "Mở khóa thành tựu: {{title}}"
+    }
+  },
+  "achievements": {
+    "title": "Thành tựu",
+    "subtitle": "Những cột mốc nhỏ giúp bạn giữ lửa mỗi ngày.",
+    "count": "Đã mở khóa {{count}}",
+    "empty": "Bạn chưa mở khóa thành tựu nào.",
+    "currentStreak": "Chuỗi hiện tại",
+    "currentStreakValue": "{{count}} ngày",
+    "items": {
+      "goal_crusher": {
+        "title": "Phá đảo mục tiêu"
+      },
+      "fire_keeper_7": {
+        "title": "Người giữ lửa"
+      },
+      "fire_keeper_14": {
+        "title": "Giữ lửa bền bỉ"
+      },
+      "first_maintain_goal": {
+        "title": "Bậc thầy cân bằng"
+      }
+    }
+  },
   "auth": {
     "email": "Email",
     "password": "Mật khẩu",

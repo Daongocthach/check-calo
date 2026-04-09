@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 6;
+const DATABASE_VERSION = 7;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -291,6 +291,34 @@ async function runVersion6Migration(database: SQLite.SQLiteDatabase) {
   `);
 }
 
+async function runVersion7Migration(database: SQLite.SQLiteDatabase) {
+  await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS weight_goals (
+      id TEXT PRIMARY KEY NOT NULL,
+      mode TEXT NOT NULL CHECK (mode IN ('lose', 'gain', 'maintain')),
+      target_kg REAL,
+      target_kcal_delta INTEGER NOT NULL DEFAULT 0,
+      target_days INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL CHECK (status IN ('active', 'completed', 'cancelled')),
+      started_at TEXT NOT NULL,
+      completed_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_weight_goals_status_started_at
+      ON weight_goals(status, started_at DESC);
+
+    CREATE TABLE IF NOT EXISTS achievement_unlocks (
+      id TEXT PRIMARY KEY NOT NULL,
+      achievement_key TEXT NOT NULL UNIQUE,
+      unlocked_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -318,6 +346,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 6) {
     await runVersion6Migration(database);
+  }
+
+  if (currentVersion < 7) {
+    await runVersion7Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {

@@ -517,6 +517,58 @@
       "dark": "Dark"
     }
   },
+  "goalTracking": {
+    "activeTitle": "Current goal",
+    "completedTitle": "Goal completed",
+    "profileTitle": "Goal progress",
+    "progressLabel": "Progress",
+    "emptyTitle": "Pick your next goal",
+    "emptySubtitle": "Use calorie progress or maintenance days to keep moving forward.",
+    "choosePrompt": "Choose the goal you want to start next.",
+    "progressKcal": "{{current}} / {{target}} kcal",
+    "progressDays": "{{current}} / {{target}} days",
+    "remainingKcal": "{{value}} kcal left",
+    "remainingDays": "{{value}} days left",
+    "goalNames": {
+      "lose": "Lose 1 kg",
+      "gain": "Gain 1 kg",
+      "maintain": "Maintain for 7 days"
+    },
+    "actions": {
+      "startGoal": "Start goal",
+      "chooseNew": "Choose new goal",
+      "continueGoal": "Continue this goal",
+      "lose1kg": "Lose 1 kg",
+      "gain1kg": "Gain 1 kg",
+      "maintain7Days": "Maintain 7 days"
+    },
+    "toasts": {
+      "goalCompleted": "Goal completed. Pick the next step.",
+      "achievementUnlocked": "Achievement unlocked: {{title}}"
+    }
+  },
+  "achievements": {
+    "title": "Achievements",
+    "subtitle": "Small wins that keep your streak alive.",
+    "count": "{{count}} unlocked",
+    "empty": "No achievements unlocked yet.",
+    "currentStreak": "Current streak",
+    "currentStreakValue": "{{count}} days",
+    "items": {
+      "goal_crusher": {
+        "title": "Goal Crusher"
+      },
+      "fire_keeper_7": {
+        "title": "Fire Keeper"
+      },
+      "fire_keeper_14": {
+        "title": "Steady Flame"
+      },
+      "first_maintain_goal": {
+        "title": "Balance Keeper"
+      }
+    }
+  },
   "auth": {
     "email": "Email",
     "password": "Password",
