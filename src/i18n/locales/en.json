@@ -444,8 +444,10 @@
       "0": "Maintain current weight",
       "lose_0_5": "Lose 0.5 kg/month",
       "lose_1": "Lose 1 kg/month",
+      "lose_2": "Lose 2 kg/month",
       "gain_0_5": "Gain 0.5 kg/month",
-      "gain_1": "Gain 1 kg/month"
+      "gain_1": "Gain 1 kg/month",
+      "gain_2": "Gain 2 kg/month"
     },
     "placeholders": {
       "age": "Enter age",

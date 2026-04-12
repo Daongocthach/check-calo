@@ -83,12 +83,12 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
                 </View>
                 {isFocused ? (
                   <View style={styles.addTabActiveBadge}>
-                    <Ionicons name="sparkles" size={11} color={theme.colors.text.onBrand} />
+                    <Ionicons name="sparkles" size={11} color={theme.colors.brand.onBrand} />
                   </View>
                 ) : null}
                 {isFocused ? (
                   <View style={styles.addTabActiveLabel}>
-                    <Ionicons name="radio-button-on" size={10} color={theme.colors.text.onBrand} />
+                    <Ionicons name="radio-button-on" size={10} color={theme.colors.brand.onBrand} />
                     <Text variant="caption" weight="semibold" color="onBrand">
                       {options.title}
                     </Text>

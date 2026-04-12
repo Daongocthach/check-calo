@@ -79,7 +79,7 @@ export function SegmentedControl({
             isSelected={isSelected}
             disabled={disabled}
             indicatorPosition={indicatorPosition}
-            inverseColor={theme.colors.text.onBrand}
+            inverseColor={theme.colors.brand.onBrand}
             secondaryColor={theme.colors.text.secondary}
             onPress={() => handleSelect(option.value, index)}
           />

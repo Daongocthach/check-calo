@@ -27,7 +27,8 @@ export type TextColor =
   | 'accent'
   | 'link'
   | 'linkHover'
-  | 'onBrand';
+  | 'onBrand'
+  | 'onShadow';
 
 /** Props for the {@link Text} component. */
 export interface TextProps extends RNTextProps {

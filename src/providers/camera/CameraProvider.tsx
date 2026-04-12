@@ -317,11 +317,7 @@ export function CameraProvider({ children }: CameraProviderProps) {
                 <Icon
                   name="close"
                   variant="onBrand"
-                  color={
-                    theme.colors.mode === 'dark'
-                      ? theme.colors.text.primary
-                      : theme.colors.text.onBrand
-                  }
+                  color={theme.colors.shadow.onShadow}
                   size={18}
                 />
               </Pressable>
@@ -344,11 +340,7 @@ export function CameraProvider({ children }: CameraProviderProps) {
                 <Icon
                   name="camera-reverse-outline"
                   variant="onBrand"
-                  color={
-                    theme.colors.mode === 'dark'
-                      ? theme.colors.text.primary
-                      : theme.colors.text.onBrand
-                  }
+                  color={theme.colors.shadow.onShadow}
                   size={22}
                 />
               </Pressable>
@@ -380,11 +372,7 @@ export function CameraProvider({ children }: CameraProviderProps) {
                 <Icon
                   name={isTorchEnabled ? 'flash' : 'flash-outline'}
                   variant="onBrand"
-                  color={
-                    theme.colors.mode === 'dark'
-                      ? theme.colors.text.primary
-                      : theme.colors.text.onBrand
-                  }
+                  color={theme.colors.shadow.onShadow}
                   size={22}
                 />
               </Pressable>
@@ -447,7 +435,7 @@ const styles = StyleSheet.create((theme, rt) => ({
     zIndex: 2,
   },
   headerText: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.shadow.onShadow,
   },
   headerAction: {
     width: 36,
@@ -501,8 +489,7 @@ const styles = StyleSheet.create((theme, rt) => ({
     height: 82,
     borderRadius: theme.metrics.borderRadius.full,
     borderWidth: 4,
-    borderColor:
-      theme.colors.mode === 'dark' ? theme.colors.text.primary : theme.colors.text.onBrand,
+    borderColor: theme.colors.shadow.onShadow,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.overlay.focus,
@@ -515,8 +502,7 @@ const styles = StyleSheet.create((theme, rt) => ({
     width: 60,
     height: 60,
     borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor:
-      theme.colors.mode === 'dark' ? theme.colors.text.primary : theme.colors.text.onBrand,
+    backgroundColor: theme.colors.shadow.onShadow,
   },
   captureInnerTablet: {
     width: 70,
@@ -540,18 +526,16 @@ const styles = StyleSheet.create((theme, rt) => ({
     height: 300,
     borderWidth: 3,
     borderRadius: theme.metrics.borderRadius.md,
-    borderColor:
-      theme.colors.mode === 'dark' ? theme.colors.text.primary : theme.colors.text.onBrand,
+    borderColor: theme.colors.shadow.onShadow,
   },
   scanFocusDot: {
     width: 12,
     height: 12,
     borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor:
-      theme.colors.mode === 'dark' ? theme.colors.text.primary : theme.colors.text.onBrand,
+    backgroundColor: theme.colors.shadow.onShadow,
   },
   scanHint: {
-    color: theme.colors.mode === 'dark' ? theme.colors.text.primary : theme.colors.text.onBrand,
+    color: theme.colors.shadow.onShadow,
     textAlign: 'center',
   },
   scanModeSpacer: {

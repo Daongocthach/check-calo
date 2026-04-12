@@ -59,7 +59,7 @@ export function AddMealFoodCard({
       >
         <FoodImagePreview imageUri={imageUri} thumbnailUri={thumbnailUri} style={styles.imageWrap}>
           <View style={styles.caloriesBadge}>
-            <Text variant="caption" weight="semibold" color="inverse">
+            <Text variant="caption" weight="semibold" color="onShadow">
               {`${Math.round(totalCalories)} ${kcalUnit}`}
             </Text>
           </View>

@@ -117,6 +117,6 @@ export const styles = StyleSheet.create((theme) => ({
   addBubbleSolidActive: {
     borderWidth: 2,
     borderColor:
-      theme.colors.mode === 'dark' ? theme.colors.text.onBrand : theme.colors.background.surface,
+      theme.colors.mode === 'dark' ? theme.colors.brand.onBrand : theme.colors.background.surface,
   },
 }));

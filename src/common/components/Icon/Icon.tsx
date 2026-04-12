@@ -24,10 +24,22 @@ export function Icon({
       size={size}
       accessibilityRole="image"
       accessibilityLabel={accessibilityLabel}
-      uniProps={(theme) => ({
-        color: destructive ? theme.colors.state.error : (color ?? theme.colors.icon[variant]),
-        ...(sizeVariant !== undefined && { size: theme.metrics.iconSize[sizeVariant] }),
-      })}
+      uniProps={(theme) => {
+        const variantColorMap = {
+          primary: theme.colors.icon.primary,
+          secondary: theme.colors.icon.secondary,
+          tertiary: theme.colors.icon.tertiary,
+          muted: theme.colors.icon.muted,
+          inverse: theme.colors.icon.inverse,
+          accent: theme.colors.icon.accent,
+          onBrand: theme.colors.brand.onBrand,
+        };
+
+        return {
+          color: destructive ? theme.colors.state.error : (color ?? variantColorMap[variant]),
+          ...(sizeVariant !== undefined && { size: theme.metrics.iconSize[sizeVariant] }),
+        };
+      }}
     />
   );
 }

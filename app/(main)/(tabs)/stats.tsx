@@ -442,7 +442,7 @@ export default function StatsTab() {
                   strokeColor={theme.colors.background.surface}
                   strokeWidth={2}
                   showText
-                  textColor={theme.colors.text.onBrand}
+                  textColor={theme.colors.brand.onBrand}
                   textSize={12}
                   fontWeight="700"
                   showValuesAsLabels

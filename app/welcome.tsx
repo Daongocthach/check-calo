@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Card, Input, ScreenContainer, Text } from '@/common/components';
@@ -53,6 +53,8 @@ interface ProfileSummaryState {
 
 function getMonthlyWeightGoalPlanKey(value: number) {
   switch (value) {
+    case -2:
+      return 'welcomeScreen.monthlyWeightPlans.gain_2' as const;
     case -1:
       return 'welcomeScreen.monthlyWeightPlans.gain_1' as const;
     case -0.5:
@@ -63,6 +65,8 @@ function getMonthlyWeightGoalPlanKey(value: number) {
       return 'welcomeScreen.monthlyWeightPlans.lose_0_5' as const;
     case 1:
       return 'welcomeScreen.monthlyWeightPlans.lose_1' as const;
+    case 2:
+      return 'welcomeScreen.monthlyWeightPlans.lose_2' as const;
     default:
       return 'welcomeScreen.monthlyWeightPlans.0' as const;
   }
@@ -71,6 +75,14 @@ function getMonthlyWeightGoalPlanKey(value: number) {
 function isPositiveNumber(value: string) {
   const parsedValue = Number(value);
   return !Number.isNaN(parsedValue) && parsedValue > 0;
+}
+
+function validateRequiredPositive(value: string, requiredMessage: string, positiveMessage: string) {
+  if (value.trim().length === 0) {
+    return requiredMessage;
+  }
+
+  return isPositiveNumber(value) || positiveMessage;
 }
 
 function buildProfileSummary(form: ProfileFormState): ProfileSummaryState | null {
@@ -252,7 +264,7 @@ export default function WelcomeScreen() {
                         <Text
                           variant="caption"
                           weight="semibold"
-                          color={isActive ? 'primary' : 'secondary'}
+                          color={isActive ? 'onBrand' : 'secondary'}
                         >
                           {t(`welcomeScreen.genderOptions.${gender}`)}
                         </Text>
@@ -268,7 +280,11 @@ export default function WelcomeScreen() {
                 rules={{
                   required: t('validation.required'),
                   validate: (value) =>
-                    isPositiveNumber(value) || t('welcomeScreen.validation.positive'),
+                    validateRequiredPositive(
+                      value,
+                      t('validation.required'),
+                      t('welcomeScreen.validation.positive')
+                    ),
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
@@ -291,7 +307,11 @@ export default function WelcomeScreen() {
                     rules={{
                       required: t('validation.required'),
                       validate: (value) =>
-                        isPositiveNumber(value) || t('welcomeScreen.validation.positive'),
+                        validateRequiredPositive(
+                          value,
+                          t('validation.required'),
+                          t('welcomeScreen.validation.positive')
+                        ),
                     }}
                     render={({ field: { onChange, onBlur, value } }) => (
                       <Input
@@ -313,7 +333,11 @@ export default function WelcomeScreen() {
                     rules={{
                       required: t('validation.required'),
                       validate: (value) =>
-                        isPositiveNumber(value) || t('welcomeScreen.validation.positive'),
+                        validateRequiredPositive(
+                          value,
+                          t('validation.required'),
+                          t('welcomeScreen.validation.positive')
+                        ),
                     }}
                     render={({ field: { onChange, onBlur, value } }) => (
                       <Input
@@ -350,7 +374,7 @@ export default function WelcomeScreen() {
                         <Text
                           variant="caption"
                           weight="semibold"
-                          color={isActive ? 'primary' : 'secondary'}
+                          color={isActive ? 'onBrand' : 'secondary'}
                         >
                           {t(optionKey)}
                         </Text>
@@ -379,7 +403,7 @@ export default function WelcomeScreen() {
                         <Text
                           variant="caption"
                           weight="semibold"
-                          color={isActive ? 'primary' : 'secondary'}
+                          color={isActive ? 'onBrand' : 'secondary'}
                         >
                           {t(`welcomeScreen.activityLevels.${activityLevel}`)}
                         </Text>
@@ -424,25 +448,34 @@ export default function WelcomeScreen() {
           </View>
         </KeyboardAwareScrollView>
 
-        <View
-          style={[
-            styles.footer,
-            {
-              paddingBottom: insets.bottom + theme.metrics.spacingV.p16,
-            },
-          ]}
+        <KeyboardStickyView
+          enabled
+          offset={{
+            closed: 0,
+            opened: 0,
+          }}
+          style={styles.footerSticky}
         >
-          <View style={styles.actions}>
-            <Button
-              title={t('welcomeScreen.saveAction')}
-              fullWidth
-              loading={isSaving}
-              onPress={() => {
-                void handleSubmit(onSubmit)();
-              }}
-            />
+          <View
+            style={[
+              styles.footer,
+              {
+                paddingBottom: insets.bottom + theme.metrics.spacingV.p16,
+              },
+            ]}
+          >
+            <View style={styles.actions}>
+              <Button
+                title={t('welcomeScreen.saveAction')}
+                fullWidth
+                loading={isSaving}
+                onPress={() => {
+                  void handleSubmit(onSubmit)();
+                }}
+              />
+            </View>
           </View>
-        </View>
+        </KeyboardStickyView>
       </View>
     </ScreenContainer>
   );
@@ -497,7 +530,7 @@ const styles = StyleSheet.create((theme) => ({
     borderColor: theme.colors.border.default,
   },
   optionPillActive: {
-    backgroundColor: theme.colors.brand.primaryVariant,
+    backgroundColor: theme.colors.brand.primary,
     borderWidth: 1,
     borderColor: theme.colors.brand.primary,
   },
@@ -512,6 +545,14 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.metrics.spacing.p8,
+  },
+  footerSticky: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    backgroundColor: theme.colors.background.app,
   },
   footer: {
     paddingHorizontal: theme.metrics.spacing.p16,

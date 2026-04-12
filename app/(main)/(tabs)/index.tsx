@@ -154,6 +154,8 @@ function getHomeBalanceCopy(
 
 function getMonthlyWeightGoalPlanKey(value: number) {
   switch (value) {
+    case -2:
+      return 'welcomeScreen.monthlyWeightPlans.gain_2' as const;
     case -1:
       return 'welcomeScreen.monthlyWeightPlans.gain_1' as const;
     case -0.5:
@@ -164,6 +166,8 @@ function getMonthlyWeightGoalPlanKey(value: number) {
       return 'welcomeScreen.monthlyWeightPlans.lose_0_5' as const;
     case 1:
       return 'welcomeScreen.monthlyWeightPlans.lose_1' as const;
+    case 2:
+      return 'welcomeScreen.monthlyWeightPlans.lose_2' as const;
     default:
       return 'welcomeScreen.monthlyWeightPlans.0' as const;
   }

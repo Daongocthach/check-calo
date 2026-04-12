@@ -444,8 +444,10 @@
       "0": "Giữ nguyên cân nặng",
       "lose_0_5": "Giảm 0.5 kg/tháng",
       "lose_1": "Giảm 1 kg/tháng",
+      "lose_2": "Giảm 2 kg/tháng",
       "gain_0_5": "Tăng 0.5 kg/tháng",
-      "gain_1": "Tăng 1 kg/tháng"
+      "gain_1": "Tăng 1 kg/tháng",
+      "gain_2": "Tăng 2 kg/tháng"
     },
     "placeholders": {
       "age": "Nhập tuổi",

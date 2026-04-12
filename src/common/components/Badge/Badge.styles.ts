@@ -122,7 +122,7 @@ export const styles = StyleSheet.create((theme) => ({
       {
         variant: 'solid',
         colorScheme: 'primary',
-        styles: { color: theme.colors.text.onBrand },
+        styles: { color: theme.colors.brand.onBrand },
       },
       {
         variant: 'outline',

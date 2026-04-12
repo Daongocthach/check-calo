@@ -32,7 +32,6 @@ export const darkColors: ThemeColors = {
     accent: '#FFD34D',
     link: '#9DE8FF',
     linkHover: '#C9F2FF',
-    onBrand: '#0F172A',
   },
 
   border: {
@@ -50,7 +49,6 @@ export const darkColors: ThemeColors = {
     muted: '#5A6075',
     inverse: '#0F172A',
     accent: '#FFD34D',
-    onBrand: '#0F172A',
   },
 
   state: {
@@ -86,6 +84,7 @@ export const darkColors: ThemeColors = {
 
   shadow: {
     color: 'rgba(0, 0, 0, 0.62)',
+    onShadow: '#FFFFFF',
     elevation: 6,
     elevationSmall: 2,
     elevationMedium: 6,

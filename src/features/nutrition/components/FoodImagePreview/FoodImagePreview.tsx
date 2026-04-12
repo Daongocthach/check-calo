@@ -84,7 +84,7 @@ export function FoodImagePreview({
           )}
           {resolvedDevSyncBadgeLabel ? (
             <View style={styles.devBadge}>
-              <Text variant="caption" weight="bold" color="inverse" numberOfLines={1}>
+              <Text variant="caption" weight="bold" color="onShadow" numberOfLines={1}>
                 {resolvedDevSyncBadgeLabel}
               </Text>
             </View>
@@ -94,11 +94,7 @@ export function FoodImagePreview({
               <Icon
                 name="expand-outline"
                 variant="onBrand"
-                color={
-                  theme.colors.mode === 'dark'
-                    ? theme.colors.text.primary
-                    : theme.colors.text.onBrand
-                }
+                color={theme.colors.shadow.onShadow}
                 size={22}
               />
             </View>
@@ -140,11 +136,7 @@ export function FoodImagePreview({
               <Icon
                 name="close-outline"
                 variant="onBrand"
-                color={
-                  theme.colors.mode === 'dark'
-                    ? theme.colors.text.primary
-                    : theme.colors.text.onBrand
-                }
+                color={theme.colors.shadow.onShadow}
                 size={22}
               />
             </Pressable>

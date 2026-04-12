@@ -49,9 +49,12 @@ export function Chip({
 
   if (color !== undefined) {
     if (isFilled) {
+      const isPrimaryBackground = color === theme.colors.brand.primary;
       containerColorStyle = { backgroundColor: color, borderColor: color };
-      labelColorStyle = { color: theme.colors.text.primary };
-      closeIconColor = theme.colors.text.primary;
+      labelColorStyle = {
+        color: isPrimaryBackground ? theme.colors.brand.onBrand : theme.colors.text.primary,
+      };
+      closeIconColor = isPrimaryBackground ? theme.colors.brand.onBrand : theme.colors.text.primary;
     } else {
       containerColorStyle = { borderColor: color };
       labelColorStyle = { color };

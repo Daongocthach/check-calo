@@ -419,11 +419,7 @@ export default function FoodFormScreen() {
                   <Icon
                     name="expand-outline"
                     variant="onBrand"
-                    color={
-                      theme.colors.mode === 'dark'
-                        ? theme.colors.text.primary
-                        : theme.colors.text.onBrand
-                    }
+                    color={theme.colors.shadow.onShadow}
                     size={18}
                   />
                 </Pressable>
@@ -438,11 +434,7 @@ export default function FoodFormScreen() {
                   <Icon
                     name="camera-outline"
                     variant="onBrand"
-                    color={
-                      theme.colors.mode === 'dark'
-                        ? theme.colors.text.primary
-                        : theme.colors.text.onBrand
-                    }
+                    color={theme.colors.shadow.onShadow}
                     size={22}
                   />
                 </View>
@@ -658,11 +650,7 @@ export default function FoodFormScreen() {
               <Icon
                 name="close-outline"
                 variant="onBrand"
-                color={
-                  theme.colors.mode === 'dark'
-                    ? theme.colors.text.primary
-                    : theme.colors.text.onBrand
-                }
+                color={theme.colors.shadow.onShadow}
                 size={22}
               />
             </Pressable>

@@ -34,12 +34,12 @@ export function IconButton({
   const resolveColor = (theme: {
     colors: {
       text: { primary: string };
-      brand: { primary: string };
-      icon: { primary: string; onBrand: string };
+      brand: { primary: string; onBrand: string };
+      icon: { primary: string };
     };
   }) => {
     const colorMap = {
-      primary: theme.colors.icon.onBrand,
+      primary: theme.colors.brand.onBrand,
       secondary: theme.colors.text.primary,
       outline: theme.colors.brand.primary,
       ghost: theme.colors.icon.primary,
