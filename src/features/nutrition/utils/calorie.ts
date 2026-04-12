@@ -4,7 +4,6 @@ import type { ActivityLevel, Gender, UserProfileInput } from '../types';
 const KCAL_PER_KG = 7700;
 const DAYS_PER_MONTH = 30;
 const MAINTENANCE_TOLERANCE_KCAL = 100;
-
 export type WeightGoalMode = 'lose' | 'maintain' | 'gain';
 export type DailyCalorieGoalState = 'below_target' | 'on_target' | 'above_target';
 
@@ -33,15 +32,15 @@ export function calculateMaintenanceCalorieTarget(profile: UserProfileInput) {
 export function calculateDailyCalorieTarget(profile: UserProfileInput) {
   const maintenanceCalories = calculateMaintenanceCalorieTarget(profile);
 
-  if (profile.monthlyWeightLossKg === 0) {
+  if (profile.monthlyWeightGoalKg === 0) {
     return maintenanceCalories;
   }
 
   const dailyAdjustment = Math.round(
-    (Math.abs(profile.monthlyWeightLossKg) * KCAL_PER_KG) / DAYS_PER_MONTH
+    (Math.abs(profile.monthlyWeightGoalKg) * KCAL_PER_KG) / DAYS_PER_MONTH
   );
 
-  if (profile.monthlyWeightLossKg > 0) {
+  if (profile.monthlyWeightGoalKg > 0) {
     return Math.max(1200, maintenanceCalories - dailyAdjustment);
   }
 
@@ -66,12 +65,12 @@ export function calculateMacroTargets(profile: UserProfileInput) {
   };
 }
 
-export function getWeightGoalMode(monthlyWeightLossKg: number): WeightGoalMode {
-  if (monthlyWeightLossKg > 0) {
+export function getWeightGoalMode(monthlyWeightGoalKg: number): WeightGoalMode {
+  if (monthlyWeightGoalKg > 0) {
     return 'lose';
   }
 
-  if (monthlyWeightLossKg < 0) {
+  if (monthlyWeightGoalKg < 0) {
     return 'gain';
   }
 
@@ -79,7 +78,7 @@ export function getWeightGoalMode(monthlyWeightLossKg: number): WeightGoalMode {
 }
 
 export function getDailyCalorieGoalState(
-  profile: Pick<UserProfileInput, 'monthlyWeightLossKg'> | null | undefined,
+  profile: Pick<UserProfileInput, 'monthlyWeightGoalKg'> | null | undefined,
   calorieTarget: number,
   consumedCalories: number
 ): DailyCalorieGoalState {
@@ -87,7 +86,7 @@ export function getDailyCalorieGoalState(
     return 'below_target';
   }
 
-  const goalMode = getWeightGoalMode(profile?.monthlyWeightLossKg ?? 0);
+  const goalMode = getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0);
   const calorieDelta = consumedCalories - calorieTarget;
 
   if (goalMode === 'lose') {

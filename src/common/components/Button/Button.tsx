@@ -12,12 +12,12 @@ function getSpinnerColor(
   variant: string,
   theme: {
     colors: {
-      text: { primary: string };
+      text: { primary: string; onBrand: string };
       brand: { primary: string };
     };
   }
 ) {
-  if (variant === 'primary') return theme.colors.text.primary;
+  if (variant === 'primary') return theme.colors.text.onBrand;
   if (variant === 'secondary' || variant === 'outline') return theme.colors.text.primary;
   return theme.colors.brand.primary;
 }

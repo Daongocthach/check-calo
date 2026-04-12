@@ -4,12 +4,12 @@ export const darkColors: ThemeColors = {
   mode: 'dark',
 
   brand: {
-    primary: '#9FE33D',
+    primary: '#67D8FF',
     secondary: '#F5F7FF',
     tertiary: '#FFD34D',
-    primaryVariant: '#B6F05F',
+    primaryVariant: '#9DE8FF',
     secondaryVariant: '#DDE4FF',
-    onBrand: '#081008',
+    onBrand: '#0F172A',
   },
 
   background: {
@@ -30,16 +30,16 @@ export const darkColors: ThemeColors = {
     muted: '#5A6075',
     inverse: '#0F172A',
     accent: '#FFD34D',
-    link: '#B6F05F',
-    linkHover: '#D4FF8A',
-    onBrand: '#081008',
+    link: '#9DE8FF',
+    linkHover: '#C9F2FF',
+    onBrand: '#0F172A',
   },
 
   border: {
     default: '#232944',
     subtle: '#171B2F',
     strong: '#353D61',
-    focus: '#B6F05F',
+    focus: '#9DE8FF',
     disabled: '#12182A',
   },
 
@@ -50,7 +50,7 @@ export const darkColors: ThemeColors = {
     muted: '#5A6075',
     inverse: '#0F172A',
     accent: '#FFD34D',
-    onBrand: '#081008',
+    onBrand: '#0F172A',
   },
 
   state: {
@@ -67,9 +67,9 @@ export const darkColors: ThemeColors = {
 
   overlay: {
     modal: 'rgba(2, 3, 8, 0.8)',
-    pressed: 'rgba(159, 227, 61, 0.16)',
-    hover: 'rgba(159, 227, 61, 0.08)',
-    focus: 'rgba(182, 240, 95, 0.22)',
+    pressed: 'rgba(103, 216, 255, 0.16)',
+    hover: 'rgba(103, 216, 255, 0.08)',
+    focus: 'rgba(157, 232, 255, 0.22)',
     ripple: 'rgba(255, 255, 255, 0.2)',
     shadow: 'rgba(0, 0, 0, 0.62)',
   },
@@ -78,10 +78,10 @@ export const darkColors: ThemeColors = {
     primary: ['#67D8FF', '#FFF23A'],
     secondary: ['#1F2E78', '#6AC6FF'],
     accent: ['#FFC83D', '#FFE96C'],
-    success: ['#4D7F22', '#9FE33D'],
+    success: ['#1D5D74', '#67D8FF'],
     error: ['#A73A56', '#FF7D7D'],
     warning: ['#D9A52A', '#FFF23A'],
-    highlight: ['#3F5C1B', '#B6F05F'],
+    highlight: ['#18435B', '#9DE8FF'],
   },
 
   shadow: {

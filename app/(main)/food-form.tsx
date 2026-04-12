@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, View } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import {
   Button,
   DateTimeField,
@@ -107,6 +107,7 @@ function parseNumber(value: string) {
 
 export default function FoodFormScreen() {
   const { t } = useTranslation();
+  const { theme } = useUnistyles();
   const params = useLocalSearchParams<{
     entryId?: string;
     favoriteId?: string;
@@ -415,7 +416,16 @@ export default function FoodFormScreen() {
                   }}
                   style={styles.previewButton}
                 >
-                  <Icon name="expand-outline" variant="inverse" size={18} />
+                  <Icon
+                    name="expand-outline"
+                    variant="onBrand"
+                    color={
+                      theme.colors.mode === 'dark'
+                        ? theme.colors.text.primary
+                        : theme.colors.text.onBrand
+                    }
+                    size={18}
+                  />
                 </Pressable>
               ) : null}
               <View
@@ -425,7 +435,16 @@ export default function FoodFormScreen() {
                 ]}
               >
                 <View style={styles.cameraBadge}>
-                  <Icon name="camera-outline" variant="inverse" size={22} />
+                  <Icon
+                    name="camera-outline"
+                    variant="onBrand"
+                    color={
+                      theme.colors.mode === 'dark'
+                        ? theme.colors.text.primary
+                        : theme.colors.text.onBrand
+                    }
+                    size={22}
+                  />
                 </View>
               </View>
             </Pressable>
@@ -636,7 +655,16 @@ export default function FoodFormScreen() {
               }}
               style={styles.closePreviewButton}
             >
-              <Icon name="close-outline" variant="inverse" size={22} />
+              <Icon
+                name="close-outline"
+                variant="onBrand"
+                color={
+                  theme.colors.mode === 'dark'
+                    ? theme.colors.text.primary
+                    : theme.colors.text.onBrand
+                }
+                size={22}
+              />
             </Pressable>
           </View>
         </Modal>
@@ -681,7 +709,8 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.overlay.modal,
+    backgroundColor:
+      theme.colors.mode === 'dark' ? theme.colors.background.elevated : theme.colors.overlay.modal,
   },
   photoOverlay: {
     flex: 1,
@@ -702,7 +731,8 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.overlay.modal,
+    backgroundColor:
+      theme.colors.mode === 'dark' ? theme.colors.background.elevated : theme.colors.overlay.modal,
   },
   viewerContainer: {
     flex: 1,
@@ -717,7 +747,8 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.overlay.modal,
+    backgroundColor:
+      theme.colors.mode === 'dark' ? theme.colors.background.elevated : theme.colors.overlay.modal,
   },
   formBlock: {
     gap: theme.metrics.spacingV.p12,

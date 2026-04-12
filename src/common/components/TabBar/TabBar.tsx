@@ -1,9 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import type { ComponentProps } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnistyles } from 'react-native-unistyles';
+import { Text } from '@/common/components/Text';
 import { vs } from '@/theme/metrics';
 import { styles } from './TabBar.styles';
 import type { TabBarProps } from './TabBar.types';
@@ -14,7 +14,7 @@ const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }
   index: { active: 'home', inactive: 'home-outline' },
   stats: { active: 'stats-chart', inactive: 'stats-chart-outline' },
   add: { active: 'add', inactive: 'add' },
-  favorites: { active: 'library', inactive: 'library-outline' },
+  menu: { active: 'restaurant', inactive: 'restaurant-outline' },
   profile: { active: 'person', inactive: 'person-outline' },
 };
 
@@ -69,13 +69,31 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
             style={[styles.tab, isAddTab ? styles.addTab : styles.standardTab]}
           >
             {isAddTab ? (
-              <View style={styles.addBubble}>
-                <LinearGradient
-                  colors={theme.colors.gradient.accent}
-                  style={styles.addBubbleGradient}
-                >
-                  <Ionicons name={iconName} size={24} color={iconColor} />
-                </LinearGradient>
+              <View style={styles.addTabContent}>
+                <View style={[styles.addBubble, isFocused && styles.addBubbleActive]}>
+                  <View
+                    style={[
+                      styles.addBubbleGradient,
+                      styles.addBubbleSolid,
+                      isFocused && styles.addBubbleSolidActive,
+                    ]}
+                  >
+                    <Ionicons name={iconName} size={24} color={iconColor} />
+                  </View>
+                </View>
+                {isFocused ? (
+                  <View style={styles.addTabActiveBadge}>
+                    <Ionicons name="sparkles" size={11} color={theme.colors.text.onBrand} />
+                  </View>
+                ) : null}
+                {isFocused ? (
+                  <View style={styles.addTabActiveLabel}>
+                    <Ionicons name="radio-button-on" size={10} color={theme.colors.text.onBrand} />
+                    <Text variant="caption" weight="semibold" color="onBrand">
+                      {options.title}
+                    </Text>
+                  </View>
+                ) : null}
               </View>
             ) : (
               <View

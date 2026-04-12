@@ -27,7 +27,8 @@ export interface UserProfileInput {
   age: number;
   heightCm: number;
   weightKg: number;
-  monthlyWeightLossKg: number;
+  // Positive = lose weight, zero = maintain, negative = gain weight.
+  monthlyWeightGoalKg: number;
   activityLevel: ActivityLevel;
 }
 
@@ -107,6 +108,7 @@ export interface AchievementUnlock {
 export interface GoalTrackingSnapshot {
   activeGoal: WeightGoalProgress | null;
   latestCompletedGoal: WeightGoalProgress | null;
+  goalHistory: WeightGoalProgress[];
   currentStreak: number;
   unlockedAchievements: AchievementUnlock[];
   newlyUnlockedAchievements: AchievementKey[];

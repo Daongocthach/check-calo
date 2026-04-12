@@ -38,6 +38,11 @@ export const styles = StyleSheet.create((theme) => ({
     marginTop: -vs(34),
     paddingHorizontal: theme.metrics.spacing.p8,
   },
+  addTabContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.metrics.spacingV.p8,
+  },
   tabBubble: {
     width: theme.metrics.spacing.p44,
     height: theme.metrics.spacing.p44,
@@ -46,9 +51,13 @@ export const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
   },
   tabBubbleActive: {
-    backgroundColor: theme.colors.brand.primaryVariant,
+    backgroundColor:
+      theme.colors.mode === 'dark'
+        ? theme.colors.background.section
+        : theme.colors.brand.primaryVariant,
     borderWidth: 1,
-    borderColor: theme.colors.brand.primary,
+    borderColor:
+      theme.colors.mode === 'dark' ? theme.colors.border.strong : theme.colors.brand.primary,
   },
   tabBubbleInactive: {
     backgroundColor: 'transparent',
@@ -59,7 +68,7 @@ export const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 6,
+    borderWidth: theme.colors.mode === 'dark' ? 0 : 6,
     borderColor: theme.colors.background.app,
     shadowColor: theme.colors.shadow.color,
     shadowOffset: { width: 0, height: 10 },
@@ -67,11 +76,47 @@ export const styles = StyleSheet.create((theme) => ({
     shadowRadius: 20,
     elevation: theme.colors.shadow.elevationLarge,
   },
+  addBubbleActive: {
+    transform: [{ scale: 1.06 }],
+    shadowOpacity: 0.34,
+    shadowRadius: 24,
+  },
+  addTabActiveBadge: {
+    position: 'absolute',
+    top: theme.metrics.spacingV.p4,
+    right: theme.metrics.spacing.p4,
+    width: theme.metrics.spacing.p20,
+    height: theme.metrics.spacing.p20,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.brand.primary,
+    borderWidth: 1,
+    borderColor:
+      theme.colors.mode === 'dark' ? theme.colors.background.app : theme.colors.background.surface,
+  },
+  addTabActiveLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p4,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p4,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.brand.primary,
+  },
   addBubbleGradient: {
     width: '100%',
     height: '100%',
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  addBubbleSolid: {
+    backgroundColor: theme.colors.brand.tertiary,
+  },
+  addBubbleSolidActive: {
+    borderWidth: 2,
+    borderColor:
+      theme.colors.mode === 'dark' ? theme.colors.text.onBrand : theme.colors.background.surface,
   },
 }));

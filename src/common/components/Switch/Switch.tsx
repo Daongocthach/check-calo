@@ -36,13 +36,23 @@ export function Switch({
           accessibilityRole="switch"
           accessibilityLabel={label}
           accessibilityState={{ checked: value, disabled }}
-          uniProps={(theme) => ({
-            trackColor: {
-              false: theme.colors.border.strong,
-              true: theme.colors.brand.primary,
-            },
-            thumbColor: theme.colors.text.inverse,
-          })}
+          uniProps={(theme) => {
+            let thumbColor = theme.colors.background.surface;
+
+            if (theme.colors.mode !== 'dark') {
+              thumbColor = value
+                ? theme.colors.background.elevated
+                : theme.colors.background.section;
+            }
+
+            return {
+              trackColor: {
+                false: theme.colors.border.strong,
+                true: theme.colors.brand.primary,
+              },
+              thumbColor,
+            };
+          }}
         />
       </View>
     </View>

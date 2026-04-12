@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles';
 import { getItem, STORAGE_KEYS } from '../utils/storage';
 import { buildAllThemes, compositeThemeName, THEME_PRESET_NAMES } from './config';
 import type { CompositeThemeName, ThemePresetName } from './config';
@@ -22,7 +22,7 @@ function getInitialThemeName(): CompositeThemeName {
   let mode: 'light' | 'dark' = 'light';
   if (modeResult.success && modeResult.data) {
     if (modeResult.data === 'system') {
-      mode = 'light';
+      mode = UnistylesRuntime.colorScheme === 'dark' ? 'dark' : 'light';
     } else {
       mode = modeResult.data === 'dark' ? 'dark' : 'light';
     }

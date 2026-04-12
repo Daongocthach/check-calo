@@ -38,7 +38,7 @@ export const styles = StyleSheet.create((theme) => ({
     },
   },
   initials: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.onBrand,
   },
 }));
 

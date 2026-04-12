@@ -1,10 +1,9 @@
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { usePathname, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 import { Icon } from '@/common/components/Icon';
 import { Select } from '@/common/components/Select';
 import { Text } from '@/common/components/Text';
@@ -65,13 +64,14 @@ export function AppHeader() {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
-  const { theme } = useUnistyles();
   const { isTablet } = useScreenDimensions();
   const authUser = useAuthStore((state) => state.user);
   const [currentMode, setCurrentMode] = useState<ThemeModePreference>(() => getThemePreference());
 
   const isIndexRoute = pathname === '/' || pathname === '/index';
-  const isTabRoute = ['/', '/index', '/stats', '/add', '/favorites', '/profile'].includes(pathname);
+  const isTabRoute = ['/', '/index', '/stats', '/add', '/menu', '/favorites', '/profile'].includes(
+    pathname
+  );
   const greeting = getGreetingKey(new Date().getHours());
   const displayName = getDisplayName(authUser);
   const avatarLabel = getInitials(displayName);
@@ -81,8 +81,10 @@ export function AppHeader() {
     if (pathname === '/' || pathname === '/index') return t('tabs.home');
     if (pathname === '/stats') return t('tabs.stats');
     if (pathname === '/add') return t('tabs.add');
+    if (pathname === '/menu') return t('tabs.menu');
     if (pathname === '/favorites') return t('tabs.favorites');
     if (pathname === '/profile') return t('tabs.profile');
+    if (pathname === '/notification-settings') return t('profileScreen.reminders.title');
     if (pathname === '/food-form') return t('manualFoodEntry.title');
     if (pathname === '/application-form') return t('application.applyTitle');
     if (pathname === '/application-form-success') {
@@ -153,11 +155,11 @@ export function AppHeader() {
   if (isIndexRoute) {
     headerContent = (
       <View style={styles.profileRow}>
-        <LinearGradient colors={theme.colors.gradient.highlight} style={styles.avatarBubble}>
-          <Text variant="body" weight="bold">
+        <View style={styles.avatarBubble}>
+          <Text variant="body" weight="bold" color="onBrand">
             {avatarLabel}
           </Text>
-        </LinearGradient>
+        </View>
         <View style={styles.textWrap}>
           <Text variant="h3">{t('homeScreen.greetingTitle', { name: displayName })}</Text>
           <Text variant="bodySmall" color="secondary">
@@ -279,6 +281,7 @@ const styles = StyleSheet.create((theme, rt) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: theme.colors.brand.primary,
   },
   title: {
     flexShrink: 1,
@@ -291,7 +294,10 @@ const styles = StyleSheet.create((theme, rt) => ({
     borderWidth: 1,
     borderColor: theme.colors.border.default,
     borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.background.surface,
+    backgroundColor:
+      theme.colors.mode === 'dark'
+        ? theme.colors.background.elevated
+        : theme.colors.background.surface,
   },
   textWrap: {
     flex: 1,
@@ -310,7 +316,8 @@ const styles = StyleSheet.create((theme, rt) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    backgroundColor:
+      theme.colors.mode === 'dark' ? theme.colors.background.elevated : 'rgba(255, 255, 255, 0.94)',
     borderWidth: 1,
     borderColor: theme.colors.border.default,
   },
@@ -331,7 +338,8 @@ const styles = StyleSheet.create((theme, rt) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    backgroundColor:
+      theme.colors.mode === 'dark' ? theme.colors.background.elevated : 'rgba(255, 255, 255, 0.94)',
     borderWidth: 1,
     borderColor: theme.colors.border.default,
   },

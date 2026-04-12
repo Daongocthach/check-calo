@@ -13,15 +13,17 @@ import {
   MonthSelector,
   ProgressBar,
   ScreenContainer,
+  Select,
   Text,
 } from '@/common/components';
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
 import { MacroGoalCard } from '@/features/nutrition/components/MacroGoalCard';
+import { MONTHLY_WEIGHT_GOAL_OPTIONS } from '@/features/nutrition/constants';
 import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import { getFoodEntryImageSyncStateMap } from '@/features/nutrition/services/foodEntrySyncQueue';
 import {
   continueLatestCompletedGoal,
-  startWeightGoal,
+  syncActiveGoalToProfile,
   syncGoalTracking,
 } from '@/features/nutrition/services/goalTrackingService';
 import {
@@ -30,6 +32,7 @@ import {
   getUserProfile,
   listLoggedDailyStatuses,
   listFoodEntriesByDate,
+  upsertUserProfile,
 } from '@/features/nutrition/services/nutritionDatabase';
 import type {
   AchievementKey,
@@ -37,10 +40,13 @@ import type {
   FoodEntry,
   GoalTrackingSnapshot,
   UserProfile,
-  WeightGoalMode,
   WeightGoalProgress,
 } from '@/features/nutrition/types';
 import { getDailyCalorieGoalState, getWeightGoalMode } from '@/features/nutrition/utils/calorie';
+import {
+  formatWeightGoalTitle,
+  getGoalCycleDayProgress,
+} from '@/features/nutrition/utils/goalTracking';
 import { useAppAlert } from '@/providers/app-alert';
 import { vs } from '@/theme/metrics';
 import { toast } from '@/utils/toast';
@@ -116,7 +122,7 @@ function getHomeBalanceCopy(
     | 'homeScreen.overTarget';
   color: 'link' | 'accent' | 'secondary';
 } {
-  const goalMode = getWeightGoalMode(profile?.monthlyWeightLossKg ?? 0);
+  const goalMode = getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0);
   const goalState = getDailyCalorieGoalState(
     profile,
     summary.calorieTarget,
@@ -146,27 +152,20 @@ function getHomeBalanceCopy(
   };
 }
 
-function getGoalTitleKey(mode: WeightGoalMode) {
-  switch (mode) {
-    case 'gain':
-      return 'goalTracking.goalNames.gain' as const;
-    case 'maintain':
-      return 'goalTracking.goalNames.maintain' as const;
+function getMonthlyWeightGoalPlanKey(value: number) {
+  switch (value) {
+    case -1:
+      return 'welcomeScreen.monthlyWeightPlans.gain_1' as const;
+    case -0.5:
+      return 'welcomeScreen.monthlyWeightPlans.gain_0_5' as const;
+    case 0:
+      return 'welcomeScreen.monthlyWeightPlans.0' as const;
+    case 0.5:
+      return 'welcomeScreen.monthlyWeightPlans.lose_0_5' as const;
+    case 1:
+      return 'welcomeScreen.monthlyWeightPlans.lose_1' as const;
     default:
-      return 'goalTracking.goalNames.lose' as const;
-  }
-}
-
-function getAchievementTitleKey(achievementKey: AchievementKey) {
-  switch (achievementKey) {
-    case 'fire_keeper_7':
-      return 'achievements.items.fire_keeper_7.title' as const;
-    case 'fire_keeper_14':
-      return 'achievements.items.fire_keeper_14.title' as const;
-    case 'first_maintain_goal':
-      return 'achievements.items.first_maintain_goal.title' as const;
-    default:
-      return 'achievements.items.goal_crusher.title' as const;
+      return 'welcomeScreen.monthlyWeightPlans.0' as const;
   }
 }
 
@@ -191,6 +190,19 @@ function getGoalProgressCopy(
     }),
     remainingLabel: t('goalTracking.remainingKcal', { value: goalProgress.remainingValue }),
   };
+}
+
+function getAchievementTitleKey(achievementKey: AchievementKey) {
+  switch (achievementKey) {
+    case 'fire_keeper_7':
+      return 'achievements.items.fire_keeper_7.title' as const;
+    case 'fire_keeper_14':
+      return 'achievements.items.fire_keeper_14.title' as const;
+    case 'first_maintain_goal':
+      return 'achievements.items.first_maintain_goal.title' as const;
+    default:
+      return 'achievements.items.goal_crusher.title' as const;
+  }
 }
 
 export default function HomeTab() {
@@ -250,13 +262,7 @@ export default function HomeTab() {
     }
 
     if (snapshot.newlyUnlockedAchievements.length > 0) {
-      const newestAchievement =
-        snapshot.newlyUnlockedAchievements[snapshot.newlyUnlockedAchievements.length - 1];
-      toast.success(
-        t('goalTracking.toasts.achievementUnlocked', {
-          title: t(getAchievementTitleKey(newestAchievement)),
-        })
-      );
+      toast.success(t('goalTracking.toasts.achievementUnlockedGeneric'));
     }
   }, [t]);
 
@@ -308,30 +314,128 @@ export default function HomeTab() {
     () => (activeGoalProgress ? getGoalProgressCopy(t, activeGoalProgress) : null),
     [activeGoalProgress, t]
   );
-  const unlockedAchievementPreview = goalTracking?.unlockedAchievements.slice(0, 2) ?? [];
+  const activeGoalCycleCopy = useMemo(() => {
+    if (!activeGoalProgress) {
+      return null;
+    }
 
-  const handleChooseNewGoal = useCallback(() => {
-    appAlert.alert(t('goalTracking.actions.chooseNew'), t('goalTracking.choosePrompt'), [
-      {
-        text: t('goalTracking.actions.lose1kg'),
-        onPress: () => {
-          void startWeightGoal('lose').then(loadGoalTracking);
-        },
-      },
-      {
-        text: t('goalTracking.actions.maintain7Days'),
-        onPress: () => {
-          void startWeightGoal('maintain').then(loadGoalTracking);
-        },
-      },
-      {
-        text: t('goalTracking.actions.gain1kg'),
-        onPress: () => {
-          void startWeightGoal('gain').then(loadGoalTracking);
-        },
-      },
-    ]);
-  }, [appAlert, loadGoalTracking, t]);
+    const cycleProgress = getGoalCycleDayProgress(activeGoalProgress);
+    if (!cycleProgress) {
+      return null;
+    }
+
+    return t('goalTracking.progressDays', {
+      current: cycleProgress.current,
+      target: cycleProgress.target,
+    });
+  }, [activeGoalProgress, t]);
+  const heroHighlight = useMemo(() => {
+    if (goalTracking?.currentStreak && goalTracking.currentStreak > 0) {
+      return {
+        icon: 'flame' as const,
+        iconVariant: 'accent' as const,
+        label: t('achievements.currentStreak'),
+        value: t('achievements.currentStreakValue', { count: goalTracking.currentStreak }),
+      };
+    }
+
+    const latestAchievement = goalTracking?.unlockedAchievements[0];
+    if (latestAchievement) {
+      return {
+        icon: 'trophy-outline' as const,
+        iconVariant: 'primary' as const,
+        label: t('achievements.title'),
+        value: t(getAchievementTitleKey(latestAchievement.achievementKey)),
+      };
+    }
+
+    return null;
+  }, [goalTracking, t]);
+  const monthlyGoalOptions = useMemo(
+    () =>
+      [...MONTHLY_WEIGHT_GOAL_OPTIONS].sort((left, right) => {
+        const orderMap = new Map<number, number>([
+          [0.5, 0],
+          [1, 1],
+          [0, 2],
+          [-0.5, 3],
+          [-1, 4],
+        ]);
+
+        return (orderMap.get(left) ?? 99) - (orderMap.get(right) ?? 99);
+      }),
+    []
+  );
+  const goalSelectOptions = useMemo(
+    () =>
+      monthlyGoalOptions.map((option) => ({
+        label: t(getMonthlyWeightGoalPlanKey(option)),
+        value: String(option),
+      })),
+    [monthlyGoalOptions, t]
+  );
+  const selectedGoalValue = profile ? String(profile.monthlyWeightGoalKg) : '';
+
+  const handleSelectNewGoal = useCallback(
+    (option: number) => {
+      if (!profile) {
+        return;
+      }
+
+      void upsertUserProfile({
+        gender: profile.gender,
+        age: profile.age,
+        heightCm: profile.heightCm,
+        weightKg: profile.weightKg,
+        monthlyWeightGoalKg: option,
+        activityLevel: profile.activityLevel,
+      }).then(async (nextProfile) => {
+        if (!nextProfile) {
+          return;
+        }
+
+        await syncActiveGoalToProfile(nextProfile);
+        setProfile(nextProfile);
+        await loadNutritionData(selectedDate);
+        await loadMonthStatuses(visibleMonth);
+        await loadGoalTracking();
+      });
+    },
+    [loadGoalTracking, loadMonthStatuses, loadNutritionData, profile, selectedDate, visibleMonth]
+  );
+
+  const handleGoalSelectChange = useCallback(
+    (value: string) => {
+      const parsedValue = Number(value);
+
+      if (Number.isNaN(parsedValue) || !profile) {
+        return;
+      }
+
+      if (parsedValue === profile.monthlyWeightGoalKg) {
+        return;
+      }
+
+      appAlert.alert(
+        t('goalTracking.changeGoalConfirmTitle'),
+        t('goalTracking.changeGoalConfirmMessage'),
+        [
+          {
+            text: t('common.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('common.confirm'),
+            style: 'destructive',
+            onPress: () => {
+              handleSelectNewGoal(parsedValue);
+            },
+          },
+        ]
+      );
+    },
+    [appAlert, handleSelectNewGoal, profile, t]
+  );
 
   const handleContinueGoal = useCallback(() => {
     void continueLatestCompletedGoal().then((didContinue) => {
@@ -371,14 +475,14 @@ export default function HomeTab() {
   let goalTrackingSection = null;
 
   if (hasProfile && activeGoalProgress) {
+    const goalTitle = formatWeightGoalTitle(t, activeGoalProgress.goal);
+    const isKcalGoal = activeGoalProgress.unit === 'kcal';
+
     goalTrackingSection = (
       <Card variant="filled" style={styles.goalTrackingCard}>
         <View style={styles.goalTrackingHeader}>
           <View style={styles.goalTrackingCopy}>
-            <Text variant="h3">{t('goalTracking.activeTitle')}</Text>
-            <Text variant="bodySmall" color="secondary">
-              {t(getGoalTitleKey(activeGoalProgress.goal.mode))}
-            </Text>
+            <Text variant="h3">{`${t('goalTracking.activeTitle')}: ${goalTitle}`}</Text>
           </View>
           <Chip
             label={`${activeGoalProgress.progressPercent}%`}
@@ -386,19 +490,50 @@ export default function HomeTab() {
             icon={<Icon name="trophy-outline" variant="accent" size={14} />}
           />
         </View>
-        <Text variant="bodySmall" color="secondary">
-          {activeGoalCopy?.progressLabel}
-        </Text>
+        <View style={styles.goalProgressRow}>
+          <View style={styles.goalProgressMetric}>
+            <Text variant="bodySmall" color="secondary">
+              {isKcalGoal ? activeGoalCopy?.progressLabel : activeGoalCopy?.remainingLabel}
+            </Text>
+          </View>
+          <View style={[styles.goalProgressMetric, styles.goalProgressMetricEnd]}>
+            <Text variant="bodySmall" color="secondary" align="right">
+              {activeGoalCycleCopy ?? activeGoalCopy?.progressLabel}
+            </Text>
+          </View>
+        </View>
         <ProgressBar value={activeGoalProgress.progressPercent} size="md" colorScheme="success" />
-        <Text variant="bodySmall" color="secondary">
-          {activeGoalCopy?.remainingLabel}
-        </Text>
-        <Button
-          title={t('goalTracking.actions.chooseNew')}
-          variant="outline"
-          size="sm"
-          onPress={handleChooseNewGoal}
-        />
+        {isKcalGoal ? (
+          <Text variant="bodySmall" color="secondary">
+            {activeGoalCopy?.remainingLabel}
+          </Text>
+        ) : null}
+        <View style={styles.goalCardActions}>
+          <Select
+            value={selectedGoalValue}
+            onChange={handleGoalSelectChange}
+            options={goalSelectOptions}
+            size="sm"
+            triggerVariant="plain"
+            placeholder={t('goalTracking.actions.chooseNew')}
+          >
+            <View style={styles.goalSelectTrigger}>
+              <Icon name="swap-horizontal" size={16} variant="primary" />
+              <Text variant="label" weight="semibold">
+                {t('goalTracking.actions.chooseNew')}
+              </Text>
+            </View>
+          </Select>
+          <Button
+            title={t('goalTracking.actions.viewHistory')}
+            variant="ghost"
+            size="sm"
+            style={styles.goalActionButton}
+            labelStyle={styles.goalActionButtonLabel}
+            rightIcon={<Icon name="chevron-forward" variant="primary" size={16} />}
+            onPress={() => router.push('/goal-history')}
+          />
+        </View>
       </Card>
     );
   } else if (hasProfile && latestCompletedGoal) {
@@ -407,7 +542,7 @@ export default function HomeTab() {
         <View style={styles.goalTrackingCopy}>
           <Text variant="h3">{t('goalTracking.completedTitle')}</Text>
           <Text variant="bodySmall" color="secondary">
-            {t(getGoalTitleKey(latestCompletedGoal.goal.mode))}
+            {formatWeightGoalTitle(t, latestCompletedGoal.goal)}
           </Text>
         </View>
         <View style={styles.goalActionRow}>
@@ -417,13 +552,28 @@ export default function HomeTab() {
             size="sm"
             onPress={handleContinueGoal}
           />
-          <Button
-            title={t('goalTracking.actions.chooseNew')}
-            variant="outline"
+          <Select
+            value={selectedGoalValue}
+            onChange={handleGoalSelectChange}
+            options={goalSelectOptions}
             size="sm"
-            onPress={handleChooseNewGoal}
-          />
+            triggerVariant="plain"
+            placeholder={t('goalTracking.actions.chooseNew')}
+          >
+            <View style={styles.goalSelectTrigger}>
+              <Icon name="swap-horizontal" size={16} variant="primary" />
+            </View>
+          </Select>
         </View>
+        <Button
+          title={t('goalTracking.actions.viewHistory')}
+          variant="ghost"
+          size="sm"
+          style={styles.goalActionButton}
+          labelStyle={styles.goalActionButtonLabel}
+          rightIcon={<Icon name="chevron-forward" variant="primary" size={16} />}
+          onPress={() => router.push('/goal-history')}
+        />
       </Card>
     );
   } else if (hasProfile) {
@@ -435,11 +585,29 @@ export default function HomeTab() {
             {t('goalTracking.emptySubtitle')}
           </Text>
         </View>
-        <Button
-          title={t('goalTracking.actions.startGoal')}
-          variant="primary"
+        <Select
+          value={selectedGoalValue}
+          onChange={handleGoalSelectChange}
+          options={goalSelectOptions}
           size="sm"
-          onPress={handleChooseNewGoal}
+          triggerVariant="plain"
+          placeholder={t('goalTracking.actions.startGoal')}
+        >
+          <View style={styles.goalSelectCallToAction}>
+            <Icon name="flag-outline" size={16} variant="onBrand" />
+            <Text variant="label" weight="semibold" color="onBrand">
+              {t('goalTracking.actions.startGoal')}
+            </Text>
+          </View>
+        </Select>
+        <Button
+          title={t('goalTracking.actions.viewHistory')}
+          variant="ghost"
+          size="sm"
+          style={styles.goalActionButton}
+          labelStyle={styles.goalActionButtonLabel}
+          rightIcon={<Icon name="chevron-forward" variant="primary" size={16} />}
+          onPress={() => router.push('/goal-history')}
         />
       </Card>
     );
@@ -570,6 +738,26 @@ export default function HomeTab() {
                   colorScheme={progressColorScheme}
                 />
 
+                {heroHighlight ? (
+                  <View style={styles.heroHighlight}>
+                    <View style={styles.heroHighlightIcon}>
+                      <Icon
+                        name={heroHighlight.icon}
+                        size={16}
+                        variant={heroHighlight.iconVariant}
+                      />
+                    </View>
+                    <View style={styles.heroHighlightCopy}>
+                      <Text variant="caption" color="secondary">
+                        {heroHighlight.label}
+                      </Text>
+                      <Text variant="bodySmall" weight="semibold">
+                        {heroHighlight.value}
+                      </Text>
+                    </View>
+                  </View>
+                ) : null}
+
                 <View style={styles.macroGoalSection}>
                   <Text
                     variant="bodySmall"
@@ -633,46 +821,6 @@ export default function HomeTab() {
             )}
 
             {goalTrackingSection}
-
-            {goalTracking ? (
-              <Card variant="filled" style={styles.achievementCard}>
-                <View style={styles.goalTrackingHeader}>
-                  <View style={styles.goalTrackingCopy}>
-                    <Text variant="h3">{t('achievements.title')}</Text>
-                    <Text variant="bodySmall" color="secondary">
-                      {t('achievements.subtitle')}
-                    </Text>
-                  </View>
-                  <Chip
-                    label={t('achievements.count', {
-                      count: goalTracking.unlockedAchievements.length,
-                    })}
-                    variant="outline"
-                  />
-                </View>
-                <View style={styles.achievementRow}>
-                  <Text variant="bodySmall" color="secondary">
-                    {t('achievements.currentStreak')}
-                  </Text>
-                  <Text variant="body" weight="semibold">
-                    {t('achievements.currentStreakValue', { count: goalTracking.currentStreak })}
-                  </Text>
-                </View>
-                {unlockedAchievementPreview.map((achievement) => (
-                  <View key={achievement.id} style={styles.achievementRow}>
-                    <Text variant="bodySmall">
-                      {t(getAchievementTitleKey(achievement.achievementKey))}
-                    </Text>
-                    <Icon name="flame-outline" variant="accent" size={16} />
-                  </View>
-                ))}
-                {goalTracking.unlockedAchievements.length === 0 ? (
-                  <Text variant="bodySmall" color="secondary">
-                    {t('achievements.empty')}
-                  </Text>
-                ) : null}
-              </Card>
-            ) : null}
 
             {entries.length === 0 ? (
               <Card variant="filled" style={styles.emptyCard}>
@@ -744,6 +892,27 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  heroHighlight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p12,
+    borderRadius: theme.metrics.borderRadius.lg,
+    backgroundColor: theme.colors.background.surface,
+  },
+  heroHighlightIcon: {
+    width: theme.metrics.spacing.p36,
+    height: theme.metrics.spacing.p36,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.section,
+  },
+  heroHighlightCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
   macroGoalSection: {
     gap: theme.metrics.spacingV.p16,
     paddingHorizontal: theme.metrics.spacing.p12,
@@ -785,9 +954,6 @@ const styles = StyleSheet.create((theme) => ({
   goalTrackingCard: {
     gap: theme.metrics.spacingV.p12,
   },
-  achievementCard: {
-    gap: theme.metrics.spacingV.p12,
-  },
   goalTrackingHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -798,15 +964,62 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     gap: theme.metrics.spacingV.p4,
   },
-  goalActionRow: {
-    flexDirection: 'row',
-    gap: theme.metrics.spacing.p12,
-  },
-  achievementRow: {
+  goalProgressRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
+  },
+  goalProgressMetric: {
+    flex: 1,
+  },
+  goalProgressMetricEnd: {
+    alignItems: 'flex-end',
+  },
+  goalActionRow: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p12,
+  },
+  goalCardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  goalActionButton: {
+    minHeight: theme.metrics.spacing.p36,
+    borderRadius: theme.metrics.borderRadius.full,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
+    backgroundColor: theme.colors.background.section,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
+  },
+  goalActionButtonLabel: {
+    color: theme.colors.text.primary,
+  },
+  goalSelectTrigger: {
+    minHeight: theme.metrics.spacing.p36,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    backgroundColor: theme.colors.background.section,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
+  },
+  goalSelectCallToAction: {
+    minHeight: theme.metrics.spacing.p44,
+    borderRadius: theme.metrics.borderRadius.lg,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingVertical: theme.metrics.spacingV.p12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+    backgroundColor: theme.colors.brand.primary,
   },
   mealSection: {
     gap: theme.metrics.spacingV.p12,

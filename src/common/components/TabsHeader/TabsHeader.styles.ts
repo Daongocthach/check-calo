@@ -18,7 +18,10 @@ export const styles = StyleSheet.create((theme, rt) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.background.surface,
+    backgroundColor:
+      theme.colors.mode === 'dark'
+        ? theme.colors.background.elevated
+        : theme.colors.background.surface,
     borderWidth: 1,
     borderColor: theme.colors.border.subtle,
   },

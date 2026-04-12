@@ -49,7 +49,7 @@ export const styles = StyleSheet.create((theme) => ({
     variants: {
       selected: {
         true: {
-          color: theme.colors.text.primary,
+          color: theme.colors.text.onBrand,
         },
       },
     },

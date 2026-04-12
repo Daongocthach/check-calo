@@ -79,7 +79,16 @@ const config: ExpoConfig = {
         ],
       },
     ],
+    'expo-notifications',
     'expo-image',
+    [
+      'expo-camera',
+      {
+        cameraPermission:
+          'CheckCalo requires camera access to capture food photos for calorie estimation and meal tracking.',
+        recordAudioPermission: false,
+      },
+    ],
     'expo-sqlite',
     ['./plugins/with-android-splits'],
   ],

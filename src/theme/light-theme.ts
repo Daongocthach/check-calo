@@ -9,7 +9,7 @@ export const lightColors: ThemeColors = {
     tertiary: '#FF9E3D',
     primaryVariant: '#D2E93B',
     secondaryVariant: '#345125',
-    onBrand: '#FFFFFF',
+    onBrand: '#0F172A',
   },
 
   background: {
@@ -32,7 +32,7 @@ export const lightColors: ThemeColors = {
     accent: '#FF9E3D',
     link: '#7BA120',
     linkHover: '#6C8E19',
-    onBrand: '#FFFFFF',
+    onBrand: '#0F172A',
   },
 
   border: {
@@ -50,7 +50,7 @@ export const lightColors: ThemeColors = {
     muted: '#B0B99C',
     inverse: '#FFFFFF',
     accent: '#FF9E3D',
-    onBrand: '#FFFFFF',
+    onBrand: '#0F172A',
   },
 
   state: {

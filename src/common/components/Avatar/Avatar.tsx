@@ -65,7 +65,7 @@ export function Avatar({ source, initials, icon, size = 'md', accessibilityLabel
       accessibilityRole="image"
       accessibilityLabel={accessibilityLabel ?? 'User avatar'}
     >
-      <Icon name="person" variant="inverse" size={dimension * 0.5} />
+      <Icon name="person" variant="onBrand" size={dimension * 0.5} />
     </View>
   );
 }

@@ -4,12 +4,17 @@ import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Button, Card, Chip, Icon, ScreenContainer, Text } from '@/common/components';
+import { Button, Card, Chip, Icon, ScreenContainer, Switch, Text } from '@/common/components';
 import {
   deleteCurrentUserCloudNutritionData,
   disconnectCurrentSyncAccount,
   logout,
 } from '@/features/auth/services/authService';
+import {
+  getDefaultCalorieReminderSettings,
+  requestCalorieReminderPermissions,
+  syncCalorieReminderSchedule,
+} from '@/features/notifications/services/calorieReminderService';
 import { clearManagedFoodEntryImageCache } from '@/features/nutrition/services/foodEntryImageSync';
 import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
 import {
@@ -20,9 +25,10 @@ import {
 import type { AchievementKey, GoalTrackingSnapshot } from '@/features/nutrition/types';
 import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
+import { STORAGE_KEYS, useStorage, useStorageBoolean } from '@/utils/storage';
 import { toast } from '@/utils/toast';
 
-function getMonthlyWeightPlanKey(value: number) {
+function getMonthlyWeightGoalPlanKey(value: number) {
   switch (value) {
     case -1:
       return 'welcomeScreen.monthlyWeightPlans.gain_1' as const;
@@ -36,17 +42,6 @@ function getMonthlyWeightPlanKey(value: number) {
       return 'welcomeScreen.monthlyWeightPlans.lose_1' as const;
     default:
       return 'welcomeScreen.monthlyWeightPlans.0' as const;
-  }
-}
-
-function getGoalTitleKey(mode: 'lose' | 'gain' | 'maintain') {
-  switch (mode) {
-    case 'gain':
-      return 'goalTracking.goalNames.gain' as const;
-    case 'maintain':
-      return 'goalTracking.goalNames.maintain' as const;
-    default:
-      return 'goalTracking.goalNames.lose' as const;
   }
 }
 
@@ -73,6 +68,7 @@ export default function ProfileTab() {
   const [isResettingData, setIsResettingData] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeletingSyncAccount, setIsDeletingSyncAccount] = useState(false);
+  const [isUpdatingReminders, setIsUpdatingReminders] = useState(false);
   const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
   const [profileSummary, setProfileSummary] = useState<{
     bmi: string;
@@ -88,6 +84,35 @@ export default function ProfileTab() {
     activityLevel: string;
     gender: string;
   } | null>(null);
+  const defaultReminderSettings = getDefaultCalorieReminderSettings();
+  const calorieRemindersEnabledStorage = useStorageBoolean(
+    STORAGE_KEYS.preferences.calorieRemindersEnabled,
+    {
+      defaultValue: defaultReminderSettings.enabled,
+      initializeWithDefault: true,
+    }
+  );
+  const breakfastReminderStorage = useStorage<string>(
+    STORAGE_KEYS.preferences.calorieReminderBreakfastTime,
+    {
+      defaultValue: defaultReminderSettings.breakfastTime,
+      initializeWithDefault: true,
+    }
+  );
+  const lunchReminderStorage = useStorage<string>(
+    STORAGE_KEYS.preferences.calorieReminderLunchTime,
+    {
+      defaultValue: defaultReminderSettings.lunchTime,
+      initializeWithDefault: true,
+    }
+  );
+  const dinnerReminderStorage = useStorage<string>(
+    STORAGE_KEYS.preferences.calorieReminderDinnerTime,
+    {
+      defaultValue: defaultReminderSettings.dinnerTime,
+      initializeWithDefault: true,
+    }
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -107,7 +132,7 @@ export default function ProfileTab() {
           bmi: profile.bmi.toFixed(1),
           maintenanceCalorieTarget: String(profile.maintenanceCalorieTarget),
           calorieTarget: String(profile.dailyCalorieTarget),
-          monthlyWeightPlan: t(getMonthlyWeightPlanKey(profile.monthlyWeightLossKg)),
+          monthlyWeightPlan: t(getMonthlyWeightGoalPlanKey(profile.monthlyWeightGoalKg)),
           proteinTarget: String(profile.proteinTargetGrams),
           carbsTarget: String(profile.carbsTargetGrams),
           fatTarget: String(profile.fatTargetGrams),
@@ -125,11 +150,58 @@ export default function ProfileTab() {
 
         setGoalTracking(snapshot);
       });
-
       return () => {
         active = false;
       };
     }, [t])
+  );
+
+  const handleReminderToggle = useCallback(
+    (nextEnabled: boolean) => {
+      setIsUpdatingReminders(true);
+
+      void (async () => {
+        if (nextEnabled) {
+          const permissions = await requestCalorieReminderPermissions();
+
+          if (!permissions.granted) {
+            toast.error(t('profileScreen.reminders.permissionDenied'));
+            return;
+          }
+        }
+
+        calorieRemindersEnabledStorage.setValue(nextEnabled);
+
+        await syncCalorieReminderSchedule({
+          enabled: nextEnabled,
+          breakfastTime: breakfastReminderStorage.value ?? defaultReminderSettings.breakfastTime,
+          lunchTime: lunchReminderStorage.value ?? defaultReminderSettings.lunchTime,
+          dinnerTime: dinnerReminderStorage.value ?? defaultReminderSettings.dinnerTime,
+        });
+
+        toast.success(
+          nextEnabled
+            ? t('profileScreen.reminders.enabledSuccess')
+            : t('profileScreen.reminders.disabledSuccess')
+        );
+      })()
+        .catch(() => {
+          toast.error(t('profileScreen.actionError'));
+        })
+        .finally(() => {
+          setIsUpdatingReminders(false);
+        });
+    },
+    [
+      breakfastReminderStorage.value,
+      calorieRemindersEnabledStorage,
+      defaultReminderSettings.breakfastTime,
+      defaultReminderSettings.dinnerTime,
+      defaultReminderSettings.lunchTime,
+      dinnerReminderStorage.value,
+      lunchReminderStorage.value,
+      t,
+    ]
   );
 
   const handleDeleteProfile = useCallback(() => {
@@ -259,59 +331,6 @@ export default function ProfileTab() {
     ]);
   }, [appAlert, t]);
 
-  let goalProgressContent = null;
-
-  if (goalTracking?.activeGoal) {
-    const goalProgressLabel =
-      goalTracking.activeGoal.unit === 'days'
-        ? t('goalTracking.progressDays', {
-            current: goalTracking.activeGoal.progressValue,
-            target: goalTracking.activeGoal.targetValue,
-          })
-        : t('goalTracking.progressKcal', {
-            current: goalTracking.activeGoal.progressValue,
-            target: goalTracking.activeGoal.targetValue,
-          });
-
-    goalProgressContent = (
-      <>
-        <View style={styles.detailRow}>
-          <Text variant="bodySmall" color="secondary">
-            {t('goalTracking.activeTitle')}
-          </Text>
-          <Text variant="body" weight="semibold">
-            {t(getGoalTitleKey(goalTracking.activeGoal.goal.mode))}
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text variant="bodySmall" color="secondary">
-            {t('goalTracking.progressLabel')}
-          </Text>
-          <Text variant="body" weight="semibold">
-            {goalProgressLabel}
-          </Text>
-        </View>
-      </>
-    );
-  } else if (goalTracking?.latestCompletedGoal) {
-    goalProgressContent = (
-      <View style={styles.detailRow}>
-        <Text variant="bodySmall" color="secondary">
-          {t('goalTracking.completedTitle')}
-        </Text>
-        <Text variant="body" weight="semibold">
-          {t(getGoalTitleKey(goalTracking.latestCompletedGoal.goal.mode))}
-        </Text>
-      </View>
-    );
-  } else if (goalTracking) {
-    goalProgressContent = (
-      <Text variant="bodySmall" color="secondary">
-        {t('goalTracking.emptySubtitle')}
-      </Text>
-    );
-  }
-
   return (
     <ScreenContainer scrollable padded edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
@@ -400,43 +419,6 @@ export default function ProfileTab() {
               </View>
             </Card>
 
-            {goalTracking ? (
-              <>
-                <Card variant="filled" style={styles.detailCard}>
-                  <Text variant="h3">{t('goalTracking.profileTitle')}</Text>
-                  {goalProgressContent}
-                </Card>
-
-                <Card variant="filled" style={styles.detailCard}>
-                  <Text variant="h3">{t('achievements.title')}</Text>
-                  <View style={styles.detailRow}>
-                    <Text variant="bodySmall" color="secondary">
-                      {t('achievements.currentStreak')}
-                    </Text>
-                    <Text variant="body" weight="semibold">
-                      {t('achievements.currentStreakValue', {
-                        count: goalTracking.currentStreak,
-                      })}
-                    </Text>
-                  </View>
-                  {goalTracking.unlockedAchievements.length === 0 ? (
-                    <Text variant="bodySmall" color="secondary">
-                      {t('achievements.empty')}
-                    </Text>
-                  ) : (
-                    goalTracking.unlockedAchievements.map((achievement) => (
-                      <View key={achievement.id} style={styles.detailRow}>
-                        <Text variant="bodySmall">
-                          {t(getAchievementTitleKey(achievement.achievementKey))}
-                        </Text>
-                        <Icon name="flame-outline" variant="accent" size={16} />
-                      </View>
-                    ))
-                  )}
-                </Card>
-              </>
-            ) : null}
-
             <Card variant="filled" style={styles.detailCard}>
               <Text variant="h3">{t('profileScreen.bodyMetricsTitle')}</Text>
               <View style={styles.detailRow}>
@@ -487,6 +469,56 @@ export default function ProfileTab() {
                 onPress={handleDeleteProfile}
               />
             </Card>
+
+            <Card variant="filled" style={styles.detailCard}>
+              <View style={styles.notificationsRow}>
+                <Text variant="h3">{t('profileScreen.reminders.title')}</Text>
+                <Switch
+                  value={calorieRemindersEnabledStorage.value ?? defaultReminderSettings.enabled}
+                  onValueChange={handleReminderToggle}
+                  disabled={isUpdatingReminders}
+                />
+              </View>
+              <Text variant="bodySmall" color="secondary">
+                {t('profileScreen.reminders.subtitle')}
+              </Text>
+              <Button
+                title={t('profileScreen.reminders.manageAction')}
+                variant="outline"
+                disabled={isUpdatingReminders}
+                onPress={() => router.push('/notification-settings')}
+              />
+            </Card>
+
+            {goalTracking ? (
+              <Card variant="filled" style={styles.detailCard}>
+                <Text variant="h3">{t('achievements.title')}</Text>
+                <View style={styles.detailRow}>
+                  <Text variant="bodySmall" color="secondary">
+                    {t('achievements.currentStreak')}
+                  </Text>
+                  <Text variant="body" weight="semibold">
+                    {t('achievements.currentStreakValue', {
+                      count: goalTracking.currentStreak,
+                    })}
+                  </Text>
+                </View>
+                {goalTracking.unlockedAchievements.length === 0 ? (
+                  <Text variant="bodySmall" color="secondary">
+                    {t('achievements.empty')}
+                  </Text>
+                ) : (
+                  goalTracking.unlockedAchievements.map((achievement) => (
+                    <View key={achievement.id} style={styles.detailRow}>
+                      <Text variant="bodySmall">
+                        {t(getAchievementTitleKey(achievement.achievementKey))}
+                      </Text>
+                      <Icon name="flame-outline" variant="accent" size={16} />
+                    </View>
+                  ))
+                )}
+              </Card>
+            ) : null}
           </>
         ) : (
           <Card variant="filled" style={styles.emptyCard}>
@@ -618,6 +650,12 @@ const styles = StyleSheet.create((theme) => ({
     borderWidth: 1,
     borderColor:
       theme.colors.mode === 'dark' ? theme.colors.border.default : theme.colors.border.subtle,
+  },
+  notificationsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
   },
   detailRow: {
     flexDirection: 'row',

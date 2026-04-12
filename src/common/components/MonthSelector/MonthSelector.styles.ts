@@ -62,7 +62,7 @@ export const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text.primary,
   },
   dayNumberTextSelected: {
-    color: theme.colors.text.primary,
+    color: theme.colors.text.onBrand,
   },
   dayNumberTextFailed: {
     color: theme.colors.state.error,

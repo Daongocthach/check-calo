@@ -80,7 +80,7 @@ function Preview() {
       style={styles.mealPreview}
     >
       <View style={styles.previewCalories}>
-        <Text variant="caption" weight="semibold" color="onBrand">
+        <Text variant="caption" weight="semibold" color="inverse">
           {`${Math.round(item.totalCalories)} ${t('common.units.kcal')}`}
         </Text>
       </View>

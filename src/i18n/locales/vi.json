@@ -35,6 +35,7 @@
     "home": "Trang chủ",
     "stats": "Thống kê",
     "add": "Thêm",
+    "menu": "Thực đơn",
     "favorites": "Thư viện",
     "profile": "Hồ sơ",
     "showcase": "Trình diễn",
@@ -48,6 +49,11 @@
     "themeSystem": "Theo hệ thống",
     "themeLight": "Sáng",
     "themeDark": "Tối"
+  },
+  "menuScreen": {
+    "title": "Thực đơn",
+    "subtitle": "Mock tạm cho tab Thực đơn. Có thể mở rộng thành planner theo ngày, bữa ăn và gợi ý món từ thư viện.",
+    "libraryAction": "Quản lý thư viện món ăn"
   },
   "language": {
     "label": "Ngôn ngữ",
@@ -249,6 +255,7 @@
     "favoriteFoodsTitle": "Thư viện món",
     "favoriteFoodsSubtitle": "Chọn nhanh món đã tạo và thêm thẳng vào bữa hiện tại.",
     "favoriteFoodsAction": "Chọn từ thư viện món",
+    "manageLibraryAction": "Quản lý thư viện món ăn",
     "favoriteSearchPlaceholder": "Tìm món trong thư viện...",
     "favoriteEmptyTitle": "Không tìm thấy món phù hợp",
     "favoriteEmptySubtitle": "Thử từ khóa khác hoặc tạo thêm món mới trong thư viện.",
@@ -512,19 +519,54 @@
       "carbsTarget": "Carb",
       "fatTarget": "Fat"
     },
+    "reminders": {
+      "title": "Thông báo",
+      "toggleLabel": "Bật/tắt thông báo",
+      "subtitle": "Nhắc bạn mở app để cập nhật bữa ăn vào các khung giờ quen thuộc.",
+      "breakfast": "Bữa sáng",
+      "lunch": "Bữa trưa",
+      "dinner": "Bữa tối",
+      "enableAction": "Bật nhắc nhở",
+      "disableAction": "Tắt nhắc nhở",
+      "manageAction": "Mở cài đặt thông báo",
+      "pickTime": "Chọn giờ nhắc",
+      "hint": "Bấm thông báo sẽ mở thẳng sang tab thêm món để bạn quét calories nhanh hơn.",
+      "permissionDenied": "Bạn chưa cấp quyền thông báo cho ứng dụng.",
+      "enabledSuccess": "Đã bật nhắc nhở cập nhật calories.",
+      "disabledSuccess": "Đã tắt nhắc nhở cập nhật calories.",
+      "updatedSuccess": "Đã cập nhật giờ nhắc.",
+      "adjustedToMealWindow": "Giờ nhắc đã được đưa về khung giờ hợp lệ của bữa ăn.",
+      "channelName": "Nhắc cập nhật calories",
+      "notifications": {
+        "breakfast": {
+          "title": "Đến giờ cập nhật bữa sáng",
+          "body": "Mở app để quét món ăn và ghi lại calories của bạn."
+        },
+        "lunch": {
+          "title": "Đến giờ cập nhật bữa trưa",
+          "body": "Nhắc nhẹ: cập nhật calories để giữ đúng kế hoạch hôm nay."
+        },
+        "dinner": {
+          "title": "Đến giờ cập nhật bữa tối",
+          "body": "Chốt lại ngày hôm nay bằng cách ghi nhanh bữa tối của bạn."
+        }
+      }
+    },
     "theme": {
       "light": "Sáng",
       "dark": "Tối"
     }
   },
   "goalTracking": {
-    "activeTitle": "Mục tiêu hiện tại",
-    "completedTitle": "Đã hoàn thành mục tiêu",
-    "profileTitle": "Tiến độ mục tiêu",
+    "activeTitle": "Kế hoạch",
+    "completedTitle": "Đã hoàn thành kế hoạch",
+    "profileTitle": "Tiến độ kế hoạch",
     "progressLabel": "Tiến độ",
-    "emptyTitle": "Chọn mục tiêu tiếp theo",
-    "emptySubtitle": "Tiếp tục đi bằng mục tiêu calories hoặc chuỗi ngày giữ cân.",
-    "choosePrompt": "Chọn mục tiêu bạn muốn bắt đầu tiếp theo.",
+    "emptyTitle": "Chọn kế hoạch tiếp theo",
+    "emptySubtitle": "Tiếp tục đi bằng kế hoạch calories hoặc chuỗi ngày giữ cân.",
+    "choosePrompt": "Chọn kế hoạch bạn muốn bắt đầu tiếp theo.",
+    "changeGoalConfirmTitle": "Đổi kế hoạch mới?",
+    "changeGoalConfirmMessage": "Kế hoạch hiện tại sẽ kết thúc và một kế hoạch mới sẽ bắt đầu từ bây giờ.",
     "progressKcal": "{{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} ngày",
     "remainingKcal": "Còn {{value}} kcal",
@@ -532,19 +574,36 @@
     "goalNames": {
       "lose": "Giảm 1 kg",
       "gain": "Tăng 1 kg",
-      "maintain": "Giữ cân 7 ngày"
+      "maintain": "Giữ cân",
+      "loseWithValue": "Giảm {{value}} kg",
+      "gainWithValue": "Tăng {{value}} kg",
+      "maintainWithValue": "Giữ cân {{value}} ngày",
+      "maintainWithOneMonth": "Giữ cân",
+      "maintainWithMonths": "Giữ cân {{value}} tháng"
     },
     "actions": {
       "startGoal": "Bắt đầu mục tiêu",
       "chooseNew": "Chọn mục tiêu mới",
+      "viewHistory": "Xem lịch sử",
       "continueGoal": "Tiếp tục mục tiêu này",
       "lose1kg": "Giảm 1 kg",
       "gain1kg": "Tăng 1 kg",
-      "maintain7Days": "Giữ cân 7 ngày"
+      "maintain7Days": "Giữ cân 1 tháng"
+    },
+    "status": {
+      "active": "Đang thực hiện",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã hủy"
+    },
+    "history": {
+      "title": "Lịch sử kế hoạch",
+      "subtitle": "Các mục tiêu bạn đã hoàn thành hoặc đổi giữa chừng.",
+      "empty": "Bạn chưa có lịch sử kế hoạch nào."
     },
     "toasts": {
       "goalCompleted": "Bạn đã hoàn thành mục tiêu. Hãy chọn bước tiếp theo.",
-      "achievementUnlocked": "Mở khóa thành tựu: {{title}}"
+      "achievementUnlocked": "Mở khóa thành tựu: {{title}}",
+      "achievementUnlockedGeneric": "Đã mở khóa thành tựu mới"
     }
   },
   "achievements": {

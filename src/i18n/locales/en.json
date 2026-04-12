@@ -35,6 +35,7 @@
     "home": "Home",
     "stats": "Stats",
     "add": "Add",
+    "menu": "Menu",
     "favorites": "Library",
     "profile": "Profile",
     "showcase": "Showcase",
@@ -48,6 +49,11 @@
     "themeSystem": "System",
     "themeLight": "Light",
     "themeDark": "Dark"
+  },
+  "menuScreen": {
+    "title": "Menu",
+    "subtitle": "Temporary mock for the Menu tab. We can expand this into a day-by-day meal planner with suggestions from your food library.",
+    "libraryAction": "Manage food library"
   },
   "language": {
     "label": "Language",
@@ -249,6 +255,7 @@
     "favoriteFoodsTitle": "Food library",
     "favoriteFoodsSubtitle": "Quickly pick from your saved foods and add them into the current meal.",
     "favoriteFoodsAction": "From library",
+    "manageLibraryAction": "Manage food library",
     "favoriteSearchPlaceholder": "Search your food library...",
     "favoriteEmptyTitle": "No matching foods found",
     "favoriteEmptySubtitle": "Try another keyword or create a new food in your library.",
@@ -512,6 +519,39 @@
       "carbsTarget": "Carb",
       "fatTarget": "Fat"
     },
+    "reminders": {
+      "title": "Calorie reminders",
+      "toggleLabel": "Turn notifications on/off",
+      "subtitle": "Nudge yourself to open the app and log meals around your usual times.",
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "enableAction": "Turn reminders on",
+      "disableAction": "Turn reminders off",
+      "manageAction": "Open notification settings",
+      "pickTime": "Choose reminder time",
+      "hint": "Tapping a reminder opens the Add tab so you can scan calories right away.",
+      "permissionDenied": "Notifications permission has not been granted to the app.",
+      "enabledSuccess": "Calorie reminders are now on.",
+      "disabledSuccess": "Calorie reminders are now off.",
+      "updatedSuccess": "Reminder time updated.",
+      "adjustedToMealWindow": "Reminder time was adjusted to the valid meal window.",
+      "channelName": "Calorie reminders",
+      "notifications": {
+        "breakfast": {
+          "title": "Time to log breakfast",
+          "body": "Open the app to scan your meal and keep your calories up to date."
+        },
+        "lunch": {
+          "title": "Time to log lunch",
+          "body": "Quick reminder: update your calories to stay on plan today."
+        },
+        "dinner": {
+          "title": "Time to log dinner",
+          "body": "Wrap up today by logging your dinner in a few taps."
+        }
+      }
+    },
     "theme": {
       "light": "Light",
       "dark": "Dark"
@@ -525,6 +565,8 @@
     "emptyTitle": "Pick your next goal",
     "emptySubtitle": "Use calorie progress or maintenance days to keep moving forward.",
     "choosePrompt": "Choose the goal you want to start next.",
+    "changeGoalConfirmTitle": "Switch to a new goal?",
+    "changeGoalConfirmMessage": "Your current goal will end and a new goal will start from now.",
     "progressKcal": "{{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} days",
     "remainingKcal": "{{value}} kcal left",
@@ -532,19 +574,36 @@
     "goalNames": {
       "lose": "Lose 1 kg",
       "gain": "Gain 1 kg",
-      "maintain": "Maintain for 7 days"
+      "maintain": "Maintain for 1 month",
+      "loseWithValue": "Lose {{value}} kg",
+      "gainWithValue": "Gain {{value}} kg",
+      "maintainWithValue": "Maintain for {{value}} days",
+      "maintainWithOneMonth": "Maintain for 1 month",
+      "maintainWithMonths": "Maintain for {{value}} months"
     },
     "actions": {
       "startGoal": "Start goal",
       "chooseNew": "Choose new goal",
+      "viewHistory": "View history",
       "continueGoal": "Continue this goal",
       "lose1kg": "Lose 1 kg",
       "gain1kg": "Gain 1 kg",
-      "maintain7Days": "Maintain 7 days"
+      "maintain7Days": "Maintain 1 month"
+    },
+    "status": {
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "history": {
+      "title": "Goal history",
+      "subtitle": "Goals you completed or changed midway.",
+      "empty": "You do not have any goal history yet."
     },
     "toasts": {
       "goalCompleted": "Goal completed. Pick the next step.",
-      "achievementUnlocked": "Achievement unlocked: {{title}}"
+      "achievementUnlocked": "Achievement unlocked: {{title}}",
+      "achievementUnlockedGeneric": "New achievement unlocked"
     }
   },
   "achievements": {

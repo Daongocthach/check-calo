@@ -10,6 +10,8 @@ export default function MainLayout() {
     >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="food-form" />
+      <Stack.Screen name="goal-history" />
+      <Stack.Screen name="notification-settings" />
     </Stack>
   );
 }

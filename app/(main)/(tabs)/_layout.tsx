@@ -32,9 +32,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="favorites"
+        name="menu"
         options={{
-          title: t('tabs.favorites'),
+          title: t('tabs.menu'),
         }}
       />
       <Tabs.Screen

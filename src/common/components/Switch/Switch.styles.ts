@@ -20,7 +20,7 @@ export const styles = StyleSheet.create((theme) => ({
       },
       disabled: {
         true: {
-          opacity: 0.5,
+          opacity: 0.75,
         },
       },
     },

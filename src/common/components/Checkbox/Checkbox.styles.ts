@@ -56,7 +56,7 @@ export const styles = StyleSheet.create((theme) => ({
     flex: 1,
   },
   indeterminateDash: {
-    backgroundColor: theme.colors.text.primary,
+    backgroundColor: theme.colors.text.onBrand,
     borderRadius: 1,
     variants: {
       size: {

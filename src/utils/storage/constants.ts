@@ -8,6 +8,10 @@ export const STORAGE_KEYS = {
     language: 'user_language',
     onboardingCompleted: 'onboarding_completed',
     notificationsEnabled: 'notifications_enabled',
+    calorieRemindersEnabled: 'calorie_reminders_enabled',
+    calorieReminderBreakfastTime: 'calorie_reminder_breakfast_time',
+    calorieReminderLunchTime: 'calorie_reminder_lunch_time',
+    calorieReminderDinnerTime: 'calorie_reminder_dinner_time',
   },
   auth: {
     lastEmail: 'auth_last_email',

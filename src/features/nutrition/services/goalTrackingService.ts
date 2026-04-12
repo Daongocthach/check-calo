@@ -21,8 +21,14 @@ import { getUserProfile, listDailyNutritionSummaries } from './nutritionDatabase
 
 const KCAL_PER_KG = 7700;
 const DEFAULT_TARGET_KG = 1;
-const DEFAULT_MAINTAIN_DAYS = 7;
+const DEFAULT_MAINTAIN_DAYS = 30;
 const MAINTENANCE_TOLERANCE_KCAL = 100;
+
+interface WeightGoalPreset {
+  targetKg: number | null;
+  targetKcalDelta: number;
+  targetDays: number;
+}
 
 interface WeightGoalRow {
   id: string;
@@ -43,6 +49,14 @@ interface AchievementUnlockRow {
   unlocked_at: string;
   created_at: string;
   updated_at: string;
+}
+
+interface GoalTrackingDailyTotalsRow {
+  entry_date: string;
+  consumed_calories: number | null;
+  protein_grams: number | null;
+  carbs_grams: number | null;
+  fat_grams: number | null;
 }
 
 function mapWeightGoal(row: WeightGoalRow): WeightGoal {
@@ -166,8 +180,75 @@ function getStreakFromSummaries(summaries: NutritionTrendPoint[], profile: UserP
 }
 
 async function listSummariesSince(startedAt: string): Promise<NutritionTrendPoint[]> {
-  const today = new Date();
-  return listDailyNutritionSummaries(formatDateKey(startedAt), formatDateKey(today));
+  return listSummariesBetween(startedAt);
+}
+
+async function listSummariesBetween(
+  startedAt: string,
+  endedAt?: string | null
+): Promise<NutritionTrendPoint[]> {
+  const database = await getDatabase();
+  const profile = await getUserProfile();
+  const rangeEnd = endedAt ?? new Date().toISOString();
+  const normalizedStartDate = formatDateKey(startedAt);
+  const normalizedEndDate = formatDateKey(rangeEnd);
+  const overrideRows = await database.getAllAsync<{
+    date: string;
+    calorie_target: number;
+  }>(
+    `
+      SELECT date, calorie_target
+      FROM daily_calorie_targets
+      WHERE date >= ? AND date <= ?;
+    `,
+    [normalizedStartDate, normalizedEndDate]
+  );
+  const totalRows = await database.getAllAsync<GoalTrackingDailyTotalsRow>(
+    `
+      SELECT
+        entry_date,
+        COALESCE(SUM(total_calories), 0) AS consumed_calories,
+        COALESCE(SUM(protein_grams), 0) AS protein_grams,
+        COALESCE(SUM(carbs_grams), 0) AS carbs_grams,
+        COALESCE(SUM(fat_grams), 0) AS fat_grams
+      FROM food_entries
+      WHERE consumed_at >= ? AND consumed_at <= ?
+      GROUP BY entry_date
+      ORDER BY entry_date ASC;
+    `,
+    [startedAt, rangeEnd]
+  );
+
+  const overrideMap = new Map(overrideRows.map((row) => [row.date, row.calorie_target]));
+  const totalsMap = new Map(totalRows.map((row) => [row.entry_date, row]));
+  const summaries: NutritionTrendPoint[] = [];
+  const cursor = new Date(`${normalizedStartDate}T00:00:00`);
+  const finalDate = new Date(`${normalizedEndDate}T00:00:00`);
+
+  while (cursor <= finalDate) {
+    const dateKey = formatDateKey(cursor);
+    const totals = totalsMap.get(dateKey);
+    const calorieTarget = overrideMap.get(dateKey) ?? profile?.dailyCalorieTarget ?? 0;
+
+    summaries.push({
+      date: dateKey,
+      label: dateKey,
+      calorieTarget,
+      consumedCalories: totals?.consumed_calories ?? 0,
+      remainingCalories: calorieTarget - (totals?.consumed_calories ?? 0),
+      progressPercent:
+        calorieTarget > 0
+          ? Math.min(100, Math.round(((totals?.consumed_calories ?? 0) / calorieTarget) * 100))
+          : 0,
+      proteinGrams: totals?.protein_grams ?? 0,
+      carbsGrams: totals?.carbs_grams ?? 0,
+      fatGrams: totals?.fat_grams ?? 0,
+    });
+
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return summaries;
 }
 
 async function getActiveWeightGoalRow() {
@@ -194,6 +275,22 @@ async function getLatestCompletedWeightGoalRow() {
       LIMIT 1;
     `
   );
+}
+
+async function listHistoricalWeightGoalRows() {
+  const database = await getDatabase();
+  const rows = await database.getAllAsync<WeightGoalRow>(
+    `
+      SELECT *
+      FROM weight_goals
+      WHERE status != 'active'
+      ORDER BY
+        CASE WHEN completed_at IS NOT NULL THEN completed_at ELSE updated_at END DESC,
+        started_at DESC;
+    `
+  );
+
+  return rows.map(mapWeightGoal);
 }
 
 async function listAchievementUnlockRows() {
@@ -258,7 +355,16 @@ async function markGoalCompleted(goal: WeightGoalProgress) {
   } satisfies WeightGoalProgress;
 }
 
-function buildGoalInsert(mode: WeightGoalMode) {
+function getGoalTargetKg(mode: WeightGoalMode, profile?: UserProfile | null) {
+  if (mode === 'maintain') {
+    return null;
+  }
+
+  const plannedTargetKg = Math.abs(profile?.monthlyWeightGoalKg ?? 0);
+  return plannedTargetKg > 0 ? plannedTargetKg : DEFAULT_TARGET_KG;
+}
+
+function buildGoalInsert(mode: WeightGoalMode, profile?: UserProfile | null): WeightGoalPreset {
   if (mode === 'maintain') {
     return {
       targetKg: null,
@@ -267,15 +373,89 @@ function buildGoalInsert(mode: WeightGoalMode) {
     };
   }
 
+  const targetKg = getGoalTargetKg(mode, profile) ?? DEFAULT_TARGET_KG;
+
   return {
-    targetKg: DEFAULT_TARGET_KG,
-    targetKcalDelta: DEFAULT_TARGET_KG * KCAL_PER_KG,
+    targetKg,
+    targetKcalDelta: Math.round(targetKg * KCAL_PER_KG),
     targetDays: 0,
   };
 }
 
-export async function startWeightGoal(mode: WeightGoalMode) {
+function isSameGoalPreset(goal: WeightGoalRow, mode: WeightGoalMode, preset: WeightGoalPreset) {
+  return (
+    goal.mode === mode &&
+    goal.target_kg === preset.targetKg &&
+    goal.target_kcal_delta === preset.targetKcalDelta &&
+    goal.target_days === preset.targetDays
+  );
+}
+
+async function insertWeightGoal(
+  database: Awaited<ReturnType<typeof getDatabase>>,
+  mode: WeightGoalMode,
+  preset: WeightGoalPreset,
+  now: string
+) {
+  await database.runAsync(
+    `
+      INSERT INTO weight_goals (
+        id,
+        mode,
+        target_kg,
+        target_kcal_delta,
+        target_days,
+        status,
+        started_at,
+        completed_at,
+        created_at,
+        updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, 'active', ?, NULL, ?, ?);
+    `,
+    [
+      createEntityId('goal'),
+      mode,
+      preset.targetKg,
+      preset.targetKcalDelta,
+      preset.targetDays,
+      now,
+      now,
+      now,
+    ]
+  );
+}
+
+export async function startWeightGoal(mode: WeightGoalMode, profile?: UserProfile | null) {
   const database = await getDatabase();
+  const now = nowIsoString();
+  const existingActiveGoal = await getActiveWeightGoalRow();
+  const preset = buildGoalInsert(mode, profile);
+
+  await database.withTransactionAsync(async () => {
+    if (existingActiveGoal) {
+      await database.runAsync(
+        `
+          UPDATE weight_goals
+          SET status = 'cancelled', updated_at = ?
+          WHERE id = ?;
+        `,
+        [now, existingActiveGoal.id]
+      );
+    }
+
+    await insertWeightGoal(database, mode, preset, now);
+  });
+}
+
+export async function continueLatestCompletedGoal() {
+  const database = await getDatabase();
+  const latestCompletedGoal = await getLatestCompletedWeightGoalRow();
+
+  if (!latestCompletedGoal) {
+    return false;
+  }
+
   const now = nowIsoString();
   const existingActiveGoal = await getActiveWeightGoalRow();
 
@@ -291,46 +471,18 @@ export async function startWeightGoal(mode: WeightGoalMode) {
       );
     }
 
-    const preset = buildGoalInsert(mode);
-
-    await database.runAsync(
-      `
-        INSERT INTO weight_goals (
-          id,
-          mode,
-          target_kg,
-          target_kcal_delta,
-          target_days,
-          status,
-          started_at,
-          completed_at,
-          created_at,
-          updated_at
-        )
-        VALUES (?, ?, ?, ?, ?, 'active', ?, NULL, ?, ?);
-      `,
-      [
-        createEntityId('goal'),
-        mode,
-        preset.targetKg,
-        preset.targetKcalDelta,
-        preset.targetDays,
-        now,
-        now,
-        now,
-      ]
+    await insertWeightGoal(
+      database,
+      latestCompletedGoal.mode,
+      {
+        targetKg: latestCompletedGoal.target_kg,
+        targetKcalDelta: latestCompletedGoal.target_kcal_delta,
+        targetDays: latestCompletedGoal.target_days,
+      },
+      now
     );
   });
-}
 
-export async function continueLatestCompletedGoal() {
-  const latestCompletedGoal = await getLatestCompletedWeightGoalRow();
-
-  if (!latestCompletedGoal) {
-    return false;
-  }
-
-  await startWeightGoal(latestCompletedGoal.mode);
   return true;
 }
 
@@ -347,7 +499,24 @@ export async function ensureRecommendedGoalForProfile(profile: UserProfile) {
     return;
   }
 
-  await startWeightGoal(getWeightGoalMode(profile.monthlyWeightLossKg));
+  await startWeightGoal(getWeightGoalMode(profile.monthlyWeightGoalKg), profile);
+}
+
+export async function syncActiveGoalToProfile(profile: UserProfile) {
+  const activeGoal = await getActiveWeightGoalRow();
+  const recommendedMode = getWeightGoalMode(profile.monthlyWeightGoalKg);
+  const preset = buildGoalInsert(recommendedMode, profile);
+
+  if (!activeGoal) {
+    await startWeightGoal(recommendedMode, profile);
+    return;
+  }
+
+  if (isSameGoalPreset(activeGoal, recommendedMode, preset)) {
+    return;
+  }
+
+  await startWeightGoal(recommendedMode, profile);
 }
 
 export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
@@ -357,6 +526,7 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
     return {
       activeGoal: null,
       latestCompletedGoal: null,
+      goalHistory: [],
       currentStreak: 0,
       unlockedAchievements: await listAchievementUnlockRows(),
       newlyUnlockedAchievements: [],
@@ -364,7 +534,7 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
     };
   }
 
-  await ensureRecommendedGoalForProfile(profile);
+  await syncActiveGoalToProfile(profile);
 
   const achievementKeys: AchievementKey[] = [];
   const allRecentSummaries = await listDailyNutritionSummaries(
@@ -412,13 +582,29 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
 
   if (latestCompletedRow) {
     const completedGoal = mapWeightGoal(latestCompletedRow);
-    const summaries = await listSummariesSince(completedGoal.startedAt);
+    const summaries = await listSummariesBetween(
+      completedGoal.startedAt,
+      completedGoal.completedAt ?? completedGoal.updatedAt
+    );
     latestCompletedGoal = calculateGoalProgress(completedGoal, summaries, profile);
   }
+
+  const historicalGoals = await listHistoricalWeightGoalRows();
+  const goalHistory = await Promise.all(
+    historicalGoals.map(async (goal) => {
+      const summaries = await listSummariesBetween(
+        goal.startedAt,
+        goal.completedAt ?? goal.updatedAt
+      );
+
+      return calculateGoalProgress(goal, summaries, profile);
+    })
+  );
 
   return {
     activeGoal: activeGoalSnapshot,
     latestCompletedGoal,
+    goalHistory,
     currentStreak,
     unlockedAchievements: await listAchievementUnlockRows(),
     newlyUnlockedAchievements: achievementKeys,

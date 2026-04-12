@@ -10,7 +10,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Icon, Text } from '@/common/components';
 
 export interface FoodImagePreviewProps {
@@ -49,6 +49,7 @@ export function FoodImagePreview({
   children,
 }: FoodImagePreviewProps) {
   const { t } = useTranslation();
+  const { theme } = useUnistyles();
   const [isViewerVisible, setIsViewerVisible] = useState(false);
   const resolvedImageUri =
     typeof thumbnailUri === 'string' && thumbnailUri.length > 0 ? thumbnailUri : imageUri;
@@ -90,7 +91,16 @@ export function FoodImagePreview({
           ) : null}
           {hasImage ? (
             <View style={styles.zoomBadge}>
-              <Icon name="expand-outline" variant="inverse" size={22} />
+              <Icon
+                name="expand-outline"
+                variant="onBrand"
+                color={
+                  theme.colors.mode === 'dark'
+                    ? theme.colors.text.primary
+                    : theme.colors.text.onBrand
+                }
+                size={22}
+              />
             </View>
           ) : null}
           {children}
@@ -127,7 +137,16 @@ export function FoodImagePreview({
               }}
               style={styles.closeButton}
             >
-              <Icon name="close-outline" variant="inverse" size={22} />
+              <Icon
+                name="close-outline"
+                variant="onBrand"
+                color={
+                  theme.colors.mode === 'dark'
+                    ? theme.colors.text.primary
+                    : theme.colors.text.onBrand
+                }
+                size={22}
+              />
             </Pressable>
           </View>
         </Modal>
@@ -157,7 +176,8 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.metrics.spacing.p8,
     paddingVertical: theme.metrics.spacingV.p4,
     borderRadius: theme.metrics.borderRadius.sm,
-    backgroundColor: theme.colors.overlay.modal,
+    backgroundColor:
+      theme.colors.mode === 'dark' ? theme.colors.background.elevated : theme.colors.overlay.modal,
   },
   zoomBadge: {
     position: 'absolute',
@@ -185,6 +205,7 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.overlay.modal,
+    backgroundColor:
+      theme.colors.mode === 'dark' ? theme.colors.background.elevated : theme.colors.overlay.modal,
   },
 }));

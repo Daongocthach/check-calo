@@ -121,6 +121,7 @@ export default function AddCaloriesTab() {
       ),
     [items]
   );
+  const isSaveMealDisabled = items.length === 0;
 
   const proteinLabel = t('statsScreen.macros.protein');
   const carbsLabel = t('statsScreen.macros.carbs');
@@ -365,16 +366,41 @@ export default function AddCaloriesTab() {
             <Button
               title={t('addScreen.saveMeal')}
               size="sm"
-              leftIcon={<Icon name="save-outline" variant="primary" size={16} />}
-              disabled={items.length === 0}
+              leftIcon={
+                <Icon
+                  name="save-outline"
+                  variant={
+                    theme.colors.mode === 'dark' && isSaveMealDisabled ? 'secondary' : 'onBrand'
+                  }
+                  size={16}
+                />
+              }
+              disabled={isSaveMealDisabled}
               loading={isSavingMeal}
+              style={
+                theme.colors.mode === 'dark' && isSaveMealDisabled
+                  ? styles.saveMealButtonDisabled
+                  : undefined
+              }
+              labelStyle={
+                theme.colors.mode === 'dark' && isSaveMealDisabled
+                  ? styles.saveMealButtonDisabledLabel
+                  : undefined
+              }
               onPress={() => {
                 void handleSaveMeal();
               }}
             />
           </View>
 
-          <LinearGradient colors={theme.colors.gradient.primary} style={styles.totalCaloriesCard}>
+          <LinearGradient
+            colors={
+              theme.colors.mode === 'dark'
+                ? [theme.colors.background.modal, theme.colors.background.elevated]
+                : theme.colors.gradient.secondary
+            }
+            style={styles.totalCaloriesCard}
+          >
             <Text variant="caption" color="secondary">
               {t('addScreen.totalCalories')}
             </Text>
@@ -572,14 +598,27 @@ export default function AddCaloriesTab() {
                 {t('addScreen.favoriteFoodsSubtitle')}
               </Text>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('common.close')}
-              style={styles.sheetCloseButton}
-              onPress={() => bottomSheetRef.current?.dismiss()}
-            >
-              <Icon name="close" variant="muted" size={18} />
-            </Pressable>
+            <View style={styles.sheetHeaderActions}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('addScreen.manageLibraryAction')}
+                style={styles.sheetManageButton}
+                onPress={() => {
+                  bottomSheetRef.current?.dismiss();
+                  router.push('/favorites');
+                }}
+              >
+                <Icon name="settings-outline" variant="primary" size={18} />
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+                style={styles.sheetCloseButton}
+                onPress={() => bottomSheetRef.current?.dismiss()}
+              >
+                <Icon name="close" variant="muted" size={18} />
+              </Pressable>
+            </View>
           </View>
 
           <SearchBar
@@ -674,13 +713,18 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p8,
   },
+  saveMealButtonDisabled: {
+    backgroundColor: theme.colors.background.section,
+    opacity: 1,
+  },
+  saveMealButtonDisabledLabel: {
+    color: theme.colors.text.secondary,
+  },
   totalCaloriesCard: {
     gap: theme.metrics.spacingV.p8,
     paddingHorizontal: theme.metrics.spacing.p12,
     paddingVertical: theme.metrics.spacingV.p12,
     borderRadius: theme.metrics.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.brand.primary,
   },
   summaryMetricsRow: {
     flexDirection: 'row',
@@ -753,6 +797,19 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
+  },
+  sheetHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+  },
+  sheetManageButton: {
+    width: theme.metrics.spacing.p36,
+    height: theme.metrics.spacing.p36,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.section,
   },
   sheetCloseButton: {
     width: theme.metrics.spacing.p36,

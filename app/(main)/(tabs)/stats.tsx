@@ -13,6 +13,7 @@ import {
   StackedMacroBarChart,
   Text,
 } from '@/common/components';
+import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
 import {
   getDailyNutritionSummary,
   getUserProfile,
@@ -20,10 +21,15 @@ import {
 } from '@/features/nutrition/services/nutritionDatabase';
 import type {
   DailyNutritionSummary,
+  GoalTrackingSnapshot,
   NutritionTrendPoint,
   UserProfile,
 } from '@/features/nutrition/types';
 import { getDailyCalorieGoalState } from '@/features/nutrition/utils/calorie';
+import {
+  formatWeightGoalTitle,
+  getGoalCycleDayProgress,
+} from '@/features/nutrition/utils/goalTracking';
 import { hs, vs } from '@/theme/metrics';
 
 type TrendMode = 'day' | 'month';
@@ -182,6 +188,7 @@ export default function StatsTab() {
   );
   const [dailyPoints, setDailyPoints] = useState<NutritionTrendPoint[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -192,10 +199,11 @@ export default function StatsTab() {
         const startDate = new Date(today);
         startDate.setDate(today.getDate() - 179);
 
-        const [summary, trendPoints, nextProfile] = await Promise.all([
+        const [summary, trendPoints, nextProfile, goalTrackingSnapshot] = await Promise.all([
           getDailyNutritionSummary(today),
           listDailyNutritionSummaries(startDate, today),
           getUserProfile(),
+          syncGoalTracking(),
         ]);
 
         if (!active) {
@@ -205,6 +213,7 @@ export default function StatsTab() {
         setTodaySummary(summary);
         setDailyPoints(trendPoints);
         setProfile(nextProfile);
+        setGoalTracking(goalTrackingSnapshot);
       };
 
       void loadStats();
@@ -288,9 +297,90 @@ export default function StatsTab() {
     [aggregatedMacroTrendPoints]
   );
 
+  let goalProgressContent = null;
+
+  if (goalTracking?.activeGoal) {
+    const goalCycleDayProgress = getGoalCycleDayProgress(goalTracking.activeGoal);
+    const goalProgressLabel =
+      goalTracking.activeGoal.unit === 'days'
+        ? t('goalTracking.progressDays', {
+            current: goalTracking.activeGoal.progressValue,
+            target: goalTracking.activeGoal.targetValue,
+          })
+        : t('goalTracking.progressKcal', {
+            current: goalTracking.activeGoal.progressValue,
+            target: goalTracking.activeGoal.targetValue,
+          });
+
+    goalProgressContent = (
+      <>
+        <View style={styles.detailRow}>
+          <Text variant="bodySmall" color="secondary">
+            {t('goalTracking.activeTitle')}
+          </Text>
+          <Text variant="body" weight="semibold">
+            {formatWeightGoalTitle(t, goalTracking.activeGoal.goal)}
+          </Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Text variant="bodySmall" color="secondary">
+            {t('goalTracking.progressLabel')}
+          </Text>
+          <Text variant="body" weight="semibold">
+            {goalProgressLabel}
+          </Text>
+        </View>
+        {goalCycleDayProgress ? (
+          <View style={styles.detailRow}>
+            <Text variant="bodySmall" color="secondary">
+              {t('statsScreen.todayProgress.subtitle')}
+            </Text>
+            <Text variant="body" weight="semibold">
+              {t('goalTracking.progressDays', {
+                current: goalCycleDayProgress.current,
+                target: goalCycleDayProgress.target,
+              })}
+            </Text>
+          </View>
+        ) : null}
+      </>
+    );
+  } else if (goalTracking?.latestCompletedGoal) {
+    goalProgressContent = (
+      <View style={styles.detailRow}>
+        <Text variant="bodySmall" color="secondary">
+          {t('goalTracking.completedTitle')}
+        </Text>
+        <Text variant="body" weight="semibold">
+          {formatWeightGoalTitle(t, goalTracking.latestCompletedGoal.goal)}
+        </Text>
+      </View>
+    );
+  } else if (goalTracking) {
+    goalProgressContent = (
+      <Text variant="bodySmall" color="secondary">
+        {t('goalTracking.emptySubtitle')}
+      </Text>
+    );
+  }
+
   return (
     <ScreenContainer scrollable padded edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
+        {goalTracking ? (
+          <Card variant="elevated" style={styles.chartCard}>
+            <View style={styles.cardHeader}>
+              <View style={styles.headerCopy}>
+                <Text variant="h3">{t('goalTracking.profileTitle')}</Text>
+                <Text variant="bodySmall" color="secondary">
+                  {t('statsScreen.todayProgress.subtitle')}
+                </Text>
+              </View>
+            </View>
+            {goalProgressContent}
+          </Card>
+        ) : null}
+
         <Card variant="elevated" style={styles.progressCard}>
           <View style={styles.cardHeader}>
             <View style={styles.headerCopy}>
@@ -548,5 +638,11 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: theme.metrics.spacing.p16,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
   },
 }));

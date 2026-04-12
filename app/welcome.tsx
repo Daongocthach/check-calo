@@ -11,8 +11,9 @@ import { Button, Card, Input, ScreenContainer, Text } from '@/common/components'
 import {
   ACTIVITY_LEVEL_KEYS,
   GENDER_KEYS,
-  MONTHLY_WEIGHT_LOSS_OPTIONS,
+  MONTHLY_WEIGHT_GOAL_OPTIONS,
 } from '@/features/nutrition/constants';
+import { syncActiveGoalToProfile } from '@/features/nutrition/services/goalTrackingService';
 import { getUserProfile, upsertUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import type { ActivityLevel, Gender } from '@/features/nutrition/types';
 import {
@@ -28,7 +29,7 @@ interface ProfileFormState {
   age: string;
   height: string;
   weight: string;
-  monthlyWeightLossKg: number;
+  monthlyWeightGoalKg: number;
   activityLevel: ActivityLevel;
 }
 
@@ -37,7 +38,7 @@ const DEFAULT_FORM: ProfileFormState = {
   age: '18',
   height: '170',
   weight: '65',
-  monthlyWeightLossKg: 0,
+  monthlyWeightGoalKg: 0,
   activityLevel: 'moderate',
 };
 
@@ -50,7 +51,7 @@ interface ProfileSummaryState {
   fatGrams: number;
 }
 
-function getMonthlyWeightPlanKey(value: number) {
+function getMonthlyWeightGoalPlanKey(value: number) {
   switch (value) {
     case -1:
       return 'welcomeScreen.monthlyWeightPlans.gain_1' as const;
@@ -86,7 +87,7 @@ function buildProfileSummary(form: ProfileFormState): ProfileSummaryState | null
     age: Number(form.age),
     heightCm: Number(form.height),
     weightKg: Number(form.weight),
-    monthlyWeightLossKg: form.monthlyWeightLossKg,
+    monthlyWeightGoalKg: form.monthlyWeightGoalKg,
     activityLevel: form.activityLevel,
   };
   const bmi = Number(calculateBmi(profileInput.heightCm, profileInput.weightKg).toFixed(1));
@@ -141,7 +142,7 @@ export default function WelcomeScreen() {
 
   const selectedGender = watch('gender');
   const selectedActivityLevel = watch('activityLevel');
-  const selectedMonthlyWeightLossKg = watch('monthlyWeightLossKg');
+  const selectedMonthlyWeightGoalKg = watch('monthlyWeightGoalKg');
   const ageValue = watch('age');
   const heightValue = watch('height');
   const weightValue = watch('weight');
@@ -151,7 +152,7 @@ export default function WelcomeScreen() {
       age: ageValue,
       height: heightValue,
       weight: weightValue,
-      monthlyWeightLossKg: selectedMonthlyWeightLossKg,
+      monthlyWeightGoalKg: selectedMonthlyWeightGoalKg,
       activityLevel: selectedActivityLevel,
     },
     250
@@ -176,7 +177,7 @@ export default function WelcomeScreen() {
       age: String(profile.age),
       height: String(profile.heightCm),
       weight: String(profile.weightKg),
-      monthlyWeightLossKg: profile.monthlyWeightLossKg,
+      monthlyWeightGoalKg: profile.monthlyWeightGoalKg,
       activityLevel: profile.activityLevel,
     });
     setIsLoading(false);
@@ -191,14 +192,19 @@ export default function WelcomeScreen() {
   const onSubmit = async (form: ProfileFormState) => {
     setIsSaving(true);
 
-    await upsertUserProfile({
+    const profile = await upsertUserProfile({
       gender: form.gender,
       age: Number(form.age),
       heightCm: Number(form.height),
       weightKg: Number(form.weight),
-      monthlyWeightLossKg: form.monthlyWeightLossKg,
+      monthlyWeightGoalKg: form.monthlyWeightGoalKg,
       activityLevel: form.activityLevel,
     });
+
+    if (profile) {
+      await syncActiveGoalToProfile(profile);
+    }
+
     setIsSaving(false);
     router.replace('/(main)/(tabs)');
   };
@@ -327,9 +333,9 @@ export default function WelcomeScreen() {
               <View style={styles.optionGroup}>
                 <Text variant="label">{t('welcomeScreen.fields.monthlyWeightPlan')}</Text>
                 <View style={styles.optionWrap}>
-                  {MONTHLY_WEIGHT_LOSS_OPTIONS.map((option) => {
-                    const isActive = selectedMonthlyWeightLossKg === option;
-                    const optionKey = getMonthlyWeightPlanKey(option);
+                  {MONTHLY_WEIGHT_GOAL_OPTIONS.map((option) => {
+                    const isActive = selectedMonthlyWeightGoalKg === option;
+                    const optionKey = getMonthlyWeightGoalPlanKey(option);
 
                     return (
                       <Pressable
@@ -338,7 +344,7 @@ export default function WelcomeScreen() {
                         accessibilityLabel={t(optionKey)}
                         style={[styles.optionPill, isActive && styles.optionPillActive]}
                         onPress={() =>
-                          setValue('monthlyWeightLossKg', option, { shouldValidate: true })
+                          setValue('monthlyWeightGoalKg', option, { shouldValidate: true })
                         }
                       >
                         <Text

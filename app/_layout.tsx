@@ -1,16 +1,21 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useFonts } from 'expo-font';
 import { Image } from 'expo-image';
-import { Stack } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Appearance, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import Toast from 'react-native-toast-message';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { AppHeader } from '@/common/components/AppHeader';
 import { ErrorBoundary } from '@/common/components/ErrorBoundary';
+import {
+  initializeCalorieReminderNotifications,
+  isCalorieReminderResponse,
+} from '@/features/notifications/services/calorieReminderService';
 import { useFoodEntrySyncQueue } from '@/features/nutrition/hooks/useFoodEntrySyncQueue';
 import { QueryProvider } from '@/providers';
 import { AppAlertProvider } from '@/providers/app-alert/AppAlertProvider';
@@ -18,6 +23,7 @@ import { useAuthStore } from '@/providers/auth/authStore';
 import { CameraProvider } from '@/providers/camera';
 import { initializeDatabase } from '@/services/database/sqlite';
 import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
+import { handleSystemThemeChange } from '@/theme/themeManager';
 import AppBackground from '../assets/background.png';
 import InterBold from '../assets/fonts/Inter-Bold.ttf';
 import InterMedium from '../assets/fonts/Inter-Medium.ttf';
@@ -54,10 +60,50 @@ function RootNavigator() {
 function AppContent() {
   useAuthInit();
   useFoodEntrySyncQueue();
+  const { theme } = useUnistyles();
+  const router = useRouter();
+
+  useEffect(() => {
+    let mounted = true;
+
+    void initializeCalorieReminderNotifications().catch((error: unknown) => {
+      if (__DEV__) {
+        console.error('Failed to initialize calorie reminders', error);
+      }
+    });
+
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (!mounted || !isCalorieReminderResponse(response)) {
+        return;
+      }
+
+      router.push('/add');
+    });
+
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      if (!isCalorieReminderResponse(response)) {
+        return;
+      }
+
+      router.push('/add');
+    });
+
+    return () => {
+      mounted = false;
+      subscription.remove();
+    };
+  }, [router]);
 
   return (
     <View style={styles.appContainer}>
-      <Image source={AppBackground} style={styles.backgroundImage} contentFit="cover" />
+      <Image
+        source={AppBackground}
+        style={[
+          styles.backgroundImage,
+          theme.colors.mode === 'dark' ? styles.backgroundImageDark : styles.backgroundImageLight,
+        ]}
+        contentFit="cover"
+      />
       <AppHeader />
       <RootNavigator />
       <Toast />
@@ -92,6 +138,16 @@ export default function RootLayout() {
 
     return () => {
       active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(() => {
+      handleSystemThemeChange();
+    });
+
+    return () => {
+      subscription.remove();
     };
   }, []);
 
@@ -135,6 +191,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   backgroundImage: {
     ...StyleSheet.absoluteFillObject,
+  },
+  backgroundImageLight: {
     opacity: 0.92,
+  },
+  backgroundImageDark: {
+    opacity: 0.12,
   },
 }));

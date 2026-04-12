@@ -120,6 +120,11 @@ export const styles = StyleSheet.create((theme) => ({
     },
     compoundVariants: [
       {
+        variant: 'solid',
+        colorScheme: 'primary',
+        styles: { color: theme.colors.text.onBrand },
+      },
+      {
         variant: 'outline',
         colorScheme: 'primary',
         styles: { color: theme.colors.brand.primary },
