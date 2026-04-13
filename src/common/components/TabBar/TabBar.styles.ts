@@ -56,6 +56,7 @@ export const styles = StyleSheet.create((theme) => ({
         ? theme.colors.background.section
         : theme.colors.brand.primaryVariant,
     borderWidth: 1,
+    borderRadius: theme.metrics.borderRadius.full,
     borderColor:
       theme.colors.mode === 'dark' ? theme.colors.border.strong : theme.colors.brand.primary,
   },
