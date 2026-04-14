@@ -1,5 +1,4 @@
-import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet';
-import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
+import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -8,8 +7,9 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Button, Card, Icon, ScreenContainer, SearchBar, Text } from '@/common/components';
+import { Button, Card, Icon, ScreenContainer, Text } from '@/common/components';
 import { AddMealFoodCard } from '@/features/nutrition/components/AddMealFoodCard';
+import { FavoriteFoodsBottomSheet } from '@/features/nutrition/components/FavoriteFoodsBottomSheet';
 import { lookupFoodByBarcode } from '@/features/nutrition/services/barcodeFoodLookup';
 import {
   enqueueFoodEntryImageSync,
@@ -58,7 +58,6 @@ export default function AddCaloriesTab() {
   const openQrScanner = useOpenQrScanner();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [favoriteFoods, setFavoriteFoods] = useState<FavoriteFood[]>([]);
-  const [searchValue, setSearchValue] = useState('');
   const [isSavingMeal, setIsSavingMeal] = useState(false);
   const [isAnalyzingPhoto, setIsAnalyzingPhoto] = useState(false);
   const items = useAddMealStore((state) => state.items);
@@ -94,18 +93,6 @@ export default function AddCaloriesTab() {
       }, {}),
     [items]
   );
-
-  const filteredFavorites = useMemo(() => {
-    const normalizedQuery = searchValue.trim().toLowerCase();
-
-    if (!normalizedQuery) {
-      return favoriteFoods;
-    }
-
-    return favoriteFoods.filter((favorite) =>
-      favorite.name.toLowerCase().includes(normalizedQuery)
-    );
-  }, [favoriteFoods, searchValue]);
 
   const mealTotals = useMemo(
     () =>
@@ -338,18 +325,6 @@ export default function AddCaloriesTab() {
     }
   }, [clearMeal, isSavingMeal, items, t]);
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        pressBehavior="close"
-      />
-    ),
-    []
-  );
-
   return (
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
@@ -580,113 +555,72 @@ export default function AddCaloriesTab() {
         </Card>
       </View>
 
-      <BottomSheetModal
-        ref={bottomSheetRef}
-        snapPoints={['65%', '88%']}
-        enableDynamicSizing={false}
-        enablePanDownToClose
+      <FavoriteFoodsBottomSheet
+        bottomSheetRef={bottomSheetRef}
+        favoriteFoods={favoriteFoods}
+        title={t('addScreen.favoriteFoodsTitle')}
+        subtitle={t('addScreen.favoriteFoodsSubtitle')}
+        searchPlaceholder={t('addScreen.favoriteSearchPlaceholder')}
+        emptyTitle={t('addScreen.favoriteEmptyTitle')}
+        emptySubtitle={t('addScreen.favoriteEmptySubtitle')}
+        closeAccessibilityLabel={t('common.close')}
         topInset={insets.top}
-        backdropComponent={renderBackdrop}
-        backgroundStyle={styles.sheetBackground}
-        handleIndicatorStyle={styles.sheetHandle}
-      >
-        <View style={styles.sheetContent}>
-          <View style={styles.sheetHeader}>
-            <View style={styles.headerCopy}>
-              <Text variant="h3">{t('addScreen.favoriteFoodsTitle')}</Text>
-              <Text variant="bodySmall" color="secondary">
-                {t('addScreen.favoriteFoodsSubtitle')}
-              </Text>
-            </View>
-            <View style={styles.sheetHeaderActions}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('addScreen.manageLibraryAction')}
-                style={styles.sheetManageButton}
-                onPress={() => {
-                  bottomSheetRef.current?.dismiss();
-                  router.push('/favorites');
-                }}
-              >
-                <Icon name="settings-outline" variant="primary" size={18} />
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close')}
-                style={styles.sheetCloseButton}
-                onPress={() => bottomSheetRef.current?.dismiss()}
-              >
-                <Icon name="close" variant="muted" size={18} />
-              </Pressable>
-            </View>
-          </View>
-
-          <SearchBar
-            value={searchValue}
-            onChangeText={setSearchValue}
-            placeholder={t('addScreen.favoriteSearchPlaceholder')}
-          />
-
-          <BottomSheetFlatList
-            data={filteredFavorites}
-            keyExtractor={(item: FavoriteFood) => item.id}
-            contentContainerStyle={styles.sheetList}
-            keyboardShouldPersistTaps="handled"
-            ListEmptyComponent={
-              <Card variant="filled" style={styles.sheetEmptyCard}>
-                <Text variant="body" weight="semibold" align="center">
-                  {t('addScreen.favoriteEmptyTitle')}
-                </Text>
-                <Text variant="bodySmall" color="secondary" align="center">
-                  {t('addScreen.favoriteEmptySubtitle')}
-                </Text>
-              </Card>
-            }
-            renderItem={({ item }: { item: FavoriteFood }) => {
-              const sourceKey = `favorite:${item.id}`;
-              const currentQuantity = favoriteQuantities[sourceKey] ?? 0;
-              const draftItem = toDraftMealFavoriteItem(item);
-              const quantityDisplay = formatMealWeight(
-                item.quantityGrams,
-                item.quantityLabel,
-                t('common.units.gram')
-              );
-
-              return (
-                <AddMealFoodCard
-                  title={item.name}
-                  quantityDisplay={quantityDisplay}
-                  imageUri={draftItem.imageUri}
-                  thumbnailUri={draftItem.thumbnailUri}
-                  totalCalories={item.totalCalories}
-                  proteinGrams={item.proteinGrams}
-                  carbsGrams={item.carbsGrams}
-                  fatGrams={item.fatGrams}
-                  servings={currentQuantity}
-                  proteinLabel={proteinLabel}
-                  carbsLabel={carbsLabel}
-                  fatLabel={fatLabel}
-                  gramUnit={t('common.units.gram')}
-                  kcalUnit={t('common.units.kcal')}
-                  editLabel={t('addScreen.editItem', { mealName: item.name })}
-                  decreaseLabel={t('addScreen.decreasePortion')}
-                  increaseLabel={t('addScreen.increasePortion')}
-                  onDecrease={() => {
-                    const existingItem = items.find(
-                      (draftMealItem) => draftMealItem.sourceKey === sourceKey
-                    );
-
-                    if (existingItem) {
-                      decreaseServings(existingItem.id);
-                    }
-                  }}
-                  onIncrease={() => addItem(draftItem)}
-                />
-              );
+        rightActions={
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('addScreen.manageLibraryAction')}
+            style={styles.sheetManageButton}
+            onPress={() => {
+              bottomSheetRef.current?.dismiss();
+              router.push('/favorites');
             }}
-          />
-        </View>
-      </BottomSheetModal>
+          >
+            <Icon name="settings-outline" variant="primary" size={18} />
+          </Pressable>
+        }
+        renderFavoriteItem={(item) => {
+          const sourceKey = `favorite:${item.id}`;
+          const currentQuantity = favoriteQuantities[sourceKey] ?? 0;
+          const draftItem = toDraftMealFavoriteItem(item);
+          const quantityDisplay = formatMealWeight(
+            item.quantityGrams,
+            item.quantityLabel,
+            t('common.units.gram')
+          );
+
+          return (
+            <AddMealFoodCard
+              title={item.name}
+              quantityDisplay={quantityDisplay}
+              imageUri={draftItem.imageUri}
+              thumbnailUri={draftItem.thumbnailUri}
+              totalCalories={item.totalCalories}
+              proteinGrams={item.proteinGrams}
+              carbsGrams={item.carbsGrams}
+              fatGrams={item.fatGrams}
+              servings={currentQuantity}
+              proteinLabel={proteinLabel}
+              carbsLabel={carbsLabel}
+              fatLabel={fatLabel}
+              gramUnit={t('common.units.gram')}
+              kcalUnit={t('common.units.kcal')}
+              editLabel={t('addScreen.editItem', { mealName: item.name })}
+              decreaseLabel={t('addScreen.decreasePortion')}
+              increaseLabel={t('addScreen.increasePortion')}
+              onDecrease={() => {
+                const existingItem = items.find(
+                  (draftMealItem) => draftMealItem.sourceKey === sourceKey
+                );
+
+                if (existingItem) {
+                  decreaseServings(existingItem.id);
+                }
+              }}
+              onIncrease={() => addItem(draftItem)}
+            />
+          );
+        }}
+      />
     </ScreenContainer>
   );
 }
@@ -702,10 +636,6 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingVertical: theme.metrics.spacingV.p16,
     backgroundColor: theme.colors.background.surface,
-  },
-  headerCopy: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
   },
   headerActions: {
     flexDirection: 'row',
@@ -759,12 +689,6 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     alignItems: 'center',
     gap: theme.metrics.spacingV.p8,
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p16,
-    borderRadius: theme.metrics.borderRadius.lg,
-    backgroundColor: theme.colors.background.section,
-    borderWidth: 1,
-    borderColor: theme.colors.border.subtle,
   },
   actionButtonDisabled: {
     opacity: 0.6,
@@ -775,57 +699,17 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.background.surface,
+    backgroundColor: theme.colors.background.section,
   },
   actionLabel: {
     minHeight: theme.metrics.spacingV.p28,
   },
-  sheetBackground: {
-    backgroundColor: theme.colors.background.app,
-  },
-  sheetHandle: {
-    backgroundColor: theme.colors.border.default,
-  },
-  sheetContent: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p12,
-    paddingHorizontal: theme.metrics.spacing.p16,
-    paddingBottom: theme.metrics.spacingV.p12,
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p12,
-  },
-  sheetHeaderActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p8,
-  },
   sheetManageButton: {
-    width: theme.metrics.spacing.p36,
-    height: theme.metrics.spacing.p36,
+    width: theme.metrics.spacing.p32,
+    height: theme.metrics.spacing.p32,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background.section,
-  },
-  sheetCloseButton: {
-    width: theme.metrics.spacing.p36,
-    height: theme.metrics.spacing.p36,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.section,
-  },
-  sheetList: {
-    gap: theme.metrics.spacingV.p12,
-    paddingBottom: theme.metrics.spacingV.p20,
-  },
-  sheetEmptyCard: {
-    gap: theme.metrics.spacingV.p8,
-    paddingHorizontal: theme.metrics.spacing.p16,
-    paddingVertical: theme.metrics.spacingV.p20,
   },
 }));

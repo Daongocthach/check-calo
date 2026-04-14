@@ -80,6 +80,13 @@
     "notesPlaceholder": "Optional notes",
     "deleteItemTitle": "Delete food",
     "deleteItemMessage": "Delete \"{{name}}\" from this meal?",
+    "addFromLibraryAction": "Choose from library",
+    "librarySheetTitle": "Food library",
+    "librarySheetSubtitle": "Select a saved food to add into {{mealName}}.",
+    "librarySearchPlaceholder": "Search saved foods",
+    "libraryAddSuccess": "Added {{name}} from library.",
+    "libraryEmpty": "No saved foods in library yet.",
+    "libraryItemMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}",
     "itemCount": "{{count}} items",
     "emptyTitle": "No meals yet",
     "emptySubtitle": "Create your first meal and add foods manually.",
@@ -98,6 +105,21 @@
       "dinner": "Keep dinner satisfying while staying easy to digest.",
       "snack": "Quick additions to keep energy steady through the day."
     }
+  },
+  "menuItemEntry": {
+    "title": "Add food",
+    "subtitle": "Choose how to add food to {{mealName}}.",
+    "manualTitle": "Enter with food form",
+    "manualSubtitle": "Open the full form to input calories and macros manually.",
+    "manualAction": "Open food form",
+    "manualAddSuccess": "Added {{name}} to your meal.",
+    "libraryTitle": "From food library",
+    "librarySubtitle": "Pick a saved food and add it instantly.",
+    "libraryAddSuccess": "Added {{name}} from library.",
+    "searchLabel": "Search library",
+    "searchPlaceholder": "Type food name",
+    "emptyLibrary": "No foods found in your library.",
+    "favoriteMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}"
   },
   "language": {
     "label": "Language",

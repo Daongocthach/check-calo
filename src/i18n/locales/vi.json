@@ -80,6 +80,13 @@
     "notesPlaceholder": "Ghi chú thêm (không bắt buộc)",
     "deleteItemTitle": "Xóa món ăn",
     "deleteItemMessage": "Xóa \"{{name}}\" khỏi bữa ăn này?",
+    "addFromLibraryAction": "Chọn từ thư viện",
+    "librarySheetTitle": "Thư viện món",
+    "librarySheetSubtitle": "Chọn món đã lưu để thêm vào {{mealName}}.",
+    "librarySearchPlaceholder": "Tìm món đã lưu",
+    "libraryAddSuccess": "Đã thêm {{name}} từ thư viện.",
+    "libraryEmpty": "Chưa có món nào trong thư viện.",
+    "libraryItemMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}",
     "itemCount": "{{count}} món",
     "emptyTitle": "Chưa có bữa ăn nào",
     "emptySubtitle": "Tạo bữa ăn đầu tiên và thêm món theo cách thủ công.",
@@ -98,6 +105,21 @@
       "dinner": "Giữ bữa tối gọn nhưng vẫn đủ chất.",
       "snack": "Bổ sung nhanh để giữ nhịp năng lượng trong ngày."
     }
+  },
+  "menuItemEntry": {
+    "title": "Thêm món ăn",
+    "subtitle": "Chọn cách thêm món vào {{mealName}}.",
+    "manualTitle": "Nhập bằng food form",
+    "manualSubtitle": "Mở form đầy đủ để nhập năng lượng và macro thủ công.",
+    "manualAction": "Mở food form",
+    "manualAddSuccess": "Đã thêm {{name}} vào bữa ăn.",
+    "libraryTitle": "Từ thư viện món",
+    "librarySubtitle": "Chọn món đã lưu và thêm ngay.",
+    "libraryAddSuccess": "Đã thêm {{name}} từ thư viện.",
+    "searchLabel": "Tìm trong thư viện",
+    "searchPlaceholder": "Nhập tên món",
+    "emptyLibrary": "Không tìm thấy món nào trong thư viện.",
+    "favoriteMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}"
   },
   "language": {
     "label": "Ngôn ngữ",

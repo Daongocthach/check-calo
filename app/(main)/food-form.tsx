@@ -25,6 +25,7 @@ import {
   enqueueFoodEntryImageSync,
   processPendingFoodEntryImageSyncQueue,
 } from '@/features/nutrition/services/foodEntrySyncQueue';
+import { createManualMealItem } from '@/features/nutrition/services/manualMealsDatabase';
 import {
   createFoodEntry,
   getFavoriteFoodById,
@@ -114,6 +115,7 @@ export default function FoodFormScreen() {
     draftItemId?: string;
     context?: string;
     submitMode?: string;
+    mealLocalId?: string;
     consumedAt?: string;
     foodName?: string;
     quantityLabel?: string;
@@ -150,6 +152,7 @@ export default function FoodFormScreen() {
   );
   const isEditing = isEditingEntry || isEditingFavorite;
   const isAddMealFlow = params.context === 'addMeal' && !isEditing;
+  const isMenuMealFlow = params.context === 'menuMeal' && !isEditing;
   const isInstantAddMealFlow = isAddMealFlow && params.submitMode === 'instant';
 
   const loadScreenData = useCallback(async () => {
@@ -332,6 +335,28 @@ export default function FoodFormScreen() {
           addMealItem(nextDraftItem);
         }
         router.replace('/add');
+        return;
+      }
+
+      if (
+        isMenuMealFlow &&
+        typeof params.mealLocalId === 'string' &&
+        params.mealLocalId.length > 0
+      ) {
+        await createManualMealItem(params.mealLocalId, {
+          title: payload.mealName,
+          quantityLabel: payload.quantityLabel,
+          quantityGrams: payload.quantityGrams ?? null,
+          totalCalories: payload.totalCalories,
+          proteinGrams: payload.proteinGrams,
+          carbsGrams: payload.carbsGrams,
+          fatGrams: payload.fatGrams,
+          notes: payload.notes,
+          servings: 1,
+        });
+
+        toast.success(t('menuItemEntry.manualAddSuccess', { name: payload.mealName }));
+        router.replace('/menu');
         return;
       }
 

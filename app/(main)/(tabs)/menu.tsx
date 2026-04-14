@@ -1,9 +1,20 @@
+import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useMemo, useState } from 'react';
+import { router } from 'expo-router';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionList, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Button, Dialog, IconButton, Input, ScreenContainer, Text } from '@/common/components';
+import {
+  Button,
+  Card,
+  Dialog,
+  IconButton,
+  Input,
+  ScreenContainer,
+  Text,
+} from '@/common/components';
+import { FavoriteFoodsBottomSheet } from '@/features/nutrition/components/FavoriteFoodsBottomSheet';
 import {
   HomeMealCard,
   type HomeMealCardItem,
@@ -19,11 +30,12 @@ import {
   updateManualMealItem,
   type ManualMeal,
   type ManualMealItem,
-  type ManualMealItemInput,
 } from '@/features/nutrition/services/manualMealsDatabase';
-import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
-import type { UserProfile } from '@/features/nutrition/types';
+import { getUserProfile, listFavoriteFoods } from '@/features/nutrition/services/nutritionDatabase';
+import type { FavoriteFood, UserProfile } from '@/features/nutrition/types';
+import { formatMealWeight } from '@/features/nutrition/utils/quantity';
 import { useAppAlert } from '@/providers/app-alert';
+import { toast } from '@/utils/toast';
 
 interface MenuMealItem extends HomeMealCardItem {
   id: string;
@@ -47,7 +59,7 @@ interface MealDialogState {
 
 interface ItemDialogState {
   visible: boolean;
-  mode: 'create' | 'edit';
+  mode: 'edit';
   mealId: string | null;
   itemId: string | null;
   title: string;
@@ -63,7 +75,7 @@ interface ItemDialogState {
 
 const DEFAULT_ITEM_DIALOG_STATE: ItemDialogState = {
   visible: false,
-  mode: 'create',
+  mode: 'edit',
   mealId: null,
   itemId: null,
   title: '',
@@ -103,7 +115,7 @@ function parseOptionalNumber(value: string) {
   return parsed;
 }
 
-function toItemInput(dialogState: ItemDialogState): ManualMealItemInput | null {
+function toItemInput(dialogState: ItemDialogState) {
   const title = dialogState.title.trim();
   const quantityLabel = dialogState.quantityLabel.trim();
   const calories = parseRequiredNumber(dialogState.totalCalories);
@@ -144,8 +156,12 @@ function toItemInput(dialogState: ItemDialogState): ManualMealItemInput | null {
 export default function MenuTab() {
   const { t } = useTranslation();
   const appAlert = useAppAlert();
+  const libraryBottomSheetRef = useRef<BottomSheetModal>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [meals, setMeals] = useState<ManualMeal[]>([]);
+  const [favoriteFoods, setFavoriteFoods] = useState<FavoriteFood[]>([]);
+  const [selectedMealForLibrary, setSelectedMealForLibrary] = useState<ManualMeal | null>(null);
+  const [isAddingFromLibrary, setIsAddingFromLibrary] = useState(false);
   const [isSavingMealName, setIsSavingMealName] = useState(false);
   const [isSavingItem, setIsSavingItem] = useState(false);
   const [mealDialog, setMealDialog] = useState<MealDialogState>({
@@ -158,9 +174,14 @@ export default function MenuTab() {
   const [itemDialog, setItemDialog] = useState<ItemDialogState>(DEFAULT_ITEM_DIALOG_STATE);
 
   const loadData = useCallback(async () => {
-    const [nextProfile, nextMeals] = await Promise.all([getUserProfile(), listManualMeals()]);
+    const [nextProfile, nextMeals, nextFavoriteFoods] = await Promise.all([
+      getUserProfile(),
+      listManualMeals(),
+      listFavoriteFoods(),
+    ]);
     setProfile(nextProfile);
     setMeals(nextMeals);
+    setFavoriteFoods(nextFavoriteFoods);
   }, []);
 
   useFocusEffect(
@@ -289,21 +310,54 @@ export default function MenuTab() {
     [appAlert, loadData, t]
   );
 
-  const openCreateItemDialog = useCallback(
-    (meal: ManualMeal) => {
-      setItemDialog({
-        ...DEFAULT_ITEM_DIALOG_STATE,
-        visible: true,
-        mode: 'create',
-        mealId: meal.localId,
-        quantityLabel: t('menuScreen.defaultQuantityLabel'),
-        totalCalories: '0',
-        proteinGrams: '0',
-        carbsGrams: '0',
-        fatGrams: '0',
-      });
+  const openAddItemFoodForm = useCallback((meal: ManualMeal) => {
+    router.push({
+      pathname: '/food-form',
+      params: {
+        context: 'menuMeal',
+        mealLocalId: meal.localId,
+      },
+    });
+  }, []);
+
+  const openLibraryBottomSheet = useCallback((meal: ManualMeal) => {
+    setSelectedMealForLibrary(meal);
+    libraryBottomSheetRef.current?.present();
+  }, []);
+
+  const closeLibraryBottomSheet = useCallback(() => {
+    libraryBottomSheetRef.current?.dismiss();
+  }, []);
+
+  const addFavoriteToMeal = useCallback(
+    async (favorite: FavoriteFood) => {
+      if (!selectedMealForLibrary || isAddingFromLibrary) {
+        return;
+      }
+
+      setIsAddingFromLibrary(true);
+
+      try {
+        await createManualMealItem(selectedMealForLibrary.localId, {
+          title: favorite.name,
+          quantityLabel: favorite.quantityLabel,
+          quantityGrams: favorite.quantityGrams,
+          totalCalories: favorite.totalCalories,
+          proteinGrams: favorite.proteinGrams,
+          carbsGrams: favorite.carbsGrams,
+          fatGrams: favorite.fatGrams,
+          notes: favorite.notes,
+          servings: 1,
+        });
+
+        toast.success(t('menuScreen.libraryAddSuccess', { name: favorite.name }));
+        closeLibraryBottomSheet();
+        await loadData();
+      } finally {
+        setIsAddingFromLibrary(false);
+      }
     },
-    [t]
+    [closeLibraryBottomSheet, isAddingFromLibrary, loadData, selectedMealForLibrary, t]
   );
 
   const openEditItemDialog = useCallback((meal: ManualMeal, item: ManualMealItem) => {
@@ -349,9 +403,7 @@ export default function MenuTab() {
     setIsSavingItem(true);
 
     try {
-      if (itemDialog.mode === 'create') {
-        await createManualMealItem(itemDialog.mealId, itemInput);
-      } else if (itemDialog.itemId) {
+      if (itemDialog.itemId) {
         await updateManualMealItem(itemDialog.itemId, itemInput);
       }
 
@@ -431,7 +483,7 @@ export default function MenuTab() {
                   variant="ghost"
                   accessibilityLabel={t('menuScreen.addItemAction')}
                   onPress={() => {
-                    openCreateItemDialog(section.meal);
+                    openAddItemFoodForm(section.meal);
                   }}
                 />
                 <IconButton
@@ -498,6 +550,18 @@ export default function MenuTab() {
             </View>
           );
         }}
+        renderSectionFooter={({ section }) => (
+          <View style={styles.sectionFooter}>
+            <Button
+              title={t('menuScreen.addFromLibraryAction')}
+              variant="outline"
+              size="sm"
+              onPress={() => {
+                openLibraryBottomSheet(section.meal);
+              }}
+            />
+          </View>
+        )}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text variant="h3">{t('menuScreen.emptyTitle')}</Text>
@@ -551,11 +615,7 @@ export default function MenuTab() {
       <Dialog
         visible={itemDialog.visible}
         onDismiss={closeItemDialog}
-        title={
-          itemDialog.mode === 'create'
-            ? t('menuScreen.addItemTitle')
-            : t('menuScreen.editItemTitle')
-        }
+        title={t('menuScreen.editItemTitle')}
         size="lg"
         actions={[
           {
@@ -653,6 +713,57 @@ export default function MenuTab() {
           />
         </View>
       </Dialog>
+
+      <FavoriteFoodsBottomSheet
+        bottomSheetRef={libraryBottomSheetRef}
+        favoriteFoods={favoriteFoods}
+        title={t('menuScreen.librarySheetTitle')}
+        subtitle={t('menuScreen.librarySheetSubtitle', {
+          mealName: selectedMealForLibrary?.name ?? t('menuScreen.defaultMealName', { index: 1 }),
+        })}
+        searchPlaceholder={t('menuScreen.librarySearchPlaceholder')}
+        emptyTitle={t('menuScreen.libraryEmpty')}
+        emptySubtitle={t('menuScreen.libraryEmpty')}
+        closeAccessibilityLabel={t('common.close')}
+        onDismiss={() => {
+          setSelectedMealForLibrary(null);
+        }}
+        snapPoints={['60%', '85%']}
+        renderFavoriteItem={(item) => (
+          <Card variant="outlined" style={styles.sheetItemCard}>
+            <View style={styles.sheetItemRow}>
+              <View style={styles.sheetItemCopy}>
+                <Text variant="body" weight="semibold">
+                  {item.name}
+                </Text>
+                <Text variant="caption" color="secondary">
+                  {t('menuScreen.libraryItemMeta', {
+                    quantity: formatMealWeight(
+                      item.quantityGrams,
+                      item.quantityLabel,
+                      t('common.units.gram')
+                    ),
+                    calories: Math.round(item.totalCalories),
+                    protein: Math.round(item.proteinGrams),
+                    carbs: Math.round(item.carbsGrams),
+                    fat: Math.round(item.fatGrams),
+                    gramUnit: t('common.units.gram'),
+                    kcalUnit: t('common.units.kcal'),
+                  })}
+                </Text>
+              </View>
+              <Button
+                title={t('homeScreen.meals.add')}
+                size="sm"
+                loading={isAddingFromLibrary}
+                onPress={() => {
+                  void addFavoriteToMeal(item);
+                }}
+              />
+            </View>
+          </Card>
+        )}
+      />
     </ScreenContainer>
   );
 }
@@ -721,6 +832,12 @@ const styles = StyleSheet.create((theme) => ({
   sectionSpacer: {
     height: theme.metrics.spacingV.p12,
   },
+  sectionFooter: {
+    alignItems: 'flex-end',
+    marginTop: theme.metrics.spacingV.p4,
+    marginBottom: theme.metrics.spacingV.p8,
+    paddingLeft: theme.metrics.spacing.p12,
+  },
   emptyState: {
     gap: theme.metrics.spacingV.p12,
     alignItems: 'flex-start',
@@ -736,5 +853,19 @@ const styles = StyleSheet.create((theme) => ({
   },
   dialogMacroItem: {
     flex: 1,
+  },
+  sheetItemCard: {
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p12,
+  },
+  sheetItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  sheetItemCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
   },
 }));
