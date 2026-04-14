@@ -115,12 +115,15 @@ function getHomeBalanceCopy(
   summary: DailyNutritionSummary
 ): {
   value: number;
+  displayValue: string;
   labelKey:
     | 'homeScreen.onTrack'
     | 'homeScreen.goalMet'
     | 'homeScreen.belowTarget'
     | 'homeScreen.overTarget';
   color: 'link' | 'accent' | 'secondary';
+  valueTone: 'default' | 'success' | 'danger';
+  labelTone: 'default' | 'success' | 'danger';
 } {
   const goalMode = getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0);
   const goalState = getDailyCalorieGoalState(
@@ -129,26 +132,86 @@ function getHomeBalanceCopy(
     summary.consumedCalories
   );
 
+  if (goalMode === 'lose') {
+    const isOverTarget = goalState === 'above_target';
+    const value = Math.abs(summary.remainingCalories);
+
+    return {
+      value: Math.max(summary.remainingCalories, 0),
+      displayValue: isOverTarget ? `-${value}` : String(value),
+      labelKey: isOverTarget ? 'homeScreen.overTarget' : 'homeScreen.onTrack',
+      color: isOverTarget ? 'accent' : 'secondary',
+      valueTone: isOverTarget ? 'danger' : 'default',
+      labelTone: isOverTarget ? 'danger' : 'default',
+    };
+  }
+
+  if (goalMode === 'gain') {
+    if (summary.remainingCalories < 0) {
+      const value = Math.abs(summary.remainingCalories);
+
+      return {
+        value,
+        displayValue: `+${value}`,
+        labelKey: 'homeScreen.overTarget',
+        color: 'accent',
+        valueTone: 'success',
+        labelTone: 'success',
+      };
+    }
+
+    if (summary.remainingCalories === 0) {
+      return {
+        value: 0,
+        displayValue: '0',
+        labelKey: 'homeScreen.goalMet',
+        color: 'link',
+        valueTone: 'default',
+        labelTone: 'default',
+      };
+    }
+
+    return {
+      value: Math.abs(summary.remainingCalories),
+      displayValue: String(Math.abs(summary.remainingCalories)),
+      labelKey: 'homeScreen.belowTarget',
+      color: 'secondary',
+      valueTone: 'default',
+      labelTone: 'default',
+    };
+  }
+
   if (goalState === 'on_target') {
     return {
       value: 0,
-      labelKey: goalMode === 'lose' ? 'homeScreen.onTrack' : 'homeScreen.goalMet',
+      displayValue: '0',
+      labelKey: 'homeScreen.goalMet',
       color: 'link',
+      valueTone: 'default',
+      labelTone: 'default',
     };
   }
 
   if (goalState === 'below_target') {
     return {
       value: Math.abs(summary.remainingCalories),
+      displayValue: String(Math.abs(summary.remainingCalories)),
       labelKey: 'homeScreen.belowTarget',
       color: 'secondary',
+      valueTone: 'default',
+      labelTone: 'default',
     };
   }
 
+  const value = Math.abs(summary.remainingCalories);
+
   return {
-    value: Math.abs(summary.remainingCalories),
+    value,
+    displayValue: String(value),
     labelKey: 'homeScreen.overTarget',
     color: 'accent',
+    valueTone: 'danger',
+    labelTone: 'danger',
   };
 }
 
@@ -187,8 +250,13 @@ function getGoalProgressCopy(
     };
   }
 
+  const progressLabelKey =
+    goalProgress.goal.mode === 'gain'
+      ? 'goalTracking.progressKcalGain'
+      : 'goalTracking.progressKcalLose';
+
   return {
-    progressLabel: t('goalTracking.progressKcal', {
+    progressLabel: t(progressLabelKey, {
       current: goalProgress.progressValue,
       target: goalProgress.targetValue,
     }),
@@ -209,8 +277,32 @@ function getAchievementTitleKey(achievementKey: AchievementKey) {
   }
 }
 
+function formatGoalDate(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
+function getActiveGoalDateRange(
+  goalProgress: Pick<WeightGoalProgress, 'goal' | 'unit'>,
+  locale: string
+) {
+  const startDate = new Date(goalProgress.goal.startedAt);
+  const durationDays =
+    goalProgress.unit === 'days' ? Math.max(1, goalProgress.goal.targetDays) : 30;
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + durationDays - 1);
+
+  return {
+    startLabel: formatGoalDate(goalProgress.goal.startedAt, locale),
+    endLabel: formatGoalDate(endDate.toISOString(), locale),
+  };
+}
+
 export default function HomeTab() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
   const appAlert = useAppAlert();
   const [selectedDate, setSelectedDate] = useState(() => new Date());
@@ -298,6 +390,13 @@ export default function HomeTab() {
   }, [entries]);
 
   const balanceCopy = useMemo(() => getHomeBalanceCopy(profile, summary), [profile, summary]);
+  const balanceTitleKey = useMemo(
+    () =>
+      getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0) === 'lose'
+        ? 'homeScreen.left'
+        : 'homeScreen.remaining',
+    [profile?.monthlyWeightGoalKg]
+  );
   const progressColorScheme = useMemo(() => {
     const goalState = getDailyCalorieGoalState(
       profile,
@@ -333,6 +432,10 @@ export default function HomeTab() {
       target: cycleProgress.target,
     });
   }, [activeGoalProgress, t]);
+  const activeGoalDateRange = useMemo(
+    () => (activeGoalProgress ? getActiveGoalDateRange(activeGoalProgress, i18n.language) : null),
+    [activeGoalProgress, i18n.language]
+  );
   const heroHighlight = useMemo(() => {
     if (goalTracking?.currentStreak && goalTracking.currentStreak > 0) {
       return {
@@ -480,7 +583,6 @@ export default function HomeTab() {
 
   if (hasProfile && activeGoalProgress) {
     const goalTitle = formatWeightGoalTitle(t, activeGoalProgress.goal);
-    const isKcalGoal = activeGoalProgress.unit === 'kcal';
 
     goalTrackingSection = (
       <Card variant="filled" style={styles.goalTrackingCard}>
@@ -497,7 +599,7 @@ export default function HomeTab() {
         <View style={styles.goalProgressRow}>
           <View style={styles.goalProgressMetric}>
             <Text variant="bodySmall" color="secondary">
-              {isKcalGoal ? activeGoalCopy?.progressLabel : activeGoalCopy?.remainingLabel}
+              {activeGoalCopy?.progressLabel}
             </Text>
           </View>
           <View style={[styles.goalProgressMetric, styles.goalProgressMetricEnd]}>
@@ -507,11 +609,14 @@ export default function HomeTab() {
           </View>
         </View>
         <ProgressBar value={activeGoalProgress.progressPercent} size="md" colorScheme="success" />
-        {isKcalGoal ? (
+        <View style={styles.goalDateRow}>
           <Text variant="bodySmall" color="secondary">
-            {activeGoalCopy?.remainingLabel}
+            {t('goalTracking.startDate', { value: activeGoalDateRange?.startLabel ?? '' })}
           </Text>
-        ) : null}
+          <Text variant="bodySmall" color="secondary" align="right">
+            {t('goalTracking.endDate', { value: activeGoalDateRange?.endLabel ?? '' })}
+          </Text>
+        </View>
         <View style={styles.goalCardActions}>
           <Select
             value={selectedGoalValue}
@@ -708,20 +813,30 @@ export default function HomeTab() {
                   </View>
                   <View style={[styles.heroStat, styles.heroStatEnd]}>
                     <Text variant="caption" color="secondary">
-                      {t('homeScreen.remaining')}
+                      {t(balanceTitleKey)}
                     </Text>
                     <Text
                       variant="h2"
                       align="right"
-                      style={balanceCopy.color === 'accent' ? styles.remainingOverText : undefined}
+                      style={[
+                        balanceCopy.valueTone === 'danger' ? styles.remainingOverText : undefined,
+                        balanceCopy.valueTone === 'success'
+                          ? styles.remainingPositiveText
+                          : undefined,
+                      ]}
                     >
-                      {balanceCopy.value}
+                      {balanceCopy.displayValue}
                     </Text>
                     <Text
                       variant="bodySmall"
                       color={balanceCopy.color}
                       align="right"
-                      style={balanceCopy.color === 'accent' ? styles.remainingOverText : undefined}
+                      style={[
+                        balanceCopy.labelTone === 'danger' ? styles.remainingOverText : undefined,
+                        balanceCopy.labelTone === 'success'
+                          ? styles.remainingPositiveText
+                          : undefined,
+                      ]}
                     >
                       {t(balanceCopy.labelKey)}
                     </Text>
@@ -891,6 +1006,9 @@ const styles = StyleSheet.create((theme) => ({
   remainingOverText: {
     color: theme.colors.state.error,
   },
+  remainingPositiveText: {
+    color: theme.colors.state.success,
+  },
   progressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -979,6 +1097,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   goalProgressMetricEnd: {
     alignItems: 'flex-end',
+  },
+  goalDateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: vs(12),
   },
   goalActionRow: {
     flexDirection: 'row',

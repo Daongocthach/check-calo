@@ -27,10 +27,10 @@ const config: ExpoConfig = {
       CFBundleLocalizations: ['en', 'vi'],
       ITSAppUsesNonExemptEncryption: false,
     },
-    buildNumber: '1',
+    buildNumber: '2',
   },
   android: {
-    versionCode: 1,
+    versionCode: 2,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',

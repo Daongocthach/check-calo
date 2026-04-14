@@ -52,8 +52,21 @@
   },
   "menuScreen": {
     "title": "Thực đơn",
+    "totalCaloriesTitle": "Tổng năng lượng",
     "subtitle": "Mock tạm cho tab Thực đơn. Có thể mở rộng thành planner theo ngày, bữa ăn và gợi ý món từ thư viện.",
-    "libraryAction": "Quản lý thư viện món ăn"
+    "libraryAction": "Quản lý thư viện món ăn",
+    "addMeal": "Thêm bữa ăn",
+    "currentVsTargetCalories": "{{current}} {{kcal}} / {{target}} {{kcal}}",
+    "sectionCalories": "{{title}} ({{value}} {{kcal}})",
+    "sections": {
+      "snack": "Bữa phụ"
+    },
+    "sectionSubtitles": {
+      "breakfast": "Khởi động ngày mới với món nhẹ và đủ đạm.",
+      "lunch": "Ưu tiên món no lâu, cân bằng năng lượng giữa ngày.",
+      "dinner": "Giữ bữa tối gọn nhưng vẫn đủ chất.",
+      "snack": "Bổ sung nhanh để giữ nhịp năng lượng trong ngày."
+    }
   },
   "language": {
     "label": "Ngôn ngữ",
@@ -120,6 +133,7 @@
     "target": "Mục tiêu",
     "today": "hôm nay",
     "kcalToday": "kcal / hôm nay",
+    "left": "Còn lại",
     "remaining": "Cách mục tiêu",
     "onTrack": "Giữ phong độ",
     "goalMet": "Đạt mục tiêu",
@@ -570,9 +584,13 @@
     "changeGoalConfirmTitle": "Đổi kế hoạch mới?",
     "changeGoalConfirmMessage": "Kế hoạch hiện tại sẽ kết thúc và một kế hoạch mới sẽ bắt đầu từ bây giờ.",
     "progressKcal": "{{current}} / {{target}} kcal",
+    "progressKcalLose": "Đã thâm hụt {{current}} / {{target}} kcal",
+    "progressKcalGain": "Đã dư {{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} ngày",
     "remainingKcal": "Còn {{value}} kcal",
     "remainingDays": "Còn {{value}} ngày",
+    "startDate": "Bắt đầu: {{value}}",
+    "endDate": "Kết thúc: {{value}}",
     "goalNames": {
       "lose": "Giảm 1 kg",
       "gain": "Tăng 1 kg",

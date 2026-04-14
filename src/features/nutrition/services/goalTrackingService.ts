@@ -212,11 +212,11 @@ async function listSummariesBetween(
         COALESCE(SUM(carbs_grams), 0) AS carbs_grams,
         COALESCE(SUM(fat_grams), 0) AS fat_grams
       FROM food_entries
-      WHERE consumed_at >= ? AND consumed_at <= ?
+      WHERE entry_date >= ? AND entry_date <= ?
       GROUP BY entry_date
       ORDER BY entry_date ASC;
     `,
-    [startedAt, rangeEnd]
+    [normalizedStartDate, normalizedEndDate]
   );
 
   const overrideMap = new Map(overrideRows.map((row) => [row.date, row.calorie_target]));

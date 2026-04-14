@@ -52,8 +52,21 @@
   },
   "menuScreen": {
     "title": "Menu",
+    "totalCaloriesTitle": "Total calories",
     "subtitle": "Temporary mock for the Menu tab. We can expand this into a day-by-day meal planner with suggestions from your food library.",
-    "libraryAction": "Manage food library"
+    "libraryAction": "Manage food library",
+    "addMeal": "Add meal",
+    "currentVsTargetCalories": "{{current}} {{kcal}} / {{target}} {{kcal}}",
+    "sectionCalories": "{{title}} ({{value}} {{kcal}})",
+    "sections": {
+      "snack": "Snack"
+    },
+    "sectionSubtitles": {
+      "breakfast": "Start the day with something light and protein-friendly.",
+      "lunch": "Favor filling meals with balanced energy for midday.",
+      "dinner": "Keep dinner satisfying while staying easy to digest.",
+      "snack": "Quick additions to keep energy steady through the day."
+    }
   },
   "language": {
     "label": "Language",
@@ -120,6 +133,7 @@
     "target": "Target",
     "today": "today",
     "kcalToday": "kcal / today",
+    "left": "Left",
     "remaining": "To target",
     "onTrack": "On track",
     "goalMet": "Goal met",
@@ -570,9 +584,13 @@
     "changeGoalConfirmTitle": "Switch to a new goal?",
     "changeGoalConfirmMessage": "Your current goal will end and a new goal will start from now.",
     "progressKcal": "{{current}} / {{target}} kcal",
+    "progressKcalLose": "Deficit {{current}} / {{target}} kcal",
+    "progressKcalGain": "Surplus {{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} days",
     "remainingKcal": "{{value}} kcal left",
     "remainingDays": "{{value}} days left",
+    "startDate": "Start: {{value}}",
+    "endDate": "End: {{value}}",
     "goalNames": {
       "lose": "Lose 1 kg",
       "gain": "Gain 1 kg",
