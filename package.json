@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start",
     "android": "expo run:android --device",
+    "android:bundle": "cd android && ./gradlew bundleRelease",
     "ios": "expo run:ios --device",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
