@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionList, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
@@ -47,6 +47,7 @@ import {
   formatWeightGoalTitle,
   getGoalCycleDayProgress,
 } from '@/features/nutrition/utils/goalTracking';
+import { useCurrentDate } from '@/hooks';
 import { useAppAlert } from '@/providers/app-alert';
 import { vs } from '@/theme/metrics';
 import { toast } from '@/utils/toast';
@@ -95,6 +96,18 @@ function toDevSyncBadgeLabel(
 function formatTimeLabel(consumedAt: string) {
   const date = new Date(consumedAt);
   return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+}
+
+function isSameCalendarDate(left: Date, right: Date) {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
+function isSameCalendarMonth(left: Date, right: Date) {
+  return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth();
 }
 
 function createEmptySummary(date: Date): DailyNutritionSummary {
@@ -305,18 +318,32 @@ export default function HomeTab() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
   const appAlert = useAppAlert();
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const currentDate = useCurrentDate();
+  const previousCurrentDateRef = useRef(currentDate);
+  const [selectedDate, setSelectedDate] = useState(() => currentDate);
   const [summary, setSummary] = useState<DailyNutritionSummary>(() =>
-    createEmptySummary(new Date())
+    createEmptySummary(currentDate)
   );
   const [entries, setEntries] = useState<FoodEntryWithSyncDebug[]>([]);
   const [hasProfile, setHasProfile] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [visibleMonth, setVisibleMonth] = useState(() => new Date());
+  const [visibleMonth, setVisibleMonth] = useState(() => currentDate);
   const [monthStatuses, setMonthStatuses] = useState<Partial<Record<string, 'success' | 'failed'>>>(
     {}
   );
   const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
+
+  useEffect(() => {
+    const previousCurrentDate = previousCurrentDateRef.current;
+
+    setSelectedDate((value) =>
+      isSameCalendarDate(value, previousCurrentDate) ? currentDate : value
+    );
+    setVisibleMonth((value) =>
+      isSameCalendarMonth(value, previousCurrentDate) ? currentDate : value
+    );
+    previousCurrentDateRef.current = currentDate;
+  }, [currentDate]);
 
   const loadMonthStatuses = useCallback(async (month: Date) => {
     const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -780,7 +807,7 @@ export default function HomeTab() {
             <MonthSelector
               selectedDate={selectedDate}
               onChange={setSelectedDate}
-              maxDate={new Date()}
+              maxDate={currentDate}
               dayStatuses={monthStatuses}
               onMonthChange={setVisibleMonth}
             />

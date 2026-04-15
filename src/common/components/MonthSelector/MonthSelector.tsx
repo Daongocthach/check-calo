@@ -51,6 +51,7 @@ export function MonthSelector({
   const maxBoundary = useMemo(() => startOfDay(maxDate ?? new Date()), [maxDate]);
   const [currentMonth, setCurrentMonth] = useState<Date>(normalizedSelectedDate);
   const listRef = useRef<FlatList<Date>>(null);
+  const previousMaxBoundaryRef = useRef(maxBoundary);
   const resolvedLocale = locale ?? i18n.language;
 
   const monthFormatter = useMemo(
@@ -101,6 +102,23 @@ export function MonthSelector({
       isSameMonth(previousMonth, normalizedSelectedDate) ? previousMonth : normalizedSelectedDate
     );
   }, [normalizedSelectedDate]);
+
+  useEffect(() => {
+    const previousMaxBoundary = previousMaxBoundaryRef.current;
+
+    setCurrentMonth((previousMonth) => {
+      if (
+        isSameMonth(previousMonth, previousMaxBoundary) &&
+        !isSameMonth(previousMonth, maxBoundary)
+      ) {
+        return maxBoundary;
+      }
+
+      return previousMonth;
+    });
+
+    previousMaxBoundaryRef.current = maxBoundary;
+  }, [maxBoundary]);
 
   useEffect(() => {
     onMonthChange?.(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1));

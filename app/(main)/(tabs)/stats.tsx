@@ -30,6 +30,7 @@ import {
   formatWeightGoalTitle,
   getGoalCycleDayProgress,
 } from '@/features/nutrition/utils/goalTracking';
+import { useCurrentDate } from '@/hooks';
 import { hs, vs } from '@/theme/metrics';
 
 type TrendMode = 'day' | 'month';
@@ -181,10 +182,11 @@ function aggregateTrendData(
 export default function StatsTab() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
+  const currentDate = useCurrentDate();
   const [trendMode, setTrendMode] = useState<TrendMode>('day');
   const [macroTrendMode, setMacroTrendMode] = useState<TrendMode>('day');
   const [todaySummary, setTodaySummary] = useState<DailyNutritionSummary>(() =>
-    createEmptySummary(new Date())
+    createEmptySummary(currentDate)
   );
   const [dailyPoints, setDailyPoints] = useState<NutritionTrendPoint[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -195,7 +197,7 @@ export default function StatsTab() {
       let active = true;
 
       const loadStats = async () => {
-        const today = new Date();
+        const today = currentDate;
         const startDate = new Date(today);
         startDate.setDate(today.getDate() - 179);
 
@@ -221,7 +223,7 @@ export default function StatsTab() {
       return () => {
         active = false;
       };
-    }, [])
+    }, [currentDate])
   );
 
   const macroTotal = todaySummary.proteinGrams + todaySummary.carbsGrams + todaySummary.fatGrams;
@@ -254,8 +256,8 @@ export default function StatsTab() {
   ]);
 
   const aggregatedTrendPoints = useMemo(
-    () => aggregateTrendData(dailyPoints, trendMode, t, i18n.language, new Date()),
-    [dailyPoints, i18n.language, t, trendMode]
+    () => aggregateTrendData(dailyPoints, trendMode, t, i18n.language, currentDate),
+    [currentDate, dailyPoints, i18n.language, t, trendMode]
   );
 
   const lineData = useMemo(
@@ -268,8 +270,8 @@ export default function StatsTab() {
   );
 
   const aggregatedMacroTrendPoints = useMemo(
-    () => aggregateTrendData(dailyPoints, macroTrendMode, t, i18n.language, new Date()),
-    [dailyPoints, i18n.language, macroTrendMode, t]
+    () => aggregateTrendData(dailyPoints, macroTrendMode, t, i18n.language, currentDate),
+    [currentDate, dailyPoints, i18n.language, macroTrendMode, t]
   );
 
   const todayGoalState = useMemo(

@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, SectionList, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
@@ -12,6 +12,7 @@ import {
   listFavoriteFoods,
 } from '@/features/nutrition/services/nutritionDatabase';
 import type { FavoriteFood } from '@/features/nutrition/types';
+import { useCurrentDate } from '@/hooks';
 import { useAppAlert } from '@/providers/app-alert';
 
 interface FavoriteSection {
@@ -40,12 +41,31 @@ function formatSectionTitle(date: Date, locale: string) {
   }).format(date);
 }
 
+function isSameCalendarDate(left: Date, right: Date) {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
 export default function FavoritesTab() {
   const { t, i18n } = useTranslation();
   const appAlert = useAppAlert();
+  const currentDate = useCurrentDate();
+  const previousCurrentDateRef = useRef(currentDate);
   const [items, setItems] = useState<FavoriteFood[]>([]);
   const [searchValue, setSearchValue] = useState('');
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [selectedDate, setSelectedDate] = useState(() => currentDate);
+
+  useEffect(() => {
+    const previousCurrentDate = previousCurrentDateRef.current;
+
+    setSelectedDate((value) =>
+      isSameCalendarDate(value, previousCurrentDate) ? currentDate : value
+    );
+    previousCurrentDateRef.current = currentDate;
+  }, [currentDate]);
 
   const loadFavorites = useCallback(async () => {
     const favorites = await listFavoriteFoods();
@@ -236,7 +256,7 @@ export default function FavoritesTab() {
                 selectedDate={selectedDate}
                 onChange={setSelectedDate}
                 minDate={minDate}
-                maxDate={new Date()}
+                maxDate={currentDate}
               />
 
               <SearchBar

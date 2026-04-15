@@ -58,12 +58,12 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
-        image: './assets/splash-icon.png',
+        image: './assets/splash-icon-light.png',
         imageWidth: 200,
         resizeMode: 'contain',
         backgroundColor: '#F6F9E8',
         dark: {
-          image: './assets/splash-icon.png',
+          image: './assets/splash-icon-light.png',
           backgroundColor: '#020617',
         },
       },
@@ -90,6 +90,8 @@ const config: ExpoConfig = {
       },
     ],
     'expo-sqlite',
+    'expo-build-properties',
+    'expo-web-browser',
     ['./plugins/with-android-splits'],
   ],
   experiments: {
