@@ -87,6 +87,8 @@ export interface WeightGoalProgress {
   targetValue: number;
   progressPercent: number;
   remainingValue: number;
+  consumedCalories: number;
+  targetCalories: number;
   unit: 'kcal' | 'days';
   completed: boolean;
 }

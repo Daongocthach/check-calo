@@ -105,6 +105,13 @@ function calculateGoalProgress(
   summaries: NutritionTrendPoint[],
   profile: UserProfile
 ): WeightGoalProgress {
+  const consumedCalories = Math.round(
+    summaries.reduce((total, summary) => total + Math.max(0, summary.consumedCalories), 0)
+  );
+  const targetCalories = Math.round(
+    Math.max(0, profile.maintenanceCalorieTarget) * goal.targetDays
+  );
+
   if (goal.mode === 'maintain') {
     const progressValue = calculateMaintainDayProgress(summaries, profile);
     const targetValue = Math.max(1, goal.targetDays);
@@ -116,6 +123,8 @@ function calculateGoalProgress(
       targetValue,
       progressPercent: Math.min(100, Math.round((progressValue / targetValue) * 100)),
       remainingValue,
+      consumedCalories,
+      targetCalories,
       unit: 'days',
       completed: progressValue >= targetValue,
     };
@@ -143,6 +152,8 @@ function calculateGoalProgress(
     targetValue,
     progressPercent: Math.min(100, Math.round((progressValue / targetValue) * 100)),
     remainingValue,
+    consumedCalories,
+    targetCalories,
     unit: 'kcal',
     completed: progressValue >= targetValue,
   };

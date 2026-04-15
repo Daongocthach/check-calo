@@ -444,6 +444,16 @@ export default function HomeTab() {
     () => (activeGoalProgress ? getGoalProgressCopy(t, activeGoalProgress) : null),
     [activeGoalProgress, t]
   );
+  const activeGoalConsumedCopy = useMemo(() => {
+    if (!activeGoalProgress || activeGoalProgress.goal.mode !== 'maintain') {
+      return null;
+    }
+
+    return t('goalTracking.consumedKcalProgress', {
+      current: activeGoalProgress.consumedCalories,
+      target: activeGoalProgress.targetCalories,
+    });
+  }, [activeGoalProgress, t]);
   const activeGoalCycleCopy = useMemo(() => {
     if (!activeGoalProgress) {
       return null;
@@ -626,7 +636,7 @@ export default function HomeTab() {
         <View style={styles.goalProgressRow}>
           <View style={styles.goalProgressMetric}>
             <Text variant="bodySmall" color="secondary">
-              {activeGoalCopy?.progressLabel}
+              {activeGoalConsumedCopy ?? activeGoalCopy?.progressLabel}
             </Text>
           </View>
           <View style={[styles.goalProgressMetric, styles.goalProgressMetricEnd]}>

@@ -640,6 +640,7 @@
     "progressKcalLose": "Deficit {{current}} / {{target}} kcal",
     "progressKcalGain": "Surplus {{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} days",
+    "consumedKcalProgress": "Consumed {{current}} / {{target}} kcal",
     "remainingKcal": "{{value}} kcal left",
     "remainingDays": "{{value}} days left",
     "startDate": "Start: {{value}}",

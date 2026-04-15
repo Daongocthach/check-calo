@@ -640,6 +640,7 @@
     "progressKcalLose": "Đã thâm hụt {{current}} / {{target}} kcal",
     "progressKcalGain": "Đã dư {{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} ngày",
+    "consumedKcalProgress": "Đã nạp {{current}} / {{target}} kcal",
     "remainingKcal": "Còn {{value}} kcal",
     "remainingDays": "Còn {{value}} ngày",
     "startDate": "Bắt đầu: {{value}}",
