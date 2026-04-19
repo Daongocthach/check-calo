@@ -101,7 +101,7 @@ export const useAddMealStore = create<AddMealState>((set) => ({
                 ...draftItem,
                 ...item,
                 id: draftItem.id,
-                servings: draftItem.servings,
+                servings: item.servings ?? draftItem.servings,
               }),
             }
           : draftItem

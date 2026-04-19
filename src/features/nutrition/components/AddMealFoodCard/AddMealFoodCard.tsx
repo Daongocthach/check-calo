@@ -1,6 +1,6 @@
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Card, Icon, Text } from '@/common/components';
+import { Card, QuantityStepper, Text } from '@/common/components';
 import { FoodImagePreview } from '@/features/nutrition/components/FoodImagePreview';
 
 export interface AddMealFoodCardProps {
@@ -83,27 +83,14 @@ export function AddMealFoodCard({
         </View>
       </Pressable>
 
-      <View style={styles.stepper}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={decreaseLabel}
-          style={styles.stepperButton}
-          onPress={onDecrease}
-        >
-          <Icon name="remove" variant="primary" size={16} />
-        </Pressable>
-        <Text variant="bodySmall" weight="semibold">
-          {servings}
-        </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={increaseLabel}
-          style={styles.stepperButton}
-          onPress={onIncrease}
-        >
-          <Icon name="add" variant="primary" size={16} />
-        </Pressable>
-      </View>
+      <QuantityStepper
+        value={servings}
+        minValue={0}
+        decreaseLabel={decreaseLabel}
+        increaseLabel={increaseLabel}
+        onDecrease={onDecrease}
+        onIncrease={onIncrease}
+      />
     </Card>
   );
 }
@@ -146,22 +133,5 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.metrics.spacing.p4,
-  },
-  stepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p8,
-    paddingHorizontal: theme.metrics.spacing.p8,
-    paddingVertical: theme.metrics.spacingV.p8,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.background.section,
-  },
-  stepperButton: {
-    width: theme.metrics.spacing.p28,
-    height: theme.metrics.spacing.p28,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.surface,
   },
 }));

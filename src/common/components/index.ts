@@ -30,6 +30,8 @@ export { Loading } from './Loading';
 export type { LoadingProps } from './Loading';
 export { ProgressBar } from './ProgressBar';
 export type { ProgressBarProps, ProgressBarSize } from './ProgressBar';
+export { QuantityStepper } from './QuantityStepper';
+export type { QuantityStepperProps } from './QuantityStepper';
 export { Skeleton } from './Skeleton';
 export type { SkeletonProps, SkeletonVariant } from './Skeleton';
 export { Snackbar } from './Snackbar';

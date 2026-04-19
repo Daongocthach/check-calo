@@ -13,6 +13,7 @@ import {
   DateTimeField,
   Icon,
   Input,
+  QuantityStepper,
   ScreenContainer,
   Text,
   TextArea,
@@ -116,6 +117,7 @@ export default function FoodFormScreen() {
     context?: string;
     submitMode?: string;
     mealLocalId?: string;
+    servings?: string;
     consumedAt?: string;
     foodName?: string;
     quantityLabel?: string;
@@ -131,16 +133,19 @@ export default function FoodFormScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [servings, setServings] = useState(1);
   const addMealItem = useAddMealStore((state) => state.addItem);
   const updateMealItem = useAddMealStore((state) => state.updateItem);
   const {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<FoodFormState>({
     defaultValues: DEFAULT_FORM,
   });
+  const caloriesValue = watch('calories');
 
   const isEditingEntry = useMemo(
     () => typeof params.entryId === 'string' && params.entryId.length > 0,
@@ -162,6 +167,7 @@ export default function FoodFormScreen() {
       const entry = await getFoodEntryById(params.entryId);
 
       if (entry) {
+        setServings(1);
         reset({
           foodName: entry.mealName,
           quantityLabel:
@@ -181,6 +187,7 @@ export default function FoodFormScreen() {
       const favorite = await getFavoriteFoodById(params.favoriteId);
 
       if (favorite) {
+        setServings(1);
         reset({
           foodName: favorite.name,
           quantityLabel:
@@ -197,6 +204,11 @@ export default function FoodFormScreen() {
         setImageUri(favorite.imageUri ?? null);
       }
     } else {
+      setServings(
+        typeof params.servings === 'string' && Number(params.servings) > 0
+          ? Number(params.servings)
+          : 1
+      );
       reset({
         foodName: typeof params.foodName === 'string' ? params.foodName : '',
         quantityLabel: typeof params.quantityLabel === 'string' ? params.quantityLabel : '',
@@ -228,6 +240,7 @@ export default function FoodFormScreen() {
     params.notes,
     params.protein,
     params.quantityLabel,
+    params.servings,
     reset,
   ]);
 
@@ -246,6 +259,26 @@ export default function FoodFormScreen() {
 
     setImageUri(photo.uri);
   }, [openCamera]);
+
+  const totalCaloriesForSave = useMemo(
+    () => Math.max(0, parseNumber(caloriesValue) * servings),
+    [caloriesValue, servings]
+  );
+
+  const saveButtonTitle = useMemo(() => {
+    if (isEditing) {
+      return t('manualFoodEntry.updateAction');
+    }
+
+    if (isAddMealFlow) {
+      return t('manualFoodEntry.saveActionWithCalories', {
+        calories: Math.round(totalCaloriesForSave),
+        kcal: t('common.units.kcal'),
+      });
+    }
+
+    return t('manualFoodEntry.saveAction');
+  }, [isAddMealFlow, isEditing, t, totalCaloriesForSave]);
 
   const onSubmit = async (form: FoodFormState) => {
     const quantityGrams = parseMealWeightInput(form.quantityLabel);
@@ -267,7 +300,8 @@ export default function FoodFormScreen() {
           ? await getFavoriteFoodById(params.favoriteId)
           : null;
 
-      const payload = {
+      const servingsMultiplier = isAddMealFlow ? servings : 1;
+      const basePayload = {
         mealName: form.foodName.trim(),
         quantityLabel: formatMealWeight(quantityGrams, null, t('common.units.gram')),
         quantityGrams,
@@ -280,19 +314,32 @@ export default function FoodFormScreen() {
         imageUri: persistedAssets?.imageUri ?? null,
         thumbnailUri: persistedAssets?.thumbnailUri ?? null,
       };
+      const payload = {
+        ...basePayload,
+        quantityLabel: formatMealWeight(
+          quantityGrams * servingsMultiplier,
+          null,
+          t('common.units.gram')
+        ),
+        quantityGrams: quantityGrams * servingsMultiplier,
+        totalCalories: basePayload.totalCalories * servingsMultiplier,
+        proteinGrams: basePayload.proteinGrams * servingsMultiplier,
+        carbsGrams: basePayload.carbsGrams * servingsMultiplier,
+        fatGrams: basePayload.fatGrams * servingsMultiplier,
+      };
 
       const syncedFavorite = !isEditingFavorite
         ? await upsertFavoriteFoodFromInput({
-            name: payload.mealName,
-            quantityLabel: payload.quantityLabel,
-            quantityGrams: payload.quantityGrams ?? null,
-            totalCalories: payload.totalCalories,
-            proteinGrams: payload.proteinGrams,
-            carbsGrams: payload.carbsGrams,
-            fatGrams: payload.fatGrams,
-            notes: payload.notes,
-            imageUri: payload.imageUri,
-            thumbnailUri: payload.thumbnailUri,
+            name: basePayload.mealName,
+            quantityLabel: basePayload.quantityLabel,
+            quantityGrams: basePayload.quantityGrams ?? null,
+            totalCalories: basePayload.totalCalories,
+            proteinGrams: basePayload.proteinGrams,
+            carbsGrams: basePayload.carbsGrams,
+            fatGrams: basePayload.fatGrams,
+            notes: basePayload.notes,
+            imageUri: basePayload.imageUri,
+            thumbnailUri: basePayload.thumbnailUri,
           })
         : null;
 
@@ -316,17 +363,18 @@ export default function FoodFormScreen() {
 
         const nextDraftItem = {
           sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
-          title: payload.mealName,
-          quantityLabel: payload.quantityLabel,
-          quantityGrams: payload.quantityGrams,
-          totalCalories: payload.totalCalories,
-          proteinGrams: payload.proteinGrams,
-          carbsGrams: payload.carbsGrams,
-          fatGrams: payload.fatGrams,
-          notes: payload.notes,
-          imageUri: payload.imageUri,
-          thumbnailUri: payload.thumbnailUri,
-          consumedAt: payload.consumedAt,
+          title: basePayload.mealName,
+          quantityLabel: basePayload.quantityLabel,
+          quantityGrams: basePayload.quantityGrams,
+          totalCalories: basePayload.totalCalories,
+          proteinGrams: basePayload.proteinGrams,
+          carbsGrams: basePayload.carbsGrams,
+          fatGrams: basePayload.fatGrams,
+          notes: basePayload.notes,
+          imageUri: basePayload.imageUri,
+          thumbnailUri: basePayload.thumbnailUri,
+          consumedAt: basePayload.consumedAt,
+          servings,
         };
 
         if (typeof params.draftItemId === 'string' && params.draftItemId.length > 0) {
@@ -627,10 +675,27 @@ export default function FoodFormScreen() {
         >
           <View style={styles.footer}>
             <View style={styles.actions}>
+              {isAddMealFlow ? (
+                <View style={styles.servingsBlock}>
+                  <Text variant="bodySmall" weight="semibold">
+                    {t('manualFoodEntry.portionCountLabel')}
+                  </Text>
+                  <QuantityStepper
+                    value={servings}
+                    minValue={1}
+                    decreaseLabel={t('addScreen.decreasePortion')}
+                    increaseLabel={t('addScreen.increasePortion')}
+                    onDecrease={() => {
+                      setServings((currentValue) => Math.max(1, currentValue - 1));
+                    }}
+                    onIncrease={() => {
+                      setServings((currentValue) => currentValue + 1);
+                    }}
+                  />
+                </View>
+              ) : null}
               <Button
-                title={
-                  isEditing ? t('manualFoodEntry.updateAction') : t('manualFoodEntry.saveAction')
-                }
+                title={saveButtonTitle}
                 fullWidth
                 loading={isSaving}
                 onPress={() => {
@@ -798,5 +863,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   actions: {
     gap: theme.metrics.spacingV.p12,
+  },
+  servingsBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
   },
 }));

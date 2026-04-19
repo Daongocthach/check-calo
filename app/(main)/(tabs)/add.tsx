@@ -127,6 +127,7 @@ export default function AddCaloriesTab() {
         params: {
           context: 'addMeal',
           draftItemId: item.id,
+          servings: String(item.servings),
           foodName: item.title,
           quantityLabel:
             item.quantityGrams !== null && item.quantityGrams !== undefined
