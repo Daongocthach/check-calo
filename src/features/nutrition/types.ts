@@ -229,6 +229,8 @@ export interface MealItemRecord {
   carbsGrams: number;
   fatGrams: number;
   notes: string | null;
+  imageUri: string | null;
+  thumbnailUri: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

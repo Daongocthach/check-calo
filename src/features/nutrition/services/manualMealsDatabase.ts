@@ -43,6 +43,8 @@ interface MealItemRow {
   carbs_grams: number;
   fat_grams: number;
   notes: string | null;
+  image_uri: string | null;
+  thumbnail_uri: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -67,6 +69,7 @@ const DEFAULT_MANUAL_MEALS: ReadonlyArray<{
 ];
 
 export interface ManualMealItemInput {
+  sourceKey?: string | null;
   title: string;
   quantityLabel: string;
   quantityGrams?: number | null;
@@ -75,6 +78,8 @@ export interface ManualMealItemInput {
   carbsGrams: number;
   fatGrams: number;
   notes?: string | null;
+  imageUri?: string | null;
+  thumbnailUri?: string | null;
   servings?: number;
 }
 
@@ -127,6 +132,8 @@ function mapMealItem(row: MealItemRow): MealItemRecord {
     carbsGrams: row.carbs_grams,
     fatGrams: row.fat_grams,
     notes: row.notes,
+    imageUri: row.image_uri,
+    thumbnailUri: row.thumbnail_uri,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -382,11 +389,13 @@ export async function createManualMealItem(mealLocalId: string, input: ManualMea
         carbs_grams,
         fat_grams,
         notes,
+        image_uri,
+        thumbnail_uri,
         created_at,
         updated_at,
         deleted_at
       )
-      VALUES (?, NULL, ?, NULL, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL);
+      VALUES (?, NULL, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL);
     `,
     [
       createEntityId('meal-item'),
@@ -397,12 +406,15 @@ export async function createManualMealItem(mealLocalId: string, input: ManualMea
       input.title,
       input.quantityLabel,
       input.quantityGrams ?? null,
+      input.sourceKey ?? null,
       Math.max(1, input.servings ?? 1),
       input.totalCalories,
       input.proteinGrams,
       input.carbsGrams,
       input.fatGrams,
       input.notes ?? null,
+      input.imageUri ?? null,
+      input.thumbnailUri ?? null,
       now,
       now,
     ]
@@ -414,8 +426,13 @@ export async function createManualMealItem(mealLocalId: string, input: ManualMea
 export async function updateManualMealItem(itemLocalId: string, input: ManualMealItemInput) {
   const database = await getDatabase();
   const now = nowIsoString();
-  const existing = await database.getFirstAsync<{ meal_local_id: string }>(
-    'SELECT meal_local_id FROM meal_items WHERE local_id = ? LIMIT 1;',
+  const existing = await database.getFirstAsync<{
+    meal_local_id: string;
+    source_key: string | null;
+    image_uri: string | null;
+    thumbnail_uri: string | null;
+  }>(
+    'SELECT meal_local_id, source_key, image_uri, thumbnail_uri FROM meal_items WHERE local_id = ? LIMIT 1;',
     [itemLocalId]
   );
 
@@ -430,12 +447,15 @@ export async function updateManualMealItem(itemLocalId: string, input: ManualMea
         title = ?,
         quantity_label = ?,
         quantity_grams = ?,
+        source_key = ?,
         servings = ?,
         total_calories = ?,
         protein_grams = ?,
         carbs_grams = ?,
         fat_grams = ?,
         notes = ?,
+        image_uri = ?,
+        thumbnail_uri = ?,
         updated_at = ?
       WHERE local_id = ?;
     `,
@@ -443,12 +463,15 @@ export async function updateManualMealItem(itemLocalId: string, input: ManualMea
       input.title,
       input.quantityLabel,
       input.quantityGrams ?? null,
+      input.sourceKey ?? existing.source_key,
       Math.max(1, input.servings ?? 1),
       input.totalCalories,
       input.proteinGrams,
       input.carbsGrams,
       input.fatGrams,
       input.notes ?? null,
+      input.imageUri ?? existing.image_uri,
+      input.thumbnailUri ?? existing.thumbnail_uri,
       now,
       itemLocalId,
     ]
