@@ -13,6 +13,9 @@
     "settings": "Cài đặt",
     "close": "Đóng",
     "edit": "Chỉnh sửa",
+    "more": "Thêm",
+    "defaultMealName": "Món ăn",
+    "numberPlaceholder": "0",
     "submit": "Gửi",
     "ok": "OK",
     "units": {
@@ -53,6 +56,13 @@
   "menuScreen": {
     "title": "Thực đơn",
     "totalCaloriesTitle": "Tổng năng lượng",
+    "energyTitle": "Tổng năng lượng",
+    "todayLabel": "Hôm nay",
+    "calendarAction": "Chọn ngày",
+    "addFoodAction": "+ Thêm món ăn",
+    "filters": {
+      "all": "Tất cả"
+    },
     "subtitle": "Mock tạm cho tab Thực đơn. Có thể mở rộng thành planner theo ngày, bữa ăn và gợi ý món từ thư viện.",
     "libraryAction": "Quản lý thư viện món ăn",
     "addMeal": "Thêm bữa ăn",
@@ -181,6 +191,13 @@
   "homeScreen": {
     "greetingTitle": "Chào {{name}}",
     "alerts": "Thông báo",
+    "caloriesRemainingTitle": "Calories còn lại",
+    "caloriesRemainingUnitLabel": "kcal còn lại",
+    "caloriesRemainingLabel": "{{value}} kcal còn lại",
+    "caloriesConsumed": "Đã nạp {{consumed}} / {{target}} kcal",
+    "goalPercent": "{{percent}}% mục tiêu",
+    "macroToday": "Macro hôm nay",
+    "details": "Chi tiết",
     "dailyIntake": "Lượng nạp trong ngày",
     "dayCount": "Ngày 4",
     "target": "Mục tiêu",
@@ -222,7 +239,9 @@
     },
     "meals": {
       "title": "Bữa ăn hôm nay",
-      "subtitle": "Món ăn mới nhất ở trên",
+      "subtitle": "Món ăn mới nhất trong ngày",
+      "totalEnergy": "Năng lượng",
+      "addFood": "Thêm món",
       "detailComposition": "Xem thành phần",
       "addFavorite": "Thêm vào thư viện món",
       "removeFavorite": "Xóa khỏi thư viện món",
@@ -529,8 +548,19 @@
     }
   },
   "profileScreen": {
-    "title": "Hồ sơ dinh dưỡng",
-    "subtitle": "Xem nhanh BMI, calories duy trì, calories mục tiêu và macro mục tiêu của bạn.",
+    "title": "Hồ sơ cá nhân",
+    "subtitle": "Dùng để tính calories & macro phù hợp",
+    "saveAndStart": "Lưu và bắt đầu",
+    "saveSuccess": "Đã lưu hồ sơ cá nhân.",
+    "basicInfoTitle": "Thông tin cơ bản",
+    "weightPlanTitle": "Kế hoạch cân nặng",
+    "activityTitle": "Hệ số vận động",
+    "activityDescriptions": {
+      "sedentary": "Ngồi nhiều, ít vận động",
+      "light": "Vận động nhẹ và đi lại vừa phải",
+      "moderate": "Tập luyện 3–5 buổi/tuần",
+      "active": "Hoạt động nhiều, tập đều mỗi tuần"
+    },
     "editAction": "Chỉnh sửa",
     "deleteAction": "Xóa hồ sơ dinh dưỡng",
     "resetAction": "Đặt lại toàn bộ dữ liệu",

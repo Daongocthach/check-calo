@@ -4,86 +4,92 @@ export const lightColors: ThemeColors = {
   mode: 'light',
 
   brand: {
-    primary: '#E3F45A',
-    secondary: '#203214',
-    tertiary: '#FF9E3D',
-    primaryVariant: '#D2E93B',
-    secondaryVariant: '#345125',
-    onBrand: '#0F172A',
+    primary: '#8BC34A', // xanh chính (calories ring)
+    secondary: '#1C1C1E', // text chính
+    tertiary: '#FF7A2F', // CTA (+ button)
+    primaryVariant: '#9FD65A',
+    secondaryVariant: '#6B7280',
+    onBrand: '#FFFFFF',
   },
 
   background: {
-    app: '#F6F9E8',
-    surface: '#FFFEF8',
-    surfaceAlt: '#F0F5D8',
-    section: '#ECF6C2',
-    elevated: '#FBFDEB',
-    input: '#F4F7E3',
-    disabled: '#D8E1BF',
-    modal: '#FFFEF8',
+    app: '#F7F7F7', // nền chính
+    surface: '#FFFFFF', // card
+    surfaceAlt: '#FAFAFA',
+    section: '#F0F2F4',
+    elevated: '#FFFFFF',
+    input: '#F3F4F6',
+    disabled: '#E5E7EB',
+    modal: '#FFFFFF',
   },
 
   text: {
-    primary: '#203214',
-    secondary: '#51633F',
-    tertiary: '#738260',
-    muted: '#98A389',
+    primary: '#1C1C1E', // text đậm
+    secondary: '#6B7280', // text phụ
+    tertiary: '#9CA3AF', // text mờ
+    muted: '#B0B3B8',
     inverse: '#FFFFFF',
-    accent: '#FF9E3D',
-    link: '#7BA120',
-    linkHover: '#6C8E19',
+    accent: '#FF7A2F',
+    link: '#8BC34A',
+    linkHover: '#6FAF3A',
   },
 
   border: {
-    default: '#D9E6B2',
-    subtle: '#EDF3D3',
-    strong: '#B9C98B',
-    focus: '#D2E93B',
-    disabled: '#D8E1BF',
+    default: '#E5E7EB',
+    subtle: '#F0F2F4',
+    strong: '#D1D5DB',
+    focus: '#8BC34A',
+    disabled: '#E5E7EB',
   },
 
   icon: {
-    primary: '#203214',
-    secondary: '#51633F',
-    tertiary: '#889777',
-    muted: '#B0B99C',
+    primary: '#1C1C1E',
+    secondary: '#6B7280',
+    tertiary: '#9CA3AF',
+    muted: '#B0B3B8',
     inverse: '#FFFFFF',
-    accent: '#FF9E3D',
+    accent: '#FF7A2F',
   },
 
   state: {
-    success: '#57A645',
-    successBg: '#E7F5D9',
-    warning: '#FFB21D',
-    warningBg: 'rgba(255, 178, 29, 0.18)',
+    success: '#7ED321', // fat
+    successBg: '#F1FBEA',
+
+    warning: '#F5A623', // carb
+    warningBg: '#FFF3E0',
+
     error: '#EF4444',
     errorBg: 'rgba(239, 68, 68, 0.12)',
-    info: '#3A86FF',
-    infoBg: 'rgba(58, 134, 255, 0.14)',
-    disabled: '#B0B99C',
+
+    info: '#4A90E2', // protein
+    infoBg: '#EAF3FF',
+
+    disabled: '#B0B3B8',
   },
 
   overlay: {
     modal: 'rgba(0, 0, 0, 0.5)',
-    pressed: 'rgba(227, 244, 90, 0.18)',
-    hover: 'rgba(227, 244, 90, 0.1)',
-    focus: 'rgba(210, 233, 59, 0.2)',
-    ripple: 'rgba(255, 255, 255, 0.25)',
-    shadow: 'rgba(32, 50, 20, 0.14)',
+    pressed: 'rgba(139, 195, 74, 0.15)',
+    hover: 'rgba(139, 195, 74, 0.08)',
+    focus: 'rgba(139, 195, 74, 0.2)',
+    ripple: 'rgba(0, 0, 0, 0.08)',
+    shadow: 'rgba(0, 0, 0, 0.08)',
   },
 
   gradient: {
-    primary: ['#F7F1A2', '#E3F45A'],
-    secondary: ['#FAF4BD', '#DFF17A'],
-    accent: ['#FFD37A', '#FF9E3D'],
-    success: ['#B9E67A', '#57A645'],
-    error: ['#B91C1C', '#F87171'],
-    warning: ['#FFE66C', '#FFB21D'],
-    highlight: ['#DFF7AE', '#C3EE4A'],
+    primary: ['#7ED321', '#C0E86B'], // vòng calories đẹp hơn
+    secondary: ['#FFFFFF', '#F3F4F6'],
+    accent: ['#FF8C42', '#FF7A2F'],
+
+    success: ['#B9E67A', '#7ED321'],
+    error: ['#F87171', '#EF4444'],
+    warning: ['#FFD37A', '#F5A623'],
+
+    highlight: ['#E8F5E9', '#C8E6C9'],
   },
 
   shadow: {
-    color: 'rgba(32, 50, 20, 0.14)',
+    color: 'rgba(0, 0, 0, 0.08)',
     onShadow: '#FFFFFF',
     elevation: 4,
     elevationSmall: 2,

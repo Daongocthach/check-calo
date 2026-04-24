@@ -13,6 +13,9 @@
     "settings": "Settings",
     "close": "Close",
     "edit": "Edit",
+    "more": "More",
+    "defaultMealName": "Meal",
+    "numberPlaceholder": "0",
     "submit": "Submit",
     "ok": "OK",
     "units": {
@@ -53,6 +56,13 @@
   "menuScreen": {
     "title": "Menu",
     "totalCaloriesTitle": "Total calories",
+    "energyTitle": "Total energy",
+    "todayLabel": "Today",
+    "calendarAction": "Select date",
+    "addFoodAction": "+ Add food",
+    "filters": {
+      "all": "All"
+    },
     "subtitle": "Temporary mock for the Menu tab. We can expand this into a day-by-day meal planner with suggestions from your food library.",
     "libraryAction": "Manage food library",
     "addMeal": "Add meal",
@@ -181,6 +191,13 @@
   "homeScreen": {
     "greetingTitle": "Hello {{name}}",
     "alerts": "Notifications",
+    "caloriesRemainingTitle": "Calories left",
+    "caloriesRemainingUnitLabel": "kcal left",
+    "caloriesRemainingLabel": "{{value}} kcal left",
+    "caloriesConsumed": "Consumed {{consumed}} / {{target}} kcal",
+    "goalPercent": "{{percent}}% of goal",
+    "macroToday": "Macro today",
+    "details": "Details",
     "dailyIntake": "Daily Intake",
     "dayCount": "4 Day",
     "target": "Target",
@@ -223,6 +240,8 @@
     "meals": {
       "title": "Meals for today",
       "subtitle": "Most recent first",
+      "totalEnergy": "Energy",
+      "addFood": "+ Add food",
       "detailComposition": "Detail composition",
       "addFavorite": "Add to food library",
       "removeFavorite": "Remove from food library",
@@ -529,8 +548,19 @@
     }
   },
   "profileScreen": {
-    "title": "Nutrition profile",
-    "subtitle": "Quick view of BMI, maintenance calories, target calories, and your macro goals.",
+    "title": "Personal profile",
+    "subtitle": "Used to calculate the calories and macro targets that fit you best",
+    "saveAndStart": "Save and start",
+    "saveSuccess": "Personal profile saved.",
+    "basicInfoTitle": "Basic information",
+    "weightPlanTitle": "Weight plan",
+    "activityTitle": "Activity level",
+    "activityDescriptions": {
+      "sedentary": "Mostly sitting, very little movement",
+      "light": "Light activity and regular movement",
+      "moderate": "Training 3-5 sessions per week",
+      "active": "Highly active with consistent weekly training"
+    },
     "editAction": "Edit profile",
     "deleteAction": "Delete nutrition profile",
     "resetAction": "Reset all data",

@@ -34,6 +34,7 @@ import { useCurrentDate } from '@/hooks';
 import { hs, vs } from '@/theme/metrics';
 
 type TrendMode = 'day' | 'month';
+type TranslateFn = (key: string) => string;
 
 const TREND_MODE_OPTIONS: TrendMode[] = ['day', 'month'];
 
@@ -54,16 +55,13 @@ function createEmptySummary(date: Date): DailyNutritionSummary {
   };
 }
 
-function getWeekdayLabel(date: Date, t: ReturnType<typeof useTranslation>['t']) {
+function getWeekdayLabel(date: Date, t: TranslateFn) {
   const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 
   return t(`statsScreen.days.${weekdayKeys[date.getDay()]}`);
 }
 
-function createEmptyDailyTrendPoint(
-  date: Date,
-  t: ReturnType<typeof useTranslation>['t']
-): NutritionTrendPoint {
+function createEmptyDailyTrendPoint(date: Date, t: TranslateFn): NutritionTrendPoint {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -112,7 +110,7 @@ function createEmptyTrendPoint(date: Date, locale: string): NutritionTrendPoint 
 function aggregateTrendData(
   points: NutritionTrendPoint[],
   mode: TrendMode,
-  t: ReturnType<typeof useTranslation>['t'],
+  t: TranslateFn,
   locale: string,
   referenceDate: Date
 ) {
@@ -181,6 +179,7 @@ function aggregateTrendData(
 
 export default function StatsTab() {
   const { t, i18n } = useTranslation();
+  const translate = t as unknown as TranslateFn;
   const { theme } = useUnistyles();
   const currentDate = useCurrentDate();
   const [trendMode, setTrendMode] = useState<TrendMode>('day');
@@ -256,8 +255,8 @@ export default function StatsTab() {
   ]);
 
   const aggregatedTrendPoints = useMemo(
-    () => aggregateTrendData(dailyPoints, trendMode, t, i18n.language, currentDate),
-    [currentDate, dailyPoints, i18n.language, t, trendMode]
+    () => aggregateTrendData(dailyPoints, trendMode, translate, i18n.language, currentDate),
+    [currentDate, dailyPoints, i18n.language, translate, trendMode]
   );
 
   const lineData = useMemo(
@@ -270,8 +269,8 @@ export default function StatsTab() {
   );
 
   const aggregatedMacroTrendPoints = useMemo(
-    () => aggregateTrendData(dailyPoints, macroTrendMode, t, i18n.language, currentDate),
-    [currentDate, dailyPoints, i18n.language, macroTrendMode, t]
+    () => aggregateTrendData(dailyPoints, macroTrendMode, translate, i18n.language, currentDate),
+    [currentDate, dailyPoints, i18n.language, macroTrendMode, translate]
   );
 
   const todayGoalState = useMemo(

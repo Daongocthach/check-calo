@@ -1,56 +1,30 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionList, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import {
   Button,
   Card,
-  Chip,
   Icon,
   MonthSelector,
   ProgressBar,
   ScreenContainer,
-  Select,
   Text,
 } from '@/common/components';
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
-import { MacroGoalCard } from '@/features/nutrition/components/MacroGoalCard';
-import { MONTHLY_WEIGHT_GOAL_OPTIONS } from '@/features/nutrition/constants';
-import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import { getFoodEntryImageSyncStateMap } from '@/features/nutrition/services/foodEntrySyncQueue';
 import {
-  continueLatestCompletedGoal,
-  syncActiveGoalToProfile,
-  syncGoalTracking,
-} from '@/features/nutrition/services/goalTrackingService';
-import {
-  deleteFoodEntry,
   getDailyNutritionSummary,
   getUserProfile,
-  listLoggedDailyStatuses,
   listFoodEntriesByDate,
-  upsertUserProfile,
+  listLoggedDailyStatuses,
 } from '@/features/nutrition/services/nutritionDatabase';
-import type {
-  AchievementKey,
-  DailyNutritionSummary,
-  FoodEntry,
-  GoalTrackingSnapshot,
-  UserProfile,
-  WeightGoalProgress,
-} from '@/features/nutrition/types';
-import { getDailyCalorieGoalState, getWeightGoalMode } from '@/features/nutrition/utils/calorie';
-import {
-  formatWeightGoalTitle,
-  getGoalCycleDayProgress,
-} from '@/features/nutrition/utils/goalTracking';
-import { useCurrentDate } from '@/hooks';
-import { useAppAlert } from '@/providers/app-alert';
+import type { DailyNutritionSummary, FoodEntry, UserProfile } from '@/features/nutrition/types';
+import { useCurrentDate, useScreenDimensions } from '@/hooks';
 import { vs } from '@/theme/metrics';
-import { toast } from '@/utils/toast';
 
 interface MealSection {
   title: string;
@@ -123,215 +97,142 @@ function createEmptySummary(date: Date): DailyNutritionSummary {
   };
 }
 
-function getHomeBalanceCopy(
-  profile: UserProfile | null,
-  summary: DailyNutritionSummary
-): {
-  value: number;
-  displayValue: string;
-  labelKey:
-    | 'homeScreen.onTrack'
-    | 'homeScreen.goalMet'
-    | 'homeScreen.belowTarget'
-    | 'homeScreen.overTarget';
-  color: 'link' | 'accent' | 'secondary';
-  valueTone: 'default' | 'success' | 'danger';
-  labelTone: 'default' | 'success' | 'danger';
-} {
-  const goalMode = getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0);
-  const goalState = getDailyCalorieGoalState(
-    profile,
-    summary.calorieTarget,
-    summary.consumedCalories
+function formatNumber(value: number, locale: string) {
+  return new Intl.NumberFormat(locale).format(value);
+}
+
+function getMacroProgress(value: number, target: number) {
+  if (target <= 0) {
+    return 0;
+  }
+
+  return Math.min(100, Math.round((value / target) * 100));
+}
+
+function describeSemicirclePath(radius: number, centerX: number, centerY: number) {
+  const startX = centerX - radius;
+  const endX = centerX + radius;
+  return `M ${startX} ${centerY} A ${radius} ${radius} 0 0 1 ${endX} ${centerY}`;
+}
+
+interface CaloriesRingProps {
+  remainingCalories: number;
+  consumedCalories: number;
+  targetCalories: number;
+  progressPercent: number;
+  locale: string;
+  t: ReturnType<typeof useTranslation>['t'];
+}
+
+function CaloriesRing({
+  remainingCalories,
+  consumedCalories,
+  targetCalories,
+  progressPercent,
+  locale,
+  t,
+}: CaloriesRingProps) {
+  const { theme } = useUnistyles();
+  const { width: screenWidth, isTablet } = useScreenDimensions();
+  const translate = t as unknown as (
+    key: string,
+    options?: Record<string, string | number>
+  ) => string;
+  const width = isTablet ? 360 : Math.max(240, screenWidth - theme.metrics.spacing.p32);
+  const scale = width / 260;
+  const height = Math.round(140 * scale);
+  const strokeWidth = Math.round(14 * scale);
+  const radius = Math.round(100 * scale);
+  const centerX = width / 2;
+  const centerY = Math.round(112 * scale);
+  const trackPath = describeSemicirclePath(radius, centerX, centerY);
+  const safeProgress = Math.min(100, Math.max(0, progressPercent));
+  const dashLength = Math.PI * radius;
+  const dashOffset = dashLength * (1 - safeProgress / 100);
+  const centerTop = Math.round(40 * scale);
+  const endsBottom = Math.round(16 * scale);
+  const endLabelOffset = Math.round(strokeWidth / 2);
+  const endLabelWidth = Math.round(36 * scale);
+
+  return (
+    <View style={[styles.calorieRingWrap, { width }]}>
+      <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        <Path
+          d={trackPath}
+          stroke={theme.colors.border.subtle}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          fill="none"
+        />
+        <Path
+          d={trackPath}
+          stroke={theme.colors.state.success}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray={dashLength}
+          strokeDashoffset={dashOffset}
+        />
+      </Svg>
+
+      <View style={[styles.calorieRingCenter, { top: centerTop }]}>
+        <View style={styles.calorieRingPrimaryCopy}>
+          <Text variant="h2" weight="semibold" align="center" style={styles.calorieRingValue}>
+            {formatNumber(Math.max(remainingCalories, 0), locale)}
+          </Text>
+          <Text variant="bodySmall" color="secondary" align="center">
+            {translate('homeScreen.caloriesRemainingUnitLabel')}
+          </Text>
+        </View>
+        <View style={styles.calorieRingSecondaryCopy}>
+          <Text variant="bodySmall" color="secondary" align="center">
+            {translate('homeScreen.caloriesConsumed', {
+              consumed: formatNumber(consumedCalories, locale),
+              target: formatNumber(targetCalories, locale),
+            })}
+          </Text>
+        </View>
+        <Text variant="bodySmall" weight="semibold" color="secondary" align="center">
+          {translate('homeScreen.goalPercent', {
+            percent: formatNumber(safeProgress, locale),
+          })}
+        </Text>
+      </View>
+
+      <View style={[styles.calorieRingEnds, { bottom: endsBottom }]}>
+        <View style={[styles.calorieRingEndAnchor, { left: endLabelOffset, width: endLabelWidth }]}>
+          <Text variant="caption" color="secondary" align="center">
+            0
+          </Text>
+        </View>
+        <View
+          style={[styles.calorieRingEndAnchor, { right: endLabelOffset, width: endLabelWidth }]}
+        >
+          <Text variant="caption" color="secondary" align="center">
+            {formatNumber(targetCalories, locale)}
+          </Text>
+        </View>
+      </View>
+    </View>
   );
-
-  if (goalMode === 'lose') {
-    const isOverTarget = goalState === 'above_target';
-    const value = Math.abs(summary.remainingCalories);
-
-    return {
-      value: Math.max(summary.remainingCalories, 0),
-      displayValue: isOverTarget ? `-${value}` : String(value),
-      labelKey: isOverTarget ? 'homeScreen.overTarget' : 'homeScreen.onTrack',
-      color: isOverTarget ? 'accent' : 'secondary',
-      valueTone: isOverTarget ? 'danger' : 'default',
-      labelTone: isOverTarget ? 'danger' : 'default',
-    };
-  }
-
-  if (goalMode === 'gain') {
-    if (summary.remainingCalories < 0) {
-      const value = Math.abs(summary.remainingCalories);
-
-      return {
-        value,
-        displayValue: `+${value}`,
-        labelKey: 'homeScreen.overTarget',
-        color: 'accent',
-        valueTone: 'success',
-        labelTone: 'success',
-      };
-    }
-
-    if (summary.remainingCalories === 0) {
-      return {
-        value: 0,
-        displayValue: '0',
-        labelKey: 'homeScreen.goalMet',
-        color: 'link',
-        valueTone: 'default',
-        labelTone: 'default',
-      };
-    }
-
-    return {
-      value: Math.abs(summary.remainingCalories),
-      displayValue: String(Math.abs(summary.remainingCalories)),
-      labelKey: 'homeScreen.belowTarget',
-      color: 'secondary',
-      valueTone: 'default',
-      labelTone: 'default',
-    };
-  }
-
-  if (goalState === 'on_target') {
-    return {
-      value: 0,
-      displayValue: '0',
-      labelKey: 'homeScreen.goalMet',
-      color: 'link',
-      valueTone: 'default',
-      labelTone: 'default',
-    };
-  }
-
-  if (goalState === 'below_target') {
-    return {
-      value: Math.abs(summary.remainingCalories),
-      displayValue: String(Math.abs(summary.remainingCalories)),
-      labelKey: 'homeScreen.belowTarget',
-      color: 'secondary',
-      valueTone: 'default',
-      labelTone: 'default',
-    };
-  }
-
-  const value = Math.abs(summary.remainingCalories);
-
-  return {
-    value,
-    displayValue: String(value),
-    labelKey: 'homeScreen.overTarget',
-    color: 'accent',
-    valueTone: 'danger',
-    labelTone: 'danger',
-  };
-}
-
-function getMonthlyWeightGoalPlanKey(value: number) {
-  switch (value) {
-    case -2:
-      return 'welcomeScreen.monthlyWeightPlans.gain_2' as const;
-    case -1:
-      return 'welcomeScreen.monthlyWeightPlans.gain_1' as const;
-    case -0.5:
-      return 'welcomeScreen.monthlyWeightPlans.gain_0_5' as const;
-    case 0:
-      return 'welcomeScreen.monthlyWeightPlans.0' as const;
-    case 0.5:
-      return 'welcomeScreen.monthlyWeightPlans.lose_0_5' as const;
-    case 1:
-      return 'welcomeScreen.monthlyWeightPlans.lose_1' as const;
-    case 2:
-      return 'welcomeScreen.monthlyWeightPlans.lose_2' as const;
-    default:
-      return 'welcomeScreen.monthlyWeightPlans.0' as const;
-  }
-}
-
-function getGoalProgressCopy(
-  t: ReturnType<typeof useTranslation>['t'],
-  goalProgress: WeightGoalProgress
-) {
-  if (goalProgress.unit === 'days') {
-    return {
-      progressLabel: t('goalTracking.progressDays', {
-        current: goalProgress.progressValue,
-        target: goalProgress.targetValue,
-      }),
-      remainingLabel: t('goalTracking.remainingDays', { value: goalProgress.remainingValue }),
-    };
-  }
-
-  const progressLabelKey =
-    goalProgress.goal.mode === 'gain'
-      ? 'goalTracking.progressKcalGain'
-      : 'goalTracking.progressKcalLose';
-
-  return {
-    progressLabel: t(progressLabelKey, {
-      current: goalProgress.progressValue,
-      target: goalProgress.targetValue,
-    }),
-    remainingLabel: t('goalTracking.remainingKcal', { value: goalProgress.remainingValue }),
-  };
-}
-
-function getAchievementTitleKey(achievementKey: AchievementKey) {
-  switch (achievementKey) {
-    case 'fire_keeper_7':
-      return 'achievements.items.fire_keeper_7.title' as const;
-    case 'fire_keeper_14':
-      return 'achievements.items.fire_keeper_14.title' as const;
-    case 'first_maintain_goal':
-      return 'achievements.items.first_maintain_goal.title' as const;
-    default:
-      return 'achievements.items.goal_crusher.title' as const;
-  }
-}
-
-function formatGoalDate(value: string, locale: string) {
-  return new Intl.DateTimeFormat(locale, {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date(value));
-}
-
-function getActiveGoalDateRange(
-  goalProgress: Pick<WeightGoalProgress, 'goal' | 'unit'>,
-  locale: string
-) {
-  const startDate = new Date(goalProgress.goal.startedAt);
-  const durationDays =
-    goalProgress.unit === 'days' ? Math.max(1, goalProgress.goal.targetDays) : 30;
-  const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + durationDays - 1);
-
-  return {
-    startLabel: formatGoalDate(goalProgress.goal.startedAt, locale),
-    endLabel: formatGoalDate(endDate.toISOString(), locale),
-  };
 }
 
 export default function HomeTab() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
-  const appAlert = useAppAlert();
   const currentDate = useCurrentDate();
   const previousCurrentDateRef = useRef(currentDate);
   const [selectedDate, setSelectedDate] = useState(() => currentDate);
+  const [visibleMonth, setVisibleMonth] = useState(() => currentDate);
+  const [monthStatuses, setMonthStatuses] = useState<Partial<Record<string, 'success' | 'failed'>>>(
+    {}
+  );
   const [summary, setSummary] = useState<DailyNutritionSummary>(() =>
     createEmptySummary(currentDate)
   );
   const [entries, setEntries] = useState<FoodEntryWithSyncDebug[]>([]);
   const [hasProfile, setHasProfile] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [visibleMonth, setVisibleMonth] = useState(() => currentDate);
-  const [monthStatuses, setMonthStatuses] = useState<Partial<Record<string, 'success' | 'failed'>>>(
-    {}
-  );
-  const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
 
   useEffect(() => {
     const previousCurrentDate = previousCurrentDateRef.current;
@@ -344,19 +245,6 @@ export default function HomeTab() {
     );
     previousCurrentDateRef.current = currentDate;
   }, [currentDate]);
-
-  const loadMonthStatuses = useCallback(async (month: Date) => {
-    const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
-    const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
-    const statuses = await listLoggedDailyStatuses(monthStart, monthEnd);
-
-    setMonthStatuses(
-      statuses.reduce<Partial<Record<string, 'success' | 'failed'>>>((accumulator, item) => {
-        accumulator[item.date] = item.status;
-        return accumulator;
-      }, {})
-    );
-  }, []);
 
   const loadNutritionData = useCallback(async (date: Date) => {
     const [nextProfile, nextSummary, nextEntries] = await Promise.all([
@@ -376,25 +264,24 @@ export default function HomeTab() {
     setEntries(entriesWithSyncDebug);
   }, []);
 
-  const loadGoalTracking = useCallback(async () => {
-    const snapshot = await syncGoalTracking();
-    setGoalTracking(snapshot);
+  const loadMonthStatuses = useCallback(async (month: Date) => {
+    const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+    const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+    const statuses = await listLoggedDailyStatuses(monthStart, monthEnd);
 
-    if (snapshot.justCompletedGoal) {
-      toast.success(t('goalTracking.toasts.goalCompleted'));
-    }
-
-    if (snapshot.newlyUnlockedAchievements.length > 0) {
-      toast.success(t('goalTracking.toasts.achievementUnlockedGeneric'));
-    }
-  }, [t]);
+    setMonthStatuses(
+      statuses.reduce<Partial<Record<string, 'success' | 'failed'>>>((accumulator, item) => {
+        accumulator[item.date] = item.status;
+        return accumulator;
+      }, {})
+    );
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       void loadNutritionData(selectedDate);
       void loadMonthStatuses(visibleMonth);
-      void loadGoalTracking();
-    }, [loadGoalTracking, loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth])
+    }, [loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth])
   );
 
   const mealSections = useMemo<MealSection[]>(() => {
@@ -416,348 +303,50 @@ export default function HomeTab() {
     }, []);
   }, [entries]);
 
-  const balanceCopy = useMemo(() => getHomeBalanceCopy(profile, summary), [profile, summary]);
-  const balanceTitleKey = useMemo(
-    () =>
-      getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0) === 'lose'
-        ? 'homeScreen.left'
-        : 'homeScreen.remaining',
-    [profile?.monthlyWeightGoalKg]
+  const caloriesLeft = Math.max(summary.remainingCalories, 0);
+  const macroRows = useMemo(
+    () => [
+      {
+        label: t('statsScreen.macros.protein'),
+        current: summary.proteinGrams,
+        target: profile?.proteinTargetGrams ?? 0,
+        color: theme.colors.state.info,
+        trackColor: theme.colors.state.infoBg,
+        icon: 'fish' as const,
+      },
+      {
+        label: t('statsScreen.macros.carbs'),
+        current: summary.carbsGrams,
+        target: profile?.carbsTargetGrams ?? 0,
+        color: theme.colors.state.warning,
+        trackColor: theme.colors.state.warningBg,
+        icon: 'nutrition' as const,
+      },
+      {
+        label: t('statsScreen.macros.fat'),
+        current: summary.fatGrams,
+        target: profile?.fatTargetGrams ?? 0,
+        color: theme.colors.state.success,
+        trackColor: theme.colors.state.successBg,
+        icon: 'water' as const,
+      },
+    ],
+    [
+      profile?.carbsTargetGrams,
+      profile?.fatTargetGrams,
+      profile?.proteinTargetGrams,
+      summary.carbsGrams,
+      summary.fatGrams,
+      summary.proteinGrams,
+      t,
+      theme.colors.state.info,
+      theme.colors.state.infoBg,
+      theme.colors.state.success,
+      theme.colors.state.successBg,
+      theme.colors.state.warning,
+      theme.colors.state.warningBg,
+    ]
   );
-  const progressColorScheme = useMemo(() => {
-    const goalState = getDailyCalorieGoalState(
-      profile,
-      summary.calorieTarget,
-      summary.consumedCalories
-    );
-
-    if (goalState === 'on_target') {
-      return 'success' as const;
-    }
-
-    return goalState === 'below_target' ? 'warning' : 'error';
-  }, [profile, summary.calorieTarget, summary.consumedCalories]);
-
-  const activeGoalProgress = goalTracking?.activeGoal ?? null;
-  const latestCompletedGoal = goalTracking?.latestCompletedGoal ?? null;
-  const activeGoalCopy = useMemo(
-    () => (activeGoalProgress ? getGoalProgressCopy(t, activeGoalProgress) : null),
-    [activeGoalProgress, t]
-  );
-  const activeGoalConsumedCopy = useMemo(() => {
-    if (!activeGoalProgress || activeGoalProgress.goal.mode !== 'maintain') {
-      return null;
-    }
-
-    return t('goalTracking.consumedKcalProgress', {
-      current: activeGoalProgress.consumedCalories,
-      target: activeGoalProgress.targetCalories,
-    });
-  }, [activeGoalProgress, t]);
-  const activeGoalCycleCopy = useMemo(() => {
-    if (!activeGoalProgress) {
-      return null;
-    }
-
-    const cycleProgress = getGoalCycleDayProgress(activeGoalProgress);
-    if (!cycleProgress) {
-      return null;
-    }
-
-    return t('goalTracking.progressDays', {
-      current: cycleProgress.current,
-      target: cycleProgress.target,
-    });
-  }, [activeGoalProgress, t]);
-  const activeGoalDateRange = useMemo(
-    () => (activeGoalProgress ? getActiveGoalDateRange(activeGoalProgress, i18n.language) : null),
-    [activeGoalProgress, i18n.language]
-  );
-  const heroHighlight = useMemo(() => {
-    if (goalTracking?.currentStreak && goalTracking.currentStreak > 0) {
-      return {
-        icon: 'flame' as const,
-        iconVariant: 'accent' as const,
-        label: t('achievements.currentStreak'),
-        value: t('achievements.currentStreakValue', { count: goalTracking.currentStreak }),
-      };
-    }
-
-    const latestAchievement = goalTracking?.unlockedAchievements[0];
-    if (latestAchievement) {
-      return {
-        icon: 'trophy-outline' as const,
-        iconVariant: 'primary' as const,
-        label: t('achievements.title'),
-        value: t(getAchievementTitleKey(latestAchievement.achievementKey)),
-      };
-    }
-
-    return null;
-  }, [goalTracking, t]);
-  const monthlyGoalOptions = useMemo(
-    () =>
-      [...MONTHLY_WEIGHT_GOAL_OPTIONS].sort((left, right) => {
-        const orderMap = new Map<number, number>([
-          [0.5, 0],
-          [1, 1],
-          [0, 2],
-          [-0.5, 3],
-          [-1, 4],
-        ]);
-
-        return (orderMap.get(left) ?? 99) - (orderMap.get(right) ?? 99);
-      }),
-    []
-  );
-  const goalSelectOptions = useMemo(
-    () =>
-      monthlyGoalOptions.map((option) => ({
-        label: t(getMonthlyWeightGoalPlanKey(option)),
-        value: String(option),
-      })),
-    [monthlyGoalOptions, t]
-  );
-  const selectedGoalValue = profile ? String(profile.monthlyWeightGoalKg) : '';
-
-  const handleSelectNewGoal = useCallback(
-    (option: number) => {
-      if (!profile) {
-        return;
-      }
-
-      void upsertUserProfile({
-        gender: profile.gender,
-        age: profile.age,
-        heightCm: profile.heightCm,
-        weightKg: profile.weightKg,
-        monthlyWeightGoalKg: option,
-        activityLevel: profile.activityLevel,
-      }).then(async (nextProfile) => {
-        if (!nextProfile) {
-          return;
-        }
-
-        await syncActiveGoalToProfile(nextProfile);
-        setProfile(nextProfile);
-        await loadNutritionData(selectedDate);
-        await loadMonthStatuses(visibleMonth);
-        await loadGoalTracking();
-      });
-    },
-    [loadGoalTracking, loadMonthStatuses, loadNutritionData, profile, selectedDate, visibleMonth]
-  );
-
-  const handleGoalSelectChange = useCallback(
-    (value: string) => {
-      const parsedValue = Number(value);
-
-      if (Number.isNaN(parsedValue) || !profile) {
-        return;
-      }
-
-      if (parsedValue === profile.monthlyWeightGoalKg) {
-        return;
-      }
-
-      appAlert.alert(
-        t('goalTracking.changeGoalConfirmTitle'),
-        t('goalTracking.changeGoalConfirmMessage'),
-        [
-          {
-            text: t('common.cancel'),
-            style: 'cancel',
-          },
-          {
-            text: t('common.confirm'),
-            style: 'destructive',
-            onPress: () => {
-              handleSelectNewGoal(parsedValue);
-            },
-          },
-        ]
-      );
-    },
-    [appAlert, handleSelectNewGoal, profile, t]
-  );
-
-  const handleContinueGoal = useCallback(() => {
-    void continueLatestCompletedGoal().then((didContinue) => {
-      if (didContinue) {
-        void loadGoalTracking();
-      }
-    });
-  }, [loadGoalTracking]);
-
-  const handleDeleteMeal = useCallback(
-    (meal: FoodEntry) => {
-      appAlert.alert(
-        t('foodDetail.deleteTitle'),
-        t('foodDetail.deleteMessage', { mealName: meal.mealName }),
-        [
-          {
-            text: t('common.cancel'),
-            style: 'cancel',
-          },
-          {
-            text: t('foodDetail.deleteAction'),
-            style: 'destructive',
-            onPress: () => {
-              void deleteFoodEntry(meal.id).then(async () => {
-                await deleteOrphanedFoodEntryAssets(meal.imageUri, meal.thumbnailUri);
-                await loadNutritionData(selectedDate);
-                await loadGoalTracking();
-              });
-            },
-          },
-        ]
-      );
-    },
-    [appAlert, loadGoalTracking, loadNutritionData, selectedDate, t]
-  );
-
-  let goalTrackingSection = null;
-
-  if (hasProfile && activeGoalProgress) {
-    const goalTitle = formatWeightGoalTitle(t, activeGoalProgress.goal);
-
-    goalTrackingSection = (
-      <Card variant="filled" style={styles.goalTrackingCard}>
-        <View style={styles.goalTrackingHeader}>
-          <View style={styles.goalTrackingCopy}>
-            <Text variant="h3">{`${t('goalTracking.activeTitle')}: ${goalTitle}`}</Text>
-          </View>
-          <Chip
-            label={`${activeGoalProgress.progressPercent}%`}
-            variant="outline"
-            icon={<Icon name="trophy-outline" variant="accent" size={14} />}
-          />
-        </View>
-        <View style={styles.goalProgressRow}>
-          <View style={styles.goalProgressMetric}>
-            <Text variant="bodySmall" color="secondary">
-              {activeGoalConsumedCopy ?? activeGoalCopy?.progressLabel}
-            </Text>
-          </View>
-          <View style={[styles.goalProgressMetric, styles.goalProgressMetricEnd]}>
-            <Text variant="bodySmall" color="secondary" align="right">
-              {activeGoalCycleCopy ?? activeGoalCopy?.progressLabel}
-            </Text>
-          </View>
-        </View>
-        <ProgressBar value={activeGoalProgress.progressPercent} size="md" colorScheme="success" />
-        <View style={styles.goalDateRow}>
-          <Text variant="bodySmall" color="secondary">
-            {t('goalTracking.startDate', { value: activeGoalDateRange?.startLabel ?? '' })}
-          </Text>
-          <Text variant="bodySmall" color="secondary" align="right">
-            {t('goalTracking.endDate', { value: activeGoalDateRange?.endLabel ?? '' })}
-          </Text>
-        </View>
-        <View style={styles.goalCardActions}>
-          <Select
-            value={selectedGoalValue}
-            onChange={handleGoalSelectChange}
-            options={goalSelectOptions}
-            size="sm"
-            triggerVariant="plain"
-            placeholder={t('goalTracking.actions.chooseNew')}
-          >
-            <View style={styles.goalSelectTrigger}>
-              <Icon name="swap-horizontal" size={16} variant="primary" />
-              <Text variant="label" weight="semibold">
-                {t('goalTracking.actions.chooseNew')}
-              </Text>
-            </View>
-          </Select>
-          <Button
-            title={t('goalTracking.actions.viewHistory')}
-            variant="ghost"
-            size="sm"
-            style={styles.goalActionButton}
-            labelStyle={styles.goalActionButtonLabel}
-            rightIcon={<Icon name="chevron-forward" variant="primary" size={16} />}
-            onPress={() => router.push('/goal-history')}
-          />
-        </View>
-      </Card>
-    );
-  } else if (hasProfile && latestCompletedGoal) {
-    goalTrackingSection = (
-      <Card variant="filled" style={styles.goalTrackingCard}>
-        <View style={styles.goalTrackingCopy}>
-          <Text variant="h3">{t('goalTracking.completedTitle')}</Text>
-          <Text variant="bodySmall" color="secondary">
-            {formatWeightGoalTitle(t, latestCompletedGoal.goal)}
-          </Text>
-        </View>
-        <View style={styles.goalActionRow}>
-          <Button
-            title={t('goalTracking.actions.continueGoal')}
-            variant="primary"
-            size="sm"
-            onPress={handleContinueGoal}
-          />
-          <Select
-            value={selectedGoalValue}
-            onChange={handleGoalSelectChange}
-            options={goalSelectOptions}
-            size="sm"
-            triggerVariant="plain"
-            placeholder={t('goalTracking.actions.chooseNew')}
-          >
-            <View style={styles.goalSelectTrigger}>
-              <Icon name="swap-horizontal" size={16} variant="primary" />
-            </View>
-          </Select>
-        </View>
-        <Button
-          title={t('goalTracking.actions.viewHistory')}
-          variant="ghost"
-          size="sm"
-          style={styles.goalActionButton}
-          labelStyle={styles.goalActionButtonLabel}
-          rightIcon={<Icon name="chevron-forward" variant="primary" size={16} />}
-          onPress={() => router.push('/goal-history')}
-        />
-      </Card>
-    );
-  } else if (hasProfile) {
-    goalTrackingSection = (
-      <Card variant="filled" style={styles.goalTrackingCard}>
-        <View style={styles.goalTrackingCopy}>
-          <Text variant="h3">{t('goalTracking.emptyTitle')}</Text>
-          <Text variant="bodySmall" color="secondary">
-            {t('goalTracking.emptySubtitle')}
-          </Text>
-        </View>
-        <Select
-          value={selectedGoalValue}
-          onChange={handleGoalSelectChange}
-          options={goalSelectOptions}
-          size="sm"
-          triggerVariant="plain"
-          placeholder={t('goalTracking.actions.startGoal')}
-        >
-          <View style={styles.goalSelectCallToAction}>
-            <Icon name="flag-outline" size={16} variant="onBrand" />
-            <Text variant="label" weight="semibold" color="onBrand">
-              {t('goalTracking.actions.startGoal')}
-            </Text>
-          </View>
-        </Select>
-        <Button
-          title={t('goalTracking.actions.viewHistory')}
-          variant="ghost"
-          size="sm"
-          style={styles.goalActionButton}
-          labelStyle={styles.goalActionButtonLabel}
-          rightIcon={<Icon name="chevron-forward" variant="primary" size={16} />}
-          onPress={() => router.push('/goal-history')}
-        />
-      </Card>
-    );
-  }
 
   return (
     <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
@@ -770,20 +359,13 @@ export default function HomeTab() {
         contentContainerStyle={styles.listContent}
         renderSectionHeader={({ section }) => (
           <View style={styles.mealSection}>
-            <View style={styles.sectionTimeRow}>
-              <Text variant="bodySmall" weight="semibold" color="secondary">
-                {section.title}
-              </Text>
-            </View>
+            <Text variant="caption" weight="semibold" color="secondary">
+              {section.title}
+            </Text>
           </View>
         )}
         renderItem={({ item: meal }) => (
-          <View style={styles.itemTimelineRow}>
-            <View style={styles.itemRail}>
-              <View style={styles.itemDot} />
-              <View style={styles.itemLine} />
-            </View>
-
+          <View style={styles.mealItemWrap}>
             <HomeMealCard.Root
               item={toHomeMealCardItem(meal)}
               onPress={() =>
@@ -799,176 +381,67 @@ export default function HomeTab() {
               <HomeMealCard.Content>
                 <HomeMealCard.Header>
                   <HomeMealCard.ActionButton
-                    icon="trash-outline"
-                    label={t('common.delete')}
-                    tone="danger"
-                    onPress={() => {
-                      handleDeleteMeal(meal);
-                    }}
+                    icon="ellipsis-vertical"
+                    label={t('common.more')}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/food-form',
+                        params: {
+                          entryId: meal.id,
+                        },
+                      })
+                    }
                   />
                 </HomeMealCard.Header>
-                <HomeMealCard.Macros />
+                <HomeMealCard.Macros
+                  proteinTargetGrams={profile?.proteinTargetGrams}
+                  carbsTargetGrams={profile?.carbsTargetGrams}
+                  fatTargetGrams={profile?.fatTargetGrams}
+                />
               </HomeMealCard.Content>
             </HomeMealCard.Root>
           </View>
         )}
         ListHeaderComponent={
           <View style={styles.header}>
-            <MonthSelector
-              selectedDate={selectedDate}
-              onChange={setSelectedDate}
-              maxDate={currentDate}
-              dayStatuses={monthStatuses}
-              onMonthChange={setVisibleMonth}
-            />
+            <Card variant="elevated" style={styles.monthSelectorCard}>
+              <MonthSelector
+                selectedDate={selectedDate}
+                onChange={setSelectedDate}
+                maxDate={currentDate}
+                locale={i18n.language}
+                dayStatuses={monthStatuses}
+                onMonthChange={setVisibleMonth}
+              />
+            </Card>
 
             {hasProfile ? (
-              <LinearGradient colors={theme.colors.gradient.secondary} style={styles.heroCard}>
-                <View style={styles.heroTopRow}>
-                  <View style={styles.heroBadge}>
-                    <Icon name="flash" size={14} variant="secondary" />
-                    <Text variant="caption" weight="semibold">
-                      {`${t('profileScreen.metrics.maintenanceCalories')} ${profile?.maintenanceCalorieTarget ?? 0} ${t('common.units.kcal')}`}
-                    </Text>
-                  </View>
-                  <View style={styles.dayPill}>
-                    <Text variant="caption" weight="semibold">
-                      {selectedDate.getDate()}/{selectedDate.getMonth() + 1}
-                    </Text>
+              <Card variant="elevated" style={styles.calorieCard}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={styles.cardHeaderCopy}>
+                    <Text variant="h3">{t('homeScreen.caloriesRemainingTitle')}</Text>
                   </View>
                 </View>
 
-                <View style={styles.heroStatsRow}>
-                  <View style={styles.heroStat}>
-                    <Text variant="caption" color="secondary">
-                      {t('homeScreen.target')}
-                    </Text>
-                    <Text variant="h2">{summary.calorieTarget}</Text>
-                    <Text variant="bodySmall" color="secondary">
-                      {t('homeScreen.kcalToday')}
-                    </Text>
-                  </View>
-                  <View style={[styles.heroStat, styles.heroStatEnd]}>
-                    <Text variant="caption" color="secondary">
-                      {t(balanceTitleKey)}
-                    </Text>
-                    <Text
-                      variant="h2"
-                      align="right"
-                      style={[
-                        balanceCopy.valueTone === 'danger' ? styles.remainingOverText : undefined,
-                        balanceCopy.valueTone === 'success'
-                          ? styles.remainingPositiveText
-                          : undefined,
-                      ]}
-                    >
-                      {balanceCopy.displayValue}
-                    </Text>
-                    <Text
-                      variant="bodySmall"
-                      color={balanceCopy.color}
-                      align="right"
-                      style={[
-                        balanceCopy.labelTone === 'danger' ? styles.remainingOverText : undefined,
-                        balanceCopy.labelTone === 'success'
-                          ? styles.remainingPositiveText
-                          : undefined,
-                      ]}
-                    >
-                      {t(balanceCopy.labelKey)}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.progressHeader}>
-                  <Text variant="bodySmall" weight="medium">
-                    {t('homeScreen.progress')}
-                  </Text>
-                  <Text variant="bodySmall" weight="semibold">
-                    {`${summary.consumedCalories} ${t('common.units.kcal')} (${summary.progressPercent}%)`}
-                  </Text>
-                </View>
-                <ProgressBar
-                  value={summary.progressPercent}
-                  size="lg"
-                  colorScheme={progressColorScheme}
+                <CaloriesRing
+                  remainingCalories={caloriesLeft}
+                  consumedCalories={summary.consumedCalories}
+                  targetCalories={summary.calorieTarget}
+                  progressPercent={summary.progressPercent}
+                  locale={i18n.language}
+                  t={t}
                 />
-
-                {heroHighlight ? (
-                  <View style={styles.heroHighlight}>
-                    <View style={styles.heroHighlightIcon}>
-                      <Icon
-                        name={heroHighlight.icon}
-                        size={16}
-                        variant={heroHighlight.iconVariant}
-                      />
-                    </View>
-                    <View style={styles.heroHighlightCopy}>
-                      <Text variant="caption" color="secondary">
-                        {heroHighlight.label}
-                      </Text>
-                      <Text variant="bodySmall" weight="semibold">
-                        {heroHighlight.value}
-                      </Text>
-                    </View>
-                  </View>
-                ) : null}
-
-                <View style={styles.macroGoalSection}>
-                  <Text
-                    variant="bodySmall"
-                    weight="semibold"
-                    align="center"
-                    style={styles.macroGoalTitle}
-                  >
-                    {t('statsScreen.macros.title')}
-                  </Text>
-
-                  <View style={styles.quickStatsRow}>
-                    <MacroGoalCard
-                      current={summary.proteinGrams}
-                      target={profile?.proteinTargetGrams ?? 0}
-                      label={t('statsScreen.macros.protein')}
-                      iconName="fish"
-                      iconColor={theme.colors.state.info}
-                      ringColor={theme.colors.state.info}
-                      ringTrackColor={theme.colors.state.infoBg}
-                    />
-                    <MacroGoalCard
-                      current={summary.carbsGrams}
-                      target={profile?.carbsTargetGrams ?? 0}
-                      label={t('statsScreen.macros.carbs')}
-                      iconName="nutrition"
-                      iconColor={theme.colors.state.warning}
-                      ringColor={theme.colors.state.warning}
-                      ringTrackColor={theme.colors.state.warningBg}
-                    />
-                    <MacroGoalCard
-                      current={summary.fatGrams}
-                      target={profile?.fatTargetGrams ?? 0}
-                      label={t('statsScreen.macros.fat')}
-                      iconName="water"
-                      iconColor={theme.colors.state.success}
-                      ringColor={theme.colors.state.success}
-                      ringTrackColor={theme.colors.state.successBg}
-                    />
-                  </View>
-                </View>
-              </LinearGradient>
+              </Card>
             ) : (
-              <Card variant="filled" style={styles.profilePromptCard}>
-                <View style={styles.profilePromptHeader}>
-                  <View style={styles.profilePromptIcon}>
-                    <Icon name="body-outline" size={18} variant="primary" />
-                  </View>
-                  <View style={styles.profilePromptCopy}>
+              <Card variant="elevated" style={styles.calorieCard}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={styles.cardHeaderCopy}>
                     <Text variant="h3">{t('homeScreen.profilePrompt.title')}</Text>
                     <Text variant="bodySmall" color="secondary">
                       {t('homeScreen.profilePrompt.subtitle')}
                     </Text>
                   </View>
                 </View>
-
                 <Button
                   title={t('homeScreen.profilePrompt.action')}
                   onPress={() => router.push('/welcome')}
@@ -976,10 +449,88 @@ export default function HomeTab() {
               </Card>
             )}
 
-            {goalTrackingSection}
+            <Card variant="elevated" style={styles.macroCard}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardHeaderCopy}>
+                  <Text variant="h3">{t('homeScreen.macroToday')}</Text>
+                  <Text variant="bodySmall" color="secondary">
+                    {t('statsScreen.macros.title')}
+                  </Text>
+                </View>
+                <Button
+                  title={t('homeScreen.details')}
+                  variant="ghost"
+                  size="sm"
+                  rightIcon={<Icon name="chevron-forward" size={16} variant="primary" />}
+                  onPress={() => router.push('/stats')}
+                />
+              </View>
+
+              <View style={styles.macroList}>
+                {macroRows.map((row) => {
+                  const progress = getMacroProgress(row.current, row.target);
+                  let progressScheme: 'info' | 'warning' | 'success' = 'success';
+
+                  if (row.icon === 'fish') {
+                    progressScheme = 'info';
+                  } else if (row.icon === 'nutrition') {
+                    progressScheme = 'warning';
+                  }
+
+                  return (
+                    <View key={row.label} style={styles.macroRow}>
+                      <View style={styles.macroRowTop}>
+                        <View style={styles.macroLabelRow}>
+                          <View style={[styles.macroIconWrap, { backgroundColor: row.trackColor }]}>
+                            <Icon name={row.icon} size={16} color={row.color} />
+                          </View>
+                          <View style={styles.macroLabelCopy}>
+                            <Text variant="bodySmall" weight="medium">
+                              {row.label}
+                            </Text>
+                            <Text variant="caption" color="secondary">
+                              {`${formatNumber(Math.round(row.current), i18n.language)} / ${formatNumber(Math.round(row.target), i18n.language)}g`}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text variant="bodySmall" weight="semibold">
+                          {`${progress}%`}
+                        </Text>
+                      </View>
+                      <ProgressBar
+                        value={progress}
+                        size="sm"
+                        colorScheme={progressScheme}
+                        accessibilityLabel={row.label}
+                      />
+                    </View>
+                  );
+                })}
+              </View>
+            </Card>
+
+            <View style={styles.mealsHeaderRow}>
+              <View style={styles.cardHeaderCopy}>
+                <Text variant="h3">{t('homeScreen.meals.title')}</Text>
+                <Text variant="bodySmall" color="secondary">
+                  {t('homeScreen.meals.subtitle')}
+                </Text>
+              </View>
+              <Button
+                title={t('homeScreen.meals.addFood')}
+                variant="ghost"
+                size="sm"
+                leftIcon={
+                  <View style={styles.addFoodIconCircle}>
+                    <Icon name="add" size={14} color={theme.colors.brand.primary} />
+                  </View>
+                }
+                onPress={() => router.push('/add')}
+              />
+            </View>
 
             {entries.length === 0 ? (
-              <Card variant="filled" style={styles.emptyCard}>
+              <Card variant="elevated" style={styles.emptyCard}>
                 <Text variant="h3">{t('homeScreen.meals.emptyTitle')}</Text>
                 <Text variant="bodySmall" color="secondary">
                   {t('homeScreen.meals.emptySubtitle')}
@@ -1002,10 +553,104 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacingV.p20,
     paddingBottom: theme.metrics.spacingV.p24,
   },
+  monthSelectorCard: {
+    gap: 0,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p12,
+  },
   listContent: {
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: theme.metrics.spacingV.p16,
     gap: theme.metrics.spacingV.p4,
+  },
+  calorieCard: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  calorieRingWrap: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: theme.metrics.spacingV.p4,
+    paddingBottom: theme.metrics.spacingV.p4,
+    alignSelf: 'center',
+  },
+  calorieRingCenter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: theme.metrics.spacing.p36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.metrics.spacingV.p4,
+  },
+  calorieRingPrimaryCopy: {
+    alignItems: 'center',
+  },
+  calorieRingSecondaryCopy: {
+    alignItems: 'center',
+    marginTop: theme.metrics.spacingV.p8,
+  },
+  calorieRingEnds: {
+    position: 'absolute',
+    left: theme.metrics.spacing.p8,
+    right: theme.metrics.spacing.p8,
+    bottom: theme.metrics.spacingV.p4,
+  },
+  calorieRingEndAnchor: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  cardHeaderCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  calorieRingValue: {
+    lineHeight: 44,
+  },
+  macroCard: {
+    gap: theme.metrics.spacingV.p16,
+  },
+  macroList: {
+    gap: theme.metrics.spacingV.p16,
+  },
+  macroRow: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  macroRowTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  macroLabelRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
+  },
+  macroIconWrap: {
+    width: theme.metrics.spacing.p32,
+    height: theme.metrics.spacing.p32,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  macroLabelCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  mealsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
   },
   heroCard: {
     borderRadius: theme.metrics.borderRadius.xl,
@@ -1188,6 +833,17 @@ const styles = StyleSheet.create((theme) => ({
   },
   mealSection: {
     gap: theme.metrics.spacingV.p12,
+  },
+  mealItemWrap: {
+    marginTop: theme.metrics.spacingV.p16,
+  },
+  addFoodIconCircle: {
+    width: theme.metrics.spacing.p24,
+    height: theme.metrics.spacing.p24,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.section,
   },
   sectionTimeRow: {
     flexDirection: 'row',

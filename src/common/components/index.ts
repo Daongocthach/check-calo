@@ -70,6 +70,8 @@ export { ScreenContainer } from './ScreenContainer';
 export type { ScreenContainerProps } from './ScreenContainer';
 export { TabsHeader } from './TabsHeader';
 export type { TabsHeaderProps } from './TabsHeader';
+export { SupportPromptCard } from './SupportPromptCard';
+export type { SupportPromptCardProps } from './SupportPromptCard';
 
 // Overlay
 export { Dialog } from './Dialog';

@@ -1,3 +1,4 @@
+import i18n from '@/i18n/config';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { getDatabase } from '@/services/database/sqlite';
 import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
@@ -59,13 +60,13 @@ interface MealTotalsRow {
 
 const DEFAULT_MANUAL_MEALS: ReadonlyArray<{
   mealType: MealRecord['mealType'];
-  name: string;
   hour: number;
   minute: number;
 }> = [
-  { mealType: 'breakfast', name: 'Bữa sáng', hour: 7, minute: 0 },
-  { mealType: 'lunch', name: 'Bữa trưa', hour: 12, minute: 0 },
-  { mealType: 'dinner', name: 'Bữa tối', hour: 18, minute: 30 },
+  { mealType: 'breakfast', hour: 7, minute: 0 },
+  { mealType: 'lunch', hour: 12, minute: 0 },
+  { mealType: 'dinner', hour: 18, minute: 30 },
+  { mealType: 'snack', hour: 15, minute: 30 },
 ];
 
 export interface ManualMealItemInput {
@@ -142,7 +143,12 @@ function mapMealItem(row: MealItemRow): MealItemRecord {
 
 function toMealName(note: string | null) {
   const trimmed = note?.trim();
-  return trimmed && trimmed.length > 0 ? trimmed : 'Meal';
+  return trimmed && trimmed.length > 0 ? trimmed : i18n.t('common.defaultMealName');
+}
+
+function translateMealType(mealType: MealRecord['mealType']) {
+  const translate = i18n.t as unknown as (key: string) => string;
+  return translate(`meals.${mealType}`);
 }
 
 async function getMealOwnerScope() {
@@ -245,7 +251,7 @@ async function seedDefaultManualMealsIfEmpty() {
           ownerScope.deviceLocalId,
           ownerScope.userId,
           meal.mealType,
-          meal.name,
+          translateMealType(meal.mealType),
           eatenAtDate.toISOString(),
           now,
           now,

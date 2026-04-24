@@ -1,49 +1,47 @@
-import type { BottomSheetModal } from '@gorhom/bottom-sheet';
+import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SectionList, View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
-import { Button, Dialog, IconButton, Input, ScreenContainer, Text } from '@/common/components';
-import { AddMealFoodCard } from '@/features/nutrition/components/AddMealFoodCard';
-import { FavoriteFoodsBottomSheet } from '@/features/nutrition/components/FavoriteFoodsBottomSheet';
+import { Pressable, SectionList, View } from 'react-native';
+import DatePicker from 'react-native-date-picker';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import {
-  createManualMeal,
-  createManualMealItem,
-  deleteManualMeal,
-  deleteManualMealItem,
+  Button,
+  Card,
+  Dialog,
+  Icon,
+  IconButton,
+  Input,
+  ProgressBar,
+  ScreenContainer,
+  Text,
+} from '@/common/components';
+import { HomeMealCard, type HomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
+import {
   listManualMeals,
-  renameManualMeal,
   updateManualMealItem,
   type ManualMeal,
   type ManualMealItem,
 } from '@/features/nutrition/services/manualMealsDatabase';
-import { getUserProfile, listFavoriteFoods } from '@/features/nutrition/services/nutritionDatabase';
-import type { FavoriteFood, UserProfile } from '@/features/nutrition/types';
-import { formatMealWeight } from '@/features/nutrition/utils/quantity';
-import { useAppAlert } from '@/providers/app-alert';
-import { toast } from '@/utils/toast';
+import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
+import type { MealType, UserProfile } from '@/features/nutrition/types';
+import { useCurrentDate } from '@/hooks';
+
+type MealFilter = MealType | 'all';
+type TranslateFn = (key: string, options?: Record<string, string | number>) => string;
 
 interface MenuSection {
   key: string;
   title: string;
-  subtitle: string;
   meal: ManualMeal;
   data: ManualMealItem[];
 }
 
-interface MealDialogState {
-  visible: boolean;
-  mode: 'create' | 'rename';
-  mealId: string | null;
-  name: string;
-  error: string | null;
-}
-
 interface ItemDialogState {
   visible: boolean;
-  mode: 'edit';
   mealId: string | null;
   itemId: string | null;
   title: string;
@@ -57,9 +55,10 @@ interface ItemDialogState {
   error: string | null;
 }
 
+const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+
 const DEFAULT_ITEM_DIALOG_STATE: ItemDialogState = {
   visible: false,
-  mode: 'edit',
   mealId: null,
   itemId: null,
   title: '',
@@ -72,6 +71,70 @@ const DEFAULT_ITEM_DIALOG_STATE: ItemDialogState = {
   notes: '',
   error: null,
 };
+
+function isSameCalendarDate(left: Date, right: Date) {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
+function addDays(date: Date, days: number) {
+  const nextDate = new Date(date);
+  nextDate.setDate(date.getDate() + days);
+  return nextDate;
+}
+
+function startOfDay(date: Date) {
+  const nextDate = new Date(date);
+  nextDate.setHours(0, 0, 0, 0);
+  return nextDate;
+}
+
+function formatNumber(value: number, locale: string) {
+  return new Intl.NumberFormat(locale).format(value);
+}
+
+function pad(value: number) {
+  return `${value}`.padStart(2, '0');
+}
+
+function formatDayMonth(date: Date) {
+  return `${pad(date.getDate())}-${pad(date.getMonth() + 1)}`;
+}
+
+function getMealTitle(meal: ManualMeal, t: TranslateFn) {
+  switch (meal.mealType) {
+    case 'breakfast':
+      return t('meals.breakfast');
+    case 'lunch':
+      return t('meals.lunch');
+    case 'dinner':
+      return t('meals.dinner');
+    case 'snack':
+      return t('menuScreen.sections.snack');
+    default:
+      return meal.name;
+  }
+}
+
+function getFilterLabel(filter: MealFilter, t: TranslateFn) {
+  switch (filter) {
+    case 'all':
+      return t('menuScreen.filters.all');
+    case 'breakfast':
+      return t('meals.breakfast');
+    case 'lunch':
+      return t('meals.lunch');
+    case 'dinner':
+      return t('meals.dinner');
+    case 'snack':
+      return t('menuScreen.sections.snack');
+    default:
+      return t('menuScreen.filters.all');
+  }
+}
 
 function parseRequiredNumber(value: string) {
   const parsed = Number(value.trim());
@@ -97,6 +160,28 @@ function parseOptionalNumber(value: string) {
   }
 
   return parsed;
+}
+
+function toHomeMealCardItem(item: ManualMealItem): HomeMealCardItem {
+  const servings = Math.max(1, item.servings);
+  const quantityGrams =
+    item.quantityGrams !== null && item.quantityGrams !== undefined
+      ? item.quantityGrams * servings
+      : null;
+
+  return {
+    title: item.title,
+    quantityLabel: item.quantityLabel,
+    quantityGrams,
+    totalCalories: item.totalCalories * servings,
+    proteinGrams: item.proteinGrams * servings,
+    carbsGrams: item.carbsGrams * servings,
+    fatGrams: item.fatGrams * servings,
+    imageUri: item.imageUri,
+    thumbnailUri: item.thumbnailUri,
+    devSyncBadgeLabel: null,
+    isFavorite: false,
+  };
 }
 
 function toItemInput(dialogState: ItemDialogState) {
@@ -137,35 +222,165 @@ function toItemInput(dialogState: ItemDialogState) {
   };
 }
 
-export default function MenuTab() {
+function getDateLabel(date: Date, currentDate: Date, todayLabel: string) {
+  const isToday = isSameCalendarDate(date, currentDate);
+  const formattedDate = formatDayMonth(date);
+
+  if (isToday) {
+    return `${todayLabel}, ${formattedDate}`;
+  }
+
+  return formattedDate;
+}
+
+interface MenuDateSelectorProps {
+  selectedDate: Date;
+  currentDate: Date;
+  locale: string;
+  todayLabel: string;
+  calendarActionLabel: string;
+  onPreviousDay: () => void;
+  onNextDay: () => void;
+  onChangeDate: (date: Date) => void;
+}
+
+function MenuDateSelector({
+  selectedDate,
+  currentDate,
+  locale,
+  todayLabel,
+  calendarActionLabel,
+  onPreviousDay,
+  onNextDay,
+  onChangeDate,
+}: MenuDateSelectorProps) {
   const { t } = useTranslation();
-  const appAlert = useAppAlert();
-  const libraryBottomSheetRef = useRef<BottomSheetModal>(null);
+  const { theme } = useUnistyles();
+  const insets = useSafeAreaInsets();
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const [draftDate, setDraftDate] = useState(() => startOfDay(selectedDate));
+  const pickerTheme = theme.colors.mode === 'dark' ? 'dark' : 'light';
+  const displayLabel = getDateLabel(selectedDate, currentDate, todayLabel);
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        pressBehavior="close"
+      />
+    ),
+    []
+  );
+
+  const openSheet = useCallback(() => {
+    setDraftDate(startOfDay(selectedDate));
+    bottomSheetRef.current?.present();
+  }, [selectedDate]);
+
+  const closeSheet = useCallback(() => {
+    bottomSheetRef.current?.dismiss();
+  }, []);
+
+  const confirmSelection = useCallback(() => {
+    onChangeDate(startOfDay(draftDate));
+    closeSheet();
+  }, [closeSheet, draftDate, onChangeDate]);
+
+  return (
+    <>
+      <Card variant="elevated" style={styles.dateCard}>
+        <View style={styles.dateRow}>
+          <IconButton
+            icon="chevron-back-outline"
+            variant="ghost"
+            accessibilityLabel={t('common.back')}
+            onPress={onPreviousDay}
+          />
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={calendarActionLabel}
+            style={styles.dateCenter}
+            onPress={openSheet}
+          >
+            <Text variant="body" weight="medium" align="center">
+              {displayLabel}
+            </Text>
+            <Icon name="chevron-down" size={16} variant="secondary" />
+          </Pressable>
+
+          <IconButton
+            icon="chevron-forward-outline"
+            variant="ghost"
+            accessibilityLabel={t('common.next')}
+            onPress={onNextDay}
+          />
+        </View>
+      </Card>
+
+      <BottomSheetModal
+        ref={bottomSheetRef}
+        index={0}
+        snapPoints={['60%']}
+        enableDynamicSizing={false}
+        enablePanDownToClose
+        topInset={insets.top}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.sheetBackground}
+        handleIndicatorStyle={styles.sheetHandle}
+      >
+        <BottomSheetView style={styles.sheetContent}>
+          <View style={styles.sheetHeader}>
+            <Text variant="h3">{calendarActionLabel}</Text>
+          </View>
+
+          <View style={styles.sheetPickerSurface}>
+            <DatePicker
+              style={styles.sheetPicker}
+              date={draftDate}
+              locale={locale}
+              mode="date"
+              maximumDate={currentDate}
+              onDateChange={setDraftDate}
+              theme={pickerTheme}
+              dividerColor={theme.colors.border.default}
+              buttonColor={theme.colors.brand.primary}
+            />
+          </View>
+
+          <View style={styles.sheetActions}>
+            <Button title={t('common.cancel')} variant="outline" size="sm" onPress={closeSheet} />
+            <Button title={t('common.confirm')} size="sm" onPress={confirmSelection} />
+          </View>
+
+          <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea} />
+        </BottomSheetView>
+      </BottomSheetModal>
+    </>
+  );
+}
+
+export default function MenuTab() {
+  const { t, i18n } = useTranslation();
+  const translate = t as unknown as TranslateFn;
+  const currentDate = useCurrentDate();
+  const [selectedDate, setSelectedDate] = useState(() => currentDate);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [meals, setMeals] = useState<ManualMeal[]>([]);
-  const [favoriteFoods, setFavoriteFoods] = useState<FavoriteFood[]>([]);
-  const [selectedMealForLibraryId, setSelectedMealForLibraryId] = useState<string | null>(null);
-  const [isAddingFromLibrary, setIsAddingFromLibrary] = useState(false);
-  const [isSavingMealName, setIsSavingMealName] = useState(false);
+  const [filter, setFilter] = useState<MealFilter>('all');
+  const [isLoading, setIsLoading] = useState(true);
   const [isSavingItem, setIsSavingItem] = useState(false);
-  const [mealDialog, setMealDialog] = useState<MealDialogState>({
-    visible: false,
-    mode: 'create',
-    mealId: null,
-    name: '',
-    error: null,
-  });
   const [itemDialog, setItemDialog] = useState<ItemDialogState>(DEFAULT_ITEM_DIALOG_STATE);
 
   const loadData = useCallback(async () => {
-    const [nextProfile, nextMeals, nextFavoriteFoods] = await Promise.all([
-      getUserProfile(),
-      listManualMeals(),
-      listFavoriteFoods(),
-    ]);
+    setIsLoading(true);
+
+    const [nextProfile, nextMeals] = await Promise.all([getUserProfile(), listManualMeals()]);
     setProfile(nextProfile);
     setMeals(nextMeals);
-    setFavoriteFoods(nextFavoriteFoods);
+    setIsLoading(false);
   }, []);
 
   useFocusEffect(
@@ -174,279 +389,57 @@ export default function MenuTab() {
     }, [loadData])
   );
 
-  const selectedMealForLibrary = useMemo(
-    () => meals.find((meal) => meal.localId === selectedMealForLibraryId) ?? null,
-    [meals, selectedMealForLibraryId]
-  );
+  const orderedMeals = useMemo(() => {
+    const mealMap = new Map<MealType, ManualMeal>();
+
+    for (const meal of meals) {
+      if (!mealMap.has(meal.mealType)) {
+        mealMap.set(meal.mealType, meal);
+      }
+    }
+
+    const ordered = MEAL_ORDER.map((mealType) => mealMap.get(mealType)).filter(
+      (meal): meal is ManualMeal => meal !== undefined
+    );
+    const orderedMealTypes = new Set<MealType>(MEAL_ORDER);
+    const extraMeals = meals.filter((meal) => !orderedMealTypes.has(meal.mealType));
+
+    return [...ordered, ...extraMeals];
+  }, [meals]);
+
+  const filteredMeals = useMemo(() => {
+    if (filter === 'all') {
+      return orderedMeals;
+    }
+
+    return orderedMeals.filter((meal) => meal.mealType === filter);
+  }, [filter, orderedMeals]);
 
   const sections = useMemo<MenuSection[]>(
     () =>
-      meals.map((meal, index) => ({
+      filteredMeals.map((meal) => ({
         key: meal.localId,
-        title: meal.name.trim() || t('menuScreen.defaultMealName', { index: index + 1 }),
-        subtitle: t('menuScreen.itemCount', { count: meal.items.length }),
+        title: getMealTitle(meal, translate),
         meal,
         data: meal.items,
       })),
-    [meals, t]
+    [filteredMeals, translate]
   );
-
-  const selectedMealFavoriteQuantities = useMemo(() => {
-    if (!selectedMealForLibrary) {
-      return {};
-    }
-
-    return selectedMealForLibrary.items.reduce<Record<string, number>>((accumulator, item) => {
-      if (item.sourceKey?.startsWith('favorite:')) {
-        accumulator[item.sourceKey] = item.servings;
-      }
-
-      return accumulator;
-    }, {});
-  }, [selectedMealForLibrary]);
 
   const totalCalories = useMemo(
     () =>
-      meals.reduce((sum, meal) => {
+      orderedMeals.reduce((sum, meal) => {
         return sum + meal.totalCalories;
       }, 0),
-    [meals]
+    [orderedMeals]
   );
 
-  const openCreateMealDialog = useCallback(() => {
-    setMealDialog({
-      visible: true,
-      mode: 'create',
-      mealId: null,
-      name: '',
-      error: null,
-    });
-  }, []);
-
-  const openRenameMealDialog = useCallback((meal: ManualMeal) => {
-    setMealDialog({
-      visible: true,
-      mode: 'rename',
-      mealId: meal.localId,
-      name: meal.name,
-      error: null,
-    });
-  }, []);
-
-  const closeMealDialog = useCallback(() => {
-    setMealDialog((previous) => ({ ...previous, visible: false, error: null }));
-  }, []);
-
-  const saveMealName = useCallback(async () => {
-    if (isSavingMealName) {
-      return;
-    }
-
-    const nextName = mealDialog.name.trim();
-
-    if (!nextName) {
-      setMealDialog((previous) => ({
-        ...previous,
-        error: t('menuScreen.validation.mealNameRequired'),
-      }));
-      return;
-    }
-
-    setIsSavingMealName(true);
-
-    try {
-      if (mealDialog.mode === 'create') {
-        await createManualMeal(nextName);
-      } else if (mealDialog.mealId) {
-        await renameManualMeal(mealDialog.mealId, nextName);
-      }
-
-      closeMealDialog();
-      await loadData();
-    } finally {
-      setIsSavingMealName(false);
-    }
-  }, [
-    closeMealDialog,
-    isSavingMealName,
-    loadData,
-    mealDialog.mealId,
-    mealDialog.mode,
-    mealDialog.name,
-    t,
-  ]);
-
-  const confirmDeleteMeal = useCallback(
-    (meal: ManualMeal) => {
-      appAlert.alert(
-        t('menuScreen.deleteMealTitle'),
-        t('menuScreen.deleteMealMessage', { name: meal.name }),
-        [
-          {
-            text: t('common.cancel'),
-            style: 'cancel',
-          },
-          {
-            text: t('common.delete'),
-            style: 'destructive',
-            onPress: () => {
-              void deleteManualMeal(meal.localId).then(() => {
-                void loadData();
-              });
-            },
-          },
-        ]
-      );
-    },
-    [appAlert, loadData, t]
-  );
-
-  const openAddItemFoodForm = useCallback((meal: ManualMeal) => {
-    router.push({
-      pathname: '/food-form',
-      params: {
-        context: 'menuMeal',
-        mealLocalId: meal.localId,
-      },
-    });
-  }, []);
-
-  const openLibraryBottomSheet = useCallback((meal: ManualMeal) => {
-    setSelectedMealForLibraryId(meal.localId);
-    libraryBottomSheetRef.current?.present();
-  }, []);
-
-  const addFavoriteToMeal = useCallback(
-    async (favorite: FavoriteFood) => {
-      if (!selectedMealForLibrary || isAddingFromLibrary) {
-        return;
-      }
-
-      setIsAddingFromLibrary(true);
-
-      try {
-        const sourceKey = `favorite:${favorite.id}`;
-        const existingItem = selectedMealForLibrary.items.find(
-          (item) => item.sourceKey === sourceKey
-        );
-
-        if (existingItem) {
-          await updateManualMealItem(existingItem.localId, {
-            sourceKey,
-            title: existingItem.title,
-            quantityLabel: existingItem.quantityLabel,
-            quantityGrams: existingItem.quantityGrams,
-            totalCalories: existingItem.totalCalories,
-            proteinGrams: existingItem.proteinGrams,
-            carbsGrams: existingItem.carbsGrams,
-            fatGrams: existingItem.fatGrams,
-            notes: existingItem.notes,
-            imageUri: existingItem.imageUri,
-            thumbnailUri: existingItem.thumbnailUri,
-            servings: existingItem.servings + 1,
-          });
-        } else {
-          await createManualMealItem(selectedMealForLibrary.localId, {
-            sourceKey,
-            title: favorite.name,
-            quantityLabel: favorite.quantityLabel,
-            quantityGrams: favorite.quantityGrams,
-            totalCalories: favorite.totalCalories,
-            proteinGrams: favorite.proteinGrams,
-            carbsGrams: favorite.carbsGrams,
-            fatGrams: favorite.fatGrams,
-            notes: favorite.notes,
-            imageUri: favorite.imageUri,
-            thumbnailUri: favorite.thumbnailUri,
-            servings: 1,
-          });
-        }
-
-        toast.success(t('menuScreen.libraryAddSuccess', { name: favorite.name }));
-        await loadData();
-      } finally {
-        setIsAddingFromLibrary(false);
-      }
-    },
-    [isAddingFromLibrary, loadData, selectedMealForLibrary, t]
-  );
-
-  const decreaseFavoriteFromMeal = useCallback(
-    async (favorite: FavoriteFood) => {
-      if (!selectedMealForLibrary || isAddingFromLibrary) {
-        return;
-      }
-
-      const sourceKey = `favorite:${favorite.id}`;
-      const existingItem = selectedMealForLibrary.items.find(
-        (item) => item.sourceKey === sourceKey
-      );
-
-      if (!existingItem) {
-        return;
-      }
-
-      setIsAddingFromLibrary(true);
-
-      try {
-        if (existingItem.servings <= 1) {
-          await deleteManualMealItem(existingItem.localId);
-        } else {
-          await updateManualMealItem(existingItem.localId, {
-            sourceKey,
-            title: existingItem.title,
-            quantityLabel: existingItem.quantityLabel,
-            quantityGrams: existingItem.quantityGrams,
-            totalCalories: existingItem.totalCalories,
-            proteinGrams: existingItem.proteinGrams,
-            carbsGrams: existingItem.carbsGrams,
-            fatGrams: existingItem.fatGrams,
-            notes: existingItem.notes,
-            imageUri: existingItem.imageUri,
-            thumbnailUri: existingItem.thumbnailUri,
-            servings: existingItem.servings - 1,
-          });
-        }
-
-        await loadData();
-      } finally {
-        setIsAddingFromLibrary(false);
-      }
-    },
-    [isAddingFromLibrary, loadData, selectedMealForLibrary]
-  );
-
-  const updateMealItemServings = useCallback(
-    async (item: ManualMealItem, nextServings: number) => {
-      if (nextServings <= 0) {
-        await deleteManualMealItem(item.localId);
-        await loadData();
-        return;
-      }
-
-      await updateManualMealItem(item.localId, {
-        sourceKey: item.sourceKey,
-        title: item.title,
-        quantityLabel: item.quantityLabel,
-        quantityGrams: item.quantityGrams,
-        totalCalories: item.totalCalories,
-        proteinGrams: item.proteinGrams,
-        carbsGrams: item.carbsGrams,
-        fatGrams: item.fatGrams,
-        notes: item.notes,
-        imageUri: item.imageUri,
-        thumbnailUri: item.thumbnailUri,
-        servings: nextServings,
-      });
-      await loadData();
-    },
-    [loadData]
-  );
-
+  const dailyTarget = profile?.dailyCalorieTarget ?? 0;
+  const progressPercent = dailyTarget > 0 ? Math.round((totalCalories / dailyTarget) * 100) : 0;
+  const locale = i18n.language;
   const openEditItemDialog = useCallback((meal: ManualMeal, item: ManualMealItem) => {
     setItemDialog({
       visible: true,
-      mode: 'edit',
       mealId: meal.localId,
       itemId: item.localId,
       title: item.title,
@@ -469,7 +462,7 @@ export default function MenuTab() {
   }, []);
 
   const saveItem = useCallback(async () => {
-    if (isSavingItem || !itemDialog.mealId) {
+    if (isSavingItem || !itemDialog.mealId || !itemDialog.itemId) {
       return;
     }
 
@@ -486,10 +479,7 @@ export default function MenuTab() {
     setIsSavingItem(true);
 
     try {
-      if (itemDialog.itemId) {
-        await updateManualMealItem(itemDialog.itemId, itemInput);
-      }
-
+      await updateManualMealItem(itemDialog.itemId, itemInput);
       closeItemDialog();
       await loadData();
     } finally {
@@ -497,30 +487,39 @@ export default function MenuTab() {
     }
   }, [closeItemDialog, isSavingItem, itemDialog, loadData, t]);
 
-  const confirmDeleteItem = useCallback(
-    (item: ManualMealItem) => {
-      appAlert.alert(
-        t('menuScreen.deleteItemTitle'),
-        t('menuScreen.deleteItemMessage', { name: item.title }),
-        [
-          {
-            text: t('common.cancel'),
-            style: 'cancel',
-          },
-          {
-            text: t('common.delete'),
-            style: 'destructive',
-            onPress: () => {
-              void deleteManualMealItem(item.localId).then(() => {
-                void loadData();
-              });
-            },
-          },
-        ]
-      );
-    },
-    [appAlert, loadData, t]
-  );
+  const handleAddFood = useCallback(() => {
+    router.push('/food-form');
+  }, []);
+
+  const handleAddMealItem = useCallback((meal: ManualMeal) => {
+    router.push({
+      pathname: '/food-form',
+      params: {
+        context: 'menuMeal',
+        mealLocalId: meal.localId,
+      },
+    });
+  }, []);
+
+  const handlePreviousDay = useCallback(() => {
+    setSelectedDate((value) => addDays(value, -1));
+  }, []);
+
+  const handleNextDay = useCallback(() => {
+    setSelectedDate((value) => addDays(value, 1));
+  }, []);
+
+  if (isLoading) {
+    return (
+      <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
+        <View style={styles.loadingState}>
+          <Text variant="body" color="secondary">
+            {t('common.loading')}
+          </Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
@@ -530,61 +529,91 @@ export default function MenuTab() {
         stickySectionHeadersEnabled={false}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
-          <View style={styles.pageHeader}>
-            <View style={styles.pageHeaderCopy}>
-              <Text variant="h2">{t('menuScreen.totalCaloriesTitle')}</Text>
-              <Text variant="bodySmall" color="secondary">
-                {t('menuScreen.currentVsTargetCalories', {
-                  current: Math.round(totalCalories),
-                  target: Math.round(profile?.dailyCalorieTarget ?? 0),
-                  kcal: t('common.units.kcal'),
-                })}
-              </Text>
-            </View>
-            <Button title={t('menuScreen.addMeal')} size="sm" onPress={openCreateMealDialog} />
+          <View style={styles.screen}>
+            <MenuDateSelector
+              selectedDate={selectedDate}
+              currentDate={currentDate}
+              locale={i18n.language}
+              todayLabel={translate('menuScreen.todayLabel')}
+              calendarActionLabel={translate('menuScreen.calendarAction')}
+              onPreviousDay={handlePreviousDay}
+              onNextDay={handleNextDay}
+              onChangeDate={setSelectedDate}
+            />
+
+            <Card variant="elevated" style={styles.energyCard}>
+              <View style={styles.energyHeader}>
+                <Text variant="h3">{t('menuScreen.energyTitle')}</Text>
+              </View>
+              <View style={styles.energyValueRow}>
+                <Text variant="h1" weight="bold">
+                  {formatNumber(totalCalories, locale)}
+                </Text>
+                <Text variant="h3" color="secondary">
+                  {' / '}
+                  {formatNumber(dailyTarget, locale)} {t('common.units.kcal')}
+                </Text>
+                <Text variant="body" color="primary" style={styles.energyGoalLabel}>
+                  {t('homeScreen.goalPercent', {
+                    percent: Math.min(999, Math.max(0, progressPercent)),
+                  })}
+                </Text>
+              </View>
+              <ProgressBar
+                value={Math.min(100, Math.max(0, progressPercent))}
+                colorScheme="success"
+                size="sm"
+                accessibilityLabel={t('menuScreen.energyTitle')}
+              />
+            </Card>
+
+            <Card variant="elevated" style={styles.filterCard}>
+              <View style={styles.filterRow}>
+                {(['all', 'breakfast', 'lunch', 'dinner', 'snack'] as MealFilter[]).map(
+                  (option) => {
+                    const isActive = filter === option;
+
+                    return (
+                      <Pressable
+                        key={option}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: isActive }}
+                        style={[styles.filterPill, isActive && styles.filterPillActive]}
+                        onPress={() => {
+                          setFilter(option);
+                        }}
+                      >
+                        <Text
+                          variant="bodySmall"
+                          weight={isActive ? 'semibold' : 'medium'}
+                          color={isActive ? 'primary' : 'secondary'}
+                          align="center"
+                        >
+                          {getFilterLabel(option, translate)}
+                        </Text>
+                      </Pressable>
+                    );
+                  }
+                )}
+              </View>
+            </Card>
           </View>
         }
         renderSectionHeader={({ section }) => (
           <View style={styles.sectionHeader}>
-            <View style={styles.sectionHeaderMainRow}>
-              <View style={styles.sectionHeaderCopy}>
-                <Text variant="h3">
-                  {t('menuScreen.sectionCalories', {
-                    title: section.title,
-                    value: Math.round(section.meal.totalCalories),
-                    kcal: t('common.units.kcal'),
-                  })}
-                </Text>
-                <Text variant="bodySmall" color="secondary">
-                  {section.subtitle}
-                </Text>
-              </View>
+            <View style={styles.sectionHeaderRow}>
+              <Text variant="h3">{section.title}</Text>
               <View style={styles.sectionHeaderActions}>
+                <Text variant="body" color="secondary">
+                  {`${formatNumber(Math.round(section.meal.totalCalories), locale)} ${t('common.units.kcal')}`}
+                </Text>
                 <IconButton
                   icon="add"
                   size="sm"
-                  variant="ghost"
+                  variant="outline"
                   accessibilityLabel={t('menuScreen.addItemAction')}
                   onPress={() => {
-                    openAddItemFoodForm(section.meal);
-                  }}
-                />
-                <IconButton
-                  icon="create-outline"
-                  size="sm"
-                  variant="ghost"
-                  accessibilityLabel={t('menuScreen.renameMealAction')}
-                  onPress={() => {
-                    openRenameMealDialog(section.meal);
-                  }}
-                />
-                <IconButton
-                  icon="trash-outline"
-                  size="sm"
-                  variant="ghost"
-                  accessibilityLabel={t('menuScreen.deleteMealAction')}
-                  onPress={() => {
-                    confirmDeleteMeal(section.meal);
+                    handleAddMealItem(section.meal);
                   }}
                 />
               </View>
@@ -592,132 +621,75 @@ export default function MenuTab() {
           </View>
         )}
         renderItem={({ item, section }) => {
-          const quantityDisplay = formatMealWeight(
-            item.quantityGrams,
-            item.quantityLabel,
-            t('common.units.gram')
-          );
+          const cardItem = toHomeMealCardItem(item);
 
           return (
-            <View style={styles.itemTimelineRow}>
-              <View style={styles.itemRail}>
-                <View style={styles.itemDot} />
-                <View style={styles.itemLine} />
-              </View>
-
-              <View style={styles.itemCardColumn}>
-                <AddMealFoodCard
-                  title={item.title}
-                  quantityDisplay={quantityDisplay}
-                  imageUri={item.imageUri}
-                  thumbnailUri={item.thumbnailUri}
-                  totalCalories={item.totalCalories}
-                  proteinGrams={item.proteinGrams}
-                  carbsGrams={item.carbsGrams}
-                  fatGrams={item.fatGrams}
-                  servings={item.servings}
-                  proteinLabel={t('statsScreen.macros.protein')}
-                  carbsLabel={t('statsScreen.macros.carbs')}
-                  fatLabel={t('statsScreen.macros.fat')}
-                  gramUnit={t('common.units.gram')}
-                  kcalUnit={t('common.units.kcal')}
-                  editLabel={t('common.edit')}
-                  decreaseLabel={t('addScreen.decreasePortion')}
-                  increaseLabel={t('addScreen.increasePortion')}
-                  onDecrease={() => {
-                    void updateMealItemServings(item, item.servings - 1);
-                  }}
-                  onIncrease={() => {
-                    void updateMealItemServings(item, item.servings + 1);
-                  }}
-                  onPress={() => {
-                    openEditItemDialog(section.meal, item);
-                  }}
-                />
-
-                <View style={styles.itemActionsRow}>
-                  <Button
-                    title={t('common.edit')}
-                    variant="ghost"
-                    size="sm"
-                    onPress={() => {
-                      openEditItemDialog(section.meal, item);
-                    }}
+            <View style={styles.itemCardWrap}>
+              <HomeMealCard.Root
+                item={cardItem}
+                onPress={() => {
+                  openEditItemDialog(section.meal, item);
+                }}
+              >
+                <HomeMealCard.Preview />
+                <HomeMealCard.Content>
+                  <HomeMealCard.Header>
+                    <HomeMealCard.Actions>
+                      <HomeMealCard.ActionButton
+                        icon="ellipsis-vertical"
+                        label={t('common.more')}
+                        onPress={() => {
+                          openEditItemDialog(section.meal, item);
+                        }}
+                      />
+                    </HomeMealCard.Actions>
+                  </HomeMealCard.Header>
+                  <HomeMealCard.Macros
+                    proteinTargetGrams={profile?.proteinTargetGrams}
+                    carbsTargetGrams={profile?.carbsTargetGrams}
+                    fatTargetGrams={profile?.fatTargetGrams}
                   />
-                  <Button
-                    title={t('common.delete')}
-                    variant="ghost"
-                    size="sm"
-                    onPress={() => {
-                      confirmDeleteItem(item);
-                    }}
-                  />
-                </View>
-              </View>
+                </HomeMealCard.Content>
+              </HomeMealCard.Root>
             </View>
           );
         }}
-        renderSectionFooter={({ section }) => (
-          <View style={styles.sectionFooter}>
-            <Button
-              title={t('menuScreen.addFromLibraryAction')}
-              variant="outline"
-              size="sm"
-              onPress={() => {
-                openLibraryBottomSheet(section.meal);
-              }}
-            />
+        ListFooterComponent={
+          <View style={styles.footer}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('menuScreen.addFoodAction')}
+              style={styles.primaryAction}
+              onPress={handleAddFood}
+            >
+              <Icon name="add" size={24} variant="onBrand" />
+              <Text variant="body" weight="semibold" color="inverse">
+                {t('menuScreen.addFoodAction')}
+              </Text>
+            </Pressable>
           </View>
-        )}
+        }
+        SectionSeparatorComponent={() => <View style={styles.sectionSpacer} />}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text variant="h3">{t('menuScreen.emptyTitle')}</Text>
             <Text variant="bodySmall" color="secondary">
               {t('menuScreen.emptySubtitle')}
             </Text>
-            <Button title={t('menuScreen.addMeal')} onPress={openCreateMealDialog} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('menuScreen.addFoodAction')}
+              style={styles.primaryAction}
+              onPress={handleAddFood}
+            >
+              <Icon name="add" size={24} variant="onBrand" />
+              <Text variant="body" weight="semibold" color="inverse">
+                {t('menuScreen.addFoodAction')}
+              </Text>
+            </Pressable>
           </View>
         }
-        SectionSeparatorComponent={() => <View style={styles.sectionSpacer} />}
       />
-
-      <Dialog
-        visible={mealDialog.visible}
-        onDismiss={closeMealDialog}
-        title={
-          mealDialog.mode === 'create'
-            ? t('menuScreen.createMealTitle')
-            : t('menuScreen.renameMealTitle')
-        }
-        actions={[
-          {
-            label: t('common.cancel'),
-            variant: 'ghost',
-            onPress: closeMealDialog,
-          },
-          {
-            label: isSavingMealName ? t('common.loading') : t('common.save'),
-            variant: 'primary',
-            onPress: () => {
-              void saveMealName();
-            },
-          },
-        ]}
-      >
-        <Input
-          label={t('menuScreen.mealNameLabel')}
-          value={mealDialog.name}
-          onChangeText={(value) => {
-            setMealDialog((previous) => ({
-              ...previous,
-              name: value,
-              error: null,
-            }));
-          }}
-          placeholder={t('menuScreen.mealNamePlaceholder')}
-          error={mealDialog.error ?? undefined}
-        />
-      </Dialog>
 
       <Dialog
         visible={itemDialog.visible}
@@ -773,7 +745,7 @@ export default function MenuTab() {
             onChangeText={(value) => {
               setItemDialog((previous) => ({ ...previous, totalCalories: value, error: null }));
             }}
-            placeholder="0"
+            placeholder={t('common.numberPlaceholder')}
           />
           <View style={styles.dialogMacroRow}>
             <View style={styles.dialogMacroItem}>
@@ -784,7 +756,7 @@ export default function MenuTab() {
                 onChangeText={(value) => {
                   setItemDialog((previous) => ({ ...previous, proteinGrams: value, error: null }));
                 }}
-                placeholder="0"
+                placeholder={t('common.numberPlaceholder')}
               />
             </View>
             <View style={styles.dialogMacroItem}>
@@ -795,7 +767,7 @@ export default function MenuTab() {
                 onChangeText={(value) => {
                   setItemDialog((previous) => ({ ...previous, carbsGrams: value, error: null }));
                 }}
-                placeholder="0"
+                placeholder={t('common.numberPlaceholder')}
               />
             </View>
             <View style={styles.dialogMacroItem}>
@@ -806,7 +778,7 @@ export default function MenuTab() {
                 onChangeText={(value) => {
                   setItemDialog((previous) => ({ ...previous, fatGrams: value, error: null }));
                 }}
-                placeholder="0"
+                placeholder={t('common.numberPlaceholder')}
               />
             </View>
           </View>
@@ -820,140 +792,142 @@ export default function MenuTab() {
           />
         </View>
       </Dialog>
-
-      <FavoriteFoodsBottomSheet
-        bottomSheetRef={libraryBottomSheetRef}
-        favoriteFoods={favoriteFoods}
-        title={t('menuScreen.librarySheetTitle')}
-        subtitle={t('menuScreen.librarySheetSubtitle', {
-          mealName: selectedMealForLibrary?.name ?? t('menuScreen.defaultMealName', { index: 1 }),
-        })}
-        searchPlaceholder={t('menuScreen.librarySearchPlaceholder')}
-        emptyTitle={t('menuScreen.libraryEmpty')}
-        emptySubtitle={t('menuScreen.libraryEmpty')}
-        closeAccessibilityLabel={t('common.close')}
-        onDismiss={() => {
-          setSelectedMealForLibraryId(null);
-        }}
-        snapPoints={['60%', '85%']}
-        renderFavoriteItem={(item) => {
-          const sourceKey = `favorite:${item.id}`;
-          const quantityDisplay = formatMealWeight(
-            item.quantityGrams,
-            item.quantityLabel,
-            t('common.units.gram')
-          );
-
-          return (
-            <AddMealFoodCard
-              title={item.name}
-              quantityDisplay={quantityDisplay}
-              imageUri={item.imageUri}
-              thumbnailUri={item.thumbnailUri}
-              totalCalories={item.totalCalories}
-              proteinGrams={item.proteinGrams}
-              carbsGrams={item.carbsGrams}
-              fatGrams={item.fatGrams}
-              servings={selectedMealFavoriteQuantities[sourceKey] ?? 0}
-              proteinLabel={t('statsScreen.macros.protein')}
-              carbsLabel={t('statsScreen.macros.carbs')}
-              fatLabel={t('statsScreen.macros.fat')}
-              gramUnit={t('common.units.gram')}
-              kcalUnit={t('common.units.kcal')}
-              decreaseLabel={t('addScreen.decreasePortion')}
-              increaseLabel={t('addScreen.increasePortion')}
-              onDecrease={() => {
-                void decreaseFavoriteFromMeal(item);
-              }}
-              onIncrease={() => {
-                void addFavoriteToMeal(item);
-              }}
-            />
-          );
-        }}
-      />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
+  loadingState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.app,
+  },
   listContent: {
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: theme.metrics.spacingV.p16,
-    paddingBottom: theme.metrics.spacingV.p32,
+    paddingBottom: theme.metrics.spacingV.p120,
+    gap: theme.metrics.spacingV.p16,
+  },
+  screen: {
+    gap: theme.metrics.spacingV.p16,
+  },
+  dateCard: {
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
+    borderRadius: theme.metrics.borderRadius.xl,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p8,
+  },
+  dateCenter: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.metrics.spacing.p8,
+  },
+  sheetBackground: {
+    backgroundColor: theme.colors.background.elevated,
+  },
+  sheetHandle: {
+    backgroundColor: theme.colors.border.default,
+  },
+  sheetContent: {
+    flex: 1,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingTop: theme.metrics.spacingV.p12,
+    gap: theme.metrics.spacingV.p16,
+  },
+  sheetHeader: {
+    alignItems: 'center',
+  },
+  sheetPickerSurface: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.metrics.spacingV.p8,
+  },
+  sheetPicker: {
+    alignSelf: 'center',
+  },
+  sheetActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: theme.metrics.spacing.p12,
+  },
+  bottomSafeArea: {
+    flex: 0,
+  },
+  energyCard: {
     gap: theme.metrics.spacingV.p12,
   },
-  pageHeader: {
+  energyHeader: {
+    gap: theme.metrics.spacingV.p4,
+  },
+  energyValueRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: theme.metrics.spacing.p4,
+    flexWrap: 'wrap',
+  },
+  energyGoalLabel: {
+    marginLeft: 'auto',
+  },
+  filterCard: {
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p12,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+  },
+  filterPill: {
+    flex: 1,
+    minHeight: theme.metrics.spacing.p48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.input,
+  },
+  filterPillActive: {
+    backgroundColor: theme.colors.brand.primaryVariant,
+  },
+  sectionHeader: {
+    marginTop: theme.metrics.spacingV.p4,
+  },
+  sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
-    marginBottom: theme.metrics.spacingV.p20,
-  },
-  pageHeaderCopy: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
-  },
-  sectionHeader: {
-    marginBottom: theme.metrics.spacingV.p12,
-    gap: theme.metrics.spacingV.p4,
-  },
-  sectionHeaderMainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p8,
-  },
-  sectionHeaderCopy: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
   },
   sectionHeaderActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.metrics.spacing.p4,
-  },
-  itemTimelineRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    gap: theme.metrics.spacing.p8,
-    paddingLeft: theme.metrics.spacing.p12,
-    marginBottom: theme.metrics.spacingV.p12,
-  },
-  itemRail: {
-    width: theme.metrics.spacing.p20,
-    alignItems: 'center',
-    paddingTop: theme.metrics.spacingV.p12,
-  },
-  itemCardColumn: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p8,
-  },
-  itemActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
     gap: theme.metrics.spacing.p8,
   },
-  itemDot: {
-    width: theme.metrics.spacing.p8,
-    height: theme.metrics.spacing.p8,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.state.success,
-  },
-  itemLine: {
-    width: 2,
-    flex: 1,
-    marginTop: theme.metrics.spacingV.p4,
-    backgroundColor: theme.colors.state.infoBg,
+  itemCardWrap: {
+    marginTop: theme.metrics.spacingV.p12,
   },
   sectionSpacer: {
-    height: theme.metrics.spacingV.p12,
+    height: theme.metrics.spacingV.p20,
   },
-  sectionFooter: {
-    alignItems: 'flex-end',
-    marginTop: theme.metrics.spacingV.p4,
-    marginBottom: theme.metrics.spacingV.p8,
-    paddingLeft: theme.metrics.spacing.p12,
+  footer: {
+    marginTop: theme.metrics.spacingV.p8,
+    marginBottom: theme.metrics.spacingV.p20,
+  },
+  primaryAction: {
+    minHeight: theme.metrics.spacing.p56,
+    borderRadius: theme.metrics.borderRadius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p12,
+    backgroundColor: theme.colors.brand.tertiary,
   },
   emptyState: {
     gap: theme.metrics.spacingV.p12,

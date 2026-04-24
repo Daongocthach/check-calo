@@ -5,29 +5,31 @@ export const styles = StyleSheet.create((theme) => ({
   container: {
     position: 'absolute',
     bottom: 0,
-    left: theme.metrics.spacing.p24,
-    right: theme.metrics.spacing.p24,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: theme.colors.background.surface,
-    borderRadius: theme.metrics.borderRadius.full,
+    borderTopLeftRadius: theme.metrics.borderRadius.xl,
+    borderTopRightRadius: theme.metrics.borderRadius.xl,
+    borderBottomLeftRadius: theme.metrics.borderRadius.xl,
+    borderBottomRightRadius: theme.metrics.borderRadius.xl,
     borderWidth: 1,
     borderColor: theme.colors.border.subtle,
-    paddingVertical: vs(12),
-    paddingHorizontal: hs(12),
+    paddingTop: vs(10),
+    paddingHorizontal: hs(16),
     shadowColor: theme.colors.shadow.color,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.16,
-    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
     elevation: theme.colors.shadow.elevationMedium,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: vs(8),
-    borderRadius: theme.metrics.borderRadius.full,
+    paddingVertical: vs(4),
     zIndex: 1,
   },
   standardTab: {
@@ -36,21 +38,26 @@ export const styles = StyleSheet.create((theme) => ({
   addTab: {
     flex: 0,
     marginTop: -vs(34),
-    paddingHorizontal: theme.metrics.spacing.p8,
+    paddingHorizontal: theme.metrics.spacing.p4,
   },
   addTabContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.metrics.spacingV.p8,
+    gap: theme.metrics.spacingV.p4,
   },
-  tabBubble: {
+  tabContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.metrics.spacingV.p4,
+  },
+  iconWrap: {
     width: theme.metrics.spacing.p44,
     height: theme.metrics.spacing.p44,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabBubbleActive: {
+  iconWrapActive: {
     backgroundColor:
       theme.colors.mode === 'dark'
         ? theme.colors.background.section
@@ -60,7 +67,7 @@ export const styles = StyleSheet.create((theme) => ({
     borderColor:
       theme.colors.mode === 'dark' ? theme.colors.border.strong : theme.colors.brand.primary,
   },
-  tabBubbleInactive: {
+  iconWrapInactive: {
     backgroundColor: 'transparent',
   },
   addBubble: {
@@ -81,29 +88,6 @@ export const styles = StyleSheet.create((theme) => ({
     transform: [{ scale: 1.06 }],
     shadowOpacity: 0.34,
     shadowRadius: 24,
-  },
-  addTabActiveBadge: {
-    position: 'absolute',
-    top: theme.metrics.spacingV.p4,
-    right: theme.metrics.spacing.p4,
-    width: theme.metrics.spacing.p20,
-    height: theme.metrics.spacing.p20,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.brand.primary,
-    borderWidth: 1,
-    borderColor:
-      theme.colors.mode === 'dark' ? theme.colors.background.app : theme.colors.background.surface,
-  },
-  addTabActiveLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p4,
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p4,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.brand.primary,
   },
   addBubbleGradient: {
     width: '100%',

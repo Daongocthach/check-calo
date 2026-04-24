@@ -23,7 +23,7 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
   const { theme } = useUnistyles();
 
   return (
-    <View style={[styles.container, { marginBottom: insets.bottom + vs(12) }]}>
+    <View style={[styles.container, { paddingBottom: insets.bottom + vs(8) }]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const isFocused = state.index === index;
@@ -78,31 +78,27 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
                       isFocused && styles.addBubbleSolidActive,
                     ]}
                   >
-                    <Ionicons name={iconName} size={24} color={iconColor} />
+                    <Ionicons name={iconName} size={32} color={iconColor} />
                   </View>
                 </View>
-                {isFocused ? (
-                  <View style={styles.addTabActiveBadge}>
-                    <Ionicons name="sparkles" size={11} color={theme.colors.brand.onBrand} />
-                  </View>
-                ) : null}
-                {isFocused ? (
-                  <View style={styles.addTabActiveLabel}>
-                    <Ionicons name="radio-button-on" size={10} color={theme.colors.brand.onBrand} />
-                    <Text variant="caption" weight="semibold" color="onBrand">
-                      {options.title}
-                    </Text>
-                  </View>
-                ) : null}
               </View>
             ) : (
-              <View
-                style={[
-                  styles.tabBubble,
-                  isFocused ? styles.tabBubbleActive : styles.tabBubbleInactive,
-                ]}
-              >
-                <Ionicons name={iconName} size={18} color={iconColor} />
+              <View style={styles.tabContent}>
+                <View
+                  style={[
+                    styles.iconWrap,
+                    isFocused ? styles.iconWrapActive : styles.iconWrapInactive,
+                  ]}
+                >
+                  <Ionicons name={iconName} size={20} color={iconColor} />
+                </View>
+                <Text
+                  variant="caption"
+                  weight={isFocused ? 'semibold' : 'medium'}
+                  color={isFocused ? 'primary' : 'secondary'}
+                >
+                  {options.title}
+                </Text>
               </View>
             )}
           </Pressable>
