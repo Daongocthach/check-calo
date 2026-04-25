@@ -1,9 +1,10 @@
+import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Button } from '@/common/components/Button';
-import { Icon } from '@/common/components/Icon';
 import { IconButton } from '@/common/components/IconButton';
 import { Text } from '@/common/components/Text';
+import CoffeeIcon from '../../../../assets/coffee.png';
 import { styles } from './SupportPromptCard.styles';
 import type { SupportPromptCardProps } from './SupportPromptCard.types';
 
@@ -20,33 +21,36 @@ export function SupportPromptCard({
   return (
     <View style={[styles.card, style]}>
       <View style={styles.topRow}>
-        <View style={styles.leftBlock}>
-          <View style={styles.iconWrap} accessibilityRole="image" accessibilityLabel={message}>
-            <Icon name="cafe-outline" size={28} variant="accent" />
-          </View>
-          <Text variant="bodySmall" color="secondary" style={styles.message}>
-            {message}
-          </Text>
+        <View style={styles.iconWrap} accessibilityRole="image" accessibilityLabel={message}>
+          <Image source={CoffeeIcon} style={styles.icon} contentFit="contain" />
         </View>
 
-        {onClosePress ? (
-          <IconButton
-            icon="close"
-            variant="ghost"
-            size="sm"
-            accessibilityLabel={closeAccessibilityLabel ?? t('common.close')}
-            onPress={onClosePress}
-          />
-        ) : null}
-      </View>
+        <View style={styles.contentBlock}>
+          <View style={styles.headerRow}>
+            <View style={styles.messageWrap}>
+              <Text variant="bodySmall" color="secondary" align="center" style={styles.message}>
+                {message}
+              </Text>
+            </View>
 
-      <Button
-        title={actionLabel}
-        variant="primary"
-        fullWidth
-        onPress={onActionPress}
-        style={styles.actionButton}
-      />
+            <IconButton
+              icon="close"
+              variant="ghost"
+              size="sm"
+              accessibilityLabel={closeAccessibilityLabel ?? t('common.close')}
+              onPress={onClosePress}
+            />
+          </View>
+
+          <Button
+            title={actionLabel}
+            variant="primary"
+            fullWidth
+            onPress={onActionPress}
+            style={styles.actionButton}
+          />
+        </View>
+      </View>
     </View>
   );
 }

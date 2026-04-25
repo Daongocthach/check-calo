@@ -17,6 +17,7 @@ import {
   isCalorieReminderResponse,
 } from '@/features/notifications/services/calorieReminderService';
 import { useFoodEntrySyncQueue } from '@/features/nutrition/hooks/useFoodEntrySyncQueue';
+import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import { QueryProvider } from '@/providers';
 import { AppAlertProvider } from '@/providers/app-alert/AppAlertProvider';
 import { useAuthStore } from '@/providers/auth/authStore';
@@ -77,7 +78,8 @@ function AppContent() {
         return;
       }
 
-      router.push('/add');
+      useAddMealSourceSheetStore.getState().requestOpen();
+      router.replace('/');
     });
 
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
@@ -85,7 +87,8 @@ function AppContent() {
         return;
       }
 
-      router.push('/add');
+      useAddMealSourceSheetStore.getState().requestOpen();
+      router.replace('/');
     });
 
     return () => {

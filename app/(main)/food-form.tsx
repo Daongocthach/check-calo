@@ -382,7 +382,7 @@ export default function FoodFormScreen() {
         } else {
           addMealItem(nextDraftItem);
         }
-        router.replace('/add');
+        router.replace('/');
         return;
       }
 

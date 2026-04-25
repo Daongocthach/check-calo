@@ -628,7 +628,14 @@ export default function MenuTab() {
               <HomeMealCard.Root
                 item={cardItem}
                 onPress={() => {
-                  openEditItemDialog(section.meal, item);
+                  router.push({
+                    pathname: '/food-detail',
+                    params: {
+                      source: 'manual',
+                      mealLocalId: section.meal.localId,
+                      itemLocalId: item.localId,
+                    },
+                  });
                 }}
               >
                 <HomeMealCard.Preview />

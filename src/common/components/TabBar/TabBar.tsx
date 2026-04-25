@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnistyles } from 'react-native-unistyles';
 import { Text } from '@/common/components/Text';
+import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import { vs } from '@/theme/metrics';
 import { styles } from './TabBar.styles';
 import type { TabBarProps } from './TabBar.types';
@@ -21,6 +22,9 @@ const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }
 export function TabBar({ state, descriptors, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
+  const requestAddMealSourceSheet = useAddMealSourceSheetStore(
+    (sheetState) => sheetState.requestOpen
+  );
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + vs(8) }]}>
@@ -29,6 +33,11 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
         const isFocused = state.index === index;
 
         const onPress = () => {
+          if (route.name === 'add') {
+            requestAddMealSourceSheet();
+            return;
+          }
+
           const event = navigation.emit({
             type: 'tabPress',
             target: route.key,

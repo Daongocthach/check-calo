@@ -188,6 +188,31 @@
       "item4Time": "3 giờ trước"
     }
   },
+  "foodDetail": {
+    "title": "Chi tiết món ăn",
+    "analysisTitle": "Kết quả phân tích",
+    "unknownFoodName": "Món ăn chưa xác định",
+    "defaultQuantity": "1 phần",
+    "summaryTitle": "Tổng năng lượng",
+    "accuracyLabel": "Sai số ±10%",
+    "estimatedDisclaimer": "Đây là ước tính tham khảo, kết quả có thể sai số ±10%",
+    "quantityLabel": "Số lượng món ăn",
+    "consumedAtLabel": "Ngày giờ ăn",
+    "notesLabel": "Ghi chú",
+    "sourceLabels": {
+      "ai": "AI",
+      "barcode": "Mã vạch",
+      "entry": "Đã lưu",
+      "favorite": "Đã lưu",
+      "manual": "Thủ công"
+    },
+    "saveAction": "+ Thêm vào nhật ký",
+    "saveSuccess": "Đã thêm món vào nhật ký.",
+    "supportMessage": "Nếu bạn thấy app hữu ích, bạn có thể mời tụi mình 1 ly cafe để duy trì app nhé ☕️",
+    "supportAction": "Ủng hộ ngay",
+    "supportThanks": "Cảm ơn bạn đã ủng hộ!",
+    "foodImageAlt": "Ảnh món ăn"
+  },
   "homeScreen": {
     "greetingTitle": "Chào {{name}}",
     "alerts": "Thông báo",
@@ -336,8 +361,8 @@
     "addedItemsCount": "{{count}} món",
     "editItem": "Sửa món {{mealName}}",
     "emptyTitle": "Chưa có món nào trong bữa này",
-    "emptySubtitle": "Chọn từ yêu thích hoặc thêm bằng nhập tay, chụp ảnh, barcode.",
-    "addFoodTitle": "Thêm món vào bữa",
+    "emptySubtitle": "Nhập tay, chụp ảnh hoặc quét barcode để thêm món nhanh hơn.",
+    "addFoodTitle": "Thêm món ăn",
     "favoriteFoodsTitle": "Thư viện món",
     "favoriteFoodsSubtitle": "Chọn nhanh món đã tạo và thêm thẳng vào bữa hiện tại.",
     "favoriteFoodsAction": "Chọn từ thư viện món",
@@ -355,8 +380,8 @@
     "clearMealMessage": "Bạn có chắc muốn xóa toàn bộ món đang thêm không?",
     "increasePortion": "Tăng khẩu phần",
     "decreasePortion": "Giảm khẩu phần",
-    "modalTitle": "Thêm bữa ăn",
-    "modalSubtitle": "Chọn cách bạn muốn tạo mục món ăn này.",
+    "modalTitle": "Thêm món ăn",
+    "modalSubtitle": "Chọn cách bạn muốn thêm món ăn vào bữa này",
     "captureModes": {
       "scanFood": "Chụp ảnh",
       "scanFoodAnalyzing": "Đang phân tích",
@@ -761,11 +786,6 @@
     "loginFailed": "Không thể đăng nhập lúc này.",
     "registerSuccess": "Tạo tài khoản thành công.",
     "registerFailed": "Không thể tạo hoặc bảo vệ tài khoản lúc này."
-  },
-  "foodDetail": {
-    "deleteTitle": "Xóa món ăn",
-    "deleteMessage": "Bạn có chắc muốn xóa {{mealName}} khỏi nhật ký hôm nay không?",
-    "deleteAction": "Xóa món ăn"
   },
   "settings": {
     "title": "Cài đặt",

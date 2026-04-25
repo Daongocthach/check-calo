@@ -188,7 +188,7 @@ export default function FavoritesTab() {
             })}
             onPress={() =>
               router.push({
-                pathname: '/food-form',
+                pathname: '/food-detail',
                 params: {
                   favoriteId: item.id,
                 },

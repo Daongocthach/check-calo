@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { usePathname, useRouter } from 'expo-router';
+import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
@@ -64,6 +64,7 @@ export function AppHeader() {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
+  const params = useLocalSearchParams<{ source?: string }>();
   const { isTablet } = useScreenDimensions();
   const authUser = useAuthStore((state) => state.user);
   const [currentMode, setCurrentMode] = useState<ThemeModePreference>(() => getThemePreference());
@@ -85,6 +86,9 @@ export function AppHeader() {
     if (pathname === '/favorites') return t('tabs.favorites');
     if (pathname === '/profile') return t('tabs.profile');
     if (pathname === '/notification-settings') return t('profileScreen.reminders.title');
+    if (pathname === '/food-detail') {
+      return params.source === 'ai' ? t('foodDetail.analysisTitle') : t('foodDetail.title');
+    }
     if (pathname === '/food-form') return t('manualFoodEntry.title');
     if (pathname === '/application-form') return t('application.applyTitle');
     if (pathname === '/application-form-success') {
@@ -92,7 +96,7 @@ export function AppHeader() {
     }
 
     return '';
-  }, [pathname, t]);
+  }, [params.source, pathname, t]);
 
   const languageOptions = useMemo(
     () => [

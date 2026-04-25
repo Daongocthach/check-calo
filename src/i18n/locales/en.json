@@ -188,6 +188,31 @@
       "item4Time": "3h ago"
     }
   },
+  "foodDetail": {
+    "title": "Food detail",
+    "analysisTitle": "Analysis result",
+    "unknownFoodName": "Unknown food",
+    "defaultQuantity": "1 serving",
+    "summaryTitle": "Total energy",
+    "accuracyLabel": "±10% accuracy",
+    "estimatedDisclaimer": "This is an estimate; results may vary by ±10%",
+    "quantityLabel": "Food quantity",
+    "consumedAtLabel": "Consumed at",
+    "notesLabel": "Notes",
+    "sourceLabels": {
+      "ai": "AI",
+      "barcode": "Barcode",
+      "entry": "Saved",
+      "favorite": "Saved",
+      "manual": "Manual"
+    },
+    "saveAction": "+ Add to log",
+    "saveSuccess": "Food added to your log.",
+    "supportMessage": "If you find the app useful, you can buy us a coffee to keep it going ☕️",
+    "supportAction": "Support now",
+    "supportThanks": "Thanks for your support!",
+    "foodImageAlt": "Food image"
+  },
   "homeScreen": {
     "greetingTitle": "Hello {{name}}",
     "alerts": "Notifications",
@@ -336,8 +361,8 @@
     "addedItemsCount": "{{count}} items",
     "editItem": "Edit {{mealName}}",
     "emptyTitle": "No items in this meal yet",
-    "emptySubtitle": "Pick from favorites or add one manually, from a photo, or from barcode.",
-    "addFoodTitle": "Add more food",
+    "emptySubtitle": "Add food manually, from a photo, or by scanning a barcode.",
+    "addFoodTitle": "Add food",
     "favoriteFoodsTitle": "Food library",
     "favoriteFoodsSubtitle": "Quickly pick from your saved foods and add them into the current meal.",
     "favoriteFoodsAction": "From library",
@@ -355,8 +380,8 @@
     "clearMealMessage": "Are you sure you want to remove every item from this meal?",
     "increasePortion": "Increase portion",
     "decreasePortion": "Decrease portion",
-    "modalTitle": "Add your meal",
-    "modalSubtitle": "Pick how you want to capture this food entry.",
+    "modalTitle": "Add food",
+    "modalSubtitle": "Choose how you want to add food to this meal",
     "captureModes": {
       "scanFood": "Capture food",
       "scanFoodAnalyzing": "Analyzing...",
@@ -761,11 +786,6 @@
     "loginFailed": "Unable to log in right now.",
     "registerSuccess": "Account created successfully.",
     "registerFailed": "Unable to create or protect this account right now."
-  },
-  "foodDetail": {
-    "deleteTitle": "Delete meal",
-    "deleteMessage": "Are you sure you want to delete {{mealName}} from today's log?",
-    "deleteAction": "Delete meal"
   },
   "settings": {
     "title": "Settings",

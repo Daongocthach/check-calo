@@ -22,6 +22,7 @@ import {
   listFoodEntriesByDate,
   listLoggedDailyStatuses,
 } from '@/features/nutrition/services/nutritionDatabase';
+import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import type { DailyNutritionSummary, FoodEntry, UserProfile } from '@/features/nutrition/types';
 import { useCurrentDate, useScreenDimensions } from '@/hooks';
 import { vs } from '@/theme/metrics';
@@ -220,6 +221,7 @@ function CaloriesRing({
 export default function HomeTab() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
+  const requestAddMealSourceSheet = useAddMealSourceSheetStore((state) => state.requestOpen);
   const currentDate = useCurrentDate();
   const previousCurrentDateRef = useRef(currentDate);
   const [selectedDate, setSelectedDate] = useState(() => currentDate);
@@ -370,7 +372,7 @@ export default function HomeTab() {
               item={toHomeMealCardItem(meal)}
               onPress={() =>
                 router.push({
-                  pathname: '/food-form',
+                  pathname: '/food-detail',
                   params: {
                     entryId: meal.id,
                   },
@@ -525,7 +527,7 @@ export default function HomeTab() {
                     <Icon name="add" size={14} color={theme.colors.brand.primary} />
                   </View>
                 }
-                onPress={() => router.push('/add')}
+                onPress={requestAddMealSourceSheet}
               />
             </View>
 
