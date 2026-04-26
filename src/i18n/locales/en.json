@@ -14,6 +14,8 @@
     "close": "Close",
     "edit": "Edit",
     "more": "More",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity",
     "defaultMealName": "Meal",
     "numberPlaceholder": "0",
     "submit": "Submit",
@@ -39,7 +41,7 @@
     "stats": "Stats",
     "add": "Add",
     "menu": "Menu",
-    "favorites": "Library",
+    "favorites": "Recently Food",
     "profile": "Profile",
     "showcase": "Showcase",
     "settings": "Settings"
@@ -55,10 +57,34 @@
   },
   "menuScreen": {
     "title": "Menu",
+    "headerSubtitle": "Track each meal every day",
+    "todayTotal": "Today total",
+    "aiTitle": "AI suggestion",
+    "aiSubtitle": "You are about ~{{value}}g protein short of today's target.",
+    "viewSuggestion": "View ideas",
+    "quickAdd": "Quick add",
+    "quickFoods": {
+      "chicken": "Chicken breast",
+      "egg": "Egg",
+      "banana": "Banana",
+      "oat": "Oatmeal"
+    },
+    "summary": {
+      "totalCalories": "Total calories",
+      "average": "Average",
+      "target": "Target"
+    },
     "totalCaloriesTitle": "Total calories",
     "energyTitle": "Total energy",
     "todayLabel": "Today",
     "calendarAction": "Select date",
+    "aiSuggestion": "AI meal suggestions",
+    "week": {
+      "title": "This week",
+      "subtitle": "Pick a day in the 7-day view",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week"
+    },
     "addFoodAction": "+ Add food",
     "filters": {
       "all": "All"
@@ -191,6 +217,14 @@
   "foodDetail": {
     "title": "Food detail",
     "analysisTitle": "Analysis result",
+    "editAction": "Edit result",
+    "editTitle": "Edit AI result",
+    "editFields": {
+      "title": "Food name",
+      "quantityLabel": "Quantity label",
+      "quantityGrams": "Quantity in grams",
+      "calories": "Calories"
+    },
     "unknownFoodName": "Unknown food",
     "defaultQuantity": "1 serving",
     "summaryTitle": "Total energy",
@@ -212,6 +246,25 @@
     "supportAction": "Support now",
     "supportThanks": "Thanks for your support!",
     "foodImageAlt": "Food image"
+  },
+  "supportScreen": {
+    "title": "Support the app",
+    "introTitle": "Thanks for supporting the app",
+    "introBody": "Every contribution helps keep the app running and improves the experience for everyone ❤️",
+    "subtitle": "Support via bank transfer",
+    "providerBrand": "VIETQR.IO",
+    "bankBrand": "Shinhan Bank",
+    "napasBrand": "napas",
+    "accountHolderLabel": "Account holder",
+    "accountHolder": "DAO NGOC THACH",
+    "accountNumberLabel": "Account number",
+    "accountNumber": "700-034-951978",
+    "bankLabel": "Bank",
+    "bankName": "Shinhan Bank Vietnam",
+    "copyAction": "Copy transfer info",
+    "copyModalTitle": "Copy successful transfer information!",
+    "copyModalBody": "You are an important part of making this app better every day ❤️",
+    "thanks": "Thank you very much! 🙏"
   },
   "homeScreen": {
     "greetingTitle": "Hello {{name}}",
@@ -295,8 +348,9 @@
     }
   },
   "statsScreen": {
-    "title": "My Activity",
-    "subtitle": "Quick view of calories, workouts, and weight changes.",
+    "title": "Stats",
+    "subtitle": "Track your progress and hit your goal every day.",
+    "calUnit": "cal",
     "weekly": "Weekly",
     "peakDuration": "70 min",
     "modes": {
@@ -346,6 +400,14 @@
       "title": "Calorie trends",
       "subtitle": "Total calorie intake grouped by day and month."
     },
+    "chartDistributionTitle": "Nutrition distribution",
+    "chartSummary": {
+      "totalCalories": "Total calories",
+      "dailyAverage": "Daily avg",
+      "target": "Target",
+      "thisMonth": "This month",
+      "perDay": "/ day"
+    },
     "macroDistribution": {
       "title": "Macro distribution by period",
       "subtitle": "Stacked bars showing protein, carbs, and fat for each day or month."
@@ -392,17 +454,48 @@
       "scanFood": {
         "title": "Scan your meal",
         "body": "Open the camera, snap the dish, and we will estimate calories and macros for you.",
+        "sheetBody": "Open the camera, snap the dish, and we will estimate calories",
         "button": "Open food camera"
       },
       "barcode": {
         "title": "Scan packaged food",
         "body": "Use barcode mode for drinks, snacks, and labels to get product nutrition faster.",
+        "sheetBody": "Use barcode mode for drinks, snacks, and packaged products",
         "button": "Open barcode scanner"
       },
       "manual": {
         "title": "Enter food manually",
         "body": "Create a food entry yourself when the camera is not needed or the result needs a quick correction.",
+        "sheetBody": "Create a food entry quickly by hand",
         "button": "Create manual entry"
+      }
+    },
+    "recent": {
+      "title": "Recent",
+      "viewAll": "View all",
+      "emptyTitle": "No recent foods yet",
+      "emptySubtitle": "Add one food and it will appear here for quick reuse.",
+      "items": {
+        "chickenRice": {
+          "title": "Chicken rice",
+          "calories": "450 kcal",
+          "emoji": "🍛"
+        },
+        "milkTea": {
+          "title": "Milk tea",
+          "calories": "320 kcal",
+          "emoji": "🧋"
+        },
+        "banhMi": {
+          "title": "Banh mi",
+          "calories": "280 kcal",
+          "emoji": "🥖"
+        },
+        "banana": {
+          "title": "Banana",
+          "calories": "100 kcal",
+          "emoji": "🍌"
+        }
       }
     },
     "stats": {
@@ -485,10 +578,10 @@
     }
   },
   "favoritesScreen": {
-    "title": "Food library",
+    "title": "Recently Food",
     "subtitle": "Foods you created so they are ready for quick meal logging.",
-    "heroTitle": "Food library",
-    "heroTitleWithCount": "Food library ({{count}})",
+    "heroTitle": "Recently Food",
+    "heroTitleWithCount": "Recently Food ({{count}})",
     "heroSubtitle": "Your personal food collection",
     "addFavoriteAction": "Add a new food to the library",
     "searchPlaceholder": "Search your food library",
@@ -803,6 +896,16 @@
       "email": "alex@example.com",
       "editProfile": "Edit Profile"
     },
+    "menu": {
+      "profile": "Personal profile",
+      "goal": "Goal",
+      "reminders": "Reminders",
+      "language": "Language",
+      "units": "Units",
+      "theme": "Theme",
+      "supportEmoji": "❤️",
+      "support": "Support the app"
+    },
     "sections": {
       "account": "Account",
       "preferences": "Preferences",
@@ -933,6 +1036,7 @@
   "validation": {
     "required": "This field is required",
     "emailInvalid": "Please enter a valid email address",
+    "numberInvalid": "Please enter a valid number",
     "passwordMin": "Password must be at least 8 characters",
     "passwordMismatch": "Passwords do not match",
     "usernameMin": "Username must be at least 3 characters",

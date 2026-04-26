@@ -4,6 +4,7 @@ import { getDatabase } from '@/services/database/sqlite';
 import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
 import type { MealItemRecord, MealRecord } from '../types';
 import { createEntityId, nowIsoString } from '../utils/calorie';
+import type { PageRequest, PaginatedResult } from './pagination';
 
 interface MealRow {
   local_id: string;
@@ -66,8 +67,9 @@ const DEFAULT_MANUAL_MEALS: ReadonlyArray<{
   { mealType: 'breakfast', hour: 7, minute: 0 },
   { mealType: 'lunch', hour: 12, minute: 0 },
   { mealType: 'dinner', hour: 18, minute: 30 },
-  { mealType: 'snack', hour: 15, minute: 30 },
 ];
+
+let manualMealSeedQueue: Promise<void> = Promise.resolve();
 
 export interface ManualMealItemInput {
   sourceKey?: string | null;
@@ -89,6 +91,20 @@ export interface ManualMealItem extends MealItemRecord {}
 export interface ManualMeal extends MealRecord {
   name: string;
   items: ManualMealItem[];
+}
+
+export interface ManualMealPageRequest extends PageRequest {}
+
+export interface ManualMealListRequest extends ManualMealPageRequest {
+  mealType?: MealRecord['mealType'] | 'all';
+  startDate?: string | Date;
+  endDate?: string | Date;
+}
+
+export interface ManualMealTotalsRequest {
+  mealType?: MealRecord['mealType'] | 'all';
+  startDate?: string | Date;
+  endDate?: string | Date;
 }
 
 function mapMeal(row: MealRow): MealRecord {
@@ -151,6 +167,48 @@ function translateMealType(mealType: MealRecord['mealType']) {
   return translate(`meals.${mealType}`);
 }
 
+function normalizePage(page?: number) {
+  return Math.max(1, Math.floor(page ?? 1));
+}
+
+function normalizePageSize(pageSize?: number) {
+  return Math.max(1, Math.floor(pageSize ?? 20));
+}
+
+function normalizeDayStart(value: string | Date) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+}
+
+function normalizeDayEnd(value: string | Date) {
+  const date = new Date(value);
+  date.setHours(23, 59, 59, 999);
+  return date.toISOString();
+}
+
+function toLocalDateKey(value: string | Date) {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(date: Date, days: number) {
+  const nextDate = new Date(date);
+  nextDate.setDate(date.getDate() + days);
+  return nextDate;
+}
+
+function startOfWeek(date: Date) {
+  const nextDate = new Date(date);
+  nextDate.setHours(0, 0, 0, 0);
+  const dayOffset = (nextDate.getDay() + 6) % 7;
+  nextDate.setDate(nextDate.getDate() - dayOffset);
+  return nextDate;
+}
+
 async function getMealOwnerScope() {
   const { deviceLocalId } = await ensureDeviceLocalId();
   const authUserId = useAuthStore.getState().user?.id ?? null;
@@ -160,6 +218,12 @@ async function getMealOwnerScope() {
     userId: authUserId,
     ownerType: (authUserId ? 'user' : 'device') as MealRecord['ownerType'],
   };
+}
+
+async function runManualMealSeed(task: () => Promise<void>) {
+  const nextSeed = manualMealSeedQueue.then(task, task);
+  manualMealSeedQueue = nextSeed.catch(() => undefined);
+  await nextSeed;
 }
 
 async function updateMealTotals(mealLocalId: string) {
@@ -202,21 +266,21 @@ async function updateMealTotals(mealLocalId: string) {
 }
 
 async function seedDefaultManualMealsIfEmpty() {
-  const database = await getDatabase();
-  const existingCount = await database.getFirstAsync<{ count: number }>(
-    'SELECT COUNT(*) AS count FROM meals WHERE deleted_at IS NULL LIMIT 1;'
-  );
+  await runManualMealSeed(async () => {
+    const database = await getDatabase();
+    const existingCount = await database.getFirstAsync<{ count: number }>(
+      'SELECT COUNT(*) AS count FROM meals WHERE deleted_at IS NULL LIMIT 1;'
+    );
 
-  if ((existingCount?.count ?? 0) > 0) {
-    return;
-  }
+    if ((existingCount?.count ?? 0) > 0) {
+      return;
+    }
 
-  const ownerScope = await getMealOwnerScope();
-  const now = nowIsoString();
-  const baseDate = new Date();
-  baseDate.setSeconds(0, 0);
+    const ownerScope = await getMealOwnerScope();
+    const now = nowIsoString();
+    const baseDate = new Date();
+    baseDate.setSeconds(0, 0);
 
-  await database.withTransactionAsync(async () => {
     for (const meal of DEFAULT_MANUAL_MEALS) {
       const eatenAtDate = new Date(baseDate);
       eatenAtDate.setHours(meal.hour, meal.minute, 0, 0);
@@ -261,31 +325,167 @@ async function seedDefaultManualMealsIfEmpty() {
   });
 }
 
-export async function listManualMeals() {
+async function seedDefaultManualMealsForRangeIfMissing(
+  startDate: string | Date,
+  endDate: string | Date
+) {
+  await runManualMealSeed(async () => {
+    const database = await getDatabase();
+    const normalizedStartDate = new Date(normalizeDayStart(startDate));
+    const normalizedEndDate = new Date(normalizeDayEnd(endDate));
+    const existingMeals = await database.getAllAsync<{
+      meal_type: MealRecord['mealType'];
+      eaten_at: string;
+    }>(
+      `
+        SELECT meal_type, eaten_at
+        FROM meals
+        WHERE deleted_at IS NULL
+          AND eaten_at >= ?
+          AND eaten_at <= ?;
+      `,
+      [normalizedStartDate.toISOString(), normalizedEndDate.toISOString()]
+    );
+
+    const existingMealKeys = new Set(
+      existingMeals.map((meal) => `${toLocalDateKey(meal.eaten_at)}:${meal.meal_type}`)
+    );
+    const ownerScope = await getMealOwnerScope();
+    const now = nowIsoString();
+    const currentDate = new Date(normalizedStartDate);
+
+    while (currentDate <= normalizedEndDate) {
+      const dateKey = toLocalDateKey(currentDate);
+
+      for (const meal of DEFAULT_MANUAL_MEALS) {
+        const mealKey = `${dateKey}:${meal.mealType}`;
+
+        if (existingMealKeys.has(mealKey)) {
+          continue;
+        }
+
+        const eatenAtDate = new Date(currentDate);
+        eatenAtDate.setHours(meal.hour, meal.minute, 0, 0);
+
+        await database.runAsync(
+          `
+            INSERT INTO meals (
+              local_id,
+              remote_id,
+              owner_type,
+              device_local_id,
+              user_id,
+              meal_type,
+              note,
+              eaten_at,
+              total_calories,
+              total_protein_grams,
+              total_carbs_grams,
+              total_fat_grams,
+              sync_status,
+              sync_error,
+              last_synced_at,
+              created_at,
+              updated_at,
+              deleted_at
+            )
+            VALUES (?, NULL, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, 'local_only', NULL, NULL, ?, ?, NULL);
+          `,
+          [
+            createEntityId('meal'),
+            ownerScope.ownerType,
+            ownerScope.deviceLocalId,
+            ownerScope.userId,
+            meal.mealType,
+            translateMealType(meal.mealType),
+            eatenAtDate.toISOString(),
+            now,
+            now,
+          ]
+        );
+
+        existingMealKeys.add(mealKey);
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  });
+}
+
+export async function ensureDefaultManualMealsForWeek(date: string | Date) {
+  const weekStart = startOfWeek(new Date(date));
+  const weekEnd = addDays(weekStart, 6);
+  await seedDefaultManualMealsForRangeIfMissing(weekStart, weekEnd);
+}
+
+export async function listManualMealsPage(
+  request: ManualMealListRequest = {}
+): Promise<PaginatedResult<ManualMeal>> {
   await seedDefaultManualMealsIfEmpty();
 
+  if (request.page === undefined || request.page === 1) {
+    if (request.startDate && request.endDate) {
+      await seedDefaultManualMealsForRangeIfMissing(request.startDate, request.endDate);
+    }
+  }
+
   const database = await getDatabase();
+  const page = normalizePage(request.page);
+  const pageSize = normalizePageSize(request.pageSize);
+  const offset = (page - 1) * pageSize;
+  const mealTypeClause = request.mealType && request.mealType !== 'all' ? 'AND meal_type = ?' : '';
+  const mealTypeParams = request.mealType && request.mealType !== 'all' ? [request.mealType] : [];
+  const startDateClause = request.startDate ? 'AND eaten_at >= ?' : '';
+  const endDateClause = request.endDate ? 'AND eaten_at <= ?' : '';
+  const dateParams: string[] = [];
+
+  if (request.startDate) {
+    dateParams.push(normalizeDayStart(request.startDate));
+  }
+
+  if (request.endDate) {
+    dateParams.push(normalizeDayEnd(request.endDate));
+  }
+
   const mealRows = await database.getAllAsync<MealRow>(
     `
       SELECT *
       FROM meals
       WHERE deleted_at IS NULL
-      ORDER BY eaten_at DESC;
-    `
+      ${mealTypeClause}
+      ${startDateClause}
+      ${endDateClause}
+      ORDER BY eaten_at DESC, local_id DESC
+      LIMIT ? OFFSET ?;
+    `,
+    [...mealTypeParams, ...dateParams, pageSize + 1, offset]
   );
 
   if (mealRows.length === 0) {
-    return [] satisfies ManualMeal[];
+    return {
+      items: [],
+      page,
+      pageSize,
+      hasNextPage: false,
+    };
   }
 
-  const mealItemRows = await database.getAllAsync<MealItemRow>(
-    `
-      SELECT *
-      FROM meal_items
-      WHERE deleted_at IS NULL
-      ORDER BY created_at DESC;
-    `
-  );
+  const hasNextPage = mealRows.length > pageSize;
+  const pagedMealRows = hasNextPage ? mealRows.slice(0, pageSize) : mealRows;
+  const mealIds = pagedMealRows.map((row) => row.local_id);
+  const mealItemRows =
+    mealIds.length === 0
+      ? []
+      : await database.getAllAsync<MealItemRow>(
+          `
+            SELECT *
+            FROM meal_items
+            WHERE deleted_at IS NULL
+              AND meal_local_id IN (${mealIds.map(() => '?').join(', ')})
+            ORDER BY created_at DESC;
+          `,
+          mealIds
+        );
 
   const groupedItems = mealItemRows.reduce<Map<string, ManualMealItem[]>>((accumulator, row) => {
     const item = mapMealItem(row);
@@ -300,15 +500,105 @@ export async function listManualMeals() {
     return accumulator;
   }, new Map<string, ManualMealItem[]>());
 
-  return mealRows.map((row) => {
-    const meal = mapMeal(row);
+  return {
+    items: pagedMealRows.map((row) => {
+      const meal = mapMeal(row);
 
-    return {
-      ...meal,
-      name: toMealName(meal.note),
-      items: groupedItems.get(meal.localId) ?? [],
-    };
-  });
+      return {
+        ...meal,
+        name: toMealName(meal.note),
+        items: groupedItems.get(meal.localId) ?? [],
+      };
+    }),
+    page,
+    pageSize,
+    hasNextPage,
+  };
+}
+
+export async function getManualMealByLocalId(mealLocalId: string) {
+  await seedDefaultManualMealsIfEmpty();
+
+  const database = await getDatabase();
+  const mealRow = await database.getFirstAsync<MealRow>(
+    `
+      SELECT *
+      FROM meals
+      WHERE deleted_at IS NULL AND local_id = ?
+      LIMIT 1;
+    `,
+    [mealLocalId]
+  );
+
+  if (!mealRow) {
+    return null;
+  }
+
+  const mealItemRows = await database.getAllAsync<MealItemRow>(
+    `
+      SELECT *
+      FROM meal_items
+      WHERE deleted_at IS NULL AND meal_local_id = ?
+      ORDER BY created_at DESC;
+    `,
+    [mealLocalId]
+  );
+
+  const meal = mapMeal(mealRow);
+
+  return {
+    ...meal,
+    name: toMealName(meal.note),
+    items: mealItemRows.map(mapMealItem),
+  };
+}
+
+export async function getManualMealByItemIds(mealLocalId: string, itemLocalId: string) {
+  const meal = await getManualMealByLocalId(mealLocalId);
+
+  if (!meal) {
+    return null;
+  }
+
+  const item = meal.items.find((mealItem) => mealItem.localId === itemLocalId);
+
+  return item ? { meal, item } : null;
+}
+
+export async function getManualMealsTotalCalories(request: ManualMealTotalsRequest = {}) {
+  const database = await getDatabase();
+  const mealTypeClause = request.mealType && request.mealType !== 'all' ? 'AND meal_type = ?' : '';
+  const mealTypeParams = request.mealType && request.mealType !== 'all' ? [request.mealType] : [];
+  const startDateClause = request.startDate ? 'AND eaten_at >= ?' : '';
+  const endDateClause = request.endDate ? 'AND eaten_at <= ?' : '';
+  const dateParams: string[] = [];
+
+  if (request.startDate) {
+    dateParams.push(normalizeDayStart(request.startDate));
+  }
+
+  if (request.endDate) {
+    dateParams.push(normalizeDayEnd(request.endDate));
+  }
+
+  const row = await database.getFirstAsync<{ total_calories: number | null }>(
+    `
+      SELECT COALESCE(SUM(total_calories), 0) AS total_calories
+      FROM meals
+      WHERE deleted_at IS NULL
+      ${mealTypeClause}
+      ${startDateClause}
+      ${endDateClause};
+    `,
+    [...mealTypeParams, ...dateParams]
+  );
+
+  return row?.total_calories ?? 0;
+}
+
+export async function listManualMeals() {
+  const result = await listManualMealsPage();
+  return result.items;
 }
 
 export async function createManualMeal(name: string) {

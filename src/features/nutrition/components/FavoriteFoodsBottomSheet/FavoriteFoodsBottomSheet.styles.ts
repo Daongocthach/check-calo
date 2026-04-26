@@ -48,4 +48,7 @@ export const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingVertical: theme.metrics.spacingV.p16,
   },
+  sheetFooter: {
+    paddingVertical: theme.metrics.spacingV.p12,
+  },
 }));

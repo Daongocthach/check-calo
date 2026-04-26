@@ -1,41 +1,38 @@
-import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, SectionList, View } from 'react-native';
-import DatePicker from 'react-native-date-picker';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { FlatList, Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet } from 'react-native-unistyles';
 import {
-  Button,
-  Card,
   Dialog,
   Icon,
   IconButton,
   Input,
-  ProgressBar,
+  Loading,
   ScreenContainer,
   Text,
 } from '@/common/components';
-import { HomeMealCard, type HomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
+import { MenuMealCard } from '@/features/nutrition/components/MenuMealCard';
+import { MenuWeekSelector } from '@/features/nutrition/components/MenuWeekSelector';
 import {
-  listManualMeals,
+  deleteManualMealItem,
+  ensureDefaultManualMealsForWeek,
+  listManualMealsPage,
   updateManualMealItem,
   type ManualMeal,
   type ManualMealItem,
 } from '@/features/nutrition/services/manualMealsDatabase';
 import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
+import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import type { MealType, UserProfile } from '@/features/nutrition/types';
 import { useCurrentDate } from '@/hooks';
-
-type MealFilter = MealType | 'all';
-type TranslateFn = (key: string, options?: Record<string, string | number>) => string;
+import { toast } from '@/utils/toast';
 
 interface MenuSection {
   key: string;
-  title: string;
   meal: ManualMeal;
   data: ManualMealItem[];
 }
@@ -55,7 +52,14 @@ interface ItemDialogState {
   error: string | null;
 }
 
-const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+interface DeleteDialogState {
+  visible: boolean;
+  itemId: string | null;
+  itemName: string;
+}
+
+const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
+const MENU_PAGE_SIZE = 20;
 
 const DEFAULT_ITEM_DIALOG_STATE: ItemDialogState = {
   visible: false,
@@ -72,19 +76,11 @@ const DEFAULT_ITEM_DIALOG_STATE: ItemDialogState = {
   error: null,
 };
 
-function isSameCalendarDate(left: Date, right: Date) {
-  return (
-    left.getFullYear() === right.getFullYear() &&
-    left.getMonth() === right.getMonth() &&
-    left.getDate() === right.getDate()
-  );
-}
-
-function addDays(date: Date, days: number) {
-  const nextDate = new Date(date);
-  nextDate.setDate(date.getDate() + days);
-  return nextDate;
-}
+const DEFAULT_DELETE_DIALOG_STATE: DeleteDialogState = {
+  visible: false,
+  itemId: null,
+  itemName: '',
+};
 
 function startOfDay(date: Date) {
   const nextDate = new Date(date);
@@ -96,44 +92,139 @@ function formatNumber(value: number, locale: string) {
   return new Intl.NumberFormat(locale).format(value);
 }
 
-function pad(value: number) {
-  return `${value}`.padStart(2, '0');
+function getProgressPercent(value: number, target?: number | null) {
+  if (!target || target <= 0) {
+    return 0;
+  }
+
+  return Math.min(100, Math.round((value / target) * 100));
 }
 
-function formatDayMonth(date: Date) {
-  return `${pad(date.getDate())}-${pad(date.getMonth() + 1)}`;
+function getPositiveTarget(value?: number | null) {
+  return value && value > 0 ? value : 0;
 }
 
-function getMealTitle(meal: ManualMeal, t: TranslateFn) {
-  switch (meal.mealType) {
+type MacroTone = 'protein' | 'carbs' | 'fat';
+
+function getMealIconName(mealType: MealType) {
+  switch (mealType) {
     case 'breakfast':
-      return t('meals.breakfast');
+      return 'sunny-outline';
     case 'lunch':
-      return t('meals.lunch');
+      return 'restaurant-outline';
     case 'dinner':
-      return t('meals.dinner');
+      return 'moon-outline';
     case 'snack':
-      return t('menuScreen.sections.snack');
+      return 'leaf-outline';
     default:
-      return meal.name;
+      return 'restaurant-outline';
   }
 }
 
-function getFilterLabel(filter: MealFilter, t: TranslateFn) {
-  switch (filter) {
-    case 'all':
-      return t('menuScreen.filters.all');
+function getMealIconVariant(mealType: MealType) {
+  switch (mealType) {
     case 'breakfast':
-      return t('meals.breakfast');
+      return 'accent';
     case 'lunch':
-      return t('meals.lunch');
+      return 'primary';
     case 'dinner':
-      return t('meals.dinner');
+      return 'muted';
     case 'snack':
-      return t('menuScreen.sections.snack');
+      return 'secondary';
     default:
-      return t('menuScreen.filters.all');
+      return 'primary';
   }
+}
+
+function getMealIconStyle(mealType: MealType) {
+  switch (mealType) {
+    case 'breakfast':
+      return styles.mealIconBreakfast;
+    case 'lunch':
+      return styles.mealIconLunch;
+    case 'dinner':
+      return styles.mealIconDinner;
+    case 'snack':
+      return styles.mealIconSnack;
+    default:
+      return styles.mealIconLunch;
+  }
+}
+
+function getMacroTextStyle(tone: MacroTone) {
+  switch (tone) {
+    case 'protein':
+      return styles.macroProtein;
+    case 'carbs':
+      return styles.macroCarbs;
+    case 'fat':
+      return styles.macroFat;
+  }
+}
+
+function getMacroTrackStyle(tone: MacroTone) {
+  switch (tone) {
+    case 'protein':
+      return styles.macroTrackProtein;
+    case 'carbs':
+      return styles.macroTrackCarbs;
+    case 'fat':
+      return styles.macroTrackFat;
+  }
+}
+
+function ProgressTrack({ percent, tone }: { percent: number; tone: MacroTone }) {
+  return (
+    <View style={styles.progressTrack}>
+      <View
+        style={[
+          styles.progressFill,
+          getMacroTrackStyle(tone),
+          { width: `${Math.max(6, percent)}%` },
+        ]}
+      />
+    </View>
+  );
+}
+
+function MacroSummary({
+  tone,
+  label,
+  value,
+  target,
+  unit,
+  locale,
+}: {
+  tone: MacroTone;
+  label: string;
+  value: number;
+  target: number;
+  unit: string;
+  locale: string;
+}) {
+  const percent = getProgressPercent(value, target);
+
+  return (
+    <View style={styles.macroSummary}>
+      <View style={styles.macroSummaryHeader}>
+        <Text variant="body" weight="semibold" numberOfLines={1}>
+          {label}
+        </Text>
+      </View>
+      <View style={styles.macroValueRow}>
+        <Text variant="h3" weight="bold" style={getMacroTextStyle(tone)}>
+          {formatNumber(Math.round(value), locale)}
+        </Text>
+        <Text variant="body" color="secondary">
+          {`/ ${formatNumber(Math.round(target), locale)}${unit}`}
+        </Text>
+      </View>
+      <ProgressTrack percent={percent} tone={tone} />
+      <Text variant="bodySmall" color="secondary" weight="semibold">
+        {`${percent}%`}
+      </Text>
+    </View>
+  );
 }
 
 function parseRequiredNumber(value: string) {
@@ -160,28 +251,6 @@ function parseOptionalNumber(value: string) {
   }
 
   return parsed;
-}
-
-function toHomeMealCardItem(item: ManualMealItem): HomeMealCardItem {
-  const servings = Math.max(1, item.servings);
-  const quantityGrams =
-    item.quantityGrams !== null && item.quantityGrams !== undefined
-      ? item.quantityGrams * servings
-      : null;
-
-  return {
-    title: item.title,
-    quantityLabel: item.quantityLabel,
-    quantityGrams,
-    totalCalories: item.totalCalories * servings,
-    proteinGrams: item.proteinGrams * servings,
-    carbsGrams: item.carbsGrams * servings,
-    fatGrams: item.fatGrams * servings,
-    imageUri: item.imageUri,
-    thumbnailUri: item.thumbnailUri,
-    devSyncBadgeLabel: null,
-    isFavorite: false,
-  };
 }
 
 function toItemInput(dialogState: ItemDialogState) {
@@ -222,172 +291,114 @@ function toItemInput(dialogState: ItemDialogState) {
   };
 }
 
-function getDateLabel(date: Date, currentDate: Date, todayLabel: string) {
-  const isToday = isSameCalendarDate(date, currentDate);
-  const formattedDate = formatDayMonth(date);
-
-  if (isToday) {
-    return `${todayLabel}, ${formattedDate}`;
-  }
-
-  return formattedDate;
-}
-
-interface MenuDateSelectorProps {
-  selectedDate: Date;
-  currentDate: Date;
-  locale: string;
-  todayLabel: string;
-  calendarActionLabel: string;
-  onPreviousDay: () => void;
-  onNextDay: () => void;
-  onChangeDate: (date: Date) => void;
-}
-
-function MenuDateSelector({
-  selectedDate,
-  currentDate,
-  locale,
-  todayLabel,
-  calendarActionLabel,
-  onPreviousDay,
-  onNextDay,
-  onChangeDate,
-}: MenuDateSelectorProps) {
-  const { t } = useTranslation();
-  const { theme } = useUnistyles();
-  const insets = useSafeAreaInsets();
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const [draftDate, setDraftDate] = useState(() => startOfDay(selectedDate));
-  const pickerTheme = theme.colors.mode === 'dark' ? 'dark' : 'light';
-  const displayLabel = getDateLabel(selectedDate, currentDate, todayLabel);
-
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        pressBehavior="close"
-      />
-    ),
-    []
-  );
-
-  const openSheet = useCallback(() => {
-    setDraftDate(startOfDay(selectedDate));
-    bottomSheetRef.current?.present();
-  }, [selectedDate]);
-
-  const closeSheet = useCallback(() => {
-    bottomSheetRef.current?.dismiss();
-  }, []);
-
-  const confirmSelection = useCallback(() => {
-    onChangeDate(startOfDay(draftDate));
-    closeSheet();
-  }, [closeSheet, draftDate, onChangeDate]);
-
-  return (
-    <>
-      <Card variant="elevated" style={styles.dateCard}>
-        <View style={styles.dateRow}>
-          <IconButton
-            icon="chevron-back-outline"
-            variant="ghost"
-            accessibilityLabel={t('common.back')}
-            onPress={onPreviousDay}
-          />
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={calendarActionLabel}
-            style={styles.dateCenter}
-            onPress={openSheet}
-          >
-            <Text variant="body" weight="medium" align="center">
-              {displayLabel}
-            </Text>
-            <Icon name="chevron-down" size={16} variant="secondary" />
-          </Pressable>
-
-          <IconButton
-            icon="chevron-forward-outline"
-            variant="ghost"
-            accessibilityLabel={t('common.next')}
-            onPress={onNextDay}
-          />
-        </View>
-      </Card>
-
-      <BottomSheetModal
-        ref={bottomSheetRef}
-        index={0}
-        snapPoints={['60%']}
-        enableDynamicSizing={false}
-        enablePanDownToClose
-        topInset={insets.top}
-        backdropComponent={renderBackdrop}
-        backgroundStyle={styles.sheetBackground}
-        handleIndicatorStyle={styles.sheetHandle}
-      >
-        <BottomSheetView style={styles.sheetContent}>
-          <View style={styles.sheetHeader}>
-            <Text variant="h3">{calendarActionLabel}</Text>
-          </View>
-
-          <View style={styles.sheetPickerSurface}>
-            <DatePicker
-              style={styles.sheetPicker}
-              date={draftDate}
-              locale={locale}
-              mode="date"
-              maximumDate={currentDate}
-              onDateChange={setDraftDate}
-              theme={pickerTheme}
-              dividerColor={theme.colors.border.default}
-              buttonColor={theme.colors.brand.primary}
-            />
-          </View>
-
-          <View style={styles.sheetActions}>
-            <Button title={t('common.cancel')} variant="outline" size="sm" onPress={closeSheet} />
-            <Button title={t('common.confirm')} size="sm" onPress={confirmSelection} />
-          </View>
-
-          <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea} />
-        </BottomSheetView>
-      </BottomSheetModal>
-    </>
-  );
+function buildMealItemUpdateInput(item: ManualMealItem, servings: number) {
+  return {
+    title: item.title,
+    quantityLabel: item.quantityLabel,
+    quantityGrams: item.quantityGrams,
+    totalCalories: item.totalCalories,
+    proteinGrams: item.proteinGrams,
+    carbsGrams: item.carbsGrams,
+    fatGrams: item.fatGrams,
+    notes: item.notes,
+    imageUri: item.imageUri,
+    thumbnailUri: item.thumbnailUri,
+    sourceKey: item.sourceKey,
+    servings,
+  };
 }
 
 export default function MenuTab() {
   const { t, i18n } = useTranslation();
-  const translate = t as unknown as TranslateFn;
   const currentDate = useCurrentDate();
+  const insets = useSafeAreaInsets();
+  const requestAddMealSourceSheet = useAddMealSourceSheetStore((state) => state.requestOpen);
+  const loadGenerationRef = useRef(0);
+  const didMountRef = useRef(false);
   const [selectedDate, setSelectedDate] = useState(() => currentDate);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [meals, setMeals] = useState<ManualMeal[]>([]);
-  const [filter, setFilter] = useState<MealFilter>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [page, setPage] = useState(1);
   const [isSavingItem, setIsSavingItem] = useState(false);
+  const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [itemDialog, setItemDialog] = useState<ItemDialogState>(DEFAULT_ITEM_DIALOG_STATE);
+  const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>(DEFAULT_DELETE_DIALOG_STATE);
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
+  const selectedDayStart = useMemo(() => startOfDay(selectedDate), [selectedDate]);
+  const selectedDayEnd = useMemo(() => {
+    const nextDate = startOfDay(selectedDate);
+    nextDate.setHours(23, 59, 59, 999);
+    return nextDate;
+  }, [selectedDate]);
+  const locale = i18n.language;
 
-    const [nextProfile, nextMeals] = await Promise.all([getUserProfile(), listManualMeals()]);
-    setProfile(nextProfile);
-    setMeals(nextMeals);
-    setIsLoading(false);
-  }, []);
+  const loadData = useCallback(
+    async (requestedPage: number, append: boolean) => {
+      const generation = ++loadGenerationRef.current;
+
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+      }
+
+      try {
+        await ensureDefaultManualMealsForWeek(selectedDayStart);
+
+        const [nextProfile, nextMealsPage] = await Promise.all([
+          getUserProfile(),
+          listManualMealsPage({
+            page: requestedPage,
+            pageSize: MENU_PAGE_SIZE,
+            startDate: selectedDayStart,
+            endDate: selectedDayEnd,
+          }),
+        ]);
+
+        if (generation !== loadGenerationRef.current) {
+          return;
+        }
+
+        setProfile(nextProfile);
+        setMeals((currentMeals) =>
+          append ? [...currentMeals, ...nextMealsPage.items] : nextMealsPage.items
+        );
+        setHasNextPage(nextMealsPage.hasNextPage);
+        setPage(requestedPage);
+      } finally {
+        if (generation === loadGenerationRef.current) {
+          setIsLoading(false);
+          setIsLoadingMore(false);
+        }
+      }
+    },
+    [selectedDayEnd, selectedDayStart]
+  );
+
+  const refreshMenu = useCallback(() => {
+    setMeals([]);
+    setHasNextPage(false);
+    setPage(1);
+    void loadData(1, false);
+  }, [loadData]);
 
   useFocusEffect(
     useCallback(() => {
-      void loadData();
-    }, [loadData])
+      refreshMenu();
+    }, [refreshMenu])
   );
+
+  useEffect(() => {
+    if (didMountRef.current) {
+      refreshMenu();
+      return;
+    }
+
+    didMountRef.current = true;
+  }, [refreshMenu]);
 
   const orderedMeals = useMemo(() => {
     const mealMap = new Map<MealType, ManualMeal>();
@@ -407,36 +418,39 @@ export default function MenuTab() {
     return [...ordered, ...extraMeals];
   }, [meals]);
 
-  const filteredMeals = useMemo(() => {
-    if (filter === 'all') {
-      return orderedMeals;
-    }
-
-    return orderedMeals.filter((meal) => meal.mealType === filter);
-  }, [filter, orderedMeals]);
-
   const sections = useMemo<MenuSection[]>(
     () =>
-      filteredMeals.map((meal) => ({
+      orderedMeals.map((meal) => ({
         key: meal.localId,
-        title: getMealTitle(meal, translate),
         meal,
         data: meal.items,
       })),
-    [filteredMeals, translate]
-  );
-
-  const totalCalories = useMemo(
-    () =>
-      orderedMeals.reduce((sum, meal) => {
-        return sum + meal.totalCalories;
-      }, 0),
     [orderedMeals]
   );
+  const dayTotals = useMemo(
+    () =>
+      orderedMeals.reduce(
+        (totals, meal) => ({
+          calories: totals.calories + meal.totalCalories,
+          protein: totals.protein + meal.totalProteinGrams,
+          carbs: totals.carbs + meal.totalCarbsGrams,
+          fat: totals.fat + meal.totalFatGrams,
+        }),
+        { calories: 0, protein: 0, carbs: 0, fat: 0 }
+      ),
+    [orderedMeals]
+  );
+  const calorieTarget = profile?.dailyCalorieTarget ?? 0;
+  const caloriePercent = getProgressPercent(dayTotals.calories, calorieTarget);
+  const proteinTarget = getPositiveTarget(profile?.proteinTargetGrams);
+  const carbsTarget = getPositiveTarget(profile?.carbsTargetGrams);
+  const fatTarget = getPositiveTarget(profile?.fatTargetGrams);
+  const proteinShortage = Math.max(0, Math.round(proteinTarget - dayTotals.protein));
+  const mealsWithItems = orderedMeals.filter((meal) => meal.items.length > 0).length;
+  const averageCaloriesPerMeal = Math.round(
+    mealsWithItems > 0 ? dayTotals.calories / mealsWithItems : 0
+  );
 
-  const dailyTarget = profile?.dailyCalorieTarget ?? 0;
-  const progressPercent = dailyTarget > 0 ? Math.round((totalCalories / dailyTarget) * 100) : 0;
-  const locale = i18n.language;
   const openEditItemDialog = useCallback((meal: ManualMeal, item: ManualMealItem) => {
     setItemDialog({
       visible: true,
@@ -457,8 +471,20 @@ export default function MenuTab() {
     });
   }, []);
 
+  const openDeleteItemDialog = useCallback((item: ManualMealItem) => {
+    setDeleteDialog({
+      visible: true,
+      itemId: item.localId,
+      itemName: item.title,
+    });
+  }, []);
+
   const closeItemDialog = useCallback(() => {
     setItemDialog(DEFAULT_ITEM_DIALOG_STATE);
+  }, []);
+
+  const closeDeleteDialog = useCallback(() => {
+    setDeleteDialog(DEFAULT_DELETE_DIALOG_STATE);
   }, []);
 
   const saveItem = useCallback(async () => {
@@ -481,15 +507,51 @@ export default function MenuTab() {
     try {
       await updateManualMealItem(itemDialog.itemId, itemInput);
       closeItemDialog();
-      await loadData();
+      await loadData(1, false);
     } finally {
       setIsSavingItem(false);
     }
   }, [closeItemDialog, isSavingItem, itemDialog, loadData, t]);
 
-  const handleAddFood = useCallback(() => {
-    router.push('/food-form');
-  }, []);
+  const handleUpdateQuantity = useCallback(
+    async (item: ManualMealItem, servings: number) => {
+      if (servings < 1 || updatingItemId === item.localId) {
+        return;
+      }
+
+      setUpdatingItemId(item.localId);
+
+      try {
+        await updateManualMealItem(item.localId, buildMealItemUpdateInput(item, servings));
+        await loadData(1, false);
+      } finally {
+        setUpdatingItemId(null);
+      }
+    },
+    [loadData, updatingItemId]
+  );
+
+  const handleDeleteItem = useCallback(async () => {
+    if (!deleteDialog.itemId) {
+      return;
+    }
+
+    setIsSavingItem(true);
+
+    try {
+      await deleteManualMealItem(deleteDialog.itemId);
+      closeDeleteDialog();
+      await loadData(1, false);
+    } catch {
+      toast.error(t('profileScreen.actionError'));
+    } finally {
+      setIsSavingItem(false);
+    }
+  }, [closeDeleteDialog, deleteDialog.itemId, loadData, t]);
+
+  const handleOpenAiSuggestion = useCallback(() => {
+    requestAddMealSourceSheet();
+  }, [requestAddMealSourceSheet]);
 
   const handleAddMealItem = useCallback((meal: ManualMeal) => {
     router.push({
@@ -501,21 +563,19 @@ export default function MenuTab() {
     });
   }, []);
 
-  const handlePreviousDay = useCallback(() => {
-    setSelectedDate((value) => addDays(value, -1));
-  }, []);
+  const handleLoadMore = useCallback(() => {
+    if (isLoading || isLoadingMore || !hasNextPage) {
+      return;
+    }
 
-  const handleNextDay = useCallback(() => {
-    setSelectedDate((value) => addDays(value, 1));
-  }, []);
+    void loadData(page + 1, true);
+  }, [hasNextPage, isLoading, isLoadingMore, loadData, page]);
 
   if (isLoading) {
     return (
       <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
-        <View style={styles.loadingState}>
-          <Text variant="body" color="secondary">
-            {t('common.loading')}
-          </Text>
+        <View style={[styles.loadingState, { paddingTop: insets.top }]}>
+          <Loading size="small" message={t('common.loading')} />
         </View>
       </ScreenContainer>
     );
@@ -523,177 +583,245 @@ export default function MenuTab() {
 
   return (
     <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.localId}
-        stickySectionHeadersEnabled={false}
+      <FlatList
+        data={sections}
+        keyExtractor={(item) => item.key}
         contentContainerStyle={styles.listContent}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
         ListHeaderComponent={
-          <View style={styles.screen}>
-            <MenuDateSelector
+          <View style={styles.headerStack}>
+            <MenuWeekSelector
               selectedDate={selectedDate}
               currentDate={currentDate}
-              locale={i18n.language}
-              todayLabel={translate('menuScreen.todayLabel')}
-              calendarActionLabel={translate('menuScreen.calendarAction')}
-              onPreviousDay={handlePreviousDay}
-              onNextDay={handleNextDay}
-              onChangeDate={setSelectedDate}
+              locale={locale}
+              onSelectDate={setSelectedDate}
             />
-
-            <Card variant="elevated" style={styles.energyCard}>
-              <View style={styles.energyHeader}>
-                <Text variant="h3">{t('menuScreen.energyTitle')}</Text>
+            <View style={styles.summaryCard}>
+              <View style={styles.calorieSummary}>
+                <View style={styles.calorieCopy}>
+                  <Text variant="body" weight="semibold">
+                    {t('menuScreen.todayTotal')}
+                  </Text>
+                  <View style={styles.calorieValueRow}>
+                    <Text variant="h1" weight="bold" style={styles.calorieValue}>
+                      {formatNumber(Math.round(dayTotals.calories), locale)}
+                    </Text>
+                    <Text variant="h2" color="secondary">
+                      {t('common.units.kcal')}
+                    </Text>
+                  </View>
+                  <Text variant="body" weight="semibold" color="secondary">
+                    {`/ ${formatNumber(Math.round(calorieTarget), locale)} ${t('common.units.kcal')}`}
+                  </Text>
+                  <View style={styles.calorieProgressRow}>
+                    <ProgressTrack percent={caloriePercent} tone="fat" />
+                    <Text variant="bodySmall" weight="semibold" color="secondary">
+                      {`${caloriePercent}%`}
+                    </Text>
+                  </View>
+                </View>
               </View>
-              <View style={styles.energyValueRow}>
-                <Text variant="h1" weight="bold">
-                  {formatNumber(totalCalories, locale)}
-                </Text>
-                <Text variant="h3" color="secondary">
-                  {' / '}
-                  {formatNumber(dailyTarget, locale)} {t('common.units.kcal')}
-                </Text>
-                <Text variant="body" color="primary" style={styles.energyGoalLabel}>
-                  {t('homeScreen.goalPercent', {
-                    percent: Math.min(999, Math.max(0, progressPercent)),
-                  })}
-                </Text>
+              <View style={styles.macroSummaryGrid}>
+                <MacroSummary
+                  tone="protein"
+                  label={t('statsScreen.macros.protein')}
+                  value={dayTotals.protein}
+                  target={proteinTarget}
+                  unit={t('common.units.gram')}
+                  locale={locale}
+                />
+                <MacroSummary
+                  tone="carbs"
+                  label={t('statsScreen.macros.carbs')}
+                  value={dayTotals.carbs}
+                  target={carbsTarget}
+                  unit={t('common.units.gram')}
+                  locale={locale}
+                />
+                <MacroSummary
+                  tone="fat"
+                  label={t('statsScreen.macros.fat')}
+                  value={dayTotals.fat}
+                  target={fatTarget}
+                  unit={t('common.units.gram')}
+                  locale={locale}
+                />
               </View>
-              <ProgressBar
-                value={Math.min(100, Math.max(0, progressPercent))}
-                colorScheme="success"
-                size="sm"
-                accessibilityLabel={t('menuScreen.energyTitle')}
-              />
-            </Card>
+            </View>
 
-            <Card variant="elevated" style={styles.filterCard}>
-              <View style={styles.filterRow}>
-                {(['all', 'breakfast', 'lunch', 'dinner', 'snack'] as MealFilter[]).map(
-                  (option) => {
-                    const isActive = filter === option;
-
-                    return (
-                      <Pressable
-                        key={option}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected: isActive }}
-                        style={[styles.filterPill, isActive && styles.filterPillActive]}
-                        onPress={() => {
-                          setFilter(option);
-                        }}
-                      >
-                        <Text
-                          variant="bodySmall"
-                          weight={isActive ? 'semibold' : 'medium'}
-                          color={isActive ? 'primary' : 'secondary'}
-                          align="center"
-                        >
-                          {getFilterLabel(option, translate)}
-                        </Text>
-                      </Pressable>
-                    );
-                  }
-                )}
-              </View>
-            </Card>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('menuScreen.aiSuggestion')}
+              onPress={handleOpenAiSuggestion}
+            >
+              <LinearGradient colors={['#F6FFF1', '#EFFAE9']} style={styles.aiBanner}>
+                <View style={styles.aiSparkle}>
+                  <Icon name="sparkles" size={24} variant="primary" />
+                </View>
+                <View style={styles.aiBannerCopy}>
+                  <Text variant="body" weight="bold">
+                    {t('menuScreen.aiTitle')}
+                  </Text>
+                  <Text variant="bodySmall" color="secondary">
+                    {t('menuScreen.aiSubtitle', { value: proteinShortage || 20 })}
+                  </Text>
+                </View>
+                <View style={styles.aiButton}>
+                  <Text variant="bodySmall" weight="bold" color="onBrand">
+                    {t('menuScreen.viewSuggestion')}
+                  </Text>
+                  <Icon name="chevron-forward" size={18} variant="onBrand" />
+                </View>
+              </LinearGradient>
+            </Pressable>
           </View>
         }
-        renderSectionHeader={({ section }) => (
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionHeaderRow}>
-              <Text variant="h3">{section.title}</Text>
-              <View style={styles.sectionHeaderActions}>
-                <Text variant="body" color="secondary">
-                  {`${formatNumber(Math.round(section.meal.totalCalories), locale)} ${t('common.units.kcal')}`}
-                </Text>
+        renderItem={({ item: section }) => {
+          let mealTitle = section.meal.name;
+
+          switch (section.meal.mealType) {
+            case 'breakfast':
+              mealTitle = t('homeScreen.meals.breakfast');
+              break;
+            case 'lunch':
+              mealTitle = t('homeScreen.meals.lunch');
+              break;
+            case 'dinner':
+              mealTitle = t('homeScreen.meals.dinner');
+              break;
+            case 'snack':
+              mealTitle = t('menuScreen.sections.snack');
+              break;
+          }
+
+          return (
+            <View style={styles.sectionBlock}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionHeaderLeft}>
+                  <View style={[styles.sectionIcon, getMealIconStyle(section.meal.mealType)]}>
+                    <Icon
+                      name={getMealIconName(section.meal.mealType)}
+                      size={22}
+                      variant={getMealIconVariant(section.meal.mealType)}
+                    />
+                  </View>
+                  <View style={styles.sectionHeaderCopy}>
+                    <Text variant="h3">{mealTitle}</Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {`${formatNumber(Math.round(section.meal.totalCalories), locale)} ${t(
+                        'common.units.kcal'
+                      )}`}
+                    </Text>
+                  </View>
+                </View>
+
                 <IconButton
                   icon="add"
-                  size="sm"
                   variant="outline"
                   accessibilityLabel={t('menuScreen.addItemAction')}
                   onPress={() => {
                     handleAddMealItem(section.meal);
                   }}
                 />
+                <Icon name="ellipsis-vertical" size={22} variant="primary" />
               </View>
-            </View>
-          </View>
-        )}
-        renderItem={({ item, section }) => {
-          const cardItem = toHomeMealCardItem(item);
 
-          return (
-            <View style={styles.itemCardWrap}>
-              <HomeMealCard.Root
-                item={cardItem}
-                onPress={() => {
-                  router.push({
-                    pathname: '/food-detail',
-                    params: {
-                      source: 'manual',
-                      mealLocalId: section.meal.localId,
-                      itemLocalId: item.localId,
-                    },
-                  });
-                }}
-              >
-                <HomeMealCard.Preview />
-                <HomeMealCard.Content>
-                  <HomeMealCard.Header>
-                    <HomeMealCard.Actions>
-                      <HomeMealCard.ActionButton
-                        icon="ellipsis-vertical"
-                        label={t('common.more')}
-                        onPress={() => {
-                          openEditItemDialog(section.meal, item);
-                        }}
-                      />
-                    </HomeMealCard.Actions>
-                  </HomeMealCard.Header>
-                  <HomeMealCard.Macros
+              <View style={styles.itemList}>
+                {section.data.map((item) => (
+                  <MenuMealCard
+                    key={item.localId}
+                    item={item}
+                    quantityLabel={t('menuScreen.quantityLabel')}
+                    editLabel={t('common.edit')}
+                    deleteLabel={t('common.delete')}
+                    decreaseQuantityLabel={t('common.decreaseQuantity')}
+                    increaseQuantityLabel={t('common.increaseQuantity')}
                     proteinTargetGrams={profile?.proteinTargetGrams}
                     carbsTargetGrams={profile?.carbsTargetGrams}
                     fatTargetGrams={profile?.fatTargetGrams}
+                    onPress={() => {
+                      router.push({
+                        pathname: '/food-detail',
+                        params: {
+                          source: 'manual',
+                          mealLocalId: section.meal.localId,
+                          itemLocalId: item.localId,
+                        },
+                      });
+                    }}
+                    onEdit={() => {
+                      openEditItemDialog(section.meal, item);
+                    }}
+                    onDelete={() => {
+                      openDeleteItemDialog(item);
+                    }}
+                    onDecreaseQuantity={() => {
+                      void handleUpdateQuantity(item, Math.max(1, item.servings - 1));
+                    }}
+                    onIncreaseQuantity={() => {
+                      void handleUpdateQuantity(item, item.servings + 1);
+                    }}
                   />
-                </HomeMealCard.Content>
-              </HomeMealCard.Root>
+                ))}
+              </View>
             </View>
           );
         }}
-        ListFooterComponent={
-          <View style={styles.footer}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('menuScreen.addFoodAction')}
-              style={styles.primaryAction}
-              onPress={handleAddFood}
-            >
-              <Icon name="add" size={24} variant="onBrand" />
-              <Text variant="body" weight="semibold" color="inverse">
-                {t('menuScreen.addFoodAction')}
-              </Text>
-            </Pressable>
-          </View>
-        }
-        SectionSeparatorComponent={() => <View style={styles.sectionSpacer} />}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text variant="h3">{t('menuScreen.emptyTitle')}</Text>
             <Text variant="bodySmall" color="secondary">
               {t('menuScreen.emptySubtitle')}
             </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('menuScreen.addFoodAction')}
-              style={styles.primaryAction}
-              onPress={handleAddFood}
-            >
-              <Icon name="add" size={24} variant="onBrand" />
-              <Text variant="body" weight="semibold" color="inverse">
-                {t('menuScreen.addFoodAction')}
-              </Text>
-            </Pressable>
+          </View>
+        }
+        ListFooterComponent={
+          <View style={styles.footer}>
+            <View style={styles.summaryStrip}>
+              <View style={styles.summaryStripItem}>
+                <View style={[styles.summaryStripIcon, styles.summaryCaloriesIcon]}>
+                  <Icon name="flame-outline" size={24} variant="primary" />
+                </View>
+                <View style={styles.summaryStripCopy}>
+                  <Text variant="caption" color="secondary">
+                    {t('menuScreen.summary.totalCalories')}
+                  </Text>
+                  <Text variant="body" weight="bold" style={styles.summaryCaloriesText}>
+                    {`${formatNumber(Math.round(dayTotals.calories), locale)} ${t('common.units.kcal')}`}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.summaryStripDivider} />
+              <View style={styles.summaryStripItem}>
+                <View style={[styles.summaryStripIcon, styles.summaryAverageIcon]}>
+                  <Icon name="stats-chart-outline" size={24} variant="primary" />
+                </View>
+                <View style={styles.summaryStripCopy}>
+                  <Text variant="caption" color="secondary">
+                    {t('menuScreen.summary.average')}
+                  </Text>
+                  <Text variant="body" weight="bold" style={styles.summaryAverageText}>
+                    {`${formatNumber(averageCaloriesPerMeal, locale)} ${t('common.units.kcal')}`}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.summaryStripDivider} />
+              <View style={styles.summaryStripItem}>
+                <View style={[styles.summaryStripIcon, styles.summaryTargetIcon]}>
+                  <Icon name="golf-outline" size={24} variant="accent" />
+                </View>
+                <View style={styles.summaryStripCopy}>
+                  <Text variant="caption" color="secondary">
+                    {t('menuScreen.summary.target')}
+                  </Text>
+                  <Text variant="body" weight="bold" style={styles.summaryTargetText}>
+                    {`${formatNumber(Math.round(calorieTarget), locale)} ${t('common.units.kcal')}`}
+                  </Text>
+                </View>
+              </View>
+            </View>
+            {isLoadingMore ? <Loading size="small" message={t('common.loading')} /> : null}
           </View>
         }
       />
@@ -799,6 +927,31 @@ export default function MenuTab() {
           />
         </View>
       </Dialog>
+
+      <Dialog
+        visible={deleteDialog.visible}
+        onDismiss={closeDeleteDialog}
+        title={t('menuScreen.deleteItemTitle')}
+        size="md"
+        actions={[
+          {
+            label: t('common.cancel'),
+            variant: 'ghost',
+            onPress: closeDeleteDialog,
+          },
+          {
+            label: isSavingItem ? t('common.loading') : t('common.delete'),
+            variant: 'primary',
+            onPress: () => {
+              void handleDeleteItem();
+            },
+          },
+        ]}
+      >
+        <Text variant="body" color="secondary">
+          {t('menuScreen.deleteItemMessage', { name: deleteDialog.itemName })}
+        </Text>
+      </Dialog>
     </ScreenContainer>
   );
 }
@@ -812,134 +965,298 @@ const styles = StyleSheet.create((theme) => ({
   },
   listContent: {
     paddingHorizontal: theme.metrics.spacing.p16,
-    paddingTop: theme.metrics.spacingV.p16,
+    paddingTop: theme.metrics.spacingV.p8,
     paddingBottom: theme.metrics.spacingV.p120,
-    gap: theme.metrics.spacingV.p16,
-  },
-  screen: {
-    gap: theme.metrics.spacingV.p16,
-  },
-  dateCard: {
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p8,
-    borderRadius: theme.metrics.borderRadius.xl,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p8,
-  },
-  dateCenter: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.metrics.spacing.p8,
-  },
-  sheetBackground: {
-    backgroundColor: theme.colors.background.elevated,
-  },
-  sheetHandle: {
-    backgroundColor: theme.colors.border.default,
-  },
-  sheetContent: {
-    flex: 1,
-    paddingHorizontal: theme.metrics.spacing.p16,
-    paddingTop: theme.metrics.spacingV.p12,
-    gap: theme.metrics.spacingV.p16,
-  },
-  sheetHeader: {
-    alignItems: 'center',
-  },
-  sheetPickerSurface: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.metrics.spacingV.p8,
-  },
-  sheetPicker: {
-    alignSelf: 'center',
-  },
-  sheetActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: theme.metrics.spacing.p12,
-  },
-  bottomSafeArea: {
-    flex: 0,
-  },
-  energyCard: {
     gap: theme.metrics.spacingV.p12,
   },
-  energyHeader: {
-    gap: theme.metrics.spacingV.p4,
+  headerStack: {
+    gap: theme.metrics.spacingV.p16,
   },
-  energyValueRow: {
+  summaryCard: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    minHeight: theme.metrics.spacing.p120,
+    paddingHorizontal: theme.metrics.spacing.p20,
+    paddingVertical: theme.metrics.spacingV.p20,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
+    shadowColor: theme.colors.shadow.color,
+    shadowOpacity: 1,
+    shadowRadius: theme.metrics.spacing.p16,
+    shadowOffset: { width: 0, height: theme.metrics.spacingV.p8 },
+    elevation: theme.colors.shadow.elevationSmall,
+  },
+  calorieSummary: {
+    flex: 1.55,
+    alignItems: 'stretch',
+    justifyContent: 'center',
+    paddingRight: theme.metrics.spacing.p20,
+  },
+  calorieCopy: {
+    width: '100%',
+    minWidth: 0,
+    gap: theme.metrics.spacingV.p12,
+  },
+  calorieValueRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: theme.metrics.spacing.p8,
+  },
+  calorieValue: {
+    color: theme.colors.brand.primary,
+  },
+  calorieProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p16,
+  },
+  summaryDivider: {
+    width: 1,
+    backgroundColor: theme.colors.border.subtle,
+  },
+  macroSummaryGrid: {
+    flex: 2.45,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  macroSummary: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: theme.metrics.spacingV.p12,
+    minWidth: 0,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    borderLeftWidth: 1,
+    borderLeftColor: theme.colors.border.subtle,
+  },
+  macroSummaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  macroValueRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: theme.metrics.spacing.p4,
-    flexWrap: 'wrap',
   },
-  energyGoalLabel: {
-    marginLeft: 'auto',
-  },
-  filterCard: {
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p12,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: theme.metrics.spacing.p8,
-  },
-  filterPill: {
+  progressTrack: {
     flex: 1,
-    minHeight: theme.metrics.spacing.p48,
+    height: theme.metrics.spacingV.p8,
+    width: '100%',
+    minWidth: theme.metrics.spacing.p64,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.background.section,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: theme.metrics.borderRadius.full,
+  },
+  macroProtein: {
+    color: theme.colors.state.info,
+  },
+  macroCarbs: {
+    color: theme.colors.state.warning,
+  },
+  macroFat: {
+    color: theme.colors.state.success,
+  },
+  macroTrackProtein: {
+    backgroundColor: theme.colors.state.info,
+  },
+  macroTrackCarbs: {
+    backgroundColor: theme.colors.state.warning,
+  },
+  macroTrackFat: {
+    backgroundColor: theme.colors.state.success,
+  },
+  aiBanner: {
+    minHeight: theme.metrics.spacing.p72,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
+    padding: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.xl,
+    borderWidth: 1,
+    borderColor: theme.colors.state.successBg,
+  },
+  aiSparkle: {
+    width: theme.metrics.spacing.p44,
+    height: theme.metrics.spacing.p44,
+    borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.input,
   },
-  filterPillActive: {
-    backgroundColor: theme.colors.brand.primaryVariant,
+  aiBannerCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: theme.metrics.spacingV.p4,
+  },
+  aiButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p4,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingVertical: theme.metrics.spacingV.p8,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.brand.primary,
+  },
+  sectionBlock: {
+    overflow: 'hidden',
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
+    shadowColor: theme.colors.shadow.color,
+    shadowOpacity: 1,
+    shadowRadius: theme.metrics.spacing.p16,
+    shadowOffset: { width: 0, height: theme.metrics.spacingV.p8 },
+    elevation: theme.colors.shadow.elevationSmall,
   },
   sectionHeader: {
-    marginTop: theme.metrics.spacingV.p4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p8,
+    padding: theme.metrics.spacing.p16,
   },
-  sectionHeaderRow: {
+  sectionHeaderLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
+  },
+  sectionIcon: {
+    width: theme.metrics.spacing.p44,
+    height: theme.metrics.spacing.p44,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.section,
+  },
+  mealIconBreakfast: {
+    backgroundColor: theme.colors.state.warningBg,
+  },
+  mealIconLunch: {
+    backgroundColor: theme.colors.state.successBg,
+  },
+  mealIconDinner: {
+    backgroundColor: theme.colors.state.infoBg,
+  },
+  mealIconSnack: {
+    backgroundColor: theme.colors.background.section,
+  },
+  sectionHeaderCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  itemList: {
+    gap: theme.metrics.spacingV.p12,
+    padding: theme.metrics.spacing.p16,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border.subtle,
+  },
+  summaryStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+    padding: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
+    shadowColor: theme.colors.shadow.color,
+    shadowOpacity: 1,
+    shadowRadius: theme.metrics.spacing.p16,
+    shadowOffset: { width: 0, height: theme.metrics.spacingV.p8 },
+    elevation: theme.colors.shadow.elevationSmall,
+  },
+  summaryStripItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+    minWidth: 0,
+  },
+  summaryStripIcon: {
+    width: theme.metrics.spacing.p44,
+    height: theme.metrics.spacing.p44,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  summaryCaloriesIcon: {
+    backgroundColor: theme.colors.state.successBg,
+  },
+  summaryAverageIcon: {
+    backgroundColor: theme.colors.state.infoBg,
+  },
+  summaryTargetIcon: {
+    backgroundColor: theme.colors.state.warningBg,
+  },
+  summaryStripCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: theme.metrics.spacingV.p4,
+  },
+  summaryCaloriesText: {
+    color: theme.colors.brand.primary,
+  },
+  summaryAverageText: {
+    color: theme.colors.state.info,
+  },
+  summaryTargetText: {
+    color: theme.colors.brand.tertiary,
+  },
+  summaryStripDivider: {
+    width: 1,
+    alignSelf: 'stretch',
+    backgroundColor: theme.colors.border.subtle,
+  },
+  aiRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingVertical: theme.metrics.spacingV.p12,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
   },
-  sectionHeaderActions: {
+  aiRowCopy: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.metrics.spacing.p8,
-  },
-  itemCardWrap: {
-    marginTop: theme.metrics.spacingV.p12,
-  },
-  sectionSpacer: {
-    height: theme.metrics.spacingV.p20,
-  },
-  footer: {
-    marginTop: theme.metrics.spacingV.p8,
-    marginBottom: theme.metrics.spacingV.p20,
-  },
-  primaryAction: {
-    minHeight: theme.metrics.spacing.p56,
-    borderRadius: theme.metrics.borderRadius.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: theme.metrics.spacing.p12,
-    backgroundColor: theme.colors.brand.tertiary,
   },
   emptyState: {
     gap: theme.metrics.spacingV.p12,
     alignItems: 'flex-start',
     paddingVertical: theme.metrics.spacingV.p20,
+  },
+  footer: {
+    gap: theme.metrics.spacingV.p12,
+    paddingTop: theme.metrics.spacingV.p4,
+  },
+  quickAddBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: theme.metrics.spacing.p8,
+    padding: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.xl,
+  },
+  quickChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p4,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
   },
   dialogFields: {
     gap: theme.metrics.spacingV.p8,

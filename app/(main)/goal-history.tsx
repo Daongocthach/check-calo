@@ -1,10 +1,9 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Card, Chip, ProgressBar, ScreenContainer, TabsHeader, Text } from '@/common/components';
+import { Card, Chip, ProgressBar, ScreenContainer, Text } from '@/common/components';
 import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
 import type {
   GoalTrackingSnapshot,
@@ -71,12 +70,6 @@ export default function GoalHistoryScreen() {
   return (
     <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
-        <TabsHeader
-          title={t('goalTracking.history.title')}
-          onBack={() => router.back()}
-          showSync={false}
-        />
-
         <View style={styles.content}>
           <View style={styles.headerCopy}>
             <Text variant="bodySmall" color="secondary">

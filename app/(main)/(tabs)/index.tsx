@@ -221,7 +221,6 @@ function CaloriesRing({
 export default function HomeTab() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
-  const requestAddMealSourceSheet = useAddMealSourceSheetStore((state) => state.requestOpen);
   const currentDate = useCurrentDate();
   const previousCurrentDateRef = useRef(currentDate);
   const [selectedDate, setSelectedDate] = useState(() => currentDate);
@@ -463,7 +462,14 @@ export default function HomeTab() {
                   title={t('homeScreen.details')}
                   variant="ghost"
                   size="sm"
-                  rightIcon={<Icon name="chevron-forward" size={16} variant="primary" />}
+                  rightIcon={
+                    <Icon
+                      name="chevron-forward"
+                      size={16}
+                      color={theme.colors.brand.primary}
+                      variant="primary"
+                    />
+                  }
                   onPress={() => router.push('/stats')}
                 />
               </View>
@@ -522,12 +528,17 @@ export default function HomeTab() {
                 title={t('homeScreen.meals.addFood')}
                 variant="ghost"
                 size="sm"
-                leftIcon={
-                  <View style={styles.addFoodIconCircle}>
-                    <Icon name="add" size={14} color={theme.colors.brand.primary} />
-                  </View>
+                rightIcon={
+                  <Icon
+                    name="chevron-forward"
+                    size={16}
+                    color={theme.colors.brand.primary}
+                    variant="primary"
+                  />
                 }
-                onPress={requestAddMealSourceSheet}
+                onPress={() => {
+                  useAddMealSourceSheetStore.getState().requestOpen();
+                }}
               />
             </View>
 

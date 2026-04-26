@@ -70,9 +70,15 @@ export function AppHeader() {
   const [currentMode, setCurrentMode] = useState<ThemeModePreference>(() => getThemePreference());
 
   const isIndexRoute = pathname === '/' || pathname === '/index';
-  const isTabRoute = ['/', '/index', '/stats', '/add', '/menu', '/favorites', '/profile'].includes(
-    pathname
-  );
+  const isTabRoute = [
+    '/',
+    '/index',
+    '/stats',
+    '/add',
+    '/menu',
+    '/recently-food',
+    '/profile',
+  ].includes(pathname);
   const greeting = getGreetingKey(new Date().getHours());
   const displayName = getDisplayName(authUser);
   const avatarLabel = getInitials(displayName);
@@ -83,8 +89,10 @@ export function AppHeader() {
     if (pathname === '/stats') return t('tabs.stats');
     if (pathname === '/add') return t('tabs.add');
     if (pathname === '/menu') return t('tabs.menu');
-    if (pathname === '/favorites') return t('tabs.favorites');
-    if (pathname === '/profile') return t('tabs.profile');
+    if (pathname === '/recently-food') return t('tabs.favorites');
+    if (pathname === '/profile') return t('settings.title');
+    if (pathname === '/support') return t('supportScreen.title');
+    if (pathname === '/goal-history') return t('goalTracking.history.title');
     if (pathname === '/notification-settings') return t('profileScreen.reminders.title');
     if (pathname === '/food-detail') {
       return params.source === 'ai' ? t('foodDetail.analysisTitle') : t('foodDetail.title');
@@ -171,6 +179,29 @@ export function AppHeader() {
           </Text>
         </View>
       </View>
+    );
+  }
+
+  if (pathname === '/menu') {
+    headerContent = (
+      <>
+        <Pressable
+          onPress={handleBackPress}
+          accessibilityRole="button"
+          accessibilityLabel={t('header.back')}
+          style={styles.backButtonWrap}
+        >
+          <Icon name="chevron-back" variant="primary" size={22} />
+        </Pressable>
+        <View style={styles.textWrap}>
+          <Text variant="h2" weight="bold" numberOfLines={1}>
+            {t('menuScreen.title')}
+          </Text>
+          <Text variant="bodySmall" color="secondary">
+            {t('menuScreen.headerSubtitle')}
+          </Text>
+        </View>
+      </>
     );
   }
 

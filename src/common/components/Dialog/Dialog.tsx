@@ -38,8 +38,12 @@ export function Dialog({
       onRequestClose={onDismiss}
       statusBarTranslucent
     >
-      <Pressable style={styles.backdrop} onPress={dismissOnBackdropPress ? onDismiss : undefined}>
-        <Pressable style={styles.card} onPress={() => {}}>
+      <View style={styles.backdrop}>
+        <Pressable
+          style={styles.backdropPressable}
+          onPress={dismissOnBackdropPress ? onDismiss : undefined}
+        />
+        <View style={styles.card}>
           {title && (
             <Text variant="h3" style={styles.title}>
               {title}
@@ -64,8 +68,8 @@ export function Dialog({
               ))}
             </View>
           )}
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }

@@ -7,4 +7,6 @@ export interface AddMealSourceBottomSheetProps {
   onManualPress: () => void;
   onPhotoPress: () => void;
   onBarcodePress: () => void;
+  onViewAllRecentPress: () => void;
+  onSheetChange?: (index: number) => void;
 }

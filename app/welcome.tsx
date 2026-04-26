@@ -7,12 +7,8 @@ import { Pressable, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Button, Card, Input, ScreenContainer, Text } from '@/common/components';
-import {
-  ACTIVITY_LEVEL_KEYS,
-  GENDER_KEYS,
-  MONTHLY_WEIGHT_GOAL_OPTIONS,
-} from '@/features/nutrition/constants';
+import { Button, Card, Icon, Input, ScreenContainer, Text } from '@/common/components';
+import { GENDER_KEYS, MONTHLY_WEIGHT_GOAL_OPTIONS } from '@/features/nutrition/constants';
 import { syncActiveGoalToProfile } from '@/features/nutrition/services/goalTrackingService';
 import { getUserProfile, upsertUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import type { ActivityLevel, Gender } from '@/features/nutrition/types';
@@ -51,6 +47,10 @@ interface ProfileSummaryState {
   fatGrams: number;
 }
 
+type ActivityTileLevel = 'sedentary' | 'light' | 'moderate' | 'active';
+
+const ACTIVITY_TILE_LEVELS: ActivityTileLevel[] = ['sedentary', 'light', 'moderate', 'active'];
+
 function getMonthlyWeightGoalPlanKey(value: number) {
   switch (value) {
     case -2:
@@ -69,6 +69,27 @@ function getMonthlyWeightGoalPlanKey(value: number) {
       return 'welcomeScreen.monthlyWeightPlans.lose_2' as const;
     default:
       return 'welcomeScreen.monthlyWeightPlans.0' as const;
+  }
+}
+
+function getActivityDisplayLevel(level: ActivityLevel): ActivityTileLevel {
+  if (level === 'very_active') {
+    return 'active';
+  }
+
+  return level;
+}
+
+function getActivityIconName(level: ActivityTileLevel) {
+  switch (level) {
+    case 'sedentary':
+      return 'person-outline';
+    case 'light':
+      return 'walk-outline';
+    case 'moderate':
+      return 'fitness-outline';
+    case 'active':
+      return 'flame-outline';
   }
 }
 
@@ -154,6 +175,7 @@ export default function WelcomeScreen() {
 
   const selectedGender = watch('gender');
   const selectedActivityLevel = watch('activityLevel');
+  const displayedActivityLevel = getActivityDisplayLevel(selectedActivityLevel);
   const selectedMonthlyWeightGoalKg = watch('monthlyWeightGoalKg');
   const ageValue = watch('age');
   const heightValue = watch('height');
@@ -384,32 +406,74 @@ export default function WelcomeScreen() {
                 </View>
               </View>
 
-              <View style={styles.optionGroup}>
-                <Text variant="label">{t('welcomeScreen.fields.activityLevel')}</Text>
-                <View style={styles.optionWrap}>
-                  {ACTIVITY_LEVEL_KEYS.map((activityLevel) => {
-                    const isActive = selectedActivityLevel === activityLevel;
+              <View style={styles.activityCard}>
+                <View style={styles.activityHeader}>
+                  <View style={styles.activityHeaderTitle}>
+                    <View style={styles.activityHeaderIcon}>
+                      <Icon name="walk-outline" size={18} variant="primary" />
+                    </View>
+                    <Text variant="body" weight="semibold">
+                      {t('welcomeScreen.fields.activityLevel')}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.activityGrid}>
+                  {ACTIVITY_TILE_LEVELS.map((activityLevel) => {
+                    const isActive = displayedActivityLevel === activityLevel;
 
                     return (
                       <Pressable
                         key={activityLevel}
                         accessibilityRole="button"
+                        accessibilityState={{ selected: isActive }}
                         accessibilityLabel={t(`welcomeScreen.activityLevels.${activityLevel}`)}
-                        style={[styles.optionPill, isActive && styles.optionPillActive]}
+                        style={[styles.activityTile, isActive && styles.activityTileActive]}
                         onPress={() =>
                           setValue('activityLevel', activityLevel, { shouldValidate: true })
                         }
                       >
+                        <View
+                          style={[
+                            styles.activityTileIcon,
+                            isActive && styles.activityTileIconActive,
+                          ]}
+                        >
+                          <Icon
+                            name={getActivityIconName(activityLevel)}
+                            size={18}
+                            variant={isActive ? 'primary' : 'secondary'}
+                          />
+                        </View>
                         <Text
                           variant="caption"
                           weight="semibold"
-                          color={isActive ? 'onBrand' : 'secondary'}
+                          color={isActive ? 'primary' : 'secondary'}
+                          align="center"
                         >
                           {t(`welcomeScreen.activityLevels.${activityLevel}`)}
                         </Text>
                       </Pressable>
                     );
                   })}
+                </View>
+
+                <View style={styles.activityDetail}>
+                  <View style={styles.activityDetailIcon}>
+                    <Icon
+                      name={getActivityIconName(displayedActivityLevel)}
+                      size={18}
+                      variant="primary"
+                    />
+                  </View>
+                  <View style={styles.activityDetailCopy}>
+                    <Text variant="bodySmall" weight="semibold" color="primary">
+                      {t(`welcomeScreen.activityLevels.${displayedActivityLevel}`)}
+                    </Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {t(`profileScreen.activityDescriptions.${displayedActivityLevel}`)}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </Card>
@@ -442,6 +506,30 @@ export default function WelcomeScreen() {
                       {`${t('profileScreen.metrics.targetCalories')}: ${profileSummary.targetCalories} ${t('common.units.kcal')} / ${t('common.units.day')}`}
                     </Text>
                   </View>
+                  <View style={styles.summaryListItem}>
+                    <Text variant="bodySmall" color="secondary">
+                      -
+                    </Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {`${t('profileScreen.metrics.proteinTarget')}: ${profileSummary.proteinGrams}${t('common.units.gram')} / ${t('common.units.day')}`}
+                    </Text>
+                  </View>
+                  <View style={styles.summaryListItem}>
+                    <Text variant="bodySmall" color="secondary">
+                      -
+                    </Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {`${t('profileScreen.metrics.carbsTarget')}: ${profileSummary.carbsGrams}${t('common.units.gram')} / ${t('common.units.day')}`}
+                    </Text>
+                  </View>
+                  <View style={styles.summaryListItem}>
+                    <Text variant="bodySmall" color="secondary">
+                      -
+                    </Text>
+                    <Text variant="bodySmall" color="secondary">
+                      {`${t('profileScreen.metrics.fatTarget')}: ${profileSummary.fatGrams}${t('common.units.gram')} / ${t('common.units.day')}`}
+                    </Text>
+                  </View>
                 </View>
               </Card>
             ) : null}
@@ -452,7 +540,7 @@ export default function WelcomeScreen() {
           enabled
           offset={{
             closed: 0,
-            opened: 0,
+            opened: theme.metrics.spacingV.p32,
           }}
           style={styles.footerSticky}
         >
@@ -533,6 +621,85 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.brand.primary,
     borderWidth: 1,
     borderColor: theme.colors.brand.primary,
+  },
+  activityCard: {
+    gap: theme.metrics.spacingV.p12,
+    padding: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  activityHeaderTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+  },
+  activityHeaderIcon: {
+    width: theme.metrics.spacing.p28,
+    height: theme.metrics.spacing.p28,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.state.successBg,
+  },
+  activityGrid: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+  },
+  activityTile: {
+    flex: 1,
+    minHeight: theme.metrics.spacing.p64,
+    paddingHorizontal: theme.metrics.spacing.p8,
+    paddingVertical: theme.metrics.spacingV.p8,
+    borderRadius: theme.metrics.borderRadius.lg,
+    backgroundColor: theme.colors.background.input,
+    borderWidth: 1,
+    borderColor: theme.colors.background.input,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.metrics.spacingV.p4,
+  },
+  activityTileActive: {
+    backgroundColor: theme.colors.state.successBg,
+    borderColor: theme.colors.brand.primary,
+  },
+  activityTileIcon: {
+    width: theme.metrics.spacing.p32,
+    height: theme.metrics.spacing.p32,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.surface,
+  },
+  activityTileIconActive: {
+    backgroundColor: theme.colors.background.surface,
+  },
+  activityDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+    padding: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.lg,
+    backgroundColor: theme.colors.state.successBg,
+  },
+  activityDetailIcon: {
+    width: theme.metrics.spacing.p32,
+    height: theme.metrics.spacing.p32,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.surface,
+  },
+  activityDetailCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
   },
   summaryCard: {
     gap: vs(6),

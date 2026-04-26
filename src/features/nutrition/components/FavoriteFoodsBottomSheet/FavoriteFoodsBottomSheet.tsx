@@ -6,7 +6,7 @@ import {
 } from '@gorhom/bottom-sheet';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { Card, Icon, SearchBar, Text } from '@/common/components';
+import { Card, Icon, Loading, SearchBar, Text } from '@/common/components';
 import type { FavoriteFood } from '@/features/nutrition/types';
 import { styles } from './FavoriteFoodsBottomSheet.styles';
 import type { FavoriteFoodsBottomSheetProps } from './FavoriteFoodsBottomSheet.types';
@@ -25,6 +25,9 @@ export function FavoriteFoodsBottomSheet({
   topInset,
   onDismiss,
   snapPoints = ['65%', '88%'],
+  hasNextPage = false,
+  isLoadingMore = false,
+  onLoadMore,
 }: FavoriteFoodsBottomSheetProps) {
   const [searchValue, setSearchValue] = useState('');
 
@@ -51,6 +54,14 @@ export function FavoriteFoodsBottomSheet({
     ),
     []
   );
+
+  const handleEndReached = useCallback(() => {
+    if (!hasNextPage || isLoadingMore) {
+      return;
+    }
+
+    onLoadMore?.();
+  }, [hasNextPage, isLoadingMore, onLoadMore]);
 
   return (
     <BottomSheetModal
@@ -99,6 +110,8 @@ export function FavoriteFoodsBottomSheet({
           keyExtractor={(item: FavoriteFood) => item.id}
           contentContainerStyle={styles.sheetList}
           keyboardShouldPersistTaps="handled"
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.4}
           ListEmptyComponent={
             <Card variant="filled" style={styles.sheetEmptyCard}>
               <Text variant="body" weight="semibold" align="center">
@@ -108,6 +121,13 @@ export function FavoriteFoodsBottomSheet({
                 {emptySubtitle}
               </Text>
             </Card>
+          }
+          ListFooterComponent={
+            isLoadingMore ? (
+              <View style={styles.sheetFooter}>
+                <Loading size="small" />
+              </View>
+            ) : null
           }
           renderItem={({ item }: { item: FavoriteFood }) => renderFavoriteItem(item)}
         />

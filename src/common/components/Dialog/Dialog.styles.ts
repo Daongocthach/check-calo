@@ -7,12 +7,17 @@ export const styles = StyleSheet.create((theme) => ({
     alignItems: 'center' as const,
     backgroundColor: theme.colors.overlay.modal,
     padding: theme.metrics.spacing.p16,
+    position: 'relative' as const,
+  },
+  backdropPressable: {
+    ...StyleSheet.absoluteFillObject,
   },
   card: {
     backgroundColor: theme.colors.background.modal,
     borderRadius: theme.metrics.borderRadius.xl,
     padding: theme.metrics.spacing.p24,
     gap: theme.metrics.spacingV.p12,
+    zIndex: 1,
     variants: {
       size: {
         sm: {

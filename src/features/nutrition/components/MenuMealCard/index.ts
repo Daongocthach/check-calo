@@ -1,0 +1,1 @@
+export { MenuMealCard } from './MenuMealCard';

@@ -3,14 +3,23 @@ import { router, useLocalSearchParams } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Button, Card, Icon, ScreenContainer, SupportPromptCard, Text } from '@/common/components';
+import {
+  Button,
+  Card,
+  Dialog,
+  Icon,
+  Input,
+  ScreenContainer,
+  SupportPromptCard,
+  Text,
+} from '@/common/components';
 import {
   enqueueFoodEntryImageSync,
   processPendingFoodEntryImageSyncQueue,
 } from '@/features/nutrition/services/foodEntrySyncQueue';
-import { listManualMeals } from '@/features/nutrition/services/manualMealsDatabase';
+import { getManualMealByItemIds } from '@/features/nutrition/services/manualMealsDatabase';
 import {
   createFoodEntry,
   getFavoriteFoodById,
@@ -55,6 +64,19 @@ interface FoodDetailData {
   consumedAt: string | null;
 }
 
+interface FoodDetailEditState {
+  visible: boolean;
+  title: string;
+  quantityLabel: string;
+  quantityGrams: string;
+  calories: string;
+  proteinGrams: string;
+  carbsGrams: string;
+  fatGrams: string;
+  notes: string;
+  error: string | null;
+}
+
 const NOTE_CHAR_LIMIT = 200;
 
 function parseNumber(value: string | undefined) {
@@ -72,6 +94,28 @@ function parseQuantityGrams(value: string | undefined) {
   }
 
   const parsedValue = Number(value);
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function parseRequiredNumericInput(value: string) {
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  const parsedValue = Number(trimmed);
+  return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : null;
+}
+
+function parseOptionalNumericInput(value: string) {
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  const parsedValue = Number(trimmed);
   return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
 }
 
@@ -182,12 +226,39 @@ function getSourcePillStyle(source: FoodDetailSource) {
   }
 }
 
+function toEditState(detail: FoodDetailData): FoodDetailEditState {
+  return {
+    visible: true,
+    title: detail.title,
+    quantityLabel: detail.quantityLabel,
+    quantityGrams: detail.quantityGrams !== null ? String(detail.quantityGrams) : '',
+    calories: String(detail.calories),
+    proteinGrams: String(detail.proteinGrams),
+    carbsGrams: String(detail.carbsGrams),
+    fatGrams: String(detail.fatGrams),
+    notes: detail.notes ?? '',
+    error: null,
+  };
+}
+
 export default function FoodDetailScreen() {
   const { t, i18n } = useTranslation();
   const params = useLocalSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [detail, setDetail] = useState<FoodDetailData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [editDialog, setEditDialog] = useState<FoodDetailEditState>({
+    visible: false,
+    title: '',
+    quantityLabel: '',
+    quantityGrams: '',
+    calories: '',
+    proteinGrams: '',
+    carbsGrams: '',
+    fatGrams: '',
+    notes: '',
+    error: null,
+  });
 
   const typedParams = params as Record<string, string | undefined>;
   const source = resolveSource({
@@ -265,11 +336,10 @@ export default function FoodDetailScreen() {
             return;
           }
         } else if (mealLocalId && itemLocalId) {
-          const meals = await listManualMeals();
-          const meal = meals.find((mealItem) => mealItem.localId === mealLocalId);
-          const item = meal?.items.find((mealItem) => mealItem.localId === itemLocalId);
+          const mealResult = await getManualMealByItemIds(mealLocalId, itemLocalId);
 
-          if (meal && item && active) {
+          if (mealResult && active) {
+            const { meal, item } = mealResult;
             const quantityGrams =
               item.quantityGrams !== null && item.quantityGrams !== undefined
                 ? item.quantityGrams * item.servings
@@ -385,7 +455,75 @@ export default function FoodDetailScreen() {
 
   const sourceLabel = detail ? getSourceLabel(detail.source, t) : '';
   const showSaveAction = detail ? detail.source === 'ai' || detail.source === 'barcode' : false;
+  const showEditAction = detail ? detail.source === 'ai' : false;
   const quantityDisplay = detail ? getQuantityDisplay(detail, t('common.units.gram')) : '';
+
+  const openEditDialog = useCallback(() => {
+    if (!detail) {
+      return;
+    }
+
+    setEditDialog(toEditState(detail));
+  }, [detail]);
+
+  const closeEditDialog = useCallback(() => {
+    setEditDialog((previous) => ({ ...previous, visible: false, error: null }));
+  }, []);
+
+  const saveEditDialog = useCallback(() => {
+    if (!detail) {
+      return;
+    }
+
+    const title = editDialog.title.trim();
+    const quantityLabel = editDialog.quantityLabel.trim();
+    const calories = parseRequiredNumericInput(editDialog.calories);
+    const proteinGrams = parseRequiredNumericInput(editDialog.proteinGrams);
+    const carbsGrams = parseRequiredNumericInput(editDialog.carbsGrams);
+    const fatGrams = parseRequiredNumericInput(editDialog.fatGrams);
+
+    if (
+      !title ||
+      !quantityLabel ||
+      calories === null ||
+      proteinGrams === null ||
+      carbsGrams === null ||
+      fatGrams === null
+    ) {
+      setEditDialog((previous) => ({
+        ...previous,
+        error: t('validation.required'),
+      }));
+      return;
+    }
+
+    const quantityGrams = parseOptionalNumericInput(editDialog.quantityGrams);
+
+    if (editDialog.quantityGrams.trim().length > 0 && quantityGrams === null) {
+      setEditDialog((previous) => ({
+        ...previous,
+        error: t('validation.numberInvalid'),
+      }));
+      return;
+    }
+
+    setDetail((previous) =>
+      previous
+        ? {
+            ...previous,
+            title,
+            quantityLabel,
+            quantityGrams,
+            calories: Math.round(calories),
+            proteinGrams: Math.round(proteinGrams),
+            carbsGrams: Math.round(carbsGrams),
+            fatGrams: Math.round(fatGrams),
+            notes: editDialog.notes.trim().length > 0 ? editDialog.notes.trim() : null,
+          }
+        : previous
+    );
+    closeEditDialog();
+  }, [closeEditDialog, detail, editDialog, t]);
 
   const handleSavePress = useCallback(async () => {
     if (!detail || isSaving) {
@@ -442,144 +580,282 @@ export default function FoodDetailScreen() {
   }
 
   return (
-    <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
-      <View style={styles.content}>
-        <Card variant="elevated" style={styles.imageCard}>
-          {detail.imageUri ? (
-            <Image
-              source={{ uri: detail.thumbnailUri ?? detail.imageUri }}
-              style={styles.image}
-              contentFit="cover"
-              accessibilityLabel={t('foodDetail.foodImageAlt')}
-            />
-          ) : (
-            <View style={styles.placeholder}>
-              <Icon name="restaurant-outline" size={42} variant="secondary" />
-            </View>
-          )}
-        </Card>
+    <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
+      <View style={styles.screen}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Card variant="elevated" style={styles.imageCard}>
+            {detail.imageUri ? (
+              <Image
+                source={{ uri: detail.thumbnailUri ?? detail.imageUri }}
+                style={styles.image}
+                contentFit="cover"
+                accessibilityLabel={t('foodDetail.foodImageAlt')}
+              />
+            ) : (
+              <View style={styles.placeholder}>
+                <Icon name="restaurant-outline" size={42} variant="secondary" />
+              </View>
+            )}
+          </Card>
 
-        <View style={styles.titleBlock}>
-          <View style={styles.titleRow}>
-            <Text variant="h2" weight="semibold" style={styles.title} numberOfLines={2}>
-              {detail.title}
-            </Text>
-            <View style={[styles.sourcePill, getSourcePillStyle(detail.source)]}>
-              <Text variant="caption" weight="semibold" color="onBrand">
-                {sourceLabel}
+          <View style={styles.titleBlock}>
+            <View style={styles.titleRow}>
+              <Text variant="h2" weight="semibold" style={styles.title} numberOfLines={2}>
+                {detail.title}
               </Text>
-            </View>
-          </View>
-
-          <Text variant="bodySmall" color="secondary">
-            {quantityDisplay}
-          </Text>
-
-          {detail.consumedAt ? (
-            <Text variant="caption" color="secondary">
-              {toDisplayDate(detail.consumedAt, i18n.language)}
-            </Text>
-          ) : null}
-        </View>
-
-        <Card variant="filled" style={styles.summaryCard}>
-          <View style={styles.summaryHeader}>
-            <Text variant="body" weight="semibold">
-              {t('foodDetail.summaryTitle')}
-            </Text>
-            {detail.source === 'ai' ? (
-              <View style={styles.accuracyPill}>
-                <Text variant="caption" weight="semibold" color="secondary">
-                  {t('foodDetail.accuracyLabel')}
+              <View style={[styles.sourcePill, getSourcePillStyle(detail.source)]}>
+                <Text variant="caption" weight="semibold" color="onBrand">
+                  {sourceLabel}
                 </Text>
               </View>
+            </View>
+
+            <Text variant="bodySmall" color="secondary">
+              {quantityDisplay}
+            </Text>
+
+            {detail.consumedAt ? (
+              <Text variant="caption" color="secondary">
+                {toDisplayDate(detail.consumedAt, i18n.language)}
+              </Text>
+            ) : null}
+
+            {showEditAction ? (
+              <Button
+                title={t('foodDetail.editAction')}
+                variant="outline"
+                size="sm"
+                onPress={openEditDialog}
+                style={styles.editButton}
+              />
             ) : null}
           </View>
 
-          <View style={styles.calorieRow}>
-            <Text variant="h1" weight="bold" align="center">
-              {detail.calories}
-              <Text variant="bodySmall" weight="regular" color="secondary">
-                {` ${t('common.units.kcal')}`}
+          <Card variant="filled" style={styles.summaryCard}>
+            <View style={styles.summaryHeader}>
+              <Text variant="body" weight="semibold">
+                {t('foodDetail.summaryTitle')}
               </Text>
-            </Text>
-          </View>
+              {detail.source === 'ai' ? (
+                <View style={styles.accuracyPill}>
+                  <Text variant="caption" weight="semibold" color="secondary">
+                    {t('foodDetail.accuracyLabel')}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
 
-          <View style={styles.macroGrid}>
-            {macroValues.map((macro) => (
-              <View key={macro.key} style={styles.macroItem}>
-                <Text variant="bodySmall" color="secondary" align="center" numberOfLines={1}>
-                  {macro.label}
+            <View style={styles.calorieRow}>
+              <Text variant="h1" weight="bold" align="center">
+                {detail.calories}
+                <Text variant="bodySmall" weight="regular" color="secondary">
+                  {` ${t('common.units.kcal')}`}
                 </Text>
-                <View style={styles.macroValueRow}>
-                  <Text variant="body" weight="semibold" align="center">
-                    {macro.value}
-                  </Text>
-                  <Text variant="bodySmall" color="secondary" align="center">
-                    {t('common.units.gram')}
-                  </Text>
-                </View>
-                <View style={styles.macroTrack}>
-                  <View
-                    style={[
-                      styles.macroFill,
-                      macro.tone === 'success' && styles.macroFillSuccess,
-                      macro.tone === 'warning' && styles.macroFillWarning,
-                      macro.tone === 'error' && styles.macroFillError,
-                      { width: `${macro.fill}%` },
-                    ]}
-                  />
-                </View>
-              </View>
-            ))}
-          </View>
-        </Card>
-
-        {detail.notes ? (
-          <Card variant="outlined" style={styles.notesCard}>
-            <Text variant="bodySmall" color="secondary" style={styles.notesLabel}>
-              {t('foodDetail.notesLabel')}
-            </Text>
-            <View style={styles.notesBody}>
-              <Text variant="bodySmall" style={styles.notesText}>
-                {detail.notes}
-              </Text>
-              <Text variant="caption" color="secondary" style={styles.notesCounter}>
-                {`${Math.min(detail.notes.length, NOTE_CHAR_LIMIT)}/${NOTE_CHAR_LIMIT}`}
               </Text>
             </View>
-          </Card>
-        ) : null}
 
-        {detail.source === 'ai' ? (
-          <Text variant="bodySmall" color="secondary" style={styles.disclaimer}>
-            {t('foodDetail.estimatedDisclaimer')}
-          </Text>
-        ) : null}
+            <View style={styles.macroGrid}>
+              {macroValues.map((macro) => (
+                <View key={macro.key} style={styles.macroItem}>
+                  <Text variant="bodySmall" color="secondary" align="center" numberOfLines={1}>
+                    {macro.label}
+                  </Text>
+                  <View style={styles.macroValueRow}>
+                    <Text variant="body" weight="semibold" align="center">
+                      {macro.value}
+                    </Text>
+                    <Text variant="bodySmall" color="secondary" align="center">
+                      {t('common.units.gram')}
+                    </Text>
+                  </View>
+                  <View style={styles.macroTrack}>
+                    <View
+                      style={[
+                        styles.macroFill,
+                        macro.tone === 'success' && styles.macroFillSuccess,
+                        macro.tone === 'warning' && styles.macroFillWarning,
+                        macro.tone === 'error' && styles.macroFillError,
+                        { width: `${macro.fill}%` },
+                      ]}
+                    />
+                  </View>
+                </View>
+              ))}
+            </View>
+          </Card>
+
+          {detail.notes ? (
+            <Card variant="outlined" style={styles.notesCard}>
+              <Text variant="bodySmall" color="secondary" style={styles.notesLabel}>
+                {t('foodDetail.notesLabel')}
+              </Text>
+              <View style={styles.notesBody}>
+                <Text variant="bodySmall" style={styles.notesText}>
+                  {detail.notes}
+                </Text>
+                <Text variant="caption" color="secondary" style={styles.notesCounter}>
+                  {`${Math.min(detail.notes.length, NOTE_CHAR_LIMIT)}/${NOTE_CHAR_LIMIT}`}
+                </Text>
+              </View>
+            </Card>
+          ) : null}
+
+          {detail.source === 'ai' ? (
+            <Text variant="bodySmall" color="secondary" style={styles.disclaimer}>
+              {t('foodDetail.estimatedDisclaimer')}
+            </Text>
+          ) : null}
+
+          <SupportPromptCard
+            message={t('foodDetail.supportMessage')}
+            actionLabel={t('foodDetail.supportAction')}
+            onActionPress={handleSupportPress}
+          />
+        </ScrollView>
 
         {showSaveAction ? (
-          <Button
-            title={t('foodDetail.saveAction')}
-            leftIcon={<Icon name="add" size={16} variant="onBrand" />}
-            onPress={() => {
-              void handleSavePress();
-            }}
-            loading={isSaving}
-            style={styles.saveButton}
-          />
+          <View style={styles.saveFooter}>
+            <Button
+              title={t('foodDetail.saveAction')}
+              leftIcon={<Icon name="add" size={16} variant="onBrand" />}
+              onPress={() => {
+                void handleSavePress();
+              }}
+              loading={isSaving}
+              style={styles.saveButton}
+            />
+          </View>
         ) : null}
-
-        <SupportPromptCard
-          message={t('foodDetail.supportMessage')}
-          actionLabel={t('foodDetail.supportAction')}
-          onActionPress={handleSupportPress}
-        />
       </View>
+
+      <Dialog
+        visible={editDialog.visible}
+        onDismiss={closeEditDialog}
+        title={t('foodDetail.editTitle')}
+        size="lg"
+        actions={[
+          {
+            label: t('common.cancel'),
+            variant: 'ghost',
+            onPress: closeEditDialog,
+          },
+          {
+            label: t('common.save'),
+            variant: 'primary',
+            onPress: saveEditDialog,
+          },
+        ]}
+      >
+        <ScrollView
+          style={styles.editDialogScroll}
+          contentContainerStyle={styles.editDialogContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Input
+            label={t('foodDetail.editFields.title')}
+            value={editDialog.title}
+            onChangeText={(value) => {
+              setEditDialog((previous) => ({ ...previous, title: value, error: null }));
+            }}
+          />
+          <Input
+            label={t('foodDetail.editFields.quantityLabel')}
+            value={editDialog.quantityLabel}
+            onChangeText={(value) => {
+              setEditDialog((previous) => ({ ...previous, quantityLabel: value, error: null }));
+            }}
+          />
+          <Input
+            label={t('foodDetail.editFields.quantityGrams')}
+            value={editDialog.quantityGrams}
+            keyboardType="decimal-pad"
+            onChangeText={(value) => {
+              setEditDialog((previous) => ({ ...previous, quantityGrams: value, error: null }));
+            }}
+          />
+          <Input
+            label={t('foodDetail.editFields.calories')}
+            value={editDialog.calories}
+            keyboardType="decimal-pad"
+            onChangeText={(value) => {
+              setEditDialog((previous) => ({ ...previous, calories: value, error: null }));
+            }}
+          />
+          <View style={styles.editMacroRow}>
+            <View style={styles.editMacroItem}>
+              <Input
+                label={t('statsScreen.macros.protein')}
+                value={editDialog.proteinGrams}
+                keyboardType="decimal-pad"
+                onChangeText={(value) => {
+                  setEditDialog((previous) => ({
+                    ...previous,
+                    proteinGrams: value,
+                    error: null,
+                  }));
+                }}
+              />
+            </View>
+            <View style={styles.editMacroItem}>
+              <Input
+                label={t('statsScreen.macros.carbs')}
+                value={editDialog.carbsGrams}
+                keyboardType="decimal-pad"
+                onChangeText={(value) => {
+                  setEditDialog((previous) => ({
+                    ...previous,
+                    carbsGrams: value,
+                    error: null,
+                  }));
+                }}
+              />
+            </View>
+            <View style={styles.editMacroItem}>
+              <Input
+                label={t('statsScreen.macros.fat')}
+                value={editDialog.fatGrams}
+                keyboardType="decimal-pad"
+                onChangeText={(value) => {
+                  setEditDialog((previous) => ({
+                    ...previous,
+                    fatGrams: value,
+                    error: null,
+                  }));
+                }}
+              />
+            </View>
+          </View>
+          <Input
+            label={t('foodDetail.notesLabel')}
+            value={editDialog.notes}
+            onChangeText={(value) => {
+              setEditDialog((previous) => ({ ...previous, notes: value, error: null }));
+            }}
+          />
+          {editDialog.error ? (
+            <Text variant="caption" style={styles.editErrorText}>
+              {editDialog.error}
+            </Text>
+          ) : null}
+        </ScrollView>
+      </Dialog>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
+  screen: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
   content: {
     gap: theme.metrics.spacingV.p16,
     paddingHorizontal: theme.metrics.spacing.p16,
@@ -609,6 +885,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   titleBlock: {
     gap: theme.metrics.spacingV.p4,
+  },
+  editButton: {
+    alignSelf: 'flex-start',
+    marginTop: theme.metrics.spacingV.p4,
   },
   titleRow: {
     flexDirection: 'row',
@@ -714,7 +994,29 @@ const styles = StyleSheet.create((theme) => ({
   disclaimer: {
     paddingHorizontal: theme.metrics.spacing.p4,
   },
+  saveFooter: {
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingTop: theme.metrics.spacingV.p12,
+    paddingBottom: theme.metrics.spacingV.p16,
+    backgroundColor: theme.colors.background.app,
+  },
   saveButton: {
     backgroundColor: theme.colors.brand.tertiary,
+  },
+  editDialogScroll: {
+    maxHeight: '75%',
+  },
+  editDialogContent: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  editMacroRow: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+  },
+  editMacroItem: {
+    flex: 1,
+  },
+  editErrorText: {
+    color: theme.colors.state.error,
   },
 }));

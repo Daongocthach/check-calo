@@ -20,6 +20,7 @@ import {
   getDailyCalorieGoalState,
   nowIsoString,
 } from '../utils/calorie';
+import type { PageRequest, PaginatedResult } from './pagination';
 
 interface UserProfileRow {
   id: number;
@@ -142,6 +143,59 @@ function mapFavoriteFood(row: FavoriteFoodRow): FavoriteFood {
     thumbnailUri: row.thumbnail_uri,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+function normalizePage(page?: number) {
+  return Math.max(1, Math.floor(page ?? 1));
+}
+
+function normalizePageSize(pageSize?: number) {
+  return Math.max(1, Math.floor(pageSize ?? 20));
+}
+
+function startOfDayIso(value: string | Date) {
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+}
+
+function endOfDayIso(value: string | Date) {
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+  date.setHours(23, 59, 59, 999);
+  return date.toISOString();
+}
+
+interface FavoriteFoodPageRequest extends PageRequest {
+  searchQuery?: string;
+  startDate?: string | Date;
+  endDate?: string | Date;
+}
+
+function buildFavoriteFoodsWhereClause(request: FavoriteFoodPageRequest) {
+  const conditions: string[] = [];
+  const params: Array<string> = [];
+  const normalizedSearch = request.searchQuery?.trim().toLowerCase();
+
+  if (request.startDate) {
+    conditions.push('created_at >= ?');
+    params.push(startOfDayIso(request.startDate));
+  }
+
+  if (request.endDate) {
+    conditions.push('created_at <= ?');
+    params.push(endOfDayIso(request.endDate));
+  }
+
+  if (normalizedSearch) {
+    conditions.push("(LOWER(name) LIKE ? OR LOWER(COALESCE(notes, '')) LIKE ?)");
+    const query = `%${normalizedSearch}%`;
+    params.push(query, query);
+  }
+
+  return {
+    whereClause: conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '',
+    params,
   };
 }
 
@@ -628,13 +682,69 @@ export async function deleteFoodEntry(entryId: string) {
   await database.runAsync('DELETE FROM food_entries WHERE id = ?;', [entryId]);
 }
 
-export async function listFavoriteFoods() {
+export async function listFavoriteFoodsPage(
+  request: FavoriteFoodPageRequest = {}
+): Promise<PaginatedResult<FavoriteFood>> {
   const database = await getDatabase();
+  const page = normalizePage(request.page);
+  const pageSize = normalizePageSize(request.pageSize);
+  const offset = (page - 1) * pageSize;
+  const { whereClause, params } = buildFavoriteFoodsWhereClause(request);
   const rows = await database.getAllAsync<FavoriteFoodRow>(
-    'SELECT * FROM favorite_foods ORDER BY created_at DESC;'
+    `
+      SELECT *
+      FROM favorite_foods
+      ${whereClause}
+      ORDER BY created_at DESC, id DESC
+      LIMIT ? OFFSET ?;
+    `,
+    [...params, pageSize + 1, offset]
   );
 
-  return rows.map(mapFavoriteFood);
+  const hasNextPage = rows.length > pageSize;
+  const pagedRows = hasNextPage ? rows.slice(0, pageSize) : rows;
+
+  return {
+    items: pagedRows.map(mapFavoriteFood),
+    page,
+    pageSize,
+    hasNextPage,
+  };
+}
+
+export async function countFavoriteFoods(request: FavoriteFoodPageRequest = {}) {
+  const database = await getDatabase();
+  const { whereClause, params } = buildFavoriteFoodsWhereClause(request);
+  const row = await database.getFirstAsync<{ count: number | null }>(
+    `
+      SELECT COUNT(*) AS count
+      FROM favorite_foods
+      ${whereClause};
+    `,
+    params
+  );
+
+  return row?.count ?? 0;
+}
+
+export async function getFavoriteFoodsStartDate(request: FavoriteFoodPageRequest = {}) {
+  const database = await getDatabase();
+  const { whereClause, params } = buildFavoriteFoodsWhereClause(request);
+  const row = await database.getFirstAsync<{ created_at: string | null }>(
+    `
+      SELECT MIN(created_at) AS created_at
+      FROM favorite_foods
+      ${whereClause};
+    `,
+    params
+  );
+
+  return row?.created_at ?? null;
+}
+
+export async function listFavoriteFoods() {
+  const result = await listFavoriteFoodsPage();
+  return result.items;
 }
 
 export async function getFavoriteFoodById(favoriteId: string) {

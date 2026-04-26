@@ -425,7 +425,7 @@ export default function FoodFormScreen() {
           previousFavorite?.imageUri,
           previousFavorite?.thumbnailUri
         );
-        router.replace('/favorites');
+        router.replace('/recently-food');
         return;
       }
 

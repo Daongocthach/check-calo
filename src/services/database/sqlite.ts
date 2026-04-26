@@ -9,6 +9,21 @@ function createDatabase() {
   return SQLite.openDatabaseAsync(DATABASE_NAME);
 }
 
+async function addColumnIfMissing(
+  database: SQLite.SQLiteDatabase,
+  tableName: string,
+  columnName: string,
+  columnDefinition: string
+) {
+  const columns = await database.getAllAsync<{ name: string }>(`PRAGMA table_info(${tableName});`);
+
+  if (columns.some((column) => column.name === columnName)) {
+    return;
+  }
+
+  await database.execAsync(`ALTER TABLE ${tableName} ADD COLUMN ${columnDefinition};`);
+}
+
 export async function getDatabase() {
   if (!databasePromise) {
     databasePromise = createDatabase();
@@ -87,10 +102,8 @@ async function runVersion1Migration(database: SQLite.SQLiteDatabase) {
 }
 
 async function runVersion2Migration(database: SQLite.SQLiteDatabase) {
-  await database.execAsync(`
-    ALTER TABLE food_entries ADD COLUMN image_uri TEXT;
-    ALTER TABLE favorite_foods ADD COLUMN image_uri TEXT;
-  `);
+  await addColumnIfMissing(database, 'food_entries', 'image_uri', 'image_uri TEXT');
+  await addColumnIfMissing(database, 'favorite_foods', 'image_uri', 'image_uri TEXT');
 }
 
 async function runVersion3Migration(database: SQLite.SQLiteDatabase) {
@@ -232,20 +245,43 @@ async function runVersion3Migration(database: SQLite.SQLiteDatabase) {
 }
 
 async function runVersion4Migration(database: SQLite.SQLiteDatabase) {
-  await database.execAsync(`
-    ALTER TABLE food_entries ADD COLUMN thumbnail_uri TEXT;
-    ALTER TABLE favorite_foods ADD COLUMN thumbnail_uri TEXT;
-  `);
+  await addColumnIfMissing(database, 'food_entries', 'thumbnail_uri', 'thumbnail_uri TEXT');
+  await addColumnIfMissing(database, 'favorite_foods', 'thumbnail_uri', 'thumbnail_uri TEXT');
 }
 
 async function runVersion5Migration(database: SQLite.SQLiteDatabase) {
-  await database.execAsync(`
-    ALTER TABLE user_profile ADD COLUMN desired_weight_kg REAL NOT NULL DEFAULT 0;
-    ALTER TABLE user_profile ADD COLUMN maintenance_calorie_target INTEGER NOT NULL DEFAULT 0;
-    ALTER TABLE user_profile ADD COLUMN protein_target_grams REAL NOT NULL DEFAULT 0;
-    ALTER TABLE user_profile ADD COLUMN carbs_target_grams REAL NOT NULL DEFAULT 0;
-    ALTER TABLE user_profile ADD COLUMN fat_target_grams REAL NOT NULL DEFAULT 0;
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'desired_weight_kg',
+    'desired_weight_kg REAL NOT NULL DEFAULT 0'
+  );
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'maintenance_calorie_target',
+    'maintenance_calorie_target INTEGER NOT NULL DEFAULT 0'
+  );
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'protein_target_grams',
+    'protein_target_grams REAL NOT NULL DEFAULT 0'
+  );
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'carbs_target_grams',
+    'carbs_target_grams REAL NOT NULL DEFAULT 0'
+  );
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'fat_target_grams',
+    'fat_target_grams REAL NOT NULL DEFAULT 0'
+  );
 
+  await database.execAsync(`
     UPDATE user_profile
     SET
       desired_weight_kg = CASE
@@ -281,9 +317,14 @@ async function runVersion5Migration(database: SQLite.SQLiteDatabase) {
 }
 
 async function runVersion6Migration(database: SQLite.SQLiteDatabase) {
-  await database.execAsync(`
-    ALTER TABLE user_profile ADD COLUMN monthly_weight_loss_kg REAL NOT NULL DEFAULT 0;
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'monthly_weight_loss_kg',
+    'monthly_weight_loss_kg REAL NOT NULL DEFAULT 0'
+  );
 
+  await database.execAsync(`
     UPDATE user_profile
     SET monthly_weight_loss_kg = CASE
       WHEN desired_weight_kg < weight_kg
@@ -322,10 +363,8 @@ async function runVersion7Migration(database: SQLite.SQLiteDatabase) {
 }
 
 async function runVersion8Migration(database: SQLite.SQLiteDatabase) {
-  await database.execAsync(`
-    ALTER TABLE meal_items ADD COLUMN image_uri TEXT;
-    ALTER TABLE meal_items ADD COLUMN thumbnail_uri TEXT;
-  `);
+  await addColumnIfMissing(database, 'meal_items', 'image_uri', 'image_uri TEXT');
+  await addColumnIfMissing(database, 'meal_items', 'thumbnail_uri', 'thumbnail_uri TEXT');
 }
 
 export async function initializeDatabase() {

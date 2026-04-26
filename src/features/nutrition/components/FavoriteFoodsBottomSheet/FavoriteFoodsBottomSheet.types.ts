@@ -16,4 +16,7 @@ export interface FavoriteFoodsBottomSheetProps {
   topInset?: number;
   onDismiss?: () => void;
   snapPoints?: Array<string | number>;
+  hasNextPage?: boolean;
+  isLoadingMore?: boolean;
+  onLoadMore?: () => void;
 }

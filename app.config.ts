@@ -15,6 +15,12 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   scheme: 'check-calo',
   userInterfaceStyle: 'automatic',
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
+  updates: {
+    enabled: true,
+  },
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.gempixel.checkcalo',
@@ -45,6 +51,7 @@ const config: ExpoConfig = {
     ...publicEnv,
   },
   plugins: [
+    'expo-updates',
     [
       'expo-localization',
       {

@@ -14,6 +14,8 @@
     "close": "Đóng",
     "edit": "Chỉnh sửa",
     "more": "Thêm",
+    "decreaseQuantity": "Giảm khẩu phần",
+    "increaseQuantity": "Tăng khẩu phần",
     "defaultMealName": "Món ăn",
     "numberPlaceholder": "0",
     "submit": "Gửi",
@@ -39,7 +41,7 @@
     "stats": "Thống kê",
     "add": "Thêm",
     "menu": "Thực đơn",
-    "favorites": "Thư viện",
+    "favorites": "Món gần đây",
     "profile": "Hồ sơ",
     "showcase": "Trình diễn",
     "settings": "Cài đặt"
@@ -55,10 +57,34 @@
   },
   "menuScreen": {
     "title": "Thực đơn",
+    "headerSubtitle": "Theo dõi bữa ăn mỗi ngày",
+    "todayTotal": "Tổng hôm nay",
+    "aiTitle": "Gợi ý từ AI",
+    "aiSubtitle": "Bạn còn thiếu ~{{value}}g protein để đạt mục tiêu hôm nay.",
+    "viewSuggestion": "Xem gợi ý",
+    "quickAdd": "Thêm nhanh",
+    "quickFoods": {
+      "chicken": "Ức gà",
+      "egg": "Trứng",
+      "banana": "Chuối",
+      "oat": "Yến mạch"
+    },
+    "summary": {
+      "totalCalories": "Tổng calories",
+      "average": "Trung bình",
+      "target": "Mục tiêu"
+    },
     "totalCaloriesTitle": "Tổng năng lượng",
     "energyTitle": "Tổng năng lượng",
     "todayLabel": "Hôm nay",
     "calendarAction": "Chọn ngày",
+    "aiSuggestion": "Gợi ý thêm món từ AI",
+    "week": {
+      "title": "Tuần này",
+      "subtitle": "Chọn một ngày trong chế độ 7 ngày",
+      "previousWeek": "Tuần trước",
+      "nextWeek": "Tuần sau"
+    },
     "addFoodAction": "+ Thêm món ăn",
     "filters": {
       "all": "Tất cả"
@@ -120,7 +146,7 @@
     "title": "Thêm món ăn",
     "subtitle": "Chọn cách thêm món vào {{mealName}}.",
     "manualTitle": "Nhập bằng food form",
-    "manualSubtitle": "Mở form đầy đủ để nhập năng lượng và macro thủ công.",
+    "manualSubtitle": "Mở form đầy đủ để nhập năng lượng và dinh dưỡng thủ công.",
     "manualAction": "Mở food form",
     "manualAddSuccess": "Đã thêm {{name}} vào bữa ăn.",
     "libraryTitle": "Từ thư viện món",
@@ -191,6 +217,14 @@
   "foodDetail": {
     "title": "Chi tiết món ăn",
     "analysisTitle": "Kết quả phân tích",
+    "editAction": "Sửa kết quả",
+    "editTitle": "Chỉnh sửa kết quả AI",
+    "editFields": {
+      "title": "Tên món ăn",
+      "quantityLabel": "Nhãn khẩu phần",
+      "quantityGrams": "Số gram",
+      "calories": "Calories"
+    },
     "unknownFoodName": "Món ăn chưa xác định",
     "defaultQuantity": "1 phần",
     "summaryTitle": "Tổng năng lượng",
@@ -213,6 +247,25 @@
     "supportThanks": "Cảm ơn bạn đã ủng hộ!",
     "foodImageAlt": "Ảnh món ăn"
   },
+  "supportScreen": {
+    "title": "Ủng hộ phát triển app",
+    "introTitle": "Cảm ơn bạn đã đồng hành cùng app",
+    "introBody": "Mỗi đóng góp của bạn giúp tụi mình duy trì và cải thiện trải nghiệm cho mọi người ❤️",
+    "subtitle": "Ủng hộ qua chuyển khoản ngân hàng",
+    "providerBrand": "VIETQR.IO",
+    "bankBrand": "Shinhan Bank",
+    "napasBrand": "napas",
+    "accountHolderLabel": "Tên tài khoản",
+    "accountHolder": "DAO NGOC THACH",
+    "accountNumberLabel": "Số tài khoản",
+    "accountNumber": "700-034-951978",
+    "bankLabel": "Ngân hàng",
+    "bankName": "Ngân hàng Shinhan Viet Nam",
+    "copyAction": "Sao chép thông tin chuyển khoản",
+    "copyModalTitle": "Sao chép thông tin chuyển khoản thành công!",
+    "copyModalBody": "Bạn là một phần quan trọng giúp app ngày càng hoàn thiện hơn ❤️",
+    "thanks": "Cảm ơn bạn rất nhiều! 🙏"
+  },
   "homeScreen": {
     "greetingTitle": "Chào {{name}}",
     "alerts": "Thông báo",
@@ -221,7 +274,7 @@
     "caloriesRemainingLabel": "{{value}} kcal còn lại",
     "caloriesConsumed": "Đã nạp {{consumed}} / {{target}} kcal",
     "goalPercent": "{{percent}}% mục tiêu",
-    "macroToday": "Macro hôm nay",
+    "macroToday": "Dinh dưỡng hôm nay",
     "details": "Chi tiết",
     "dailyIntake": "Lượng nạp trong ngày",
     "dayCount": "Ngày 4",
@@ -295,8 +348,9 @@
     }
   },
   "statsScreen": {
-    "title": "Hoạt động của tôi",
-    "subtitle": "Xem nhanh calories, thời lượng tập và thay đổi cân nặng.",
+    "title": "Thống kê",
+    "subtitle": "Theo dõi tiến trình và đạt mục tiêu mỗi ngày",
+    "calUnit": "cal",
     "weekly": "Theo tuần",
     "peakDuration": "70 phút",
     "modes": {
@@ -332,10 +386,10 @@
     "macros": {
       "title": "Mục tiêu dinh dưỡng",
       "subtitle": "Phân bổ đạm, tinh bột và fat đã nạp hôm nay.",
-      "centerLabel": "Tổng macro",
-      "empty": "Chưa có dữ liệu macro cho hôm nay.",
-      "carbs": "Carb",
-      "protein": "Protein",
+      "centerLabel": "Tổng dinh dưỡng",
+      "empty": "Chưa có dữ liệu dinh dưỡng cho hôm nay.",
+      "carbs": "Tinh bột",
+      "protein": "Đạm",
       "fat": "Fat"
     },
     "todayProgress": {
@@ -346,8 +400,16 @@
       "title": "Xu hướng calories",
       "subtitle": "Tổng lượng calories ăn vào theo ngày và tháng."
     },
+    "chartDistributionTitle": "Phân bổ dinh dưỡng",
+    "chartSummary": {
+      "totalCalories": "Tổng calories",
+      "dailyAverage": "TB mỗi ngày",
+      "target": "Mục tiêu",
+      "thisMonth": "Tháng này",
+      "perDay": "/ ngày"
+    },
     "macroDistribution": {
-      "title": "Phân bổ macro theo giai đoạn",
+      "title": "Phân bổ dinh dưỡng theo giai đoạn",
       "subtitle": "Biểu đồ cột chồng hiển thị protein, carb và fat theo từng ngày hoặc tháng."
     }
   },
@@ -392,17 +454,48 @@
       "scanFood": {
         "title": "Quét món ăn",
         "body": "Mở camera, chụp món ăn và app sẽ ước tính calories cùng các chỉ số dinh dưỡng.",
+        "sheetBody": "Mở camera, chụp món ăn và app sẽ ước tính calories",
         "button": "Mở camera món ăn"
       },
       "barcode": {
         "title": "Quét thực phẩm đóng gói",
         "body": "Dùng barcode cho nước uống, snack hoặc sản phẩm có nhãn để lấy dinh dưỡng nhanh hơn.",
+        "sheetBody": "Dùng barcode cho nước uống, snack hoặc sản phẩm có nhãn",
         "button": "Mở quét barcode"
       },
       "manual": {
         "title": "Nhập món thủ công",
         "body": "Tạo món ăn thủ công khi bạn không cần camera hoặc muốn chỉnh nhanh kết quả.",
+        "sheetBody": "Tạo món ăn thủ công nhanh chóng",
         "button": "Tạo mục nhập tay"
+      }
+    },
+    "recent": {
+      "title": "Gần đây",
+      "viewAll": "Xem tất cả",
+      "emptyTitle": "Chưa có món gần đây",
+      "emptySubtitle": "Thêm một món trước, nó sẽ hiện ở đây để dùng lại nhanh.",
+      "items": {
+        "chickenRice": {
+          "title": "Cơm gà",
+          "calories": "450 kcal",
+          "emoji": "🍛"
+        },
+        "milkTea": {
+          "title": "Trà sữa",
+          "calories": "320 kcal",
+          "emoji": "🧋"
+        },
+        "banhMi": {
+          "title": "Bánh mì",
+          "calories": "280 kcal",
+          "emoji": "🥖"
+        },
+        "banana": {
+          "title": "Chuối",
+          "calories": "100 kcal",
+          "emoji": "🍌"
+        }
       }
     },
     "stats": {
@@ -456,7 +549,7 @@
     "saveAction": "Lưu món ăn",
     "saveActionWithCalories": "Lưu món ăn ({{calories}}{{kcal}})",
     "updateAction": "Cập nhật món ăn",
-    "portionCountLabel": "Số lượng khẩu phần",
+    "portionCountLabel": "Số lượng",
     "photoAction": "Chụp ảnh món ăn",
     "photoRetakeAction": "Chụp lại ảnh món ăn",
     "photoHint": "Chạm vào khung ảnh để chụp hoặc thay đổi ảnh món ăn.",
@@ -485,10 +578,10 @@
     }
   },
   "favoritesScreen": {
-    "title": "Thư viện món",
+    "title": "Món gần đây",
     "subtitle": "Những món bạn đã tạo để dùng lại nhanh khi nhập bữa ăn.",
-    "heroTitle": "Thư viện món",
-    "heroTitleWithCount": "Thư viện món ({{count}})",
+    "heroTitle": "Món gần đây",
+    "heroTitleWithCount": "Món gần đây ({{count}})",
     "heroSubtitle": "Kho món ăn cá nhân của bạn",
     "addFavoriteAction": "Thêm món mới vào thư viện",
     "searchPlaceholder": "Tìm món trong thư viện",
@@ -524,7 +617,7 @@
     "subtitle": "Nhập thông tin BMI một lần để app cá nhân hóa mục tiêu calo mỗi ngày.",
     "profileStatus": "Trạng thái BMI",
     "formTitle": "Thông tin cơ bản",
-    "formSubtitle": "Tuổi, giới tính, chiều cao, cân nặng hiện tại, kế hoạch thay đổi cân nặng theo tháng và mức vận động sẽ giúp app tính mục tiêu calories và macro phù hợp.",
+    "formSubtitle": "Tuổi, giới tính, chiều cao, cân nặng hiện tại, kế hoạch thay đổi cân nặng theo tháng và mức vận động sẽ giúp app tính mục tiêu calories và dinh dưỡng phù hợp.",
     "summaryTitle": "Hồ sơ hiện tại",
     "summaryBody": "BMI {{bmi}}, mục tiêu {{calorieTarget}} kcal/ngày.",
     "saveAction": "Lưu và bắt đầu",
@@ -574,7 +667,7 @@
   },
   "profileScreen": {
     "title": "Hồ sơ cá nhân",
-    "subtitle": "Dùng để tính calories & macro phù hợp",
+    "subtitle": "Dùng để tính calories và dinh dưỡng phù hợp",
     "saveAndStart": "Lưu và bắt đầu",
     "saveSuccess": "Đã lưu hồ sơ cá nhân.",
     "basicInfoTitle": "Thông tin cơ bản",
@@ -803,6 +896,16 @@
       "email": "alex@example.com",
       "editProfile": "Chỉnh sửa hồ sơ"
     },
+    "menu": {
+      "profile": "Hồ sơ cá nhân",
+      "goal": "Mục tiêu",
+      "reminders": "Nhắc nhở",
+      "language": "Ngôn ngữ",
+      "units": "Đơn vị",
+      "theme": "Chủ đề",
+      "supportEmoji": "❤️",
+      "support": "Ủng hộ phát triển app"
+    },
     "sections": {
       "account": "Tài khoản",
       "preferences": "Tùy chọn",
@@ -933,6 +1036,7 @@
   "validation": {
     "required": "Trường này là bắt buộc",
     "emailInvalid": "Vui lòng nhập địa chỉ email hợp lệ",
+    "numberInvalid": "Vui lòng nhập số hợp lệ",
     "passwordMin": "Mật khẩu phải có ít nhất 8 ký tự",
     "passwordMismatch": "Mật khẩu không khớp",
     "usernameMin": "Tên người dùng phải có ít nhất 3 ký tự",
