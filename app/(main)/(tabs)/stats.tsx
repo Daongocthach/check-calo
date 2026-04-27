@@ -4,6 +4,7 @@ import type { ComponentProps } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 import Svg, {
   Circle,
   Defs,
@@ -16,7 +17,14 @@ import Svg, {
   Text as SvgText,
 } from 'react-native-svg';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Icon, ProgressBar, ScreenContainer, SegmentedControl, Text } from '@/common/components';
+import {
+  GiftedCircularProgress,
+  Icon,
+  ProgressBar,
+  ScreenContainer,
+  SegmentedControl,
+  Text,
+} from '@/common/components';
 import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
 import {
   getDailyNutritionSummary,
@@ -41,6 +49,7 @@ type TrendMode = 'day' | 'month';
 type TranslateFn = (key: string) => string;
 
 const TREND_MODE_OPTIONS: TrendMode[] = ['day', 'month'];
+const KCAL_PER_KG_FAT = 7700;
 
 const STAT_EMOJIS = {
   sunrise: String.fromCodePoint(0x1f305),
@@ -215,6 +224,13 @@ function formatNumber(value: number, locale: string) {
   }).format(Math.round(value));
 }
 
+function formatDecimal(value: number, locale: string) {
+  return new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  }).format(value);
+}
+
 function createSmoothPath(points: Array<{ x: number; y: number }>) {
   if (points.length === 0) {
     return '';
@@ -351,6 +367,18 @@ export default function StatsTab() {
   const planTitle = goalTracking?.activeGoal
     ? formatWeightGoalTitle(t, goalTracking.activeGoal.goal)
     : t('goalTracking.goalNames.maintainWithOneMonth');
+  const activeGoal = goalTracking?.activeGoal;
+  const targetWeightLossKg =
+    activeGoal?.goal.mode === 'lose' ? Math.max(1, activeGoal.goal.targetKg ?? 1) : 1;
+  const targetDeficitCalories =
+    activeGoal?.goal.mode === 'lose'
+      ? Math.max(1, activeGoal.goal.targetKcalDelta)
+      : KCAL_PER_KG_FAT * targetWeightLossKg;
+  const achievedDeficitCalories =
+    activeGoal?.unit === 'kcal' && activeGoal.goal.mode === 'lose'
+      ? activeGoal.progressValue
+      : Math.max(0, (activeGoal?.targetCalories ?? 0) - (activeGoal?.consumedCalories ?? 0));
+  const remainingDeficitCalories = Math.max(0, targetDeficitCalories - achievedDeficitCalories);
 
   const trendModeOptions = useMemo(
     () =>
@@ -431,24 +459,6 @@ export default function StatsTab() {
       })),
     [aggregatedMacroTrendPoints]
   );
-  const monthSummary = useMemo(() => {
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    const monthPoints = dailyPoints.filter((point) => {
-      const pointDate = new Date(`${point.date}T00:00:00`);
-      return pointDate.getMonth() === currentMonth && pointDate.getFullYear() === currentYear;
-    });
-    const totalCalories = monthPoints.reduce((total, point) => total + point.consumedCalories, 0);
-    const loggedDayCount = new Set(monthPoints.map((point) => point.date)).size;
-    const averageCalories = loggedDayCount > 0 ? totalCalories / loggedDayCount : 0;
-
-    return {
-      totalCalories,
-      averageCalories,
-      targetCalories: targetCalories || profile?.dailyCalorieTarget || 0,
-    };
-  }, [currentDate, dailyPoints, profile?.dailyCalorieTarget, targetCalories]);
-
   const handleTrendModeChange = (value: string) => {
     if (value === 'day' || value === 'month') {
       setTrendMode(value);
@@ -465,50 +475,88 @@ export default function StatsTab() {
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
         <View style={styles.planCard}>
-          <Image source={GoalArrowImage} style={styles.goalImage} contentFit="contain" />
-          <View style={styles.planCopy}>
-            <Text
-              variant="h3"
-              weight="bold"
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              style={styles.cardTitle}
-            >
-              {t('goalTracking.profileTitle')}
-            </Text>
-            <Text variant="bodySmall" color="secondary" style={styles.cardSubtitle}>
-              {t('statsScreen.todayProgress.subtitle')}
-            </Text>
-          </View>
-          <View style={styles.circleProgress}>
-            <View style={styles.circleTrack}>
-              <View style={styles.circleCap} />
-              <Text variant="h2" weight="bold" color="primary" style={styles.circlePercentText}>
-                {`${planProgressPercent}%`}
+          <View style={styles.planHeroRow}>
+            <Image source={GoalArrowImage} style={styles.goalImage} contentFit="contain" />
+            <View style={styles.planCopy}>
+              <Text
+                variant="h3"
+                weight="bold"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                style={styles.planTitleText}
+              >
+                {t('goalTracking.profileTitle')}
               </Text>
+              <Text
+                variant="bodySmall"
+                color="secondary"
+                numberOfLines={2}
+                style={styles.planSubtitleText}
+              >
+                {t('statsScreen.todayProgress.subtitle')}
+              </Text>
+            </View>
+            <View style={styles.circleProgress}>
+              <GiftedCircularProgress
+                progress={planProgressPercent}
+                size={96}
+                strokeWidth={10}
+                trackColor={theme.colors.background.section}
+                progressColor={theme.colors.brand.primary}
+                style={styles.circleRing}
+              >
+                <Text variant="h2" weight="bold" color="primary" style={styles.circlePercentText}>
+                  {`${planProgressPercent}%`}
+                </Text>
+              </GiftedCircularProgress>
             </View>
           </View>
           <View style={styles.planMetrics}>
-            <View style={styles.planMetric}>
-              <Text variant="caption" style={styles.metricLabel}>
-                {t('goalTracking.activeTitle')}
-              </Text>
-              <Text variant="bodySmall" weight="bold" style={styles.metricValue}>
-                {planTitle}
-              </Text>
-            </View>
-            <View style={styles.planDivider} />
-            <View style={styles.planMetric}>
-              <Text variant="caption" style={styles.metricLabel}>
-                {t('goalTracking.progressLabel')}
-              </Text>
-              <Text variant="bodySmall" weight="bold" style={styles.metricValue}>
-                <Text variant="bodySmall" weight="bold" color="primary" style={styles.metricValue}>
-                  {formatNumber(planProgressCurrent, i18n.language)}
-                </Text>
-                {` / ${formatNumber(planProgressTarget, i18n.language)} ${t('common.units.day')}`}
-              </Text>
-            </View>
+            {[
+              <PlanMetric
+                key="plan"
+                label={t('goalTracking.activeTitle')}
+                value={planTitle}
+                style={styles.planMetricCompact}
+              />,
+              <PlanMetric
+                key="progress"
+                label={t('goalTracking.progressLabel')}
+                value={`${formatNumber(Math.round(planProgressCurrent), i18n.language)} / ${formatNumber(
+                  Math.round(planProgressTarget),
+                  i18n.language
+                )}\u00A0${t('common.units.day')}`}
+                style={styles.planMetricProgress}
+              />,
+              <PlanMetric
+                key="achieved"
+                label={t('goalTracking.deficitAchievedLabel')}
+                value={`${formatNumber(achievedDeficitCalories, i18n.language)} ${t(
+                  'common.units.kcal'
+                )}`}
+                meta={t('goalTracking.fatEquivalent', {
+                  value: formatDecimal(achievedDeficitCalories / KCAL_PER_KG_FAT, i18n.language),
+                })}
+                style={styles.planMetricEmphasis}
+              />,
+              <PlanMetric
+                key="remaining"
+                label={t('goalTracking.deficitRemainingLabel', {
+                  value: formatNumber(targetWeightLossKg, i18n.language),
+                })}
+                value={`${formatNumber(remainingDeficitCalories, i18n.language)} ${t(
+                  'common.units.kcal'
+                )}`}
+                meta={t('goalTracking.fatEquivalent', {
+                  value: formatDecimal(remainingDeficitCalories / KCAL_PER_KG_FAT, i18n.language),
+                })}
+                style={styles.planMetricEmphasis}
+              />,
+            ].flatMap((item, index, array) =>
+              index === array.length - 1
+                ? [item]
+                : [item, <View key={`divider-${index}`} style={styles.planMetricDivider} />]
+            )}
           </View>
         </View>
 
@@ -525,7 +573,6 @@ export default function StatsTab() {
                 >
                   {t('statsScreen.todayProgress.title')}
                 </Text>
-                <Text variant="body">{STAT_EMOJIS.leaf}</Text>
               </View>
               <Text variant="bodySmall" color="secondary" style={styles.todaySubtitle}>
                 {t('statsScreen.todayProgress.subtitle')}
@@ -534,12 +581,6 @@ export default function StatsTab() {
             <View style={styles.percentCopy}>
               <Text variant="h3" weight="bold" color="primary" style={styles.todayPercentText}>
                 {`${todayProgressPercent}%`}
-              </Text>
-              <Text variant="caption" weight="semibold" style={styles.todayTargetText}>
-                {`${formatNumber(consumedCalories, i18n.language)} / ${formatNumber(
-                  targetCalories,
-                  i18n.language
-                )} ${t('statsScreen.calUnit')}`}
               </Text>
             </View>
           </View>
@@ -562,21 +603,17 @@ export default function StatsTab() {
 
           <View style={styles.todayMetricRow}>
             <SmallStat
-              iconName="golf-outline"
               value={targetCalories}
               label={t('statsScreen.metrics.calorieTarget')}
               tint={theme.colors.state.infoBg}
-              iconColor={theme.colors.state.info}
               locale={i18n.language}
               unit={t('statsScreen.calUnit')}
             />
             <View style={styles.verticalDivider} />
             <SmallStat
-              iconName="flag-outline"
               value={remainingCalories}
               label={t('statsScreen.metrics.remainingCalories')}
               tint={theme.colors.state.warningBg}
-              iconColor={theme.colors.state.warning}
               locale={i18n.language}
               unit={t('statsScreen.calUnit')}
             />
@@ -666,19 +703,6 @@ export default function StatsTab() {
           unitLabel={t('common.units.gram')}
           onModeChange={handleMacroTrendModeChange}
         />
-
-        <StatsSummaryCard
-          averageCalories={monthSummary.averageCalories}
-          locale={i18n.language}
-          targetCalories={monthSummary.targetCalories}
-          totalCalories={monthSummary.totalCalories}
-          kcalUnit={t('common.units.kcal')}
-          totalLabel={t('statsScreen.chartSummary.totalCalories')}
-          averageLabel={t('statsScreen.chartSummary.dailyAverage')}
-          targetLabel={t('statsScreen.chartSummary.target')}
-          monthLabel={t('statsScreen.chartSummary.thisMonth')}
-          perDayLabel={t('statsScreen.chartSummary.perDay')}
-        />
       </View>
     </ScreenContainer>
   );
@@ -693,19 +717,21 @@ function SmallStat({
   locale,
   unit,
 }: {
-  iconName: ComponentProps<typeof Icon>['name'];
+  iconName?: ComponentProps<typeof Icon>['name'];
   value: number;
   label: string;
   tint: string;
-  iconColor: string;
+  iconColor?: string;
   locale: string;
   unit: string;
 }) {
   return (
     <View style={styles.smallStat}>
-      <View style={[styles.smallStatIcon, { backgroundColor: tint }]}>
-        <Icon name={iconName} color={iconColor} size={18} />
-      </View>
+      {iconName ? (
+        <View style={[styles.smallStatIcon, { backgroundColor: tint }]}>
+          <Icon name={iconName} color={iconColor ?? tint} size={18} />
+        </View>
+      ) : null}
       <View style={styles.smallStatCopy}>
         <View style={styles.smallStatValueRow}>
           <Text variant="h3" weight="bold" style={styles.smallStatValue}>
@@ -1179,90 +1205,57 @@ function LegendDot({ label, color }: { label: string; color: string }) {
   );
 }
 
-function StatsSummaryCard({
-  averageCalories,
-  locale,
-  targetCalories,
-  totalCalories,
-  kcalUnit,
-  totalLabel,
-  averageLabel,
-  targetLabel,
-  monthLabel,
-  perDayLabel,
-}: {
-  averageCalories: number;
-  locale: string;
-  targetCalories: number;
-  totalCalories: number;
-  kcalUnit: string;
-  totalLabel: string;
-  averageLabel: string;
-  targetLabel: string;
-  monthLabel: string;
-  perDayLabel: string;
-}) {
-  return (
-    <View style={styles.summaryCard}>
-      <SummaryMetric
-        iconName="flame"
-        iconVariant="primary"
-        label={totalLabel}
-        meta={monthLabel}
-        value={`${formatNumber(totalCalories, locale)} ${kcalUnit}`}
-      />
-      <SummaryMetric
-        iconName="trending-up"
-        iconVariant="secondary"
-        label={averageLabel}
-        meta={monthLabel}
-        value={`${formatNumber(averageCalories, locale)} ${kcalUnit}`}
-      />
-      <SummaryMetric
-        iconName="radio-button-on"
-        iconVariant="accent"
-        label={targetLabel}
-        meta={perDayLabel}
-        value={`${formatNumber(targetCalories, locale)} ${kcalUnit}`}
-      />
-    </View>
-  );
-}
-
-function SummaryMetric({
+function PlanMetric({
   iconName,
   iconVariant,
   label,
   meta,
   value,
+  style,
 }: {
-  iconName: ComponentProps<typeof Icon>['name'];
-  iconVariant: ComponentProps<typeof Icon>['variant'];
+  iconName?: ComponentProps<typeof Icon>['name'];
+  iconVariant?: ComponentProps<typeof Icon>['variant'];
   label: string;
-  meta: string;
+  meta?: string;
   value: string;
+  style?: StyleProp<ViewStyle>;
 }) {
   return (
-    <View style={styles.summaryMetric}>
-      <View style={styles.summaryIcon}>
-        <Icon name={iconName} variant={iconVariant} size={22} />
-      </View>
-      <View style={styles.summaryCopy}>
-        <Text variant="caption" color="secondary" numberOfLines={1}>
+    <View style={[styles.planMetric, style]}>
+      <View style={styles.planMetricHeader}>
+        {iconName ? <Icon name={iconName} variant={iconVariant ?? 'accent'} size={16} /> : null}
+        <Text
+          variant="caption"
+          style={styles.metricLabel}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
+        >
           {label}
         </Text>
+      </View>
+      <Text
+        variant="bodySmall"
+        weight="bold"
+        style={styles.planMetricValue}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+      >
+        {value}
+      </Text>
+      {meta ? (
         <Text
-          variant="bodySmall"
-          weight="bold"
-          color={iconVariant === 'accent' ? 'accent' : 'primary'}
+          variant="caption"
+          color="secondary"
+          style={styles.planMetricMeta}
           numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
         >
-          {value}
-        </Text>
-        <Text variant="caption" color="secondary" numberOfLines={1}>
           {meta}
         </Text>
-      </View>
+      ) : null}
     </View>
   );
 }
@@ -1287,19 +1280,12 @@ const styles = StyleSheet.create((theme) => ({
     lineHeight: theme.fonts.size['2xl'],
   },
   metricLabel: {
-    fontSize: theme.fonts.size.xs,
-    lineHeight: theme.fonts.size.md,
-  },
-  metricValue: {
-    fontSize: theme.fonts.size.sm,
-    lineHeight: theme.fonts.size.lg,
+    fontSize: theme.fonts.size.xxs,
+    lineHeight: theme.fonts.size.sm,
   },
   planCard: {
     minHeight: vs(168),
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p12,
+    gap: theme.metrics.spacingV.p12,
     padding: theme.metrics.spacing.p16,
     borderRadius: theme.metrics.borderRadius.xl,
     backgroundColor: theme.colors.background.surface,
@@ -1309,62 +1295,90 @@ const styles = StyleSheet.create((theme) => ({
     shadowOffset: { width: 0, height: 10 },
     elevation: theme.colors.shadow.elevation,
   },
+  planHeroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+  },
   goalImage: {
-    width: hs(82),
-    height: hs(82),
+    width: hs(68),
+    height: hs(68),
   },
   planCopy: {
     flex: 1,
-    minWidth: hs(128),
+    flexShrink: 1,
+    minWidth: 0,
     gap: theme.metrics.spacingV.p4,
   },
-  cardSubtitle: {
+  planTitleText: {
+    fontSize: theme.fonts.size.md,
+    lineHeight: theme.fonts.size.xl,
+  },
+  planSubtitleText: {
     fontSize: theme.fonts.size.sm,
-    lineHeight: theme.fonts.size.lg,
+    lineHeight: theme.fonts.size.md,
   },
   circlePercentText: {
-    fontSize: theme.fonts.size['2xl'],
-    lineHeight: theme.fonts.size['3xl'],
+    fontSize: theme.fonts.size.xl,
+    lineHeight: theme.fonts.size['2xl'],
   },
   circleProgress: {
-    width: hs(88),
-    alignItems: 'center',
-  },
-  circleTrack: {
-    width: hs(84),
-    height: hs(84),
-    borderRadius: theme.metrics.borderRadius.full,
+    width: hs(96),
+    height: hs(96),
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: hs(10),
-    borderColor: theme.colors.background.section,
   },
-  circleCap: {
-    position: 'absolute',
-    top: -hs(10),
-    width: hs(30),
-    height: hs(10),
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.brand.primary,
+  circleRing: {
+    width: hs(96),
+    height: hs(96),
   },
   planMetrics: {
     width: '100%',
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p16,
-    paddingHorizontal: theme.metrics.spacing.p12,
+    alignItems: 'stretch',
+    paddingHorizontal: theme.metrics.spacing.p8,
     paddingVertical: theme.metrics.spacingV.p8,
-    borderRadius: theme.metrics.borderRadius.lg,
+    borderRadius: theme.metrics.borderRadius.xl,
     backgroundColor: theme.colors.background.section,
   },
   planMetric: {
     flex: 1,
+    minWidth: 0,
     gap: theme.metrics.spacingV.p4,
+    paddingHorizontal: theme.metrics.spacing.p8,
+    paddingVertical: theme.metrics.spacingV.p4,
   },
-  planDivider: {
+  planMetricCompact: {
+    flex: 0.78,
+  },
+  planMetricProgress: {
+    flex: 0.92,
+  },
+  planMetricEmphasis: {
+    flex: 1.18,
+  },
+  planMetricHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p4,
+    minHeight: theme.metrics.iconSize.sm,
+  },
+  planMetricDivider: {
     width: 1,
-    height: '80%',
+    alignSelf: 'stretch',
+    marginVertical: theme.metrics.spacingV.p8,
     backgroundColor: theme.colors.border.default,
+  },
+  planMetricValue: {
+    fontSize: theme.fonts.size.xs,
+    lineHeight: theme.fonts.size.sm,
+    letterSpacing: 0,
+  },
+  planMetricMeta: {
+    fontSize: theme.fonts.size.xxs,
+    lineHeight: theme.fonts.size.xs,
+    letterSpacing: 0,
   },
   todayCard: {
     gap: theme.metrics.spacingV.p12,
@@ -1564,11 +1578,11 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacing.p12,
   },
   statsChartTitle: {
-    fontSize: theme.fonts.size.lg,
-    lineHeight: theme.fonts.size['2xl'],
+    fontSize: theme.fonts.size.md,
+    lineHeight: theme.fonts.size.xl,
   },
   statsSegmentWrap: {
-    width: hs(118),
+    width: hs(146),
   },
   axisUnitWrap: {
     minHeight: theme.fonts.size.md,

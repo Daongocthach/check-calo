@@ -364,7 +364,7 @@
       "weightToLose": "kg to goal",
       "caloriesConsumed": "Calories today",
       "calorieTarget": "Today's target",
-      "remainingCalories": "Calories to target"
+      "remainingCalories": "Still to target"
     },
     "days": {
       "sat": "Sat",
@@ -790,6 +790,9 @@
     "progressKcalLose": "Deficit {{current}} / {{target}} kcal",
     "progressKcalGain": "Surplus {{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} days",
+    "deficitAchievedLabel": "Deficit reached",
+    "deficitRemainingLabel": "Remaining {{value}} kg",
+    "fatEquivalent": "(~{{value}} kg fat)",
     "consumedKcalProgress": "Consumed {{current}} / {{target}} kcal",
     "remainingKcal": "{{value}} kcal left",
     "remainingDays": "{{value}} days left",

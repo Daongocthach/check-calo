@@ -364,7 +364,7 @@
       "weightToLose": "kg tới mục tiêu",
       "caloriesConsumed": "Calories hôm nay",
       "calorieTarget": "Mục tiêu hôm nay",
-      "remainingCalories": "Calories cách mục tiêu"
+      "remainingCalories": "Còn cách mục tiêu"
     },
     "days": {
       "sat": "T7",
@@ -790,6 +790,9 @@
     "progressKcalLose": "Đã thâm hụt {{current}} / {{target}} kcal",
     "progressKcalGain": "Đã dư {{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} ngày",
+    "deficitAchievedLabel": "Đã thâm hụt",
+    "deficitRemainingLabel": "Còn lại {{value}} kg",
+    "fatEquivalent": "(~{{value}} kg mỡ)",
     "consumedKcalProgress": "Đã nạp {{current}} / {{target}} kcal",
     "remainingKcal": "Còn {{value}} kcal",
     "remainingDays": "Còn {{value}} ngày",
