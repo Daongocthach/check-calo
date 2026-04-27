@@ -11,6 +11,7 @@ const publicEnv = {
 const config: ExpoConfig = {
   name: 'Check Calo',
   slug: 'check-calo',
+  owner: 'thachdaongoc75',
   version: '1.0.0',
   orientation: 'portrait',
   scheme: 'check-calo',
@@ -46,7 +47,7 @@ const config: ExpoConfig = {
   extra: {
     router: {},
     eas: {
-      projectId: '',
+      projectId: '70cde4e9-73b0-40ca-aa21-c4cbe8d72591',
     },
     ...publicEnv,
   },
