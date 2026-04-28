@@ -1,0 +1,1 @@
+export { LegalInfoScreen } from './LegalInfoScreen';

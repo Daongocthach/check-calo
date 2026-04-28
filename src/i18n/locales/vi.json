@@ -447,6 +447,7 @@
     "captureModes": {
       "scanFood": "Chụp ảnh",
       "scanFoodAnalyzing": "Đang phân tích",
+      "library": "Chọn ảnh",
       "barcode": "Barcode",
       "manual": "Nhập tay"
     },
@@ -456,6 +457,12 @@
         "body": "Mở camera, chụp món ăn và app sẽ ước tính calories cùng các chỉ số dinh dưỡng.",
         "sheetBody": "Mở camera, chụp món ăn và app sẽ ước tính calories",
         "button": "Mở camera món ăn"
+      },
+      "library": {
+        "title": "Chọn từ thư viện",
+        "body": "Chọn ảnh món ăn có sẵn và app sẽ ước tính calories cùng các chỉ số dinh dưỡng.",
+        "sheetBody": "Chọn ảnh món ăn từ thư viện để AI phân tích",
+        "button": "Chọn ảnh"
       },
       "barcode": {
         "title": "Quét thực phẩm đóng gói",
@@ -551,6 +558,7 @@
     "updateAction": "Cập nhật món ăn",
     "portionCountLabel": "Số lượng",
     "photoAction": "Chụp ảnh món ăn",
+    "libraryPhotoAction": "Chọn từ thư viện",
     "photoRetakeAction": "Chụp lại ảnh món ăn",
     "photoHint": "Chạm vào khung ảnh để chụp hoặc thay đổi ảnh món ăn.",
     "openImageViewer": "Mở ảnh món ăn toàn màn hình",
@@ -883,6 +891,93 @@
     "registerSuccess": "Tạo tài khoản thành công.",
     "registerFailed": "Không thể tạo hoặc bảo vệ tài khoản lúc này."
   },
+  "legal": {
+    "updatedTitle": "Cập nhật lần cuối",
+    "updatedDate": "15 tháng 05, 2024",
+    "about": {
+      "heroTitle": "Eat Well,\nLive Well",
+      "heroSubtitle": "Ứng dụng theo dõi calo và dinh dưỡng thông minh",
+      "heroBody": "Check Calo giúp bạn hiểu cơ thể, kiểm soát calo đã dùng và đạt mục tiêu sức khỏe mỗi ngày.",
+      "ctaTitle": "Bắt đầu hành trình sống khỏe hôm nay!",
+      "ctaAction": "Bắt đầu ngay",
+      "features": {
+        "tracking": {
+          "title": "Theo dõi calo hằng ngày",
+          "body": "Ghi nhận calo từ từng bữa ăn nhanh chóng và xem tiến độ mỗi ngày."
+        },
+        "goals": {
+          "title": "Mục tiêu cá nhân hóa",
+          "body": "Thiết lập mục tiêu phù hợp với bạn, vóc dáng và định hướng sức khỏe."
+        },
+        "meals": {
+          "title": "Theo dõi bữa ăn",
+          "body": "Ghi lại bữa sáng, trưa, tối và bữa phụ để hiểu thói quen ăn uống."
+        }
+      }
+    },
+    "terms": {
+      "title": "Điều khoản dịch vụ",
+      "summary": "Vui lòng đọc kỹ các điều khoản sử dụng trước khi dùng ứng dụng Check Calo.",
+      "readMore": "Xem thêm",
+      "items": {
+        "acceptance": {
+          "title": "Chấp thuận điều khoản",
+          "body": "Khi sử dụng Check Calo, bạn đồng ý tuân thủ các điều khoản và điều kiện được mô tả trong tài liệu này."
+        },
+        "purpose": {
+          "title": "Mục đích sử dụng",
+          "body": "Ứng dụng hỗ trợ theo dõi calo, dinh dưỡng và mục tiêu cá nhân. Đây không phải lời khuyên, chẩn đoán hoặc điều trị y tế."
+        },
+        "account": {
+          "title": "Tài khoản người dùng",
+          "body": "Bạn có trách nhiệm bảo mật thông tin đăng nhập và cập nhật dữ liệu sức khỏe chính xác."
+        },
+        "prohibited": {
+          "title": "Hành vi bị cấm",
+          "body": "Không sử dụng ứng dụng cho mục đích bất hợp pháp, gây gián đoạn dịch vụ hoặc làm hại người dùng khác."
+        },
+        "liability": {
+          "title": "Giới hạn trách nhiệm",
+          "body": "Thông tin dinh dưỡng chỉ mang tính tham khảo. Bạn chịu trách nhiệm với quyết định sức khỏe và ăn uống của mình."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Chính sách bảo mật",
+      "summary": "Chúng tôi cam kết bảo vệ quyền riêng tư và dữ liệu cá nhân của bạn khi sử dụng Check Calo.",
+      "items": {
+        "collection": {
+          "title": "Thông tin chúng tôi thu thập",
+          "body": "Chúng tôi có thể thu thập thông tin bạn cung cấp như họ tên, email, ngày sinh, giới tính, chiều cao, cân nặng và nhật ký bữa ăn."
+        },
+        "use": {
+          "title": "Mục đích sử dụng thông tin",
+          "body": "Thông tin được dùng để cá nhân hóa mục tiêu, theo dõi dinh dưỡng và cải thiện trải nghiệm ứng dụng."
+        },
+        "sharing": {
+          "title": "Chia sẻ thông tin",
+          "body": "Chúng tôi không bán hoặc chia sẻ dữ liệu cá nhân cho bên thứ ba, trừ khi pháp luật yêu cầu hoặc có sự đồng ý của bạn."
+        },
+        "security": {
+          "title": "Bảo mật thông tin",
+          "body": "Chúng tôi áp dụng các biện pháp kỹ thuật và tổ chức hợp lý để bảo vệ dữ liệu khỏi truy cập trái phép."
+        },
+        "rights": {
+          "title": "Quyền của bạn",
+          "body": "Bạn có quyền truy cập, chỉnh sửa hoặc yêu cầu xóa dữ liệu cá nhân thông qua ứng dụng hoặc bộ phận hỗ trợ."
+        },
+        "changes": {
+          "title": "Thay đổi chính sách",
+          "body": "Chúng tôi có thể cập nhật chính sách này. Mọi thay đổi quan trọng sẽ được thông báo trong ứng dụng."
+        }
+      }
+    },
+    "help": {
+      "title": "Cần hỗ trợ?",
+      "body": "Liên hệ với chúng tôi nếu bạn có câu hỏi về điều khoản hoặc quyền riêng tư.",
+      "action": "Liên hệ"
+    }
+  },
   "settings": {
     "title": "Cài đặt",
     "appearance": "Giao diện",
@@ -1053,7 +1148,9 @@
     "scanHint": "Căn mã QR vào khung để quét tự động.",
     "barcodeHint": "Căn barcode vào khung để quét tự động.",
     "permissionDenied": "Bạn đã từ chối quyền truy cập máy ảnh.",
+    "libraryPermissionDenied": "Bạn đã từ chối quyền truy cập thư viện ảnh.",
     "captureFailed": "Không thể chụp ảnh. Vui lòng thử lại.",
+    "libraryPickFailed": "Không thể chọn ảnh. Vui lòng thử lại.",
     "scanFailed": "Không thể quét mã. Vui lòng thử lại.",
     "actions": {
       "close": "Đóng",

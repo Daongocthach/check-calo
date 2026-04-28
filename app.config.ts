@@ -97,6 +97,13 @@ const config: ExpoConfig = {
         recordAudioPermission: false,
       },
     ],
+    [
+      'expo-image-picker',
+      {
+        photosPermission:
+          'CheckCalo requires photo library access to select food photos for calorie estimation and meal tracking.',
+      },
+    ],
     'expo-sqlite',
     'expo-build-properties',
     'expo-web-browser',

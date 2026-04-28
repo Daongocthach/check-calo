@@ -10,7 +10,7 @@ import { AddMealSourceBottomSheet } from '@/features/nutrition/components/AddMea
 import { lookupFoodByBarcode } from '@/features/nutrition/services/barcodeFoodLookup';
 import { analyzeFoodPhotoWithGemini } from '@/features/nutrition/services/geminiFoodAnalyzer';
 import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
-import { useOpenCamera, useOpenQrScanner } from '@/providers/camera';
+import { useOpenCamera, useOpenImageLibrary, useOpenQrScanner } from '@/providers/camera';
 import { toast } from '@/utils/toast';
 
 export default function MainLayout() {
@@ -18,6 +18,7 @@ export default function MainLayout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const openCamera = useOpenCamera();
+  const openImageLibrary = useOpenImageLibrary();
   const openQrScanner = useOpenQrScanner();
   const addMealSheetRef = useRef<BottomSheetModal>(null);
   const openRequestId = useAddMealSourceSheetStore((state) => state.openRequestId);
@@ -69,6 +70,44 @@ export default function MainLayout() {
     router.push('/recently-food');
   }, [closeAddMealSheet, router]);
 
+  const analyzeFoodImage = useCallback(
+    async (imageUri: string) => {
+      try {
+        const result = await analyzeFoodPhotoWithGemini(imageUri);
+
+        if (result.status === 'ready') {
+          closeAddMealSheet();
+          router.push({
+            pathname: '/food-detail',
+            params: {
+              source: 'ai',
+              foodName: result.draft.mealName,
+              quantityLabel: result.draft.quantityGrams ? String(result.draft.quantityGrams) : '',
+              quantityGrams: result.draft.quantityGrams ? String(result.draft.quantityGrams) : '',
+              calories: String(result.draft.calories),
+              carbs: String(result.draft.carbsGrams),
+              protein: String(result.draft.proteinGrams),
+              fat: String(result.draft.fatGrams),
+              notes: result.draft.notes ?? '',
+              imageUri,
+            },
+          });
+          return;
+        }
+
+        toast.error(result.assistantMessage ?? t('addScreen.aiAnalysisFallback'));
+        openFoodFormFromPhoto(imageUri);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : t('addScreen.aiAnalysisError');
+        toast.error(message);
+        openFoodFormFromPhoto(imageUri);
+      } finally {
+        setIsAnalyzingPhoto(false);
+      }
+    },
+    [closeAddMealSheet, openFoodFormFromPhoto, router, t]
+  );
+
   const handleCaptureFood = useCallback(async () => {
     if (isAnalyzingPhoto) {
       return;
@@ -81,40 +120,23 @@ export default function MainLayout() {
     }
 
     setIsAnalyzingPhoto(true);
+    await analyzeFoodImage(photo.uri);
+  }, [analyzeFoodImage, isAnalyzingPhoto, openCamera]);
 
-    try {
-      const result = await analyzeFoodPhotoWithGemini(photo.uri);
-
-      if (result.status === 'ready') {
-        closeAddMealSheet();
-        router.push({
-          pathname: '/food-detail',
-          params: {
-            source: 'ai',
-            foodName: result.draft.mealName,
-            quantityLabel: result.draft.quantityGrams ? String(result.draft.quantityGrams) : '',
-            quantityGrams: result.draft.quantityGrams ? String(result.draft.quantityGrams) : '',
-            calories: String(result.draft.calories),
-            carbs: String(result.draft.carbsGrams),
-            protein: String(result.draft.proteinGrams),
-            fat: String(result.draft.fatGrams),
-            notes: result.draft.notes ?? '',
-            imageUri: photo.uri,
-          },
-        });
-        return;
-      }
-
-      toast.error(result.assistantMessage ?? t('addScreen.aiAnalysisFallback'));
-      openFoodFormFromPhoto(photo.uri);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t('addScreen.aiAnalysisError');
-      toast.error(message);
-      openFoodFormFromPhoto(photo.uri);
-    } finally {
-      setIsAnalyzingPhoto(false);
+  const handlePickFoodPhoto = useCallback(async () => {
+    if (isAnalyzingPhoto) {
+      return;
     }
-  }, [closeAddMealSheet, isAnalyzingPhoto, openCamera, openFoodFormFromPhoto, router, t]);
+
+    const photo = await openImageLibrary();
+
+    if (!photo) {
+      return;
+    }
+
+    setIsAnalyzingPhoto(true);
+    await analyzeFoodImage(photo.uri);
+  }, [analyzeFoodImage, isAnalyzingPhoto, openImageLibrary]);
 
   const handleBarcodeScan = useCallback(async () => {
     const barcodeValue = await openQrScanner();
@@ -178,6 +200,9 @@ export default function MainLayout() {
         <Stack.Screen name="food-form" />
         <Stack.Screen name="goal-history" />
         <Stack.Screen name="notification-settings" />
+        <Stack.Screen name="about" />
+        <Stack.Screen name="terms" />
+        <Stack.Screen name="privacy" />
       </Stack>
       <AddMealSourceBottomSheet
         bottomSheetRef={addMealSheetRef}
@@ -185,6 +210,9 @@ export default function MainLayout() {
         onManualPress={handleManualEntry}
         onPhotoPress={() => {
           void handleCaptureFood();
+        }}
+        onLibraryPress={() => {
+          void handlePickFoodPhoto();
         }}
         onBarcodePress={() => {
           void handleBarcodeScan();

@@ -447,6 +447,7 @@
     "captureModes": {
       "scanFood": "Capture food",
       "scanFoodAnalyzing": "Analyzing...",
+      "library": "Choose photo",
       "barcode": "Barcode",
       "manual": "Manual"
     },
@@ -456,6 +457,12 @@
         "body": "Open the camera, snap the dish, and we will estimate calories and macros for you.",
         "sheetBody": "Open the camera, snap the dish, and we will estimate calories",
         "button": "Open food camera"
+      },
+      "library": {
+        "title": "Choose from library",
+        "body": "Select an existing food photo and we will estimate calories and macros for you.",
+        "sheetBody": "Pick a food photo from your library for AI analysis",
+        "button": "Choose photo"
       },
       "barcode": {
         "title": "Scan packaged food",
@@ -551,6 +558,7 @@
     "updateAction": "Update meal",
     "portionCountLabel": "Portion count",
     "photoAction": "Take food photo",
+    "libraryPhotoAction": "Choose from library",
     "photoRetakeAction": "Retake food photo",
     "photoHint": "Tap the photo area to capture or replace the current food image.",
     "openImageViewer": "Open full screen food image",
@@ -883,6 +891,93 @@
     "registerSuccess": "Account created successfully.",
     "registerFailed": "Unable to create or protect this account right now."
   },
+  "legal": {
+    "updatedTitle": "Last updated",
+    "updatedDate": "May 15, 2024",
+    "about": {
+      "heroTitle": "Eat Well,\nLive Well",
+      "heroSubtitle": "A calorie and smart nutrition tracking app",
+      "heroBody": "Check Calo helps you understand your body, manage daily calories, and reach your health goals every day.",
+      "ctaTitle": "Start your healthier journey today.",
+      "ctaAction": "Start now",
+      "features": {
+        "tracking": {
+          "title": "Daily calorie tracking",
+          "body": "Record calories from every meal quickly and see your daily progress at a glance."
+        },
+        "goals": {
+          "title": "Personalized goals",
+          "body": "Set nutrition goals that fit your body, lifestyle, and health direction."
+        },
+        "meals": {
+          "title": "Meal insights",
+          "body": "Log breakfast, lunch, dinner, and snacks to understand your eating habits."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "summary": "Please read these terms carefully before using the Check Calo app.",
+      "readMore": "Read more",
+      "items": {
+        "acceptance": {
+          "title": "Accepting the terms",
+          "body": "By using Check Calo, you agree to follow the terms and conditions described in this document."
+        },
+        "purpose": {
+          "title": "Purpose of use",
+          "body": "The app helps you track calories, nutrition, and personal goals. It is not a replacement for medical advice or treatment."
+        },
+        "account": {
+          "title": "User account",
+          "body": "You are responsible for protecting your account information and for keeping your health data accurate."
+        },
+        "prohibited": {
+          "title": "Prohibited behavior",
+          "body": "Do not use the app for illegal purposes, disrupt the service, or harm other users."
+        },
+        "liability": {
+          "title": "Limitation of liability",
+          "body": "Nutrition information is for reference only. You remain responsible for health and diet decisions."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "summary": "We are committed to protecting your privacy and explaining how data is used in Check Calo.",
+      "items": {
+        "collection": {
+          "title": "Information we collect",
+          "body": "We may collect information you provide, such as name, email, date of birth, gender, height, weight, and meal logs."
+        },
+        "use": {
+          "title": "How information is used",
+          "body": "Data is used to provide personalized goals, nutrition tracking, and a better app experience."
+        },
+        "sharing": {
+          "title": "Information sharing",
+          "body": "We do not sell or share personal data with third parties unless required by law or with your consent."
+        },
+        "security": {
+          "title": "Data security",
+          "body": "We use reasonable technical and organizational measures to protect your information from unauthorized access."
+        },
+        "rights": {
+          "title": "Your rights",
+          "body": "You may access, update, correct, or request deletion of your personal data through the app or support."
+        },
+        "changes": {
+          "title": "Policy changes",
+          "body": "We may update this policy. Any important changes will be announced in the app."
+        }
+      }
+    },
+    "help": {
+      "title": "Need help?",
+      "body": "Contact us if you have questions about these terms or your privacy.",
+      "action": "Contact"
+    }
+  },
   "settings": {
     "title": "Settings",
     "appearance": "Appearance",
@@ -1053,7 +1148,9 @@
     "scanHint": "Align the QR code inside the frame to scan it automatically.",
     "barcodeHint": "Align the barcode inside the frame to scan it automatically.",
     "permissionDenied": "Camera permission was denied.",
+    "libraryPermissionDenied": "Photo library permission was denied.",
     "captureFailed": "Could not capture the photo. Please try again.",
+    "libraryPickFailed": "Could not choose the photo. Please try again.",
     "scanFailed": "Could not scan the code. Please try again.",
     "actions": {
       "close": "Close",

@@ -63,6 +63,10 @@ export const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.state.infoBg,
     borderColor: theme.colors.state.info,
   },
+  optionLibrary: {
+    backgroundColor: theme.colors.background.section,
+    borderColor: theme.colors.border.default,
+  },
   optionBarcode: {
     backgroundColor: theme.colors.state.warningBg,
     borderColor: theme.colors.state.warningBg,

@@ -37,7 +37,7 @@ import {
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealStore } from '@/features/nutrition/stores/useAddMealStore';
 import { formatMealWeight, parseMealWeightInput } from '@/features/nutrition/utils/quantity';
-import { useOpenCamera } from '@/providers/camera';
+import { useOpenCamera, useOpenImageLibrary } from '@/providers/camera';
 import { toast } from '@/utils/toast';
 
 interface FoodFormState {
@@ -129,6 +129,7 @@ export default function FoodFormScreen() {
     imageUri?: string;
   }>();
   const openCamera = useOpenCamera();
+  const openImageLibrary = useOpenImageLibrary();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
@@ -259,6 +260,16 @@ export default function FoodFormScreen() {
 
     setImageUri(photo.uri);
   }, [openCamera]);
+
+  const handlePickPhoto = useCallback(async () => {
+    const photo = await openImageLibrary();
+
+    if (!photo) {
+      return;
+    }
+
+    setImageUri(photo.uri);
+  }, [openImageLibrary]);
 
   const totalCaloriesForSave = useMemo(
     () => Math.max(0, parseNumber(caloriesValue) * servings),
@@ -513,6 +524,33 @@ export default function FoodFormScreen() {
                 </View>
               </View>
             </Pressable>
+
+            <View style={styles.photoActions}>
+              <Button
+                title={t('manualFoodEntry.photoAction')}
+                variant="outline"
+                size="sm"
+                leftIcon={
+                  <Icon name="camera-outline" size={18} color={theme.colors.brand.primary} />
+                }
+                onPress={() => {
+                  void handleCapturePhoto();
+                }}
+                style={styles.photoActionButton}
+              />
+              <Button
+                title={t('manualFoodEntry.libraryPhotoAction')}
+                variant="outline"
+                size="sm"
+                leftIcon={
+                  <Icon name="image-outline" size={18} color={theme.colors.brand.primary} />
+                }
+                onPress={() => {
+                  void handlePickPhoto();
+                }}
+                style={styles.photoActionButton}
+              />
+            </View>
 
             <View style={styles.formBlock}>
               <Controller
@@ -811,6 +849,13 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     backgroundColor:
       theme.colors.mode === 'dark' ? theme.colors.background.elevated : theme.colors.overlay.modal,
+  },
+  photoActions: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+  },
+  photoActionButton: {
+    flex: 1,
   },
   viewerContainer: {
     flex: 1,

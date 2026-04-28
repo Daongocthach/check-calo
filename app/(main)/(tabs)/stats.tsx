@@ -72,13 +72,17 @@ interface MacroStat {
   color: string;
 }
 
-function createEmptySummary(date: Date): DailyNutritionSummary {
+function formatLocalDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
 
+  return `${year}-${month}-${day}`;
+}
+
+function createEmptySummary(date: Date): DailyNutritionSummary {
   return {
-    date: `${year}-${month}-${day}`,
+    date: formatLocalDateKey(date),
     calorieTarget: 0,
     consumedCalories: 0,
     remainingCalories: 0,
@@ -140,26 +144,24 @@ function aggregateTrendData(
   referenceDate: Date
 ) {
   if (mode === 'day') {
-    const weekdayMap = new Map<number, NutritionTrendPoint>();
-
-    points.forEach((point) => {
-      const pointDate = new Date(`${point.date}T00:00:00`);
-      weekdayMap.set(pointDate.getDay(), {
-        ...point,
-        label: getWeekdayLabel(pointDate, t),
-      });
-    });
+    const dateMap = new Map(points.map((point) => [point.date, point]));
+    const startOfWeek = new Date(referenceDate);
+    startOfWeek.setDate(referenceDate.getDate() - referenceDate.getDay());
 
     return Array.from({ length: 7 }, (_, index) => {
-      const dayPoint = weekdayMap.get(index);
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + index);
+      const dateKey = formatLocalDateKey(date);
+      const point = dateMap.get(dateKey);
 
-      if (dayPoint) {
-        return dayPoint;
+      if (point) {
+        return {
+          ...point,
+          label: getWeekdayLabel(date, t),
+        };
       }
 
-      const fallbackDate = new Date(referenceDate);
-      fallbackDate.setDate(referenceDate.getDate() - ((referenceDate.getDay() - index + 7) % 7));
-      return createEmptyDailyTrendPoint(fallbackDate, t);
+      return createEmptyDailyTrendPoint(date, t);
     });
   }
 
@@ -224,10 +226,10 @@ function formatNumber(value: number, locale: string) {
   }).format(Math.round(value));
 }
 
-function formatDecimal(value: number, locale: string) {
+function formatOneDecimal(value: number, locale: string) {
   return new Intl.NumberFormat(locale, {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2,
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
   }).format(value);
 }
 
@@ -368,16 +370,15 @@ export default function StatsTab() {
     ? formatWeightGoalTitle(t, goalTracking.activeGoal.goal)
     : t('goalTracking.goalNames.maintainWithOneMonth');
   const activeGoal = goalTracking?.activeGoal;
-  const targetWeightLossKg =
-    activeGoal?.goal.mode === 'lose' ? Math.max(1, activeGoal.goal.targetKg ?? 1) : 1;
-  const targetDeficitCalories =
-    activeGoal?.goal.mode === 'lose'
-      ? Math.max(1, activeGoal.goal.targetKcalDelta)
-      : KCAL_PER_KG_FAT * targetWeightLossKg;
-  const achievedDeficitCalories =
-    activeGoal?.unit === 'kcal' && activeGoal.goal.mode === 'lose'
-      ? activeGoal.progressValue
-      : Math.max(0, (activeGoal?.targetCalories ?? 0) - (activeGoal?.consumedCalories ?? 0));
+  const deficitGoal =
+    activeGoal?.unit === 'kcal' && activeGoal.goal.mode === 'lose' ? activeGoal : null;
+  const targetWeightLossKg = deficitGoal ? Math.max(1, deficitGoal.goal.targetKg ?? 1) : 1;
+  const targetDeficitCalories = deficitGoal
+    ? Math.max(1, deficitGoal.goal.targetKcalDelta)
+    : KCAL_PER_KG_FAT * targetWeightLossKg;
+  const achievedDeficitCalories = deficitGoal
+    ? deficitGoal.progressValue
+    : Math.max(0, targetDeficitCalories - todaySummary.consumedCalories);
   const remainingDeficitCalories = Math.max(0, targetDeficitCalories - achievedDeficitCalories);
 
   const trendModeOptions = useMemo(
@@ -471,6 +472,49 @@ export default function StatsTab() {
     }
   };
 
+  const planMetricItems = [
+    <PlanMetric
+      key="plan"
+      label={t('goalTracking.activeTitle')}
+      value={planTitle}
+      style={styles.planMetricCompact}
+    />,
+    <PlanMetric
+      key="progress"
+      label={t('goalTracking.progressLabel')}
+      value={`${formatNumber(Math.round(planProgressCurrent), i18n.language)} / ${formatNumber(
+        Math.round(planProgressTarget),
+        i18n.language
+      )}\u00A0${t('common.units.day')}`}
+      style={styles.planMetricProgress}
+    />,
+  ];
+
+  planMetricItems.push(
+    <PlanMetric
+      key="achieved"
+      label={t('goalTracking.deficitAchievedLabel')}
+      value={`${formatOneDecimal(achievedDeficitCalories, i18n.language)} ${t(
+        'common.units.kcal'
+      )}`}
+      meta={t('goalTracking.fatEquivalent', {
+        value: formatOneDecimal(achievedDeficitCalories / KCAL_PER_KG_FAT, i18n.language),
+      })}
+      style={styles.planMetricEmphasis}
+    />,
+    <PlanMetric
+      key="remaining"
+      label={t('goalTracking.deficitRemainingLabel', {
+        value: formatOneDecimal(targetWeightLossKg, i18n.language),
+      })}
+      value={`${formatNumber(remainingDeficitCalories, i18n.language)} ${t('common.units.kcal')}`}
+      meta={t('goalTracking.fatEquivalent', {
+        value: formatOneDecimal(remainingDeficitCalories / KCAL_PER_KG_FAT, i18n.language),
+      })}
+      style={styles.planMetricEmphasis}
+    />
+  );
+
   return (
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
@@ -503,6 +547,7 @@ export default function StatsTab() {
                 strokeWidth={10}
                 trackColor={theme.colors.background.section}
                 progressColor={theme.colors.brand.primary}
+                accessibilityLabel={t('goalTracking.profileTitle')}
                 style={styles.circleRing}
               >
                 <Text variant="h2" weight="bold" color="primary" style={styles.circlePercentText}>
@@ -512,47 +557,7 @@ export default function StatsTab() {
             </View>
           </View>
           <View style={styles.planMetrics}>
-            {[
-              <PlanMetric
-                key="plan"
-                label={t('goalTracking.activeTitle')}
-                value={planTitle}
-                style={styles.planMetricCompact}
-              />,
-              <PlanMetric
-                key="progress"
-                label={t('goalTracking.progressLabel')}
-                value={`${formatNumber(Math.round(planProgressCurrent), i18n.language)} / ${formatNumber(
-                  Math.round(planProgressTarget),
-                  i18n.language
-                )}\u00A0${t('common.units.day')}`}
-                style={styles.planMetricProgress}
-              />,
-              <PlanMetric
-                key="achieved"
-                label={t('goalTracking.deficitAchievedLabel')}
-                value={`${formatNumber(achievedDeficitCalories, i18n.language)} ${t(
-                  'common.units.kcal'
-                )}`}
-                meta={t('goalTracking.fatEquivalent', {
-                  value: formatDecimal(achievedDeficitCalories / KCAL_PER_KG_FAT, i18n.language),
-                })}
-                style={styles.planMetricEmphasis}
-              />,
-              <PlanMetric
-                key="remaining"
-                label={t('goalTracking.deficitRemainingLabel', {
-                  value: formatNumber(targetWeightLossKg, i18n.language),
-                })}
-                value={`${formatNumber(remainingDeficitCalories, i18n.language)} ${t(
-                  'common.units.kcal'
-                )}`}
-                meta={t('goalTracking.fatEquivalent', {
-                  value: formatDecimal(remainingDeficitCalories / KCAL_PER_KG_FAT, i18n.language),
-                })}
-                style={styles.planMetricEmphasis}
-              />,
-            ].flatMap((item, index, array) =>
+            {planMetricItems.flatMap((item, index, array) =>
               index === array.length - 1
                 ? [item]
                 : [item, <View key={`divider-${index}`} style={styles.planMetricDivider} />]
@@ -955,10 +960,6 @@ function NutritionDistributionCard({
   const plotWidth = chartWidth - plotLeft - plotRight;
   const plotHeight = chartHeight - plotTop - plotBottom;
   const totals = data.map((item) => item.proteinValue + item.carbsValue + item.fatValue);
-  const activeIndex = Math.max(
-    0,
-    totals.reduce((lastIndex, value, index) => (value > 0 ? index : lastIndex), -1)
-  );
   const maxValue = Math.max(120, Math.ceil(Math.max(...totals, 1) / 30) * 30);
   const sectionValues = [
     maxValue,
@@ -1050,13 +1051,12 @@ function NutritionDistributionCard({
           {data.map((item, index) => {
             const total = totals[index];
             const x = plotLeft + xStep * index + xStep / 2 - barWidth / 2;
-            const active = index === activeIndex && total > 0;
             const proteinHeight = (item.proteinValue / maxValue) * plotHeight;
             const carbsHeight = (item.carbsValue / maxValue) * plotHeight;
             const fatHeight = (item.fatValue / maxValue) * plotHeight;
             let segmentY = plotTop + plotHeight;
 
-            if (!active) {
+            if (total <= 0) {
               return (
                 <G key={item.label}>
                   <Rect

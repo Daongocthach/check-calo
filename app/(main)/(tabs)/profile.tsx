@@ -154,9 +154,27 @@ export default function ProfileTab() {
           </SettingsGroup>
 
           <SettingsGroup>
-            <SettingsMenuRow title={t('settings.about')} iconKey="about" />
-            <SettingsMenuRow title={t('settings.terms')} iconKey="terms" />
-            <SettingsMenuRow title={t('settings.privacy')} iconKey="privacy" />
+            <SettingsMenuRow
+              title={t('settings.about')}
+              iconKey="about"
+              onPress={() => {
+                router.push('/about');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.terms')}
+              iconKey="terms"
+              onPress={() => {
+                router.push('/terms');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.privacy')}
+              iconKey="privacy"
+              onPress={() => {
+                router.push('/privacy');
+              }}
+            />
           </SettingsGroup>
 
           <SettingsGroup>

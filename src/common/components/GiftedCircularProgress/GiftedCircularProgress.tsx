@@ -47,7 +47,7 @@ export function GiftedCircularProgress({
     <View
       style={[styles.container, style, { width: size, height: size }]}
       accessibilityRole="progressbar"
-      accessibilityLabel={accessibilityLabel ?? 'Progress'}
+      accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: 100, now: clampedProgress }}
     >
       <PieChart

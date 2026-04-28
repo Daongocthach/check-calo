@@ -94,6 +94,9 @@ export function AppHeader() {
     if (pathname === '/support') return t('supportScreen.title');
     if (pathname === '/goal-history') return t('goalTracking.history.title');
     if (pathname === '/notification-settings') return t('profileScreen.reminders.title');
+    if (pathname === '/about') return t('settings.about');
+    if (pathname === '/terms') return t('settings.terms');
+    if (pathname === '/privacy') return t('settings.privacy');
     if (pathname === '/food-detail') {
       return params.source === 'ai' ? t('foodDetail.analysisTitle') : t('foodDetail.title');
     }

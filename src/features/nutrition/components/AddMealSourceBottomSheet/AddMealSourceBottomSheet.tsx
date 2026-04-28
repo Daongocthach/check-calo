@@ -18,7 +18,7 @@ import type { FavoriteFood } from '@/features/nutrition/types';
 import { styles } from './AddMealSourceBottomSheet.styles';
 import type { AddMealSourceBottomSheetProps } from './AddMealSourceBottomSheet.types';
 
-type AddMealOptionTone = 'manual' | 'photo' | 'barcode';
+type AddMealOptionTone = 'manual' | 'photo' | 'library' | 'barcode';
 type IoniconsName = ComponentProps<typeof Icon>['name'];
 
 const RECENT_FOOD_LIMIT = 4;
@@ -28,6 +28,7 @@ export function AddMealSourceBottomSheet({
   topInset,
   onManualPress,
   onPhotoPress,
+  onLibraryPress,
   onBarcodePress,
   onViewAllRecentPress,
   onSheetChange,
@@ -105,6 +106,13 @@ export function AddMealSourceBottomSheet({
       descriptionKey: 'addScreen.modeContent.scanFood.sheetBody',
       iconName: 'camera-outline',
       onPress: onPhotoPress,
+    },
+    {
+      key: 'library',
+      titleKey: 'addScreen.captureModes.library',
+      descriptionKey: 'addScreen.modeContent.library.sheetBody',
+      iconName: 'image-outline',
+      onPress: onLibraryPress,
     },
     {
       key: 'barcode',
@@ -254,12 +262,14 @@ function AddMealSourceOption({
   const optionStyleByTone = {
     manual: styles.optionManual,
     photo: styles.optionPhoto,
+    library: styles.optionLibrary,
     barcode: styles.optionBarcode,
   };
 
   const iconColorByTone = {
     manual: theme.colors.state.success,
     photo: theme.colors.state.info,
+    library: theme.colors.brand.primary,
     barcode: theme.colors.brand.tertiary,
   };
 

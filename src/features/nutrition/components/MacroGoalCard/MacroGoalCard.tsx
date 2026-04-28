@@ -36,6 +36,7 @@ export function MacroGoalCard({
           strokeWidth={strokeWidth}
           trackColor={ringTrackColor}
           progressColor={ringColor}
+          accessibilityLabel={label}
         >
           <Icon name={iconName} size={18} color={iconColor} />
           <Text variant="bodySmall" weight="semibold" align="center">
