@@ -47,8 +47,6 @@ export const styles = StyleSheet.create((theme) => ({
   },
   sheetContent: {
     backgroundColor: theme.colors.background.modal,
-    paddingHorizontal: theme.metrics.spacing.p16,
-    paddingTop: theme.metrics.spacingV.p4,
     gap: theme.metrics.spacingV.p12,
   },
   header: {

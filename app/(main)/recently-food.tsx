@@ -35,6 +35,7 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
 export default function FavoritesTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
+  const addNewFoodLabel = t('favoritesScreen.addNewFoodAction');
   const appAlert = useAppAlert();
   const loadGenerationRef = useRef(0);
   const didMountRef = useRef(false);
@@ -172,99 +173,117 @@ export default function FavoritesTab() {
   }
 
   return (
-    <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.listContent, { paddingTop: theme.metrics.spacingV.p12 }]}
-        renderItem={({ item }) => (
-          <HomeMealCard.Root
-            item={toHomeMealCardItem({
-              ...item,
-              isFavorite: true,
-            })}
-            onPress={() =>
-              router.push({
-                pathname: '/food-detail',
-                params: {
-                  favoriteId: item.id,
-                },
-              })
-            }
-          >
-            <HomeMealCard.Preview />
-            <HomeMealCard.Content>
-              <HomeMealCard.Header>
-                <HomeMealCard.ActionButton
-                  icon="create-outline"
-                  label={t('common.edit')}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/food-form',
-                      params: {
-                        favoriteId: item.id,
-                      },
-                    })
-                  }
+    <ScreenContainer padded={false} edges={[]}>
+      <View style={styles.content}>
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[
+            styles.listContent,
+            {
+              paddingTop: theme.metrics.spacingV.p12,
+            },
+          ]}
+          renderItem={({ item }) => (
+            <HomeMealCard.Root
+              item={toHomeMealCardItem({
+                ...item,
+                isFavorite: true,
+              })}
+              onPress={() =>
+                router.push({
+                  pathname: '/food-detail',
+                  params: {
+                    favoriteId: item.id,
+                  },
+                })
+              }
+            >
+              <HomeMealCard.Preview />
+              <HomeMealCard.Content>
+                <HomeMealCard.Header>
+                  <HomeMealCard.ActionButton
+                    icon="create-outline"
+                    label={t('common.edit')}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/food-form',
+                        params: {
+                          favoriteId: item.id,
+                        },
+                      })
+                    }
+                  />
+                  <HomeMealCard.ActionButton
+                    icon="trash-outline"
+                    label={t('common.delete')}
+                    tone="danger"
+                    onPress={() => {
+                      handleRemoveFavorite(item);
+                    }}
+                  />
+                </HomeMealCard.Header>
+                <HomeMealCard.Macros />
+              </HomeMealCard.Content>
+            </HomeMealCard.Root>
+          )}
+          ListHeaderComponent={
+            <View style={styles.header}>
+              {isSearchOpen ? (
+                <SearchBar
+                  value={searchValue}
+                  onChangeText={setSearchValue}
+                  placeholder={t('favoritesScreen.searchPlaceholder')}
+                  autoFocus
                 />
-                <HomeMealCard.ActionButton
-                  icon="trash-outline"
-                  label={t('common.delete')}
-                  tone="danger"
-                  onPress={() => {
-                    handleRemoveFavorite(item);
-                  }}
-                />
-              </HomeMealCard.Header>
-              <HomeMealCard.Macros />
-            </HomeMealCard.Content>
-          </HomeMealCard.Root>
-        )}
-        ListHeaderComponent={
-          <View style={styles.header}>
-            {isSearchOpen ? (
-              <SearchBar
-                value={searchValue}
-                onChangeText={setSearchValue}
-                placeholder={t('favoritesScreen.searchPlaceholder')}
-                autoFocus
-              />
-            ) : (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('common.search')}
-                onPress={() => setIsSearchOpen(true)}
-                style={styles.searchButton}
-              >
-                <Icon name="search" variant="primary" size={18} />
-                <Text variant="bodySmall" weight="semibold">
-                  {t('common.search')}
-                </Text>
-              </Pressable>
-            )}
-          </View>
-        }
-        ListEmptyComponent={emptyStateContent}
-        onEndReached={loadMoreFavorites}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          isLoadingMore ? (
-            <View style={styles.footerLoading}>
-              <Loading size="small" message={t('common.loading')} />
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.search')}
+                  onPress={() => setIsSearchOpen(true)}
+                  style={styles.searchButton}
+                >
+                  <Icon name="search" variant="primary" size={18} />
+                  <Text variant="bodySmall" weight="semibold">
+                    {t('common.search')}
+                  </Text>
+                </Pressable>
+              )}
             </View>
-          ) : null
-        }
-      />
+          }
+          ListEmptyComponent={emptyStateContent}
+          onEndReached={loadMoreFavorites}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isLoadingMore ? (
+              <View style={styles.footerLoading}>
+                <Loading size="small" message={t('common.loading')} />
+              </View>
+            ) : null
+          }
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={addNewFoodLabel}
+          onPress={() => router.push('/food-form')}
+          style={styles.floatingAddButton}
+        >
+          <Icon name="add" variant="onBrand" size={28} />
+        </Pressable>
+      </View>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
+  content: {
+    flex: 1,
+  },
   listContent: {
     paddingHorizontal: theme.metrics.spacing.p16,
-    paddingBottom: theme.metrics.spacingV.p24,
+    paddingBottom: theme.metrics.spacingV.p120,
     gap: theme.metrics.spacingV.p12,
   },
   header: {
@@ -284,5 +303,21 @@ const styles = StyleSheet.create((theme) => ({
   },
   footerLoading: {
     paddingVertical: theme.metrics.spacingV.p16,
+  },
+  floatingAddButton: {
+    position: 'absolute',
+    bottom: theme.metrics.spacingV.p52,
+    right: theme.metrics.spacing.p16,
+    width: theme.metrics.spacing.p56,
+    height: theme.metrics.spacing.p56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.brand.primary,
+    shadowColor: theme.colors.shadow.color,
+    shadowOpacity: 0.28,
+    shadowRadius: theme.metrics.spacing.p20,
+    shadowOffset: { width: 0, height: theme.metrics.spacingV.p12 },
+    elevation: theme.colors.shadow.elevationLarge + 4,
   },
 }));

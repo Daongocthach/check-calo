@@ -81,7 +81,7 @@ export type { SupportPromptCardProps } from './SupportPromptCard';
 export { Dialog } from './Dialog';
 export type { DialogProps, DialogAction } from './Dialog';
 export { DateTimeField } from './DateTimeField';
-export type { DateTimeFieldMode, DateTimeFieldProps } from './DateTimeField';
+export type { DateTimeFieldHandle, DateTimeFieldMode, DateTimeFieldProps } from './DateTimeField';
 export { Menu } from './Menu';
 export type { MenuProps, MenuItem } from './Menu';
 export { MonthSelector } from './MonthSelector';

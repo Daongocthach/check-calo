@@ -20,8 +20,6 @@ export const styles = StyleSheet.create((theme) => ({
     flex: 1,
   },
   sheetContent: {
-    paddingHorizontal: theme.metrics.spacing.p20,
-    paddingTop: theme.metrics.spacingV.p16,
     gap: theme.metrics.spacingV.p16,
   },
   header: {

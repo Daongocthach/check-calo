@@ -1,4 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
+import type { TFunction } from 'i18next';
 import type { ComponentProps } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -33,7 +34,7 @@ import { useCurrentDate } from '@/hooks';
 import { hs, vs } from '@/theme/metrics';
 
 type TrendMode = 'day' | 'month';
-type TranslateFn = (key: string) => string;
+type TranslateFn = TFunction<'translation'>;
 
 const TREND_MODE_OPTIONS: TrendMode[] = ['day', 'month'];
 const STAT_EMOJIS = {
@@ -287,7 +288,7 @@ function createStackSegmentPath({
 
 export default function StatsTab() {
   const { t, i18n } = useTranslation();
-  const translate = t as unknown as TranslateFn;
+  const translate: TranslateFn = t;
   const { theme } = useUnistyles();
   const currentDate = useCurrentDate();
   const [trendMode, setTrendMode] = useState<TrendMode>('day');
@@ -452,7 +453,7 @@ export default function StatsTab() {
             </View>
           </View>
 
-          <ProgressBar value={todayProgressPercent} size="sm" colorScheme="success" />
+          <ProgressBar value={todayProgressPercent} size="sm" colorScheme="primary" />
 
           <View style={styles.calorieHighlight}>
             <View style={styles.roundEmoji}>
@@ -637,12 +638,13 @@ function CaloriesTrendCard({
   const { theme } = useUnistyles();
   const pointSpacing = hs(58);
   const axisWidth = hs(34);
-  const chartWidth = Math.max(hs(280), hs(8) + data.length * pointSpacing);
-  const chartHeight = vs(258);
+  const plotLeft = hs(18);
   const plotRight = hs(8);
+  const chartWidth = Math.max(hs(280), plotLeft + plotRight + data.length * pointSpacing);
+  const chartHeight = vs(258);
   const plotTop = vs(34);
   const plotBottom = vs(46);
-  const plotWidth = chartWidth - plotRight;
+  const plotWidth = chartWidth - plotLeft - plotRight;
   const plotHeight = chartHeight - plotTop - plotBottom;
   const maxValue = Math.max(
     600,
@@ -652,7 +654,7 @@ function CaloriesTrendCard({
   const xStep = data.length > 1 ? plotWidth / (data.length - 1) : plotWidth;
   const points = data.map((point, index) => ({
     ...point,
-    x: index * xStep,
+    x: plotLeft + index * xStep,
     y: plotTop + plotHeight - (point.value / maxValue) * plotHeight,
   }));
   const linePath = createSmoothPath(points);
@@ -727,8 +729,8 @@ function CaloriesTrendCard({
               return (
                 <Line
                   key={value}
-                  x1={0}
-                  x2={plotWidth}
+                  x1={plotLeft}
+                  x2={plotLeft + plotWidth}
                   y1={y}
                   y2={y}
                   stroke={theme.colors.border.default}
@@ -739,8 +741,8 @@ function CaloriesTrendCard({
             })}
 
             <Line
-              x1={0}
-              x2={plotWidth}
+              x1={plotLeft}
+              x2={plotLeft + plotWidth}
               y1={plotTop + plotHeight}
               y2={plotTop + plotHeight}
               stroke={theme.colors.border.default}
@@ -820,14 +822,15 @@ function NutritionDistributionCard({
   const barSlotWidth = hs(58);
   const axisWidth = hs(34);
   const chartWidth = Math.max(hs(280), hs(8) + data.length * barSlotWidth);
-  const chartHeight = vs(254);
+  const chartHeight = vs(270);
   const plotRight = hs(8);
-  const plotTop = vs(26);
+  const plotTop = vs(38);
   const plotBottom = vs(44);
   const plotWidth = chartWidth - plotRight;
   const plotHeight = chartHeight - plotTop - plotBottom;
   const totals = data.map((item) => item.proteinValue + item.carbsValue + item.fatValue);
-  const maxValue = Math.max(120, Math.ceil(Math.max(...totals, 1) / 30) * 30);
+  const rawMaxValue = Math.max(...totals, 1);
+  const maxValue = Math.max(120, Math.ceil((rawMaxValue * 1.1) / 30) * 30);
   const sectionValues = [
     maxValue,
     Math.round(maxValue * 0.75),
@@ -849,7 +852,7 @@ function NutritionDistributionCard({
             {title}
           </Text>
           <View style={styles.chartLegendRow}>
-            <LegendDot label={proteinLabel} color={theme.colors.state.info} />
+            <LegendDot label={proteinLabel} color={theme.colors.brand.primary} />
             <LegendDot label={carbsLabel} color={theme.colors.state.warning} />
             <LegendDot label={fatLabel} color={theme.colors.brand.primary} />
           </View>
@@ -964,7 +967,7 @@ function NutritionDistributionCard({
               const carbsY = segmentY;
               segmentY -= fatHeight;
               const fatY = segmentY;
-              const totalPillY = Math.max(plotTop, fatY - totalPillHeight - vs(14));
+              const totalPillY = Math.max(plotTop + vs(2), fatY - totalPillHeight - vs(18));
 
               return (
                 <G key={item.label}>
@@ -1000,7 +1003,7 @@ function NutritionDistributionCard({
                         roundTop: false,
                         roundBottom: true,
                       })}
-                      fill={theme.colors.state.info}
+                      fill={theme.colors.brand.primary}
                     />
                   ) : null}
                   <SvgText

@@ -35,7 +35,10 @@ function formatSignedNumber(value: number, locale: string, fractionDigits = 0) {
 }
 
 function formatWeightEquivalentKg(value: number, locale: string) {
-  return `~${formatSignedNumber(value / 7700, locale, 1)} kg`;
+  return `~${new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(Math.abs(value) / 7700)}`;
 }
 
 function getCalorieBalanceStatusKey(difference: number) {
@@ -64,7 +67,7 @@ function GoalMetric({
   return (
     <View style={[styles.metric, compact ? styles.metricCompact : null]}>
       <Text
-        variant="bodySmall"
+        variant="caption"
         weight="bold"
         color="secondary"
         style={styles.metricLabel}
@@ -73,7 +76,7 @@ function GoalMetric({
         {label}
       </Text>
       <Text
-        variant="bodySmall"
+        variant="caption"
         weight="bold"
         style={[styles.metricValue, emphasis ? styles.metricValueEmphasis : null]}
         numberOfLines={compact ? 2 : 1}
@@ -81,7 +84,7 @@ function GoalMetric({
         {value}
       </Text>
       {meta ? (
-        <Text variant="bodySmall" color="secondary" style={styles.metricMeta} numberOfLines={1}>
+        <Text variant="caption" color="secondary" style={styles.metricMeta} numberOfLines={1}>
           {meta}
         </Text>
       ) : null}
@@ -125,14 +128,14 @@ export function GoalTrackingCard({ goalTracking, todaySummary }: GoalTrackingCar
           <Text variant="body" weight="bold" numberOfLines={1} adjustsFontSizeToFit>
             {t('goalTracking.profileTitle')}
           </Text>
-          <Text variant="bodySmall" color="secondary" numberOfLines={2}>
+          <Text variant="caption" color="secondary" numberOfLines={2}>
             {t('statsScreen.todayProgress.subtitle')}
           </Text>
         </View>
         <View style={styles.circleWrap}>
           <GiftedCircularProgress
             progress={planProgressPercent}
-            size={70}
+            size={65}
             strokeWidth={7}
             trackColor={theme.colors.background.section}
             progressColor={theme.colors.brand.primary}
@@ -199,7 +202,7 @@ export function GoalTrackingCard({ goalTracking, todaySummary }: GoalTrackingCar
                 ? t('goalTracking.remainingDeficitLabel')
                 : t('goalTracking.remainingToTargetLabel')
             }
-            value={`${formatSignedNumber(signedRemainingCalorieDelta, i18n.language)} ${t(
+            value={`${formatNumber(Math.abs(signedRemainingCalorieDelta), i18n.language)} ${t(
               'common.units.kcal'
             )}`}
             meta={t('goalTracking.weightEquivalent', {
@@ -224,8 +227,8 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacing.p12,
   },
   image: {
-    width: theme.metrics.spacing.p52,
-    height: theme.metrics.spacing.p52,
+    width: theme.metrics.spacing.p72,
+    height: theme.metrics.spacing.p72,
   },
   copy: {
     flex: 1,
@@ -264,12 +267,9 @@ const styles = StyleSheet.create((theme) => ({
   metricValue: {
     lineHeight: 18,
   },
-  metricValueEmphasis: {
-    fontSize: theme.fonts.size.md,
-  },
+  metricValueEmphasis: {},
   metricMeta: {
     lineHeight: 16,
-    fontSize: theme.fonts.size.xxs,
   },
   divider: {
     width: 1,

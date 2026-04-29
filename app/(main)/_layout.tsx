@@ -1,9 +1,7 @@
-import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Stack, useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Modal, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Loading } from '@/common/components';
 import { AddMealSourceBottomSheet } from '@/features/nutrition/components/AddMealSourceBottomSheet';
@@ -18,43 +16,17 @@ import { toast } from '@/utils/toast';
 export default function MainLayout() {
   const { t } = useTranslation();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const openCamera = useOpenCamera();
   const openImageLibrary = useOpenImageLibrary();
   const openQrScanner = useOpenQrScanner();
-  const addMealSheetRef = useRef<BottomSheetModal>(null);
-  const mealPlanSuggestionSheetRef = useRef<BottomSheetModal>(null);
-  const openRequestId = useAddMealSourceSheetStore((state) => state.openRequestId);
-  const sheetState = useAddMealSourceSheetStore((state) => state.sheetState);
   const addMealSheetPayload = useAddMealSourceSheetStore((state) => state.payload);
   const setAddSheetState = useAddMealSourceSheetStore((state) => state.setSheetState);
-  const mealPlanOpenRequestId = useMealPlanSuggestionSheetStore((state) => state.openRequestId);
-  const mealPlanSheetState = useMealPlanSuggestionSheetStore((state) => state.sheetState);
   const setMealPlanSheetState = useMealPlanSuggestionSheetStore((state) => state.setSheetState);
-  const lastPresentedRequestIdRef = useRef(0);
-  const lastMealPlanPresentedRequestIdRef = useRef(0);
   const [isAnalyzingPhoto, setIsAnalyzingPhoto] = useState(false);
 
-  useEffect(() => {
-    if (sheetState === 'opening' && openRequestId > lastPresentedRequestIdRef.current) {
-      lastPresentedRequestIdRef.current = openRequestId;
-      addMealSheetRef.current?.present();
-    }
-  }, [openRequestId, sheetState]);
-
-  useEffect(() => {
-    if (
-      mealPlanSheetState === 'opening' &&
-      mealPlanOpenRequestId > lastMealPlanPresentedRequestIdRef.current
-    ) {
-      lastMealPlanPresentedRequestIdRef.current = mealPlanOpenRequestId;
-      mealPlanSuggestionSheetRef.current?.present();
-    }
-  }, [mealPlanOpenRequestId, mealPlanSheetState]);
-
   const closeAddMealSheet = useCallback(() => {
-    addMealSheetRef.current?.dismiss();
-  }, []);
+    setAddSheetState('closed');
+  }, [setAddSheetState]);
 
   const getFoodFormParams = useCallback(
     (params?: Record<string, string>) => ({
@@ -93,8 +65,24 @@ export default function MainLayout() {
     router.push('/recently-food');
   }, [closeAddMealSheet, router]);
 
+  const handleRecentFoodPress = useCallback(
+    (favoriteId: string) => {
+      closeAddMealSheet();
+      router.push({
+        pathname: '/food-detail',
+        params: {
+          favoriteId,
+          ...getFoodFormParams(),
+        },
+      });
+    },
+    [closeAddMealSheet, getFoodFormParams, router]
+  );
+
   const analyzeFoodImage = useCallback(
     async (imageUri: string) => {
+      closeAddMealSheet();
+
       try {
         const result = await analyzeFoodPhotoWithGemini(imageUri);
 
@@ -113,6 +101,7 @@ export default function MainLayout() {
               fat: String(result.draft.fatGrams),
               notes: result.draft.notes ?? '',
               imageUri,
+              ...getFoodFormParams(),
             },
           });
           return;
@@ -128,7 +117,7 @@ export default function MainLayout() {
         setIsAnalyzingPhoto(false);
       }
     },
-    [closeAddMealSheet, openFoodFormFromPhoto, router, t]
+    [closeAddMealSheet, getFoodFormParams, openFoodFormFromPhoto, router, t]
   );
 
   const handleCaptureFood = useCallback(async () => {
@@ -187,6 +176,7 @@ export default function MainLayout() {
           protein: lookupResult?.protein || '',
           fat: lookupResult?.fat || '',
           imageUri: lookupResult?.imageUri,
+          ...getFoodFormParams(),
         },
       });
 
@@ -208,9 +198,10 @@ export default function MainLayout() {
         carbs: '',
         protein: '',
         fat: '',
+        ...getFoodFormParams(),
       },
     });
-  }, [closeAddMealSheet, openQrScanner, router, t]);
+  }, [closeAddMealSheet, getFoodFormParams, openQrScanner, router, t]);
 
   return (
     <>
@@ -233,8 +224,6 @@ export default function MainLayout() {
         <Stack.Screen name="privacy" />
       </Stack>
       <AddMealSourceBottomSheet
-        bottomSheetRef={addMealSheetRef}
-        topInset={insets.top}
         onManualPress={handleManualEntry}
         onPhotoPress={() => {
           void handleCaptureFood();
@@ -245,23 +234,29 @@ export default function MainLayout() {
         onBarcodePress={() => {
           void handleBarcodeScan();
         }}
+        onRecentFoodPress={handleRecentFoodPress}
         onViewAllRecentPress={handleViewAllRecentFoods}
-        onSheetChange={(index) => {
-          setAddSheetState(index >= 0 ? 'open' : 'closed');
-        }}
       />
       <MealPlanSuggestionSheet
-        bottomSheetRef={mealPlanSuggestionSheetRef}
-        topInset={insets.top}
-        onSheetChange={(index) => {
-          setMealPlanSheetState(index >= 0 ? 'open' : 'closed');
+        onClose={() => {
+          setMealPlanSheetState('closed');
         }}
       />
-      {isAnalyzingPhoto ? (
+      <Modal
+        animationType="fade"
+        hardwareAccelerated
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
+        transparent
+        visible={isAnalyzingPhoto}
+      >
         <View style={styles.analysisOverlay} pointerEvents="auto">
-          <Loading message={t('addScreen.captureModes.scanFoodAnalyzingWithAi')} />
+          <Loading
+            message={t('addScreen.captureModes.scanFoodAnalyzingWithAi')}
+            messageColor="onShadow"
+          />
         </View>
-      ) : null}
+      </Modal>
     </>
   );
 }

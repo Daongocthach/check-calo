@@ -55,7 +55,7 @@ export function GiftedCircularProgress({
         donut
         radius={radius}
         innerRadius={innerRadius}
-        initialAngle={-90}
+        initialAngle={0}
         strokeWidth={0}
         innerCircleColor={theme.colors.background.surface}
         isAnimated

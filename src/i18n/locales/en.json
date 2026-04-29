@@ -257,6 +257,7 @@
       "title": "Food name",
       "quantityLabel": "Quantity label",
       "quantityGrams": "Quantity in grams",
+      "consumedAt": "Meal date and time",
       "calories": "Calories"
     },
     "unknownFoodName": "Unknown food",
@@ -295,8 +296,8 @@
     "accountNumber": "700-034-951978",
     "bankLabel": "Bank",
     "bankName": "Shinhan Bank Vietnam",
-    "copyAction": "Copy transfer info",
-    "copyModalTitle": "Copy successful transfer information!",
+    "copyAction": "Copy account number",
+    "copyModalTitle": "Account number copied successfully!",
     "copyModalBody": "You are an important part of making this app better every day ❤️",
     "thanks": "Thank you very much! 🙏"
   },
@@ -357,6 +358,8 @@
       "detailComposition": "Detail composition",
       "addFavorite": "Add to food library",
       "removeFavorite": "Remove from food library",
+      "deleteTitle": "Delete food",
+      "deleteMessage": "Delete \"{{name}}\" from today's meals?",
       "emptyTitle": "No meals logged yet",
       "emptySubtitle": "Add your first meal to start tracking calories and macros today.",
       "comboLabel": "Combo {{first}} + {{second}}",
@@ -444,7 +447,7 @@
     },
     "macroDistribution": {
       "title": "Macro distribution by period",
-      "subtitle": "Stacked bars showing protein, carbs, and fat for each day or month."
+      "subtitle": "Stacked bars showing protein, carb, and fat for each day or month."
     }
   },
   "addScreen": {
@@ -627,6 +630,7 @@
     "heroTitleWithCount": "Recently Food ({{count}})",
     "heroSubtitle": "Your personal food collection",
     "addFavoriteAction": "Add a new food to the library",
+    "addNewFoodAction": "Add new food",
     "searchPlaceholder": "Search your food library",
     "savedItem": "Library item",
     "removeTitle": "Remove from library",
@@ -835,14 +839,14 @@
     "progressDays": "{{current}} / {{target}} days",
     "deficitAchievedLabel": "Deficit reached",
     "deficitRemainingLabel": "Remaining {{value}} kg",
-    "fatEquivalent": "(~{{value}} kg fat)",
+    "fatEquivalent": "({{value}} kg fat)",
     "calorieDeficitLabel": "Calorie deficit",
     "remainingDeficitLabel": "Remaining deficit",
     "calorieDifferenceLabel": "Calorie difference",
     "statusLabel": "Status",
     "calorieSurplusLabel": "Calorie surplus",
     "remainingToTargetLabel": "Remaining to target",
-    "weightEquivalent": "(~{{value}} kg)",
+    "weightEquivalent": "({{value}} kg)",
     "balanceStatus": {
       "slightDeficit": "Slight deficit",
       "balanced": "Balanced",

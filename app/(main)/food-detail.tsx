@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { TFunction } from 'i18next';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,21 +11,27 @@ import {
   Card,
   Dialog,
   Icon,
+  DateTimeField,
   Input,
   QuantityStepper,
   ScreenContainer,
   SupportPromptCard,
   Text,
 } from '@/common/components';
+import type { DateTimeFieldHandle } from '@/common/components';
 import {
   enqueueFoodEntryImageSync,
   processPendingFoodEntryImageSyncQueue,
 } from '@/features/nutrition/services/foodEntrySyncQueue';
-import { getManualMealByItemIds } from '@/features/nutrition/services/manualMealsDatabase';
+import {
+  createManualMealItem,
+  getManualMealByItemIds,
+} from '@/features/nutrition/services/manualMealsDatabase';
 import {
   createFoodEntry,
   getFavoriteFoodById,
   getFoodEntryById,
+  upsertFavoriteFoodFromInput,
   updateFavoriteFood,
   updateFoodEntry,
 } from '@/features/nutrition/services/nutritionDatabase';
@@ -73,6 +79,7 @@ interface FoodDetailEditState {
   title: string;
   quantityLabel: string;
   quantityGrams: string;
+  consumedAt: string;
   calories: string;
   proteinGrams: string;
   carbsGrams: string;
@@ -121,6 +128,50 @@ function parseOptionalNumericInput(value: string) {
 
   const parsedValue = Number(trimmed);
   return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function pad(value: number) {
+  return `${value}`.padStart(2, '0');
+}
+
+function formatDateTimeInputValue(value: string | Date) {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return formatDateTimeInputValue(new Date());
+  }
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}`;
+}
+
+function parseDateTimeInputValue(value: string) {
+  const [datePart = '', timePart = ''] = value.trim().split(' ');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute] = timePart.split(':').map(Number);
+
+  if (
+    Number.isNaN(year) ||
+    Number.isNaN(month) ||
+    Number.isNaN(day) ||
+    Number.isNaN(hour) ||
+    Number.isNaN(minute)
+  ) {
+    return new Date();
+  }
+
+  return new Date(year, month - 1, day, hour, minute);
+}
+
+function formatDateTimeInputDisplay(value: string, locale: string) {
+  const date = parseDateTimeInputValue(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return toDisplayDate(date.toISOString(), locale);
 }
 
 function toDisplayDate(value: string | null, locale: string) {
@@ -236,6 +287,7 @@ function toEditState(detail: FoodDetailData): FoodDetailEditState {
     title: detail.title,
     quantityLabel: detail.quantityLabel,
     quantityGrams: detail.quantityGrams !== null ? String(detail.quantityGrams) : '',
+    consumedAt: formatDateTimeInputValue(detail.consumedAt ?? new Date()),
     calories: String(detail.calories),
     proteinGrams: String(detail.proteinGrams),
     carbsGrams: String(detail.carbsGrams),
@@ -254,11 +306,13 @@ export default function FoodDetailScreen() {
   const [detail, setDetail] = useState<FoodDetailData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [servings, setServings] = useState(1);
+  const dateTimeFieldRef = useRef<DateTimeFieldHandle>(null);
   const [editDialog, setEditDialog] = useState<FoodDetailEditState>({
     visible: false,
     title: '',
     quantityLabel: '',
     quantityGrams: '',
+    consumedAt: '',
     calories: '',
     proteinGrams: '',
     carbsGrams: '',
@@ -338,7 +392,7 @@ export default function FoodDetailScreen() {
               notes: favorite.notes,
               imageUri: favorite.imageUri ?? null,
               thumbnailUri: favorite.thumbnailUri ?? null,
-              consumedAt: null,
+              consumedAt: new Date().toISOString(),
             });
             return;
           }
@@ -368,7 +422,7 @@ export default function FoodDetailScreen() {
               notes: item.notes ?? meal.note,
               imageUri: item.imageUri ?? null,
               thumbnailUri: item.thumbnailUri ?? null,
-              consumedAt: meal.eatenAt,
+              consumedAt: meal.eatenAt ?? new Date().toISOString(),
             });
             return;
           }
@@ -452,6 +506,9 @@ export default function FoodDetailScreen() {
   const displayProteinGrams = detail ? Math.round(detail.proteinGrams * quantityMultiplier) : 0;
   const displayCarbsGrams = detail ? Math.round(detail.carbsGrams * quantityMultiplier) : 0;
   const displayFatGrams = detail ? Math.round(detail.fatGrams * quantityMultiplier) : 0;
+  const displayConsumedAt = detail?.consumedAt
+    ? toDisplayDate(detail.consumedAt, i18n.language)
+    : '';
 
   const macroValues = useMemo(() => {
     if (!detail) {
@@ -513,6 +570,7 @@ export default function FoodDetailScreen() {
 
     const title = editDialog.title.trim();
     const quantityLabel = editDialog.quantityLabel.trim();
+    const consumedAt = parseDateTimeInputValue(editDialog.consumedAt);
     const calories = parseRequiredNumericInput(editDialog.calories);
     const proteinGrams = parseRequiredNumericInput(editDialog.proteinGrams);
     const carbsGrams = parseRequiredNumericInput(editDialog.carbsGrams);
@@ -557,8 +615,8 @@ export default function FoodDetailScreen() {
         notes: nextNotes,
         imageUri: detail.imageUri,
         thumbnailUri: detail.thumbnailUri,
-        consumedAt: detail.consumedAt ?? undefined,
-        entryDate: detail.consumedAt ?? undefined,
+        consumedAt: consumedAt.toISOString(),
+        entryDate: consumedAt.toISOString(),
       });
 
       if (updatedEntry) {
@@ -608,7 +666,7 @@ export default function FoodDetailScreen() {
           notes: updatedFavorite.notes,
           imageUri: updatedFavorite.imageUri ?? null,
           thumbnailUri: updatedFavorite.thumbnailUri ?? null,
-          consumedAt: null,
+          consumedAt: consumedAt.toISOString(),
         });
       }
       closeEditDialog();
@@ -622,6 +680,7 @@ export default function FoodDetailScreen() {
             title,
             quantityLabel,
             quantityGrams,
+            consumedAt: consumedAt.toISOString(),
             calories: Math.round(calories),
             proteinGrams: Math.round(proteinGrams),
             carbsGrams: Math.round(carbsGrams),
@@ -641,7 +700,7 @@ export default function FoodDetailScreen() {
     setIsSaving(true);
 
     try {
-      const entry = await createFoodEntry({
+      const savedFood = {
         mealName: detail.title,
         quantityLabel:
           displayQuantityGrams !== null
@@ -656,7 +715,43 @@ export default function FoodDetailScreen() {
         imageUri: detail.imageUri,
         thumbnailUri: detail.thumbnailUri,
         consumedAt: detail.consumedAt ?? new Date().toISOString(),
+      };
+
+      const syncedFavorite = await upsertFavoriteFoodFromInput({
+        name: savedFood.mealName,
+        quantityLabel: savedFood.quantityLabel,
+        quantityGrams: savedFood.quantityGrams,
+        totalCalories: savedFood.totalCalories,
+        proteinGrams: savedFood.proteinGrams,
+        carbsGrams: savedFood.carbsGrams,
+        fatGrams: savedFood.fatGrams,
+        notes: savedFood.notes,
+        imageUri: savedFood.imageUri,
+        thumbnailUri: savedFood.thumbnailUri,
       });
+
+      if (mealLocalId && !itemLocalId) {
+        await createManualMealItem(mealLocalId, {
+          sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
+          title: savedFood.mealName,
+          quantityLabel: savedFood.quantityLabel,
+          quantityGrams: savedFood.quantityGrams,
+          totalCalories: savedFood.totalCalories,
+          proteinGrams: savedFood.proteinGrams,
+          carbsGrams: savedFood.carbsGrams,
+          fatGrams: savedFood.fatGrams,
+          notes: savedFood.notes,
+          imageUri: savedFood.imageUri,
+          thumbnailUri: savedFood.thumbnailUri,
+          servings: 1,
+        });
+
+        toast.success(t('foodDetail.saveSuccess'));
+        router.replace('/menu');
+        return;
+      }
+
+      const entry = await createFoodEntry(savedFood);
 
       if (entry.imageUri?.startsWith('file://')) {
         await enqueueFoodEntryImageSync(entry.id);
@@ -676,6 +771,8 @@ export default function FoodDetailScreen() {
     displayProteinGrams,
     displayQuantityGrams,
     isSaving,
+    itemLocalId,
+    mealLocalId,
     t,
   ]);
 
@@ -741,7 +838,7 @@ export default function FoodDetailScreen() {
 
             {detail.consumedAt ? (
               <Text variant="caption" color="secondary">
-                {toDisplayDate(detail.consumedAt, i18n.language)}
+                {displayConsumedAt}
               </Text>
             ) : null}
 
@@ -876,7 +973,6 @@ export default function FoodDetailScreen() {
         title={t('foodDetail.editTitle')}
         size="lg"
         keyboardAware
-        keyboardOffset={theme.metrics.spacingV.p24}
         actions={[
           {
             label: t('common.cancel'),
@@ -899,13 +995,6 @@ export default function FoodDetailScreen() {
             }}
           />
           <Input
-            label={t('foodDetail.editFields.quantityLabel')}
-            value={editDialog.quantityLabel}
-            onChangeText={(value) => {
-              setEditDialog((previous) => ({ ...previous, quantityLabel: value, error: null }));
-            }}
-          />
-          <Input
             label={t('foodDetail.editFields.quantityGrams')}
             value={editDialog.quantityGrams}
             keyboardType="decimal-pad"
@@ -913,6 +1002,23 @@ export default function FoodDetailScreen() {
               setEditDialog((previous) => ({ ...previous, quantityGrams: value, error: null }));
             }}
           />
+          <View style={styles.timeFieldBlock}>
+            <Text variant="label" style={styles.timeFieldLabel}>
+              {t('foodDetail.editFields.consumedAt')}
+            </Text>
+            <Button
+              title={
+                formatDateTimeInputDisplay(editDialog.consumedAt, i18n.language) ||
+                t('foodDetail.editFields.consumedAt')
+              }
+              variant="outline"
+              size="sm"
+              onPress={() => {
+                dateTimeFieldRef.current?.present();
+              }}
+              style={styles.timeFieldButton}
+            />
+          </View>
           <Input
             label={t('foodDetail.editFields.calories')}
             value={editDialog.calories}
@@ -979,6 +1085,19 @@ export default function FoodDetailScreen() {
           ) : null}
         </View>
       </Dialog>
+
+      <View style={styles.hiddenDateTimeField}>
+        <DateTimeField
+          ref={dateTimeFieldRef}
+          title={t('foodDetail.editFields.consumedAt')}
+          mode="datetime"
+          value={editDialog.consumedAt}
+          onChange={(value) => {
+            setEditDialog((previous) => ({ ...previous, consumedAt: value, error: null }));
+          }}
+          hideTrigger
+        />
+      </View>
     </ScreenContainer>
   );
 }
@@ -1023,6 +1142,15 @@ const styles = StyleSheet.create((theme) => ({
   editButton: {
     alignSelf: 'flex-start',
     marginTop: theme.metrics.spacingV.p4,
+  },
+  timeFieldBlock: {
+    gap: theme.metrics.spacingV.p4,
+  },
+  timeFieldLabel: {
+    marginLeft: theme.metrics.spacing.p4,
+  },
+  timeFieldButton: {
+    alignSelf: 'flex-start',
   },
   titleRow: {
     flexDirection: 'row',
@@ -1156,5 +1284,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   editErrorText: {
     color: theme.colors.state.error,
+  },
+  hiddenDateTimeField: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    opacity: 0,
+    overflow: 'hidden',
   },
 }));

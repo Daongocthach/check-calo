@@ -94,8 +94,19 @@ function getActivityIconName(level: ActivityTileLevel) {
 }
 
 function isPositiveNumber(value: string) {
-  const parsedValue = Number(value);
-  return !Number.isNaN(parsedValue) && parsedValue > 0;
+  const parsedValue = parseProfileNumber(value);
+  return parsedValue !== null && parsedValue > 0;
+}
+
+function parseProfileNumber(value: string) {
+  const normalizedValue = value.trim().replace(',', '.');
+
+  if (normalizedValue.length === 0) {
+    return null;
+  }
+
+  const parsedValue = Number(normalizedValue);
+  return Number.isFinite(parsedValue) ? parsedValue : null;
 }
 
 function validateRequiredPositive(value: string, requiredMessage: string, positiveMessage: string) {
@@ -117,9 +128,9 @@ function buildProfileSummary(form: ProfileFormState): ProfileSummaryState | null
 
   const profileInput = {
     gender: form.gender,
-    age: Number(form.age),
-    heightCm: Number(form.height),
-    weightKg: Number(form.weight),
+    age: parseProfileNumber(form.age) ?? 0,
+    heightCm: parseProfileNumber(form.height) ?? 0,
+    weightKg: parseProfileNumber(form.weight) ?? 0,
     monthlyWeightGoalKg: form.monthlyWeightGoalKg,
     activityLevel: form.activityLevel,
   };
@@ -228,9 +239,9 @@ export default function WelcomeScreen() {
 
     const profile = await upsertUserProfile({
       gender: form.gender,
-      age: Number(form.age),
-      heightCm: Number(form.height),
-      weightKg: Number(form.weight),
+      age: parseProfileNumber(form.age) ?? 0,
+      heightCm: parseProfileNumber(form.height) ?? 0,
+      weightKg: parseProfileNumber(form.weight) ?? 0,
       monthlyWeightGoalKg: form.monthlyWeightGoalKg,
       activityLevel: form.activityLevel,
     });
@@ -341,7 +352,8 @@ export default function WelcomeScreen() {
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
-                        keyboardType="number-pad"
+                        keyboardType="decimal-pad"
+                        inputMode="decimal"
                         error={errors.height?.message}
                         placeholder={t('welcomeScreen.placeholders.height')}
                       />
@@ -367,7 +379,8 @@ export default function WelcomeScreen() {
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
-                        keyboardType="number-pad"
+                        keyboardType="decimal-pad"
+                        inputMode="decimal"
                         error={errors.weight?.message}
                         placeholder={t('welcomeScreen.placeholders.weight')}
                       />

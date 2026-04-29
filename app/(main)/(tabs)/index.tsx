@@ -14,18 +14,29 @@ import {
   ScreenContainer,
   Text,
 } from '@/common/components';
+import { GoalTrackingCard } from '@/features/nutrition/components/GoalTrackingCard';
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
+import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import { getFoodEntryImageSyncStateMap } from '@/features/nutrition/services/foodEntrySyncQueue';
+import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
 import {
+  deleteFoodEntry,
   getDailyNutritionSummary,
   getUserProfile,
   listFoodEntriesByDate,
   listLoggedDailyStatuses,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
-import type { DailyNutritionSummary, FoodEntry, UserProfile } from '@/features/nutrition/types';
+import type {
+  DailyNutritionSummary,
+  FoodEntry,
+  GoalTrackingSnapshot,
+  UserProfile,
+} from '@/features/nutrition/types';
 import { useBottomPadding, useCurrentDate, useScreenDimensions } from '@/hooks';
+import { useAppAlert } from '@/providers/app-alert';
 import { vs } from '@/theme/metrics';
+import { toast } from '@/utils/toast';
 
 interface MealSection {
   title: string;
@@ -167,7 +178,7 @@ function CaloriesRing({
         />
         <Path
           d={trackPath}
-          stroke={theme.colors.state.success}
+          stroke={theme.colors.brand.primary}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="none"
@@ -221,6 +232,7 @@ function CaloriesRing({
 export default function HomeTab() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
+  const appAlert = useAppAlert();
   const bottomPadding = useBottomPadding();
   const currentDate = useCurrentDate();
   const previousCurrentDateRef = useRef(currentDate);
@@ -235,6 +247,7 @@ export default function HomeTab() {
   const [entries, setEntries] = useState<FoodEntryWithSyncDebug[]>([]);
   const [hasProfile, setHasProfile] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
 
   useEffect(() => {
     const previousCurrentDate = previousCurrentDateRef.current;
@@ -249,10 +262,11 @@ export default function HomeTab() {
   }, [currentDate]);
 
   const loadNutritionData = useCallback(async (date: Date) => {
-    const [nextProfile, nextSummary, nextEntries] = await Promise.all([
+    const [nextProfile, nextSummary, nextEntries, nextGoalTracking] = await Promise.all([
       getUserProfile(),
       getDailyNutritionSummary(date),
       listFoodEntriesByDate(date),
+      syncGoalTracking(),
     ]);
     const syncStateMap = await getFoodEntryImageSyncStateMap(nextEntries.map((entry) => entry.id));
     const entriesWithSyncDebug = nextEntries.map((entry) => ({
@@ -264,6 +278,7 @@ export default function HomeTab() {
     setProfile(nextProfile);
     setSummary(nextSummary);
     setEntries(entriesWithSyncDebug);
+    setGoalTracking(nextGoalTracking);
   }, []);
 
   const loadMonthStatuses = useCallback(async (month: Date) => {
@@ -278,6 +293,39 @@ export default function HomeTab() {
       }, {})
     );
   }, []);
+
+  const handleDeleteEntry = useCallback(
+    (meal: FoodEntryWithSyncDebug) => {
+      appAlert.alert(
+        t('homeScreen.meals.deleteTitle'),
+        t('homeScreen.meals.deleteMessage', { name: meal.mealName }),
+        [
+          {
+            text: t('common.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('common.delete'),
+            style: 'destructive',
+            onPress: () => {
+              void deleteFoodEntry(meal.id)
+                .then(async () => {
+                  await deleteOrphanedFoodEntryAssets(meal.imageUri, meal.thumbnailUri);
+                  await Promise.all([
+                    loadNutritionData(selectedDate),
+                    loadMonthStatuses(visibleMonth),
+                  ]);
+                })
+                .catch(() => {
+                  toast.error(t('profileScreen.actionError'));
+                });
+            },
+          },
+        ]
+      );
+    },
+    [appAlert, loadMonthStatuses, loadNutritionData, selectedDate, t, visibleMonth]
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -386,16 +434,12 @@ export default function HomeTab() {
               <HomeMealCard.Content>
                 <HomeMealCard.Header>
                   <HomeMealCard.ActionButton
-                    icon="ellipsis-vertical"
-                    label={t('common.more')}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/food-form',
-                        params: {
-                          entryId: meal.id,
-                        },
-                      })
-                    }
+                    icon="trash-outline"
+                    label={t('common.delete')}
+                    tone="danger"
+                    onPress={() => {
+                      handleDeleteEntry(meal);
+                    }}
                   />
                 </HomeMealCard.Header>
                 <HomeMealCard.Macros
@@ -509,7 +553,7 @@ export default function HomeTab() {
                       </View>
                       <ProgressBar
                         value={progress}
-                        size="sm"
+                        size="md"
                         colorScheme={progressScheme}
                         accessibilityLabel={row.label}
                       />
@@ -518,6 +562,8 @@ export default function HomeTab() {
                 })}
               </View>
             </Card>
+
+            <GoalTrackingCard goalTracking={goalTracking} todaySummary={summary} />
 
             <View style={styles.mealsHeaderRow}>
               <View style={styles.cardHeaderCopy}>

@@ -1,22 +1,14 @@
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetScrollView,
-  BottomSheetView,
-  type BottomSheetBackdropProps,
-} from '@gorhom/bottom-sheet';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
 import type { ComponentProps, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnistyles } from 'react-native-unistyles';
 import { Icon, Loading, Text } from '@/common/components';
 import { listFavoriteFoodsPage } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import type { FavoriteFood } from '@/features/nutrition/types';
+import { useAppBottomSheet } from '@/providers/bottom-sheet';
 import { styles } from './AddMealSourceBottomSheet.styles';
 import type { AddMealSourceBottomSheetProps } from './AddMealSourceBottomSheet.types';
 
@@ -33,20 +25,18 @@ interface RecentFoodChip {
 const RECENT_FOOD_LIMIT = 4;
 
 export function AddMealSourceBottomSheet({
-  bottomSheetRef,
-  topInset,
   onManualPress,
   onPhotoPress,
   onLibraryPress,
   onBarcodePress,
+  onRecentFoodPress,
   onViewAllRecentPress,
-  onSheetChange,
 }: AddMealSourceBottomSheetProps) {
   const { t } = useTranslation();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
+  const { openSheet, closeSheet } = useAppBottomSheet();
   const sheetState = useAddMealSourceSheetStore((state) => state.sheetState);
+  const setSheetState = useAddMealSourceSheetStore((state) => state.setSheetState);
   const [recentFoods, setRecentFoods] = useState<FavoriteFood[]>([]);
   const [recentPage, setRecentPage] = useState(1);
   const [hasNextRecentPage, setHasNextRecentPage] = useState(false);
@@ -54,31 +44,20 @@ export function AddMealSourceBottomSheet({
   const [isLoadingMoreRecentFoods, setIsLoadingMoreRecentFoods] = useState(false);
   const pendingActionRef = useRef<(() => void) | null>(null);
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        pressBehavior="close"
-      />
-    ),
-    []
-  );
-
   const handleSelect = useCallback(
     (action: () => void) => {
       pendingActionRef.current = action;
-      bottomSheetRef.current?.dismiss();
+      closeSheet();
     },
-    [bottomSheetRef]
+    [closeSheet]
   );
 
   const handleDismiss = useCallback(() => {
+    setSheetState('closed');
     const action = pendingActionRef.current;
     pendingActionRef.current = null;
     action?.();
-  }, []);
+  }, [setSheetState]);
 
   const loadRecentFoods = useCallback(async (page: number, append: boolean) => {
     if (append) {
@@ -204,16 +183,7 @@ export function AddMealSourceBottomSheet({
             key={item.key}
             accessibilityRole="button"
             accessibilityLabel={item.title}
-            onPress={() =>
-              handleSelect(() =>
-                router.push({
-                  pathname: '/food-detail',
-                  params: {
-                    favoriteId: item.key,
-                  },
-                })
-              )
-            }
+            onPress={() => handleSelect(() => onRecentFoodPress(item.key))}
             style={styles.recentChip}
           >
             <View style={styles.recentThumb}>
@@ -246,107 +216,116 @@ export function AddMealSourceBottomSheet({
     );
   }
 
-  const options = [
-    {
-      key: 'manual',
-      titleKey: 'addScreen.captureModes.manual',
-      descriptionKey: 'addScreen.modeContent.manual.sheetBody',
-      iconName: 'add-circle-outline',
-      onPress: onManualPress,
-    },
-    {
-      key: 'photo',
-      titleKey: 'addScreen.captureModes.scanFood',
-      descriptionKey: 'addScreen.modeContent.scanFood.sheetBody',
-      iconName: 'camera-outline',
-      onPress: onPhotoPress,
-    },
-    {
-      key: 'library',
-      titleKey: 'addScreen.captureModes.library',
-      descriptionKey: 'addScreen.modeContent.library.sheetBody',
-      iconName: 'image-outline',
-      onPress: onLibraryPress,
-    },
-    {
-      key: 'barcode',
-      titleKey: 'addScreen.captureModes.barcode',
-      descriptionKey: 'addScreen.modeContent.barcode.sheetBody',
-      iconName: 'barcode-outline',
-      onPress: onBarcodePress,
-    },
-  ] as const;
-
-  return (
-    <BottomSheetModal
-      ref={bottomSheetRef}
-      snapPoints={['80%', '100%']}
-      enableDynamicSizing={false}
-      enablePanDownToClose
-      topInset={topInset}
-      onChange={onSheetChange}
-      onDismiss={handleDismiss}
-      backdropComponent={renderBackdrop}
-      backgroundStyle={styles.sheetBackground}
-      handleIndicatorStyle={styles.sheetHandle}
-    >
-      <BottomSheetScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + theme.metrics.spacingV.p32 },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <BottomSheetView style={styles.sheetContent}>
-          <View style={styles.header}>
-            <View style={styles.headerCopy}>
-              <Text variant="h2" weight="bold">
-                {t('addScreen.modalTitle')}
-              </Text>
-              <Text variant="bodySmall" color="secondary" style={styles.subtitle}>
-                {t('addScreen.modalSubtitle')}
-              </Text>
-            </View>
-            <View style={styles.sparkleGroup} pointerEvents="none">
-              <Icon name="sparkles-outline" size={24} color={theme.colors.brand.primaryVariant} />
-            </View>
-          </View>
-
-          <View style={styles.optionList}>
-            {options.map((option) => (
-              <AddMealSourceOption
-                key={option.key}
-                tone={option.key}
-                title={t(option.titleKey)}
-                description={t(option.descriptionKey)}
-                iconName={option.iconName}
-                onPress={() => handleSelect(option.onPress)}
-              />
-            ))}
-          </View>
-
-          <View style={styles.recentHeader}>
-            <Text variant="body" weight="semibold">
-              {t('addScreen.recent.title')}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('addScreen.recent.viewAll')}
-              onPress={() => handleSelect(onViewAllRecentPress)}
-              style={styles.viewAllButton}
-            >
-              <Text variant="bodySmall" weight="semibold" color="primary">
-                {t('addScreen.recent.viewAll')}
-              </Text>
-              <Icon name="chevron-forward" size={16} color={theme.colors.brand.primary} />
-            </Pressable>
-          </View>
-
-          {recentFoodsContent}
-        </BottomSheetView>
-      </BottomSheetScrollView>
-    </BottomSheetModal>
+  const options = useMemo(
+    () =>
+      [
+        {
+          key: 'manual',
+          titleKey: 'addScreen.captureModes.manual',
+          descriptionKey: 'addScreen.modeContent.manual.sheetBody',
+          iconName: 'add-circle-outline',
+          onPress: onManualPress,
+        },
+        {
+          key: 'photo',
+          titleKey: 'addScreen.captureModes.scanFood',
+          descriptionKey: 'addScreen.modeContent.scanFood.sheetBody',
+          iconName: 'camera-outline',
+          onPress: onPhotoPress,
+        },
+        {
+          key: 'library',
+          titleKey: 'addScreen.captureModes.library',
+          descriptionKey: 'addScreen.modeContent.library.sheetBody',
+          iconName: 'image-outline',
+          onPress: onLibraryPress,
+        },
+        {
+          key: 'barcode',
+          titleKey: 'addScreen.captureModes.barcode',
+          descriptionKey: 'addScreen.modeContent.barcode.sheetBody',
+          iconName: 'barcode-outline',
+          onPress: onBarcodePress,
+        },
+      ] as const,
+    [onBarcodePress, onLibraryPress, onManualPress, onPhotoPress]
   );
+
+  const sheetContent = useMemo(
+    () => (
+      <View style={styles.sheetContent}>
+        <View style={styles.header}>
+          <View style={styles.headerCopy}>
+            <Text variant="h2" weight="bold">
+              {t('addScreen.modalTitle')}
+            </Text>
+            <Text variant="bodySmall" color="secondary" style={styles.subtitle}>
+              {t('addScreen.modalSubtitle')}
+            </Text>
+          </View>
+          <View style={styles.sparkleGroup} pointerEvents="none">
+            <Icon name="sparkles-outline" size={24} color={theme.colors.brand.primaryVariant} />
+          </View>
+        </View>
+
+        <View style={styles.optionList}>
+          {options.map((option) => (
+            <AddMealSourceOption
+              key={option.key}
+              tone={option.key}
+              title={t(option.titleKey)}
+              description={t(option.descriptionKey)}
+              iconName={option.iconName}
+              onPress={() => handleSelect(option.onPress)}
+            />
+          ))}
+        </View>
+
+        <View style={styles.recentHeader}>
+          <Text variant="body" weight="semibold">
+            {t('addScreen.recent.title')}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('addScreen.recent.viewAll')}
+            onPress={() => handleSelect(onViewAllRecentPress)}
+            style={styles.viewAllButton}
+          >
+            <Text variant="bodySmall" weight="semibold" color="primary">
+              {t('addScreen.recent.viewAll')}
+            </Text>
+            <Icon name="chevron-forward" size={16} color={theme.colors.icon.primary} />
+          </Pressable>
+        </View>
+
+        {recentFoodsContent}
+      </View>
+    ),
+    [
+      handleSelect,
+      onViewAllRecentPress,
+      options,
+      recentFoodsContent,
+      t,
+      theme.colors.brand.primaryVariant,
+      theme.colors.icon.primary,
+    ]
+  );
+
+  useEffect(() => {
+    if (sheetState === 'closed') {
+      return;
+    }
+
+    openSheet(sheetContent, {
+      snapPoints: ['80%', '100%'],
+      containerVariant: 'scroll',
+      enablePanDownToClose: true,
+      onDismiss: handleDismiss,
+    });
+  }, [handleDismiss, openSheet, sheetContent, sheetState]);
+
+  return null;
 }
 
 function AddMealSourceOption({

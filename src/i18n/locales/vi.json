@@ -83,7 +83,7 @@
         "quick": "Nhanh",
         "cheap": "Rẻ",
         "satiating": "No lâu",
-        "protein": "Nhiều đạm"
+        "protein": "Nhiều protein"
       },
       "generateAction": "Tạo gợi ý",
       "submitted": "Đã ghi nhận tuỳ chọn gợi ý."
@@ -170,7 +170,7 @@
       "snack": "Bữa phụ"
     },
     "sectionSubtitles": {
-      "breakfast": "Khởi động ngày mới với món nhẹ và đủ đạm.",
+      "breakfast": "Khởi động ngày mới với món nhẹ và đủ protein.",
       "lunch": "Ưu tiên món no lâu, cân bằng năng lượng giữa ngày.",
       "dinner": "Giữ bữa tối gọn nhưng vẫn đủ chất.",
       "snack": "Bổ sung nhanh để giữ nhịp năng lượng trong ngày."
@@ -257,6 +257,7 @@
       "title": "Tên món ăn",
       "quantityLabel": "Nhãn khẩu phần",
       "quantityGrams": "Số gram",
+      "consumedAt": "Ngày giờ ăn",
       "calories": "Calories"
     },
     "unknownFoodName": "Món ăn chưa xác định",
@@ -295,8 +296,8 @@
     "accountNumber": "700-034-951978",
     "bankLabel": "Ngân hàng",
     "bankName": "Ngân hàng Shinhan Viet Nam",
-    "copyAction": "Sao chép thông tin chuyển khoản",
-    "copyModalTitle": "Sao chép thông tin chuyển khoản thành công!",
+    "copyAction": "Sao chép số tài khoản",
+    "copyModalTitle": "Sao chép số tài khoản thành công!",
     "copyModalBody": "Bạn là một phần quan trọng giúp app ngày càng hoàn thiện hơn ❤️",
     "thanks": "Cảm ơn bạn rất nhiều! 🙏"
   },
@@ -357,6 +358,8 @@
       "detailComposition": "Xem thành phần",
       "addFavorite": "Thêm vào thư viện món",
       "removeFavorite": "Xóa khỏi thư viện món",
+      "deleteTitle": "Xóa món ăn",
+      "deleteMessage": "Xóa \"{{name}}\" khỏi bữa ăn hôm nay?",
       "emptyTitle": "Chưa có món ăn nào",
       "emptySubtitle": "Hãy thêm món đầu tiên để theo dõi calo và dinh dưỡng trong ngày.",
       "comboLabel": "Combo {{first}} + {{second}}",
@@ -419,11 +422,11 @@
     },
     "macros": {
       "title": "Mục tiêu dinh dưỡng",
-      "subtitle": "Phân bổ đạm, tinh bột và fat đã nạp hôm nay.",
+      "subtitle": "Phân bổ protein, carb và fat đã nạp hôm nay.",
       "centerLabel": "Tổng dinh dưỡng",
       "empty": "Chưa có dữ liệu dinh dưỡng cho hôm nay.",
-      "carbs": "Tinh bột",
-      "protein": "Đạm",
+      "carbs": "Carb",
+      "protein": "Protein",
       "fat": "Fat"
     },
     "todayProgress": {
@@ -627,6 +630,7 @@
     "heroTitleWithCount": "Món gần đây ({{count}})",
     "heroSubtitle": "Kho món ăn cá nhân của bạn",
     "addFavoriteAction": "Thêm món mới vào thư viện",
+    "addNewFoodAction": "Thêm món mới",
     "searchPlaceholder": "Tìm món trong thư viện",
     "savedItem": "Món trong thư viện",
     "removeTitle": "Xóa khỏi thư viện",
@@ -637,7 +641,7 @@
     "filteredEmptySubtitle": "Thử đổi ngày hoặc từ khóa tìm kiếm để xem thêm món trong thư viện.",
     "filters": {
       "all": "Tất cả",
-      "protein": "Nhiều đạm",
+      "protein": "Nhiều protein",
       "lowCarb": "Ít carb"
     },
     "items": {
@@ -842,7 +846,7 @@
     "statusLabel": "Trạng thái",
     "calorieSurplusLabel": "Dư calories",
     "remainingToTargetLabel": "Còn tới mục tiêu",
-    "weightEquivalent": "(~{{value}} kg)",
+    "weightEquivalent": "({{value}} kg)",
     "balanceStatus": {
       "slightDeficit": "Thâm hụt nhẹ",
       "balanced": "Cân bằng",

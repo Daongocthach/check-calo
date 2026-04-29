@@ -79,6 +79,9 @@ export const styles = StyleSheet.create((theme) => ({
   sheetHandle: {
     backgroundColor: theme.colors.border.default,
   },
+  providerContent: {
+    flex: 1,
+  },
   listContent: {
     paddingVertical: theme.metrics.spacingV.p8,
   },

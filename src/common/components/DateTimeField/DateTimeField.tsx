@@ -1,16 +1,19 @@
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
-import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import DatePicker from 'react-native-date-picker';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUnistyles } from 'react-native-unistyles';
 import { Button } from '@/common/components/Button';
 import { Icon } from '@/common/components/Icon';
 import { Text } from '@/common/components/Text';
+import { useAppBottomSheet } from '@/providers/bottom-sheet';
 import { styles } from './DateTimeField.styles';
-import type { DateTimeFieldMode, DateTimeFieldProps } from './DateTimeField.types';
+import type {
+  DateTimeFieldHandle,
+  DateTimeFieldMode,
+  DateTimeFieldProps,
+} from './DateTimeField.types';
 
 function pad(value: number) {
   return `${value}`.padStart(2, '0');
@@ -101,148 +104,110 @@ function parseValue(value: string, mode: DateTimeFieldMode) {
   return new Date(year, month - 1, day);
 }
 
-export function DateTimeField({
-  label,
-  placeholder,
-  value,
-  onChange,
-  mode = 'date',
-  title,
-  error,
-  disabled = false,
-  readOnly = false,
-  locale,
-  minimumDate,
-  maximumDate,
-}: DateTimeFieldProps) {
-  const { t, i18n } = useTranslation();
-  const { theme } = useUnistyles();
-  const insets = useSafeAreaInsets();
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const resolvedLocale = locale ?? i18n.language;
-  const isInteractionDisabled = disabled || readOnly;
-  const pickerValue = useMemo(() => parseValue(value, mode), [mode, value]);
-  const [draftValue, setDraftValue] = useState(pickerValue);
-  const snapPoints = useMemo(() => {
-    if (mode === 'time') {
-      return ['60%'];
-    }
-
-    if (mode === 'datetime') {
-      return ['60%'];
-    }
-
-    return ['60%'];
-  }, [mode]);
-
-  const commitValue = useCallback(
-    (nextDate: Date) => {
-      onChange(formatByMode(nextDate, mode));
-    },
-    [mode, onChange]
-  );
-
-  const normalizeValue = useCallback(
-    (nextDate: Date) => {
-      if (mode === 'date') {
-        return startOfDay(nextDate);
-      }
-
+export const DateTimeField = forwardRef<DateTimeFieldHandle, DateTimeFieldProps>(
+  (
+    {
+      label,
+      placeholder,
+      value,
+      onChange,
+      mode = 'date',
+      title,
+      error,
+      disabled = false,
+      readOnly = false,
+      locale,
+      minimumDate,
+      maximumDate,
+      hideTrigger = false,
+    }: DateTimeFieldProps,
+    ref
+  ) => {
+    const { t, i18n } = useTranslation();
+    const { theme } = useUnistyles();
+    const { openSheet, closeSheet } = useAppBottomSheet();
+    const resolvedLocale = locale ?? i18n.language;
+    const isInteractionDisabled = disabled || readOnly;
+    const pickerValue = useMemo(() => parseValue(value, mode), [mode, value]);
+    const [draftValue, setDraftValue] = useState(pickerValue);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const snapPoints = useMemo(() => {
       if (mode === 'time') {
-        return mergeTime(pickerValue, nextDate);
+        return ['60%'];
       }
 
-      return nextDate;
-    },
-    [mode, pickerValue]
-  );
+      if (mode === 'datetime') {
+        return ['60%'];
+      }
 
-  const handleOpen = useCallback(() => {
-    if (isInteractionDisabled) {
-      return;
-    }
+      return ['60%'];
+    }, [mode]);
 
-    setDraftValue(pickerValue);
-    bottomSheetRef.current?.present();
-  }, [isInteractionDisabled, pickerValue]);
+    const commitValue = useCallback(
+      (nextDate: Date) => {
+        onChange(formatByMode(nextDate, mode));
+      },
+      [mode, onChange]
+    );
 
-  const handleDismiss = useCallback(() => {
-    bottomSheetRef.current?.dismiss();
-  }, []);
+    const normalizeValue = useCallback(
+      (nextDate: Date) => {
+        if (mode === 'date') {
+          return startOfDay(nextDate);
+        }
 
-  const handleConfirm = useCallback(() => {
-    commitValue(normalizeValue(draftValue));
-    handleDismiss();
-  }, [commitValue, draftValue, handleDismiss, normalizeValue]);
+        if (mode === 'time') {
+          return mergeTime(pickerValue, nextDate);
+        }
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        pressBehavior="close"
-      />
-    ),
-    []
-  );
+        return nextDate;
+      },
+      [mode, pickerValue]
+    );
 
-  const displayText = value || placeholder || '';
-  const modalTitle = title ?? label ?? String(t('common.confirm' as never));
-  const pickerTheme = theme.colors.mode === 'dark' ? 'dark' : 'light';
+    const handleOpen = useCallback(() => {
+      if (isInteractionDisabled) {
+        return;
+      }
 
-  return (
-    <View style={styles.wrapper}>
-      {label ? (
-        <Text variant="label" style={styles.label}>
-          {label}
-        </Text>
-      ) : null}
+      setDraftValue(pickerValue);
+      setIsSheetOpen(true);
+    }, [isInteractionDisabled, pickerValue]);
 
-      <Pressable
-        onPress={handleOpen}
-        disabled={isInteractionDisabled}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: isInteractionDisabled }}
-        style={({ pressed }) => [
-          styles.trigger,
-          pressed && !isInteractionDisabled && styles.triggerPressed,
-          isInteractionDisabled && styles.triggerDisabled,
-          !!error && styles.triggerError,
-        ]}
-      >
-        <Text
-          variant="body"
-          numberOfLines={1}
-          style={value ? styles.valueText : styles.placeholderText}
-        >
-          {displayText}
-        </Text>
-        <Icon
-          name={mode === 'time' ? 'time-outline' : 'calendar-outline'}
-          variant="primary"
-          size={20}
-        />
-      </Pressable>
+    const handleDismiss = useCallback(() => {
+      setIsSheetOpen(false);
+    }, []);
 
-      {error ? (
-        <Text variant="caption" style={styles.errorText}>
-          {error}
-        </Text>
-      ) : null}
+    const closePicker = useCallback(() => {
+      closeSheet();
+    }, [closeSheet]);
 
-      <BottomSheetModal
-        ref={bottomSheetRef}
-        snapPoints={snapPoints}
-        index={0}
-        enableDynamicSizing={false}
-        enablePanDownToClose
-        topInset={insets.top}
-        backdropComponent={renderBackdrop}
-        backgroundStyle={styles.sheetBackground}
-        handleIndicatorStyle={styles.sheetHandle}
-      >
-        <BottomSheetView style={styles.sheetContent}>
+    const handleConfirm = useCallback(() => {
+      commitValue(normalizeValue(draftValue));
+      closePicker();
+    }, [closePicker, commitValue, draftValue, normalizeValue]);
+
+    const displayText = value || placeholder || '';
+    const modalTitle = title ?? label ?? String(t('common.confirm' as never));
+    const pickerTheme = theme.colors.mode === 'dark' ? 'dark' : 'light';
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        present: () => {
+          if (!isInteractionDisabled) {
+            setDraftValue(pickerValue);
+            setIsSheetOpen(true);
+          }
+        },
+        dismiss: closePicker,
+      }),
+      [closePicker, isInteractionDisabled, pickerValue]
+    );
+
+    const sheetContent = useMemo(
+      () => (
+        <View style={styles.sheetContent}>
           <View style={styles.header}>
             <Text variant="body" weight="bold" style={styles.title}>
               {modalTitle}
@@ -269,7 +234,7 @@ export function DateTimeField({
               title={String(t('common.cancel' as never))}
               variant="outline"
               size="sm"
-              onPress={handleDismiss}
+              onPress={closePicker}
             />
             <Button
               title={String(t('common.confirm' as never))}
@@ -279,8 +244,79 @@ export function DateTimeField({
           </View>
 
           <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea} />
-        </BottomSheetView>
-      </BottomSheetModal>
-    </View>
-  );
-}
+        </View>
+      ),
+      [
+        closePicker,
+        draftValue,
+        handleConfirm,
+        maximumDate,
+        minimumDate,
+        modalTitle,
+        mode,
+        pickerTheme,
+        resolvedLocale,
+        t,
+        theme.colors.border.default,
+        theme.colors.brand.primary,
+      ]
+    );
+
+    useEffect(() => {
+      if (!isSheetOpen) {
+        return;
+      }
+
+      openSheet(sheetContent, {
+        snapPoints,
+        containerVariant: 'view',
+        enablePanDownToClose: true,
+        onDismiss: handleDismiss,
+      });
+    }, [handleDismiss, isSheetOpen, openSheet, sheetContent, snapPoints]);
+
+    return (
+      <View style={styles.wrapper}>
+        {!hideTrigger && label ? (
+          <Text variant="label" style={styles.label}>
+            {label}
+          </Text>
+        ) : null}
+
+        {!hideTrigger ? (
+          <Pressable
+            onPress={handleOpen}
+            disabled={isInteractionDisabled}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: isInteractionDisabled }}
+            style={({ pressed }) => [
+              styles.trigger,
+              pressed && !isInteractionDisabled && styles.triggerPressed,
+              isInteractionDisabled && styles.triggerDisabled,
+              !!error && styles.triggerError,
+            ]}
+          >
+            <Text
+              variant="body"
+              numberOfLines={1}
+              style={value ? styles.valueText : styles.placeholderText}
+            >
+              {displayText}
+            </Text>
+            <Icon
+              name={mode === 'time' ? 'time-outline' : 'calendar-outline'}
+              variant="primary"
+              size={20}
+            />
+          </Pressable>
+        ) : null}
+
+        {error ? (
+          <Text variant="caption" style={styles.errorText}>
+            {error}
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+);

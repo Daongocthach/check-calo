@@ -14,6 +14,7 @@ import type { LoadingProps } from './Loading.types';
  */
 export function Loading({
   message,
+  messageColor = 'secondary',
   fullScreen = false,
   size = 'large',
   accessibilityLabel,
@@ -31,7 +32,7 @@ export function Loading({
         uniProps={(theme) => ({ color: theme.colors.brand.primary })}
       />
       {message && (
-        <Text variant="bodySmall" style={styles.message}>
+        <Text variant="bodySmall" color={messageColor} style={styles.message}>
           {message}
         </Text>
       )}

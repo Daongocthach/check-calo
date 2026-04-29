@@ -52,7 +52,7 @@ export const lightColors: ThemeColors = {
   },
 
   state: {
-    success: '#7ED321', // fat
+    success: '#52A13C', // fat
     successBg: '#F1FBEA',
 
     warning: '#F5A623', // carb

@@ -98,6 +98,7 @@ export default function ProfileTab() {
   const router = useRouter();
   const [logoutVisible, setLogoutVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isSupportVisible, setIsSupportVisible] = useState(true);
 
   const handleSupportPress = useCallback(() => {
     router.push('/support');
@@ -164,12 +165,17 @@ export default function ProfileTab() {
             />
           </SettingsGroup>
 
-          <SupportPromptCard
-            message={t('foodDetail.supportMessage')}
-            actionLabel={t('foodDetail.supportAction')}
-            onActionPress={handleSupportPress}
-            style={styles.supportCard}
-          />
+          {isSupportVisible ? (
+            <SupportPromptCard
+              message={t('foodDetail.supportMessage')}
+              actionLabel={t('foodDetail.supportAction')}
+              onActionPress={handleSupportPress}
+              dismissible
+              onClosePress={() => {
+                setIsSupportVisible(false);
+              }}
+            />
+          ) : null}
 
           <SettingsGroup>
             <SettingsMenuRow
@@ -256,9 +262,6 @@ const styles = StyleSheet.create((theme) => ({
   groupCard: {
     padding: 0,
     overflow: 'hidden',
-  },
-  supportCard: {
-    paddingVertical: 0,
   },
   rowIcon: {
     width: theme.metrics.spacing.p36,

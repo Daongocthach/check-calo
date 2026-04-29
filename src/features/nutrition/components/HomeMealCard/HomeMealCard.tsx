@@ -248,7 +248,7 @@ function ActionButton({ icon, label, onPress, tone = 'default' }: ActionButtonPr
         onPress();
       }}
     >
-      <Icon name={icon} size={16} variant={tone === 'danger' ? 'accent' : 'primary'} />
+      <Icon name={icon} size={16} destructive={tone === 'danger'} />
     </Pressable>
   );
 }
@@ -362,13 +362,13 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
   },
   macroFillSuccess: {
-    backgroundColor: theme.colors.state.success,
+    backgroundColor: theme.colors.state.info,
   },
   macroFillWarning: {
     backgroundColor: theme.colors.state.warning,
   },
   macroFillError: {
-    backgroundColor: theme.colors.state.error,
+    backgroundColor: theme.colors.state.success,
   },
   actionRow: {
     flexDirection: 'row',

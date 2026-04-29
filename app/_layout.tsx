@@ -1,4 +1,3 @@
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useFonts } from 'expo-font';
 import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
@@ -21,6 +20,7 @@ import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMe
 import { QueryProvider } from '@/providers';
 import { AppAlertProvider } from '@/providers/app-alert/AppAlertProvider';
 import { useAuthStore } from '@/providers/auth/authStore';
+import { AppBottomSheetProvider } from '@/providers/bottom-sheet';
 import { CameraProvider } from '@/providers/camera';
 import { initializeDatabase } from '@/services/database/sqlite';
 import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
@@ -170,11 +170,11 @@ export default function RootLayout() {
         <QueryProvider>
           <KeyboardProvider>
             <CameraProvider>
-              <BottomSheetModalProvider>
+              <AppBottomSheetProvider>
                 <AppAlertProvider>
                   <AppContent />
                 </AppAlertProvider>
-              </BottomSheetModalProvider>
+              </AppBottomSheetProvider>
             </CameraProvider>
           </KeyboardProvider>
         </QueryProvider>

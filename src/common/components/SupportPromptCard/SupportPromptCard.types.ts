@@ -6,5 +6,6 @@ export interface SupportPromptCardProps {
   onActionPress: () => void;
   onClosePress?: () => void;
   closeAccessibilityLabel?: string;
+  dismissible?: boolean;
   style?: StyleProp<ViewStyle>;
 }

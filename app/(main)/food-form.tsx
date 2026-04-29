@@ -403,6 +403,7 @@ export default function FoodFormScreen() {
         params.mealLocalId.length > 0
       ) {
         await createManualMealItem(params.mealLocalId, {
+          sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
           title: payload.mealName,
           quantityLabel: payload.quantityLabel,
           quantityGrams: payload.quantityGrams ?? null,
@@ -411,6 +412,8 @@ export default function FoodFormScreen() {
           carbsGrams: payload.carbsGrams,
           fatGrams: payload.fatGrams,
           notes: payload.notes,
+          imageUri: payload.imageUri,
+          thumbnailUri: payload.thumbnailUri,
           servings: 1,
         });
 

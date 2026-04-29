@@ -16,6 +16,7 @@ export function SupportPromptCard({
   onActionPress,
   onClosePress,
   closeAccessibilityLabel,
+  dismissible = true,
   style,
 }: SupportPromptCardProps) {
   const { t } = useTranslation();
@@ -57,13 +58,15 @@ export function SupportPromptCard({
                 </Text>
               </View>
 
-              <IconButton
-                icon="close"
-                variant="ghost"
-                size="sm"
-                accessibilityLabel={closeAccessibilityLabel ?? t('common.close')}
-                onPress={onClosePress}
-              />
+              {dismissible ? (
+                <IconButton
+                  icon="close"
+                  variant="ghost"
+                  size="sm"
+                  accessibilityLabel={closeAccessibilityLabel ?? t('common.close')}
+                  onPress={onClosePress}
+                />
+              ) : null}
             </View>
 
             <Button

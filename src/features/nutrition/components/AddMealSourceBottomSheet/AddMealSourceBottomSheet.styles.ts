@@ -15,10 +15,7 @@ export const styles = StyleSheet.create((theme) => ({
   scrollContent: {
     paddingBottom: theme.metrics.spacingV.p32,
   },
-  sheetContent: {
-    paddingHorizontal: theme.metrics.spacing.p20,
-    paddingTop: theme.metrics.spacingV.p16,
-  },
+  sheetContent: {},
   header: {
     minHeight: vs(56),
     flexDirection: 'row',

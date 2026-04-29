@@ -695,7 +695,7 @@ export async function listFavoriteFoodsPage(
       SELECT *
       FROM favorite_foods
       ${whereClause}
-      ORDER BY created_at DESC, id DESC
+      ORDER BY updated_at DESC, created_at DESC, id DESC
       LIMIT ? OFFSET ?;
     `,
     [...params, pageSize + 1, offset]
