@@ -92,6 +92,22 @@ export function Select({
   const renderItem: ListRenderItem<SelectOption> = useCallback(
     ({ item }) => {
       const isSelected = item.value === value;
+      let leadingIcon = null;
+
+      if (item.iconSource) {
+        leadingIcon = (
+          <Image source={item.iconSource} style={styles.optionIcon} contentFit="contain" />
+        );
+      } else if (item.iconName) {
+        leadingIcon = (
+          <Icon
+            name={item.iconName}
+            size={20}
+            destructive={item.destructive}
+            variant={item.destructive ? 'secondary' : 'primary'}
+          />
+        );
+      }
 
       return (
         <Pressable
@@ -105,17 +121,26 @@ export function Select({
           }}
         >
           <View style={styles.optionContent}>
-            {item.iconSource ? (
-              <Image source={item.iconSource} style={styles.optionIcon} contentFit="contain" />
-            ) : null}
+            {leadingIcon}
             <Text
               variant="body"
-              style={[styles.optionText, isSelected && styles.optionTextSelected]}
+              style={[
+                styles.optionText,
+                isSelected && styles.optionTextSelected,
+                item.destructive && styles.optionTextDestructive,
+              ]}
             >
               {item.label}
             </Text>
           </View>
-          {isSelected ? <Icon name="checkmark" sizeVariant="lg" variant="primary" /> : null}
+          {isSelected ? (
+            <Icon
+              name="checkmark"
+              sizeVariant="lg"
+              destructive={item.destructive}
+              variant={item.destructive ? 'secondary' : 'primary'}
+            />
+          ) : null}
         </Pressable>
       );
     },
@@ -127,6 +152,23 @@ export function Select({
       onEndReached?.();
     }
   }, [hasMore, isLoadingMore, onEndReached]);
+
+  let triggerIcon = null;
+
+  if (selectedOption?.iconSource) {
+    triggerIcon = (
+      <Image source={selectedOption.iconSource} style={styles.optionIcon} contentFit="contain" />
+    );
+  } else if (selectedOption?.iconName) {
+    triggerIcon = (
+      <Icon
+        name={selectedOption.iconName}
+        size={20}
+        destructive={selectedOption.destructive}
+        variant={selectedOption.destructive ? 'secondary' : 'primary'}
+      />
+    );
+  }
 
   const renderFooter = useCallback(() => {
     return (
@@ -177,13 +219,7 @@ export function Select({
         {children ?? (
           <>
             <View style={styles.triggerContent}>
-              {selectedOption?.iconSource ? (
-                <Image
-                  source={selectedOption.iconSource}
-                  style={styles.optionIcon}
-                  contentFit="contain"
-                />
-              ) : null}
+              {triggerIcon}
               <Text
                 variant="body"
                 numberOfLines={1}

@@ -81,7 +81,9 @@ export function FavoriteFoodsBottomSheet({
       <View style={styles.sheetContent}>
         <View style={styles.sheetHeader}>
           <View style={styles.headerCopy}>
-            <Text variant="h3">{title}</Text>
+            <Text variant="body" weight="bold">
+              {title}
+            </Text>
             <Text variant="bodySmall" color="secondary">
               {subtitle}
             </Text>

@@ -1,17 +1,18 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import type { TFunction } from 'i18next';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import {
+  Button,
   Dialog,
   Icon,
-  IconButton,
   Input,
   Loading,
+  Select,
   ScreenContainer,
   Text,
 } from '@/common/components';
@@ -21,14 +22,18 @@ import {
   deleteManualMealItem,
   ensureDefaultManualMealsForWeek,
   listManualMealsPage,
+  deleteManualMeal,
+  renameManualMeal,
   updateManualMealItem,
   type ManualMeal,
   type ManualMealItem,
 } from '@/features/nutrition/services/manualMealsDatabase';
 import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
+import { useMealPlanSuggestionSheetStore } from '@/features/nutrition/stores/useMealPlanSuggestionSheetStore';
 import type { MealType, UserProfile } from '@/features/nutrition/types';
-import { useCurrentDate } from '@/hooks';
+import { useBottomPadding, useCurrentDate } from '@/hooks';
+import { useAppAlert } from '@/providers/app-alert';
 import { toast } from '@/utils/toast';
 
 interface MenuSection {
@@ -58,6 +63,13 @@ interface DeleteDialogState {
   itemName: string;
 }
 
+interface MealDialogState {
+  visible: boolean;
+  mealId: string | null;
+  mealName: string;
+  error: string | null;
+}
+
 const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
 const MENU_PAGE_SIZE = 20;
 
@@ -82,6 +94,13 @@ const DEFAULT_DELETE_DIALOG_STATE: DeleteDialogState = {
   itemName: '',
 };
 
+const DEFAULT_MEAL_DIALOG_STATE: MealDialogState = {
+  visible: false,
+  mealId: null,
+  mealName: '',
+  error: null,
+};
+
 function startOfDay(date: Date) {
   const nextDate = new Date(date);
   nextDate.setHours(0, 0, 0, 0);
@@ -90,14 +109,6 @@ function startOfDay(date: Date) {
 
 function formatNumber(value: number, locale: string) {
   return new Intl.NumberFormat(locale).format(value);
-}
-
-function getProgressPercent(value: number, target?: number | null) {
-  if (!target || target <= 0) {
-    return 0;
-  }
-
-  return Math.min(100, Math.round((value / target) * 100));
 }
 
 function getPositiveTarget(value?: number | null) {
@@ -151,6 +162,36 @@ function getMealIconStyle(mealType: MealType) {
   }
 }
 
+function getMealTitle(t: TFunction, mealType: MealType) {
+  switch (mealType) {
+    case 'breakfast':
+      return t('homeScreen.meals.breakfast');
+    case 'lunch':
+      return t('homeScreen.meals.lunch');
+    case 'dinner':
+      return t('homeScreen.meals.dinner');
+    case 'snack':
+      return t('menuScreen.sections.snack');
+    default:
+      return t('menuScreen.sections.snack');
+  }
+}
+
+function getMealSuggestionLabelKey(mealType: MealType) {
+  switch (mealType) {
+    case 'breakfast':
+      return 'menuScreen.mealSuggestions.breakfast';
+    case 'lunch':
+      return 'menuScreen.mealSuggestions.lunch';
+    case 'dinner':
+      return 'menuScreen.mealSuggestions.dinner';
+    case 'snack':
+      return 'menuScreen.mealSuggestions.snack';
+    default:
+      return 'menuScreen.mealSuggestions.snack';
+  }
+}
+
 function getMacroTextStyle(tone: MacroTone) {
   switch (tone) {
     case 'protein':
@@ -162,31 +203,6 @@ function getMacroTextStyle(tone: MacroTone) {
   }
 }
 
-function getMacroTrackStyle(tone: MacroTone) {
-  switch (tone) {
-    case 'protein':
-      return styles.macroTrackProtein;
-    case 'carbs':
-      return styles.macroTrackCarbs;
-    case 'fat':
-      return styles.macroTrackFat;
-  }
-}
-
-function ProgressTrack({ percent, tone }: { percent: number; tone: MacroTone }) {
-  return (
-    <View style={styles.progressTrack}>
-      <View
-        style={[
-          styles.progressFill,
-          getMacroTrackStyle(tone),
-          { width: `${Math.max(6, percent)}%` },
-        ]}
-      />
-    </View>
-  );
-}
-
 function MacroSummary({
   tone,
   label,
@@ -194,6 +210,7 @@ function MacroSummary({
   target,
   unit,
   locale,
+  noBorderLeft = false,
 }: {
   tone: MacroTone;
   label: string;
@@ -201,27 +218,15 @@ function MacroSummary({
   target: number;
   unit: string;
   locale: string;
+  noBorderLeft?: boolean;
 }) {
-  const percent = getProgressPercent(value, target);
-
   return (
-    <View style={styles.macroSummary}>
-      <View style={styles.macroSummaryHeader}>
-        <Text variant="body" weight="semibold" numberOfLines={1}>
-          {label}
-        </Text>
-      </View>
-      <View style={styles.macroValueRow}>
-        <Text variant="h3" weight="bold" style={getMacroTextStyle(tone)}>
-          {formatNumber(Math.round(value), locale)}
-        </Text>
-        <Text variant="body" color="secondary">
-          {`/ ${formatNumber(Math.round(target), locale)}${unit}`}
-        </Text>
-      </View>
-      <ProgressTrack percent={percent} tone={tone} />
-      <Text variant="bodySmall" color="secondary" weight="semibold">
-        {`${percent}%`}
+    <View style={[styles.macroSummary, noBorderLeft && styles.macroSummaryFirst]}>
+      <Text variant="caption" color="secondary" numberOfLines={1}>
+        {label}
+      </Text>
+      <Text variant="body" weight="semibold" style={getMacroTextStyle(tone)} numberOfLines={1}>
+        {`${formatNumber(Math.round(value), locale)} / ${formatNumber(Math.round(target), locale)}${unit}`}
       </Text>
     </View>
   );
@@ -291,6 +296,11 @@ function toItemInput(dialogState: ItemDialogState) {
   };
 }
 
+function toMealNameInput(value: string) {
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function buildMealItemUpdateInput(item: ManualMealItem, servings: number) {
   return {
     title: item.title,
@@ -310,9 +320,15 @@ function buildMealItemUpdateInput(item: ManualMealItem, servings: number) {
 
 export default function MenuTab() {
   const { t, i18n } = useTranslation();
+  const { theme } = useUnistyles();
   const currentDate = useCurrentDate();
   const insets = useSafeAreaInsets();
+  const appAlert = useAppAlert();
+  const bottomPadding = useBottomPadding();
   const requestAddMealSourceSheet = useAddMealSourceSheetStore((state) => state.requestOpen);
+  const requestMealPlanSuggestionSheet = useMealPlanSuggestionSheetStore(
+    (state) => state.requestOpen
+  );
   const loadGenerationRef = useRef(0);
   const didMountRef = useRef(false);
   const [selectedDate, setSelectedDate] = useState(() => currentDate);
@@ -326,6 +342,7 @@ export default function MenuTab() {
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [itemDialog, setItemDialog] = useState<ItemDialogState>(DEFAULT_ITEM_DIALOG_STATE);
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>(DEFAULT_DELETE_DIALOG_STATE);
+  const [mealDialog, setMealDialog] = useState<MealDialogState>(DEFAULT_MEAL_DIALOG_STATE);
 
   const selectedDayStart = useMemo(() => startOfDay(selectedDate), [selectedDate]);
   const selectedDayEnd = useMemo(() => {
@@ -441,15 +458,9 @@ export default function MenuTab() {
     [orderedMeals]
   );
   const calorieTarget = profile?.dailyCalorieTarget ?? 0;
-  const caloriePercent = getProgressPercent(dayTotals.calories, calorieTarget);
   const proteinTarget = getPositiveTarget(profile?.proteinTargetGrams);
   const carbsTarget = getPositiveTarget(profile?.carbsTargetGrams);
   const fatTarget = getPositiveTarget(profile?.fatTargetGrams);
-  const proteinShortage = Math.max(0, Math.round(proteinTarget - dayTotals.protein));
-  const mealsWithItems = orderedMeals.filter((meal) => meal.items.length > 0).length;
-  const averageCaloriesPerMeal = Math.round(
-    mealsWithItems > 0 ? dayTotals.calories / mealsWithItems : 0
-  );
 
   const openEditItemDialog = useCallback((meal: ManualMeal, item: ManualMealItem) => {
     setItemDialog({
@@ -479,12 +490,51 @@ export default function MenuTab() {
     });
   }, []);
 
+  const openEditMealDialog = useCallback((meal: ManualMeal) => {
+    setMealDialog({
+      visible: true,
+      mealId: meal.localId,
+      mealName: meal.name,
+      error: null,
+    });
+  }, []);
+
+  const openDeleteMealDialog = useCallback(
+    (meal: ManualMeal) => {
+      appAlert.alert(
+        t('menuScreen.deleteMealTitle'),
+        t('menuScreen.deleteMealMessage', { name: meal.name }),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.delete'),
+            style: 'destructive',
+            onPress: () => {
+              void deleteManualMeal(meal.localId)
+                .then(async () => {
+                  await loadData(1, false);
+                })
+                .catch(() => {
+                  toast.error(t('profileScreen.actionError'));
+                });
+            },
+          },
+        ]
+      );
+    },
+    [appAlert, loadData, t]
+  );
+
   const closeItemDialog = useCallback(() => {
     setItemDialog(DEFAULT_ITEM_DIALOG_STATE);
   }, []);
 
   const closeDeleteDialog = useCallback(() => {
     setDeleteDialog(DEFAULT_DELETE_DIALOG_STATE);
+  }, []);
+
+  const closeMealDialog = useCallback(() => {
+    setMealDialog(DEFAULT_MEAL_DIALOG_STATE);
   }, []);
 
   const saveItem = useCallback(async () => {
@@ -512,6 +562,32 @@ export default function MenuTab() {
       setIsSavingItem(false);
     }
   }, [closeItemDialog, isSavingItem, itemDialog, loadData, t]);
+
+  const saveMeal = useCallback(async () => {
+    if (!mealDialog.mealId) {
+      return;
+    }
+
+    const mealName = toMealNameInput(mealDialog.mealName);
+
+    if (!mealName) {
+      setMealDialog((previous) => ({
+        ...previous,
+        error: t('menuScreen.validation.mealNameRequired'),
+      }));
+      return;
+    }
+
+    setIsSavingItem(true);
+
+    try {
+      await renameManualMeal(mealDialog.mealId, mealName);
+      closeMealDialog();
+      await loadData(1, false);
+    } finally {
+      setIsSavingItem(false);
+    }
+  }, [closeMealDialog, loadData, mealDialog.mealId, mealDialog.mealName, t]);
 
   const handleUpdateQuantity = useCallback(
     async (item: ManualMealItem, servings: number) => {
@@ -550,18 +626,18 @@ export default function MenuTab() {
   }, [closeDeleteDialog, deleteDialog.itemId, loadData, t]);
 
   const handleOpenAiSuggestion = useCallback(() => {
-    requestAddMealSourceSheet();
-  }, [requestAddMealSourceSheet]);
+    requestMealPlanSuggestionSheet();
+  }, [requestMealPlanSuggestionSheet]);
 
-  const handleAddMealItem = useCallback((meal: ManualMeal) => {
-    router.push({
-      pathname: '/food-form',
-      params: {
+  const handleAddMealItem = useCallback(
+    (meal: ManualMeal) => {
+      requestAddMealSourceSheet({
         context: 'menuMeal',
         mealLocalId: meal.localId,
-      },
-    });
-  }, []);
+      });
+    },
+    [requestAddMealSourceSheet]
+  );
 
   const handleLoadMore = useCallback(() => {
     if (isLoading || isLoadingMore || !hasNextPage) {
@@ -571,9 +647,28 @@ export default function MenuTab() {
     void loadData(page + 1, true);
   }, [hasNextPage, isLoading, isLoadingMore, loadData, page]);
 
+  const handleMealAction = useCallback(
+    (meal: ManualMeal, action: string) => {
+      if (action === 'add') {
+        handleAddMealItem(meal);
+        return;
+      }
+
+      if (action === 'edit') {
+        openEditMealDialog(meal);
+        return;
+      }
+
+      if (action === 'delete') {
+        openDeleteMealDialog(meal);
+      }
+    },
+    [handleAddMealItem, openDeleteMealDialog, openEditMealDialog]
+  );
+
   if (isLoading) {
     return (
-      <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
+      <ScreenContainer padded={false} edges={['bottom']}>
         <View style={[styles.loadingState, { paddingTop: insets.top }]}>
           <Loading size="small" message={t('common.loading')} />
         </View>
@@ -582,11 +677,14 @@ export default function MenuTab() {
   }
 
   return (
-    <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
+    <ScreenContainer padded={false} edges={['bottom']}>
       <FlatList
         data={sections}
         keyExtractor={(item) => item.key}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: bottomPadding + theme.metrics.spacingV.p32 },
+        ]}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.3}
         ListHeaderComponent={
@@ -598,28 +696,19 @@ export default function MenuTab() {
               onSelectDate={setSelectedDate}
             />
             <View style={styles.summaryCard}>
-              <View style={styles.calorieSummary}>
-                <View style={styles.calorieCopy}>
-                  <Text variant="body" weight="semibold">
-                    {t('menuScreen.todayTotal')}
+              <View style={styles.summaryHeader}>
+                <Text variant="bodySmall" weight="semibold" color="secondary">
+                  {t('menuScreen.todayTotal')}
+                </Text>
+                <View style={styles.calorieValueRow}>
+                  <Text variant="h2" weight="bold" style={styles.calorieValue}>
+                    {formatNumber(Math.round(dayTotals.calories), locale)}
                   </Text>
-                  <View style={styles.calorieValueRow}>
-                    <Text variant="h1" weight="bold" style={styles.calorieValue}>
-                      {formatNumber(Math.round(dayTotals.calories), locale)}
-                    </Text>
-                    <Text variant="h2" color="secondary">
-                      {t('common.units.kcal')}
-                    </Text>
-                  </View>
-                  <Text variant="body" weight="semibold" color="secondary">
-                    {`/ ${formatNumber(Math.round(calorieTarget), locale)} ${t('common.units.kcal')}`}
+                  <Text variant="bodySmall" weight="semibold" color="secondary">
+                    {`/ ${formatNumber(Math.round(calorieTarget), locale)} ${t(
+                      'common.units.kcal'
+                    )}`}
                   </Text>
-                  <View style={styles.calorieProgressRow}>
-                    <ProgressTrack percent={caloriePercent} tone="fat" />
-                    <Text variant="bodySmall" weight="semibold" color="secondary">
-                      {`${caloriePercent}%`}
-                    </Text>
-                  </View>
                 </View>
               </View>
               <View style={styles.macroSummaryGrid}>
@@ -630,6 +719,7 @@ export default function MenuTab() {
                   target={proteinTarget}
                   unit={t('common.units.gram')}
                   locale={locale}
+                  noBorderLeft
                 />
                 <MacroSummary
                   tone="carbs"
@@ -648,52 +738,21 @@ export default function MenuTab() {
                   locale={locale}
                 />
               </View>
+              <Button
+                title={t('menuScreen.aiPanel.dailyAction')}
+                variant="outline"
+                size="sm"
+                leftIcon={
+                  <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
+                }
+                onPress={handleOpenAiSuggestion}
+              />
             </View>
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('menuScreen.aiSuggestion')}
-              onPress={handleOpenAiSuggestion}
-            >
-              <LinearGradient colors={['#F6FFF1', '#EFFAE9']} style={styles.aiBanner}>
-                <View style={styles.aiSparkle}>
-                  <Icon name="sparkles" size={24} variant="primary" />
-                </View>
-                <View style={styles.aiBannerCopy}>
-                  <Text variant="body" weight="bold">
-                    {t('menuScreen.aiTitle')}
-                  </Text>
-                  <Text variant="bodySmall" color="secondary">
-                    {t('menuScreen.aiSubtitle', { value: proteinShortage || 20 })}
-                  </Text>
-                </View>
-                <View style={styles.aiButton}>
-                  <Text variant="bodySmall" weight="bold" color="onBrand">
-                    {t('menuScreen.viewSuggestion')}
-                  </Text>
-                  <Icon name="chevron-forward" size={18} variant="onBrand" />
-                </View>
-              </LinearGradient>
-            </Pressable>
           </View>
         }
         renderItem={({ item: section }) => {
-          let mealTitle = section.meal.name;
-
-          switch (section.meal.mealType) {
-            case 'breakfast':
-              mealTitle = t('homeScreen.meals.breakfast');
-              break;
-            case 'lunch':
-              mealTitle = t('homeScreen.meals.lunch');
-              break;
-            case 'dinner':
-              mealTitle = t('homeScreen.meals.dinner');
-              break;
-            case 'snack':
-              mealTitle = t('menuScreen.sections.snack');
-              break;
-          }
+          const mealTitle = getMealTitle(t, section.meal.mealType);
+          const mealSuggestionLabel = t(getMealSuggestionLabelKey(section.meal.mealType));
 
           return (
             <View style={styles.sectionBlock}>
@@ -707,7 +766,9 @@ export default function MenuTab() {
                     />
                   </View>
                   <View style={styles.sectionHeaderCopy}>
-                    <Text variant="h3">{mealTitle}</Text>
+                    <Text variant="body" weight="bold">
+                      {mealTitle}
+                    </Text>
                     <Text variant="bodySmall" color="secondary">
                       {`${formatNumber(Math.round(section.meal.totalCalories), locale)} ${t(
                         'common.units.kcal'
@@ -716,61 +777,105 @@ export default function MenuTab() {
                   </View>
                 </View>
 
-                <IconButton
-                  icon="add"
-                  variant="outline"
-                  accessibilityLabel={t('menuScreen.addItemAction')}
-                  onPress={() => {
-                    handleAddMealItem(section.meal);
-                  }}
-                />
-                <Icon name="ellipsis-vertical" size={22} variant="primary" />
+                <View style={styles.sectionActions}>
+                  <Button
+                    title={t('menuScreen.mealSuggestions.short')}
+                    variant="outline"
+                    size="sm"
+                    leftIcon={
+                      <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
+                    }
+                    accessibilityLabel={mealSuggestionLabel}
+                    onPress={handleOpenAiSuggestion}
+                  />
+                  <Select
+                    value={section.meal.localId}
+                    onChange={(action) => {
+                      handleMealAction(section.meal, action);
+                    }}
+                    options={[
+                      {
+                        value: 'add',
+                        label: t('menuScreen.addItemAction'),
+                        iconName: 'add',
+                      },
+                      {
+                        value: 'edit',
+                        label: t('menuScreen.renameMealAction'),
+                        iconName: 'create-outline',
+                      },
+                      {
+                        value: 'delete',
+                        label: t('menuScreen.deleteMealAction'),
+                        iconName: 'trash-outline',
+                        destructive: true,
+                      },
+                    ]}
+                    triggerVariant="plain"
+                  >
+                    <View style={styles.mealMenuTrigger}>
+                      <Icon name="ellipsis-vertical" size={20} color={theme.colors.text.primary} />
+                    </View>
+                  </Select>
+                </View>
               </View>
 
-              <View style={styles.itemList}>
-                {section.data.map((item) => (
-                  <MenuMealCard
-                    key={item.localId}
-                    item={item}
-                    quantityLabel={t('menuScreen.quantityLabel')}
-                    editLabel={t('common.edit')}
-                    deleteLabel={t('common.delete')}
-                    decreaseQuantityLabel={t('common.decreaseQuantity')}
-                    increaseQuantityLabel={t('common.increaseQuantity')}
-                    proteinTargetGrams={profile?.proteinTargetGrams}
-                    carbsTargetGrams={profile?.carbsTargetGrams}
-                    fatTargetGrams={profile?.fatTargetGrams}
-                    onPress={() => {
-                      router.push({
-                        pathname: '/food-detail',
-                        params: {
-                          source: 'manual',
-                          mealLocalId: section.meal.localId,
-                          itemLocalId: item.localId,
-                        },
-                      });
-                    }}
-                    onEdit={() => {
-                      openEditItemDialog(section.meal, item);
-                    }}
-                    onDelete={() => {
-                      openDeleteItemDialog(item);
-                    }}
-                    onDecreaseQuantity={() => {
-                      void handleUpdateQuantity(item, Math.max(1, item.servings - 1));
-                    }}
-                    onIncreaseQuantity={() => {
-                      void handleUpdateQuantity(item, item.servings + 1);
-                    }}
-                  />
-                ))}
+              <View
+                style={[styles.itemList, section.data.length === 0 ? styles.itemListEmpty : null]}
+              >
+                {section.data.length > 0 ? (
+                  section.data.map((item) => (
+                    <MenuMealCard
+                      key={item.localId}
+                      item={item}
+                      quantityLabel={t('menuScreen.quantityLabel')}
+                      editLabel={t('common.edit')}
+                      deleteLabel={t('common.delete')}
+                      decreaseQuantityLabel={t('common.decreaseQuantity')}
+                      increaseQuantityLabel={t('common.increaseQuantity')}
+                      proteinTargetGrams={profile?.proteinTargetGrams}
+                      carbsTargetGrams={profile?.carbsTargetGrams}
+                      fatTargetGrams={profile?.fatTargetGrams}
+                      onPress={() => {
+                        router.push({
+                          pathname: '/food-detail',
+                          params: {
+                            source: 'manual',
+                            mealLocalId: section.meal.localId,
+                            itemLocalId: item.localId,
+                          },
+                        });
+                      }}
+                      onEdit={() => {
+                        openEditItemDialog(section.meal, item);
+                      }}
+                      onDelete={() => {
+                        openDeleteItemDialog(item);
+                      }}
+                      onDecreaseQuantity={() => {
+                        void handleUpdateQuantity(item, Math.max(1, item.servings - 1));
+                      }}
+                      onIncreaseQuantity={() => {
+                        void handleUpdateQuantity(item, item.servings + 1);
+                      }}
+                    />
+                  ))
+                ) : (
+                  <View style={styles.sectionEmptyState}>
+                    <Text variant="bodySmall" color="secondary" align="center">
+                      {t('menuScreen.mealEmptySubtitle')}
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
           );
         }}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text variant="h3">{t('menuScreen.emptyTitle')}</Text>
+            <Text variant="body" weight="bold">
+              {t('menuScreen.emptyTitle')}
+            </Text>
             <Text variant="bodySmall" color="secondary">
               {t('menuScreen.emptySubtitle')}
             </Text>
@@ -778,49 +883,6 @@ export default function MenuTab() {
         }
         ListFooterComponent={
           <View style={styles.footer}>
-            <View style={styles.summaryStrip}>
-              <View style={styles.summaryStripItem}>
-                <View style={[styles.summaryStripIcon, styles.summaryCaloriesIcon]}>
-                  <Icon name="flame-outline" size={24} variant="primary" />
-                </View>
-                <View style={styles.summaryStripCopy}>
-                  <Text variant="caption" color="secondary">
-                    {t('menuScreen.summary.totalCalories')}
-                  </Text>
-                  <Text variant="body" weight="bold" style={styles.summaryCaloriesText}>
-                    {`${formatNumber(Math.round(dayTotals.calories), locale)} ${t('common.units.kcal')}`}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.summaryStripDivider} />
-              <View style={styles.summaryStripItem}>
-                <View style={[styles.summaryStripIcon, styles.summaryAverageIcon]}>
-                  <Icon name="stats-chart-outline" size={24} variant="primary" />
-                </View>
-                <View style={styles.summaryStripCopy}>
-                  <Text variant="caption" color="secondary">
-                    {t('menuScreen.summary.average')}
-                  </Text>
-                  <Text variant="body" weight="bold" style={styles.summaryAverageText}>
-                    {`${formatNumber(averageCaloriesPerMeal, locale)} ${t('common.units.kcal')}`}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.summaryStripDivider} />
-              <View style={styles.summaryStripItem}>
-                <View style={[styles.summaryStripIcon, styles.summaryTargetIcon]}>
-                  <Icon name="golf-outline" size={24} variant="accent" />
-                </View>
-                <View style={styles.summaryStripCopy}>
-                  <Text variant="caption" color="secondary">
-                    {t('menuScreen.summary.target')}
-                  </Text>
-                  <Text variant="body" weight="bold" style={styles.summaryTargetText}>
-                    {`${formatNumber(Math.round(calorieTarget), locale)} ${t('common.units.kcal')}`}
-                  </Text>
-                </View>
-              </View>
-            </View>
             {isLoadingMore ? <Loading size="small" message={t('common.loading')} /> : null}
           </View>
         }
@@ -952,6 +1014,39 @@ export default function MenuTab() {
           {t('menuScreen.deleteItemMessage', { name: deleteDialog.itemName })}
         </Text>
       </Dialog>
+
+      <Dialog
+        visible={mealDialog.visible}
+        onDismiss={closeMealDialog}
+        title={t('menuScreen.renameMealTitle')}
+        size="md"
+        actions={[
+          {
+            label: t('common.cancel'),
+            variant: 'ghost',
+            onPress: closeMealDialog,
+          },
+          {
+            label: isSavingItem ? t('common.loading') : t('common.save'),
+            variant: 'primary',
+            onPress: () => {
+              void saveMeal();
+            },
+          },
+        ]}
+      >
+        <View style={styles.dialogFields}>
+          <Input
+            label={t('menuScreen.mealNameLabel')}
+            value={mealDialog.mealName}
+            onChangeText={(value) => {
+              setMealDialog((previous) => ({ ...previous, mealName: value, error: null }));
+            }}
+            placeholder={t('menuScreen.mealNamePlaceholder')}
+            error={mealDialog.error ?? undefined}
+          />
+        </View>
+      </Dialog>
     </ScreenContainer>
   );
 }
@@ -966,18 +1061,15 @@ const styles = StyleSheet.create((theme) => ({
   listContent: {
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: theme.metrics.spacingV.p8,
-    paddingBottom: theme.metrics.spacingV.p120,
     gap: theme.metrics.spacingV.p12,
   },
   headerStack: {
     gap: theme.metrics.spacingV.p16,
   },
   summaryCard: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    minHeight: theme.metrics.spacing.p120,
-    paddingHorizontal: theme.metrics.spacing.p20,
-    paddingVertical: theme.metrics.spacingV.p20,
+    gap: theme.metrics.spacingV.p12,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingVertical: theme.metrics.spacingV.p16,
     borderRadius: theme.metrics.borderRadius.xl,
     backgroundColor: theme.colors.background.surface,
     borderWidth: 1,
@@ -988,16 +1080,8 @@ const styles = StyleSheet.create((theme) => ({
     shadowOffset: { width: 0, height: theme.metrics.spacingV.p8 },
     elevation: theme.colors.shadow.elevationSmall,
   },
-  calorieSummary: {
-    flex: 1.55,
-    alignItems: 'stretch',
-    justifyContent: 'center',
-    paddingRight: theme.metrics.spacing.p20,
-  },
-  calorieCopy: {
-    width: '100%',
-    minWidth: 0,
-    gap: theme.metrics.spacingV.p12,
+  summaryHeader: {
+    gap: theme.metrics.spacingV.p4,
   },
   calorieValueRow: {
     flexDirection: 'row',
@@ -1007,50 +1091,24 @@ const styles = StyleSheet.create((theme) => ({
   calorieValue: {
     color: theme.colors.brand.primary,
   },
-  calorieProgressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p16,
-  },
-  summaryDivider: {
-    width: 1,
-    backgroundColor: theme.colors.border.subtle,
-  },
   macroSummaryGrid: {
-    flex: 2.45,
     flexDirection: 'row',
     alignItems: 'stretch',
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border.subtle,
   },
   macroSummary: {
     flex: 1,
-    justifyContent: 'center',
-    gap: theme.metrics.spacingV.p12,
+    gap: theme.metrics.spacingV.p4,
     minWidth: 0,
-    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingTop: theme.metrics.spacingV.p12,
+    paddingBottom: theme.metrics.spacingV.p4,
     borderLeftWidth: 1,
     borderLeftColor: theme.colors.border.subtle,
   },
-  macroSummaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  macroValueRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: theme.metrics.spacing.p4,
-  },
-  progressTrack: {
-    flex: 1,
-    height: theme.metrics.spacingV.p8,
-    width: '100%',
-    minWidth: theme.metrics.spacing.p64,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.background.section,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: theme.metrics.borderRadius.full,
+  macroSummaryFirst: {
+    borderLeftWidth: 0,
   },
   macroProtein: {
     color: theme.colors.state.info,
@@ -1060,46 +1118,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   macroFat: {
     color: theme.colors.state.success,
-  },
-  macroTrackProtein: {
-    backgroundColor: theme.colors.state.info,
-  },
-  macroTrackCarbs: {
-    backgroundColor: theme.colors.state.warning,
-  },
-  macroTrackFat: {
-    backgroundColor: theme.colors.state.success,
-  },
-  aiBanner: {
-    minHeight: theme.metrics.spacing.p72,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p12,
-    padding: theme.metrics.spacing.p16,
-    borderRadius: theme.metrics.borderRadius.xl,
-    borderWidth: 1,
-    borderColor: theme.colors.state.successBg,
-  },
-  aiSparkle: {
-    width: theme.metrics.spacing.p44,
-    height: theme.metrics.spacing.p44,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  aiBannerCopy: {
-    flex: 1,
-    minWidth: 0,
-    gap: theme.metrics.spacingV.p4,
-  },
-  aiButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p4,
-    paddingHorizontal: theme.metrics.spacing.p16,
-    paddingVertical: theme.metrics.spacingV.p8,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.brand.primary,
   },
   sectionBlock: {
     overflow: 'hidden',
@@ -1150,85 +1168,24 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     gap: theme.metrics.spacingV.p4,
   },
+  sectionActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: theme.metrics.spacing.p4,
+    flexShrink: 0,
+  },
+  mealMenuTrigger: {
+    minWidth: theme.metrics.spacing.p32,
+    minHeight: theme.metrics.spacing.p32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   itemList: {
     gap: theme.metrics.spacingV.p12,
     padding: theme.metrics.spacing.p16,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border.subtle,
-  },
-  summaryStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p8,
-    padding: theme.metrics.spacing.p12,
-    borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border.subtle,
-    shadowColor: theme.colors.shadow.color,
-    shadowOpacity: 1,
-    shadowRadius: theme.metrics.spacing.p16,
-    shadowOffset: { width: 0, height: theme.metrics.spacingV.p8 },
-    elevation: theme.colors.shadow.elevationSmall,
-  },
-  summaryStripItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p8,
-    minWidth: 0,
-  },
-  summaryStripIcon: {
-    width: theme.metrics.spacing.p44,
-    height: theme.metrics.spacing.p44,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  summaryCaloriesIcon: {
-    backgroundColor: theme.colors.state.successBg,
-  },
-  summaryAverageIcon: {
-    backgroundColor: theme.colors.state.infoBg,
-  },
-  summaryTargetIcon: {
-    backgroundColor: theme.colors.state.warningBg,
-  },
-  summaryStripCopy: {
-    flex: 1,
-    minWidth: 0,
-    gap: theme.metrics.spacingV.p4,
-  },
-  summaryCaloriesText: {
-    color: theme.colors.brand.primary,
-  },
-  summaryAverageText: {
-    color: theme.colors.state.info,
-  },
-  summaryTargetText: {
-    color: theme.colors.brand.tertiary,
-  },
-  summaryStripDivider: {
-    width: 1,
-    alignSelf: 'stretch',
-    backgroundColor: theme.colors.border.subtle,
-  },
-  aiRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p12,
-    paddingHorizontal: theme.metrics.spacing.p16,
-    paddingVertical: theme.metrics.spacingV.p12,
-    borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border.subtle,
-  },
-  aiRowCopy: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p8,
   },
   emptyState: {
     gap: theme.metrics.spacingV.p12,
@@ -1236,8 +1193,17 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.metrics.spacingV.p20,
   },
   footer: {
-    gap: theme.metrics.spacingV.p12,
-    paddingTop: theme.metrics.spacingV.p4,
+    gap: theme.metrics.spacingV.p8,
+    paddingTop: theme.metrics.spacingV.p8,
+  },
+  itemListEmpty: {
+    gap: 0,
+    paddingVertical: theme.metrics.spacingV.p4,
+  },
+  sectionEmptyState: {
+    paddingVertical: theme.metrics.spacingV.p8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   quickAddBar: {
     flexDirection: 'row',

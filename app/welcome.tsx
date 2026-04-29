@@ -480,7 +480,9 @@ export default function WelcomeScreen() {
 
             {profileSummary ? (
               <Card variant="filled" style={styles.summaryCard}>
-                <Text variant="h3">{t('welcomeScreen.summaryTitle')}</Text>
+                <Text variant="body" weight="bold">
+                  {t('welcomeScreen.summaryTitle')}
+                </Text>
                 <View style={styles.summaryList}>
                   <View style={styles.summaryListItem}>
                     <Text variant="bodySmall" color="secondary">

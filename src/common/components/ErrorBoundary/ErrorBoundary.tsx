@@ -72,7 +72,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <Text variant="h1" style={styles.icon}>
             {FALLBACK_TEXT.icon}
           </Text>
-          <Text variant="h3" align="center" style={styles.title}>
+          <Text variant="body" weight="bold" align="center" style={styles.title}>
             {FALLBACK_TEXT.title}
           </Text>
           <Text variant="body" align="center" style={styles.message}>

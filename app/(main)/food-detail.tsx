@@ -4,13 +4,15 @@ import type { TFunction } from 'i18next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import {
   Button,
   Card,
   Dialog,
   Icon,
   Input,
+  QuantityStepper,
   ScreenContainer,
   SupportPromptCard,
   Text,
@@ -24,6 +26,8 @@ import {
   createFoodEntry,
   getFavoriteFoodById,
   getFoodEntryById,
+  updateFavoriteFood,
+  updateFoodEntry,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { formatMealWeight } from '@/features/nutrition/utils/quantity';
 import { toast } from '@/utils/toast';
@@ -243,10 +247,13 @@ function toEditState(detail: FoodDetailData): FoodDetailEditState {
 
 export default function FoodDetailScreen() {
   const { t, i18n } = useTranslation();
+  const { theme } = useUnistyles();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [detail, setDetail] = useState<FoodDetailData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [servings, setServings] = useState(1);
   const [editDialog, setEditDialog] = useState<FoodDetailEditState>({
     visible: false,
     title: '',
@@ -421,42 +428,71 @@ export default function FoodDetailScreen() {
     t,
   ]);
 
+  const sourceLabel = detail ? getSourceLabel(detail.source, t) : '';
+  const canPreviewQuantity = detail
+    ? detail.source === 'ai' || detail.source === 'barcode' || detail.source === 'favorite'
+    : false;
+  const showSaveAction = detail
+    ? detail.source === 'ai' || detail.source === 'barcode' || detail.source === 'favorite'
+    : false;
+  const showEditAction = detail ? detail.source !== 'barcode' : false;
+  const quantityMultiplier = canPreviewQuantity ? servings : 1;
+  const displayQuantityGrams =
+    detail && detail.quantityGrams !== null ? detail.quantityGrams * quantityMultiplier : null;
+  const quantityDisplay = detail
+    ? getQuantityDisplay(
+        {
+          ...detail,
+          quantityGrams: displayQuantityGrams,
+        },
+        t('common.units.gram')
+      )
+    : '';
+  const displayCalories = detail ? Math.round(detail.calories * quantityMultiplier) : 0;
+  const displayProteinGrams = detail ? Math.round(detail.proteinGrams * quantityMultiplier) : 0;
+  const displayCarbsGrams = detail ? Math.round(detail.carbsGrams * quantityMultiplier) : 0;
+  const displayFatGrams = detail ? Math.round(detail.fatGrams * quantityMultiplier) : 0;
+
   const macroValues = useMemo(() => {
     if (!detail) {
       return [];
     }
 
-    const maxValue = Math.max(detail.proteinGrams, detail.carbsGrams, detail.fatGrams, 1);
+    const proteinGrams = Math.round(detail.proteinGrams * quantityMultiplier);
+    const carbsGrams = Math.round(detail.carbsGrams * quantityMultiplier);
+    const fatGrams = Math.round(detail.fatGrams * quantityMultiplier);
+    const maxValue = Math.max(proteinGrams, carbsGrams, fatGrams, 1);
 
     return [
       {
         key: 'protein',
         label: t('statsScreen.macros.protein'),
-        value: detail.proteinGrams,
+        value: proteinGrams,
         tone: 'success' as const,
-        fill: Math.max(18, Math.round((detail.proteinGrams / maxValue) * 100)),
+        fill: Math.max(18, Math.round((proteinGrams / maxValue) * 100)),
       },
       {
         key: 'carbs',
         label: t('statsScreen.macros.carbs'),
-        value: detail.carbsGrams,
+        value: carbsGrams,
         tone: 'warning' as const,
-        fill: Math.max(18, Math.round((detail.carbsGrams / maxValue) * 100)),
+        fill: Math.max(18, Math.round((carbsGrams / maxValue) * 100)),
       },
       {
         key: 'fat',
         label: t('statsScreen.macros.fat'),
-        value: detail.fatGrams,
+        value: fatGrams,
         tone: 'error' as const,
-        fill: Math.max(18, Math.round((detail.fatGrams / maxValue) * 100)),
+        fill: Math.max(18, Math.round((fatGrams / maxValue) * 100)),
       },
     ];
-  }, [detail, t]);
+  }, [detail, quantityMultiplier, t]);
 
-  const sourceLabel = detail ? getSourceLabel(detail.source, t) : '';
-  const showSaveAction = detail ? detail.source === 'ai' || detail.source === 'barcode' : false;
-  const showEditAction = detail ? detail.source === 'ai' : false;
-  const quantityDisplay = detail ? getQuantityDisplay(detail, t('common.units.gram')) : '';
+  useEffect(() => {
+    if (canPreviewQuantity) {
+      setServings(1);
+    }
+  }, [canPreviewQuantity]);
 
   const openEditDialog = useCallback(() => {
     if (!detail) {
@@ -470,7 +506,7 @@ export default function FoodDetailScreen() {
     setEditDialog((previous) => ({ ...previous, visible: false, error: null }));
   }, []);
 
-  const saveEditDialog = useCallback(() => {
+  const saveEditDialog = useCallback(async () => {
     if (!detail) {
       return;
     }
@@ -507,6 +543,78 @@ export default function FoodDetailScreen() {
       return;
     }
 
+    const nextNotes = editDialog.notes.trim().length > 0 ? editDialog.notes.trim() : null;
+
+    if (detail.source === 'entry' && typeof params.entryId === 'string') {
+      const updatedEntry = await updateFoodEntry(params.entryId, {
+        mealName: title,
+        quantityLabel,
+        quantityGrams,
+        totalCalories: Math.round(calories),
+        proteinGrams: Math.round(proteinGrams),
+        carbsGrams: Math.round(carbsGrams),
+        fatGrams: Math.round(fatGrams),
+        notes: nextNotes,
+        imageUri: detail.imageUri,
+        thumbnailUri: detail.thumbnailUri,
+        consumedAt: detail.consumedAt ?? undefined,
+        entryDate: detail.consumedAt ?? undefined,
+      });
+
+      if (updatedEntry) {
+        setDetail({
+          source: 'entry',
+          title: updatedEntry.mealName,
+          quantityLabel: updatedEntry.quantityLabel,
+          quantityGrams: updatedEntry.quantityGrams ?? null,
+          calories: Math.round(updatedEntry.totalCalories),
+          proteinGrams: Math.round(updatedEntry.proteinGrams),
+          carbsGrams: Math.round(updatedEntry.carbsGrams),
+          fatGrams: Math.round(updatedEntry.fatGrams),
+          notes: updatedEntry.notes,
+          imageUri: updatedEntry.imageUri ?? null,
+          thumbnailUri: updatedEntry.thumbnailUri ?? null,
+          consumedAt: updatedEntry.consumedAt,
+        });
+      }
+      closeEditDialog();
+      return;
+    }
+
+    if (detail.source === 'favorite' && typeof params.favoriteId === 'string') {
+      const updatedFavorite = await updateFavoriteFood(params.favoriteId, {
+        name: title,
+        quantityLabel,
+        quantityGrams,
+        totalCalories: Math.round(calories),
+        proteinGrams: Math.round(proteinGrams),
+        carbsGrams: Math.round(carbsGrams),
+        fatGrams: Math.round(fatGrams),
+        notes: nextNotes,
+        imageUri: detail.imageUri,
+        thumbnailUri: detail.thumbnailUri,
+      });
+
+      if (updatedFavorite) {
+        setDetail({
+          source: 'favorite',
+          title: updatedFavorite.name,
+          quantityLabel: updatedFavorite.quantityLabel,
+          quantityGrams: updatedFavorite.quantityGrams,
+          calories: Math.round(updatedFavorite.totalCalories),
+          proteinGrams: Math.round(updatedFavorite.proteinGrams),
+          carbsGrams: Math.round(updatedFavorite.carbsGrams),
+          fatGrams: Math.round(updatedFavorite.fatGrams),
+          notes: updatedFavorite.notes,
+          imageUri: updatedFavorite.imageUri ?? null,
+          thumbnailUri: updatedFavorite.thumbnailUri ?? null,
+          consumedAt: null,
+        });
+      }
+      closeEditDialog();
+      return;
+    }
+
     setDetail((previous) =>
       previous
         ? {
@@ -518,12 +626,12 @@ export default function FoodDetailScreen() {
             proteinGrams: Math.round(proteinGrams),
             carbsGrams: Math.round(carbsGrams),
             fatGrams: Math.round(fatGrams),
-            notes: editDialog.notes.trim().length > 0 ? editDialog.notes.trim() : null,
+            notes: nextNotes,
           }
         : previous
     );
     closeEditDialog();
-  }, [closeEditDialog, detail, editDialog, t]);
+  }, [closeEditDialog, detail, editDialog, params.entryId, params.favoriteId, t]);
 
   const handleSavePress = useCallback(async () => {
     if (!detail || isSaving) {
@@ -535,16 +643,15 @@ export default function FoodDetailScreen() {
     try {
       const entry = await createFoodEntry({
         mealName: detail.title,
-        quantityLabel: formatMealWeight(
-          detail.quantityGrams,
-          detail.quantityLabel,
-          t('common.units.gram')
-        ),
-        quantityGrams: detail.quantityGrams,
-        totalCalories: detail.calories,
-        proteinGrams: detail.proteinGrams,
-        carbsGrams: detail.carbsGrams,
-        fatGrams: detail.fatGrams,
+        quantityLabel:
+          displayQuantityGrams !== null
+            ? formatMealWeight(displayQuantityGrams, detail.quantityLabel, t('common.units.gram'))
+            : detail.quantityLabel,
+        quantityGrams: displayQuantityGrams,
+        totalCalories: displayCalories,
+        proteinGrams: displayProteinGrams,
+        carbsGrams: displayCarbsGrams,
+        fatGrams: displayFatGrams,
         notes: detail.notes,
         imageUri: detail.imageUri,
         thumbnailUri: detail.thumbnailUri,
@@ -561,7 +668,16 @@ export default function FoodDetailScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [detail, isSaving, t]);
+  }, [
+    detail,
+    displayCarbsGrams,
+    displayCalories,
+    displayFatGrams,
+    displayProteinGrams,
+    displayQuantityGrams,
+    isSaving,
+    t,
+  ]);
 
   const handleSupportPress = useCallback(() => {
     toast.success(t('foodDetail.supportThanks'));
@@ -580,11 +696,15 @@ export default function FoodDetailScreen() {
   }
 
   return (
-    <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
+    <ScreenContainer padded={false} edges={[]}>
       <View style={styles.screen}>
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: insets.bottom + theme.metrics.spacingV.p24 },
+          ]}
+          contentInsetAdjustmentBehavior="never"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -598,7 +718,7 @@ export default function FoodDetailScreen() {
               />
             ) : (
               <View style={styles.placeholder}>
-                <Icon name="restaurant-outline" size={42} variant="secondary" />
+                <Icon name="image-outline" size={42} variant="secondary" />
               </View>
             )}
           </Card>
@@ -652,7 +772,7 @@ export default function FoodDetailScreen() {
 
             <View style={styles.calorieRow}>
               <Text variant="h1" weight="bold" align="center">
-                {detail.calories}
+                {displayCalories}
                 <Text variant="bodySmall" weight="regular" color="secondary">
                   {` ${t('common.units.kcal')}`}
                 </Text>
@@ -720,13 +840,30 @@ export default function FoodDetailScreen() {
 
         {showSaveAction ? (
           <View style={styles.saveFooter}>
+            <View style={styles.servingsBlock}>
+              <Text variant="bodySmall" weight="semibold">
+                {t('manualFoodEntry.portionCountLabel')}
+              </Text>
+              <QuantityStepper
+                value={servings}
+                minValue={1}
+                decreaseLabel={t('addScreen.decreasePortion')}
+                increaseLabel={t('addScreen.increasePortion')}
+                onDecrease={() => {
+                  setServings((currentValue) => Math.max(1, currentValue - 1));
+                }}
+                onIncrease={() => {
+                  setServings((currentValue) => currentValue + 1);
+                }}
+              />
+            </View>
             <Button
               title={t('foodDetail.saveAction')}
-              leftIcon={<Icon name="add" size={16} variant="onBrand" />}
               onPress={() => {
                 void handleSavePress();
               }}
               loading={isSaving}
+              fullWidth
               style={styles.saveButton}
             />
           </View>
@@ -738,6 +875,8 @@ export default function FoodDetailScreen() {
         onDismiss={closeEditDialog}
         title={t('foodDetail.editTitle')}
         size="lg"
+        keyboardAware
+        keyboardOffset={theme.metrics.spacingV.p24}
         actions={[
           {
             label: t('common.cancel'),
@@ -751,12 +890,7 @@ export default function FoodDetailScreen() {
           },
         ]}
       >
-        <ScrollView
-          style={styles.editDialogScroll}
-          contentContainerStyle={styles.editDialogContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        <View style={styles.editDialogContent}>
           <Input
             label={t('foodDetail.editFields.title')}
             value={editDialog.title}
@@ -843,7 +977,7 @@ export default function FoodDetailScreen() {
               {editDialog.error}
             </Text>
           ) : null}
-        </ScrollView>
+        </View>
       </Dialog>
     </ScreenContainer>
   );
@@ -859,7 +993,7 @@ const styles = StyleSheet.create((theme) => ({
   content: {
     gap: theme.metrics.spacingV.p16,
     paddingHorizontal: theme.metrics.spacing.p16,
-    paddingTop: theme.metrics.spacingV.p12,
+    paddingTop: 0,
     paddingBottom: theme.metrics.spacingV.p24,
   },
   loadingState: {
@@ -1000,11 +1134,15 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: theme.metrics.spacingV.p16,
     backgroundColor: theme.colors.background.app,
   },
+  servingsBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+    marginBottom: theme.metrics.spacingV.p12,
+  },
   saveButton: {
     backgroundColor: theme.colors.brand.tertiary,
-  },
-  editDialogScroll: {
-    maxHeight: '75%',
   },
   editDialogContent: {
     gap: theme.metrics.spacingV.p8,

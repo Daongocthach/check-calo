@@ -62,6 +62,39 @@
     "aiTitle": "AI suggestion",
     "aiSubtitle": "You are about ~{{value}}g protein short of today's target.",
     "viewSuggestion": "View ideas",
+    "aiPanel": {
+      "title": "Generate a full-day plan",
+      "subtitle": "Quickly draft all meals for today, then adjust each meal before saving.",
+      "dailyAction": "Create full-day ideas"
+    },
+    "aiForm": {
+      "title": "Full-day suggestion options",
+      "subtitle": "Share a few quick details so the suggestions match your habits and goal better.",
+      "recentLabel": "Prioritize recent foods",
+      "recentHint": "Use foods you ate recently as the default starting point.",
+      "recentViewMore": "View more",
+      "ingredientsLabel": "Possible ingredients",
+      "ingredientsPlaceholder": "Example: eggs, chicken breast, oats, yogurt...",
+      "contraindicationsLabel": "Contraindications",
+      "contraindicationsPlaceholder": "Example: pregnant, peanut allergy, no seafood...",
+      "criteriaLabel": "Priority criteria",
+      "criteriaHint": "Choose one or more criteria to guide the suggestions.",
+      "criteria": {
+        "quick": "Quick",
+        "cheap": "Affordable",
+        "satiating": "Filling",
+        "protein": "High protein"
+      },
+      "generateAction": "Create suggestions",
+      "submitted": "Suggestion preferences saved."
+    },
+    "mealSuggestions": {
+      "short": "Suggest",
+      "breakfast": "Suggest breakfast",
+      "lunch": "Suggest lunch",
+      "dinner": "Suggest dinner",
+      "snack": "Suggest snack"
+    },
     "quickAdd": "Quick add",
     "quickFoods": {
       "chicken": "Chicken breast",
@@ -126,6 +159,7 @@
     "itemCount": "{{count}} items",
     "emptyTitle": "No meals yet",
     "emptySubtitle": "Create your first meal and add foods manually.",
+    "mealEmptySubtitle": "No food in this meal yet",
     "validation": {
       "mealNameRequired": "Meal name is required.",
       "itemFormInvalid": "Please fill all required food fields with valid numbers."
@@ -350,7 +384,7 @@
   "statsScreen": {
     "title": "Stats",
     "subtitle": "Track your progress and hit your goal every day.",
-    "calUnit": "cal",
+    "calUnit": "kcal",
     "weekly": "Weekly",
     "peakDuration": "70 min",
     "modes": {
@@ -447,6 +481,7 @@
     "captureModes": {
       "scanFood": "Capture food",
       "scanFoodAnalyzing": "Analyzing...",
+      "scanFoodAnalyzingWithAi": "Analyzing the meal with AI...",
       "library": "Choose photo",
       "barcode": "Barcode",
       "manual": "Manual"
@@ -801,6 +836,18 @@
     "deficitAchievedLabel": "Deficit reached",
     "deficitRemainingLabel": "Remaining {{value}} kg",
     "fatEquivalent": "(~{{value}} kg fat)",
+    "calorieDeficitLabel": "Calorie deficit",
+    "remainingDeficitLabel": "Remaining deficit",
+    "calorieDifferenceLabel": "Calorie difference",
+    "statusLabel": "Status",
+    "calorieSurplusLabel": "Calorie surplus",
+    "remainingToTargetLabel": "Remaining to target",
+    "weightEquivalent": "(~{{value}} kg)",
+    "balanceStatus": {
+      "slightDeficit": "Slight deficit",
+      "balanced": "Balanced",
+      "slightSurplus": "Slight surplus"
+    },
     "consumedKcalProgress": "Consumed {{current}} / {{target}} kcal",
     "remainingKcal": "{{value}} kcal left",
     "remainingDays": "{{value}} days left",
@@ -919,6 +966,7 @@
       "title": "Terms of Service",
       "summary": "Please read these terms carefully before using the Check Calo app.",
       "readMore": "Read more",
+      "readLess": "Show less",
       "items": {
         "acceptance": {
           "title": "Accepting the terms",
@@ -939,6 +987,20 @@
         "liability": {
           "title": "Limitation of liability",
           "body": "Nutrition information is for reference only. You remain responsible for health and diet decisions."
+        }
+      },
+      "moreItems": {
+        "changes": {
+          "title": "Changes to these terms",
+          "body": "We may update these terms over time to match product changes or legal requirements."
+        },
+        "retention": {
+          "title": "Data retention",
+          "body": "Some data may be kept to support your experience, sync, and history recovery."
+        },
+        "contact": {
+          "title": "Contact support",
+          "body": "If you have questions about these terms, please reach out through the in-app support page."
         }
       }
     },
@@ -978,6 +1040,29 @@
       "action": "Contact"
     }
   },
+  "contactScreen": {
+    "title": "Contact",
+    "heroTitle": "Get In Touch",
+    "formTitle": "Send us a message",
+    "formSubtitle": "Leave a few details so we can reply faster.",
+    "copyHint": "Tap to copy",
+    "copySuccess": "Contact info copied.",
+    "submitAction": "Submit",
+    "submitSuccess": "Your contact request has been received.",
+    "emailLabel": "Email address",
+    "emailValue": "support@checkcalo.app",
+    "phoneLabel": "Phone number",
+    "phoneValue": "0784524242",
+    "locationLabel": "Office location",
+    "locationValue": "No. 2A, Street 55, Quarter 2, Binh Duong Ward, Ho Chi Minh City, Vietnam",
+    "workingDaysLabel": "Working days",
+    "workingDaysValue": "Monday - Saturday | 08:00 - 17:00",
+    "firstNamePlaceholder": "First name",
+    "lastNamePlaceholder": "Last name",
+    "phonePlaceholder": "Phone number",
+    "emailPlaceholder": "Your email",
+    "problemPlaceholder": "Your problem"
+  },
   "settings": {
     "title": "Settings",
     "appearance": "Appearance",
@@ -989,6 +1074,7 @@
     "version": "Version",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
+    "contact": "Contact",
     "profile": {
       "name": "Alex Johnson",
       "email": "alex@example.com",
@@ -997,6 +1083,8 @@
     "menu": {
       "profile": "Personal profile",
       "goal": "Goal",
+      "achievements": "Achievements",
+      "leaderboard": "Leaderboard",
       "reminders": "Reminders",
       "language": "Language",
       "units": "Units",
@@ -1162,6 +1250,84 @@
   "transactions": {
     "fields": {
       "occurredAt": "Occurred at"
+    }
+  },
+  "achievementsScreen": {
+    "title": "Achievements",
+    "heroTitle": "Your progress",
+    "heroBody": "Track streaks, completed goals, and the badges you have unlocked.",
+    "heroFallbackTitle": "Your nutrition journey",
+    "currentStreakLabel": "Current streak",
+    "currentStreakUnit": "days",
+    "viewGoalsAction": "View goal history",
+    "progressLabel": "Next milestone",
+    "progressBody": "{{remaining}} days left to unlock {{label}}",
+    "progressComplete": "You have already passed the first streak milestone",
+    "nextMilestoneFallback": "a new milestone",
+    "summaryTitle": "{{year}} achievements",
+    "summaryBody": "A quick snapshot of the important numbers in your nutrition journey.",
+    "stats": {
+      "totalGoals": "Tracked goals",
+      "totalGoalsSubtitle": "All recorded goals",
+      "completedGoals": "Completed goals",
+      "completedGoalsSubtitle": "Goals successfully finished",
+      "unlocked": "Unlocked badges",
+      "unlockedSubtitle": "Badges you already own"
+    },
+    "collectionTitle": "Badge collection",
+    "collectionSubtitle": "Unlock badges with streaks and completed goals.",
+    "emptyTitle": "You do not have any badges yet...",
+    "emptyBody": "Keep your streak going and finish a few early milestones to unlock your first badge.",
+    "emptyAction": "View goal history",
+    "unlocked": "Unlocked",
+    "items": {
+      "fireKeeper7": {
+        "title": "7-day streak",
+        "body": "Stay on target for 7 consecutive days.",
+        "requirement": "Need 7 consecutive days"
+      },
+      "fireKeeper14": {
+        "title": "14-day streak",
+        "body": "Stay on target for 14 consecutive days.",
+        "requirement": "Need 14 consecutive days"
+      },
+      "goalCrusher": {
+        "title": "Goal crusher",
+        "body": "Complete at least one nutrition goal.",
+        "requirement": "Complete 1 goal"
+      },
+      "firstMaintainGoal": {
+        "title": "First maintain goal",
+        "body": "Finish your first maintenance goal.",
+        "requirement": "Complete 1 maintenance goal"
+      }
+    }
+  },
+  "leaderboardScreen": {
+    "title": "Leaderboard",
+    "subtitle": "Green Race",
+    "monthTitle": "Green warriors - {{month}}",
+    "featureTitle": "This month’s leaders",
+    "featureSubtitle": "The people currently leading the green race.",
+    "rankingTitle": "Top 4 - 10",
+    "rankingSubtitle": "The next positions in the leaderboard.",
+    "myTitle": "My monthly total",
+    "mySubtitle": "A quick look at your current position and progress.",
+    "myCategory": "Green stats",
+    "myRankLabel": "Rank #{{rank}}",
+    "myProgressLabel": "Monthly progress",
+    "scoreSuffix": "{{value}} KM accumulated",
+    "categories": {
+      "car": "Car specialist",
+      "carSubtitle": "Top 1 in car travel",
+      "bike": "Bike rider",
+      "bikeSubtitle": "Top 1 in bike travel"
+    },
+    "ranking": {
+      "top1": "Top 1 this month",
+      "top2": "Top 2 this month",
+      "top3": "Top 3 this month",
+      "rank": "Leaderboard rank"
     }
   }
 }

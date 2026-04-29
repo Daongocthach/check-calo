@@ -62,6 +62,39 @@
     "aiTitle": "Gợi ý từ AI",
     "aiSubtitle": "Bạn còn thiếu ~{{value}}g protein để đạt mục tiêu hôm nay.",
     "viewSuggestion": "Xem gợi ý",
+    "aiPanel": {
+      "title": "Tạo gợi ý cả ngày",
+      "subtitle": "Phác nhanh toàn bộ bữa ăn hôm nay, rồi chỉnh từng bữa trước khi lưu.",
+      "dailyAction": "Tạo gợi ý cả ngày"
+    },
+    "aiForm": {
+      "title": "Tùy chọn gợi ý cả ngày",
+      "subtitle": "Điền vài thông tin ngắn để gợi ý sát hơn với thói quen và mục tiêu của bạn.",
+      "recentLabel": "Ưu tiên món gần đây",
+      "recentHint": "Lấy món đã ăn gần đây làm mặc định khi tạo gợi ý.",
+      "recentViewMore": "Xem thêm",
+      "ingredientsLabel": "Nguyên liệu có thể có",
+      "ingredientsPlaceholder": "Ví dụ: trứng, ức gà, yến mạch, sữa chua...",
+      "contraindicationsLabel": "Chống chỉ định",
+      "contraindicationsPlaceholder": "Ví dụ: đang mang thai, dị ứng đậu phộng, không ăn hải sản...",
+      "criteriaLabel": "Tiêu chí ưu tiên",
+      "criteriaHint": "Chọn một hoặc nhiều tiêu chí để AI bám sát hơn.",
+      "criteria": {
+        "quick": "Nhanh",
+        "cheap": "Rẻ",
+        "satiating": "No lâu",
+        "protein": "Nhiều đạm"
+      },
+      "generateAction": "Tạo gợi ý",
+      "submitted": "Đã ghi nhận tuỳ chọn gợi ý."
+    },
+    "mealSuggestions": {
+      "short": "Gợi ý",
+      "breakfast": "Gợi ý bữa sáng",
+      "lunch": "Gợi ý bữa trưa",
+      "dinner": "Gợi ý bữa tối",
+      "snack": "Gợi ý bữa phụ"
+    },
     "quickAdd": "Thêm nhanh",
     "quickFoods": {
       "chicken": "Ức gà",
@@ -126,6 +159,7 @@
     "itemCount": "{{count}} món",
     "emptyTitle": "Chưa có bữa ăn nào",
     "emptySubtitle": "Tạo bữa ăn đầu tiên và thêm món theo cách thủ công.",
+    "mealEmptySubtitle": "Chưa có món ăn nào trong bữa",
     "validation": {
       "mealNameRequired": "Vui lòng nhập tên bữa ăn.",
       "itemFormInvalid": "Vui lòng nhập đủ thông tin món và số dinh dưỡng hợp lệ."
@@ -240,7 +274,7 @@
       "favorite": "Đã lưu",
       "manual": "Thủ công"
     },
-    "saveAction": "+ Thêm vào nhật ký",
+    "saveAction": "Thêm vào nhật ký",
     "saveSuccess": "Đã thêm món vào nhật ký.",
     "supportMessage": "Nếu bạn thấy app hữu ích, bạn có thể mời tụi mình 1 ly cafe để duy trì app nhé ☕️",
     "supportAction": "Ủng hộ ngay",
@@ -350,7 +384,7 @@
   "statsScreen": {
     "title": "Thống kê",
     "subtitle": "Theo dõi tiến trình và đạt mục tiêu mỗi ngày",
-    "calUnit": "cal",
+    "calUnit": "kcal",
     "weekly": "Theo tuần",
     "peakDuration": "70 phút",
     "modes": {
@@ -447,6 +481,7 @@
     "captureModes": {
       "scanFood": "Chụp ảnh",
       "scanFoodAnalyzing": "Đang phân tích",
+      "scanFoodAnalyzingWithAi": "Đang phân tích món ăn với AI...",
       "library": "Chọn ảnh",
       "barcode": "Barcode",
       "manual": "Nhập tay"
@@ -801,6 +836,18 @@
     "deficitAchievedLabel": "Đã thâm hụt",
     "deficitRemainingLabel": "Còn lại {{value}} kg",
     "fatEquivalent": "(~{{value}} kg mỡ)",
+    "calorieDeficitLabel": "Thâm hụt",
+    "remainingDeficitLabel": "Còn thiếu",
+    "calorieDifferenceLabel": "Chênh lệch calories",
+    "statusLabel": "Trạng thái",
+    "calorieSurplusLabel": "Dư calories",
+    "remainingToTargetLabel": "Còn tới mục tiêu",
+    "weightEquivalent": "(~{{value}} kg)",
+    "balanceStatus": {
+      "slightDeficit": "Thâm hụt nhẹ",
+      "balanced": "Cân bằng",
+      "slightSurplus": "Dư nhẹ"
+    },
     "consumedKcalProgress": "Đã nạp {{current}} / {{target}} kcal",
     "remainingKcal": "Còn {{value}} kcal",
     "remainingDays": "Còn {{value}} ngày",
@@ -919,6 +966,7 @@
       "title": "Điều khoản dịch vụ",
       "summary": "Vui lòng đọc kỹ các điều khoản sử dụng trước khi dùng ứng dụng Check Calo.",
       "readMore": "Xem thêm",
+      "readLess": "Thu gọn",
       "items": {
         "acceptance": {
           "title": "Chấp thuận điều khoản",
@@ -939,6 +987,20 @@
         "liability": {
           "title": "Giới hạn trách nhiệm",
           "body": "Thông tin dinh dưỡng chỉ mang tính tham khảo. Bạn chịu trách nhiệm với quyết định sức khỏe và ăn uống của mình."
+        }
+      },
+      "moreItems": {
+        "changes": {
+          "title": "Thay đổi điều khoản",
+          "body": "Chúng tôi có thể cập nhật điều khoản theo thời gian để phù hợp với sản phẩm hoặc yêu cầu pháp lý."
+        },
+        "retention": {
+          "title": "Lưu giữ dữ liệu",
+          "body": "Một số dữ liệu có thể được lưu lại để đảm bảo trải nghiệm, đồng bộ và khôi phục lịch sử của bạn."
+        },
+        "contact": {
+          "title": "Liên hệ hỗ trợ",
+          "body": "Nếu có câu hỏi về điều khoản, hãy liên hệ với chúng tôi qua trang hỗ trợ trong ứng dụng."
         }
       }
     },
@@ -978,6 +1040,29 @@
       "action": "Liên hệ"
     }
   },
+  "contactScreen": {
+    "title": "Liên hệ",
+    "heroTitle": "Liên hệ",
+    "formTitle": "Gửi tin nhắn",
+    "formSubtitle": "Điền vài thông tin để chúng tôi phản hồi nhanh hơn.",
+    "copyHint": "Chạm để sao chép",
+    "copySuccess": "Đã sao chép thông tin liên hệ.",
+    "submitAction": "Gửi",
+    "submitSuccess": "Đã ghi nhận yêu cầu liên hệ.",
+    "emailLabel": "Địa chỉ email",
+    "emailValue": "support@checkcalo.app",
+    "phoneLabel": "Số điện thoại",
+    "phoneValue": "0784524242",
+    "locationLabel": "Địa chỉ văn phòng",
+    "locationValue": "No. 2A, Street 55, Quarter 2, Binh Duong Ward, Ho Chi Minh City, Vietnam",
+    "workingDaysLabel": "Ngày làm việc",
+    "workingDaysValue": "Monday - Saturday | 08:00 - 17:00",
+    "firstNamePlaceholder": "Họ",
+    "lastNamePlaceholder": "Tên",
+    "phonePlaceholder": "Số điện thoại",
+    "emailPlaceholder": "Email của bạn",
+    "problemPlaceholder": "Vấn đề của bạn"
+  },
   "settings": {
     "title": "Cài đặt",
     "appearance": "Giao diện",
@@ -989,6 +1074,7 @@
     "version": "Phiên bản",
     "privacy": "Chính sách bảo mật",
     "terms": "Điều khoản dịch vụ",
+    "contact": "Liên hệ",
     "profile": {
       "name": "Alex Johnson",
       "email": "alex@example.com",
@@ -997,6 +1083,8 @@
     "menu": {
       "profile": "Hồ sơ cá nhân",
       "goal": "Mục tiêu",
+      "achievements": "Danh hiệu",
+      "leaderboard": "Bảng xếp hạng",
       "reminders": "Nhắc nhở",
       "language": "Ngôn ngữ",
       "units": "Đơn vị",
@@ -1162,6 +1250,84 @@
   "transactions": {
     "fields": {
       "occurredAt": "Thời điểm giao dịch"
+    }
+  },
+  "achievementsScreen": {
+    "title": "Danh hiệu",
+    "heroTitle": "Thành tích của bạn",
+    "heroBody": "Theo dõi chuỗi ngày, mục tiêu hoàn thành và bộ huy hiệu đã mở khóa.",
+    "heroFallbackTitle": "Hành trình bám mục tiêu",
+    "currentStreakLabel": "Chuỗi hiện tại",
+    "currentStreakUnit": "ngày",
+    "viewGoalsAction": "Xem lịch sử mục tiêu",
+    "progressLabel": "Mốc tiếp theo",
+    "progressBody": "Còn {{remaining}} ngày nữa để mở {{label}}",
+    "progressComplete": "Bạn đã vượt qua mốc chuỗi đầu tiên",
+    "nextMilestoneFallback": "một mốc mới",
+    "summaryTitle": "Thành tích {{year}}",
+    "summaryBody": "Tổng hợp các chỉ số quan trọng trong hành trình dinh dưỡng.",
+    "stats": {
+      "totalGoals": "Mục tiêu đã theo dõi",
+      "totalGoalsSubtitle": "Tất cả mục tiêu đã ghi nhận",
+      "completedGoals": "Mục tiêu hoàn thành",
+      "completedGoalsSubtitle": "Số mục tiêu đã chốt",
+      "unlocked": "Danh hiệu mở khóa",
+      "unlockedSubtitle": "Huy hiệu đang sở hữu"
+    },
+    "collectionTitle": "Bộ sưu tập danh hiệu",
+    "collectionSubtitle": "Mở khóa các huy hiệu bằng chuỗi ngày và mục tiêu hoàn thành.",
+    "emptyTitle": "Bạn hiện chưa có danh hiệu nào...",
+    "emptyBody": "Hãy giữ chuỗi ngày bám mục tiêu và hoàn thành thêm vài mốc đầu tiên nhé.",
+    "emptyAction": "Xem lịch sử mục tiêu",
+    "unlocked": "Đã mở khóa",
+    "items": {
+      "fireKeeper7": {
+        "title": "Chuỗi 7 ngày",
+        "body": "Duy trì bám mục tiêu 7 ngày liên tiếp.",
+        "requirement": "Cần 7 ngày liên tiếp"
+      },
+      "fireKeeper14": {
+        "title": "Chuỗi 14 ngày",
+        "body": "Duy trì bám mục tiêu 14 ngày liên tiếp.",
+        "requirement": "Cần 14 ngày liên tiếp"
+      },
+      "goalCrusher": {
+        "title": "Chinh phục mục tiêu",
+        "body": "Hoàn thành ít nhất một mục tiêu dinh dưỡng.",
+        "requirement": "Hoàn thành 1 mục tiêu"
+      },
+      "firstMaintainGoal": {
+        "title": "Duy trì đầu tiên",
+        "body": "Chốt thành công mục tiêu duy trì đầu tiên.",
+        "requirement": "Hoàn thành 1 mục tiêu duy trì"
+      }
+    }
+  },
+  "leaderboardScreen": {
+    "title": "Bảng xếp hạng",
+    "subtitle": "Green Race",
+    "monthTitle": "Chiến binh xanh - Tháng {{month}}",
+    "featureTitle": "Top đầu tháng này",
+    "featureSubtitle": "Những người đang dẫn đầu trong cuộc đua xanh.",
+    "rankingTitle": "Top 4 - 10",
+    "rankingSubtitle": "Danh sách tiếp theo trong bảng xếp hạng.",
+    "myTitle": "Tích lũy tháng này của tôi",
+    "mySubtitle": "Xem nhanh vị trí và tiến độ hiện tại.",
+    "myCategory": "Thống kê xanh",
+    "myRankLabel": "Hạng #{{rank}}",
+    "myProgressLabel": "Tiến độ tháng",
+    "scoreSuffix": "{{value}} KM tích lũy",
+    "categories": {
+      "car": "Cao thủ xe hơi",
+      "carSubtitle": "Top 1 di chuyển bằng xe hơi",
+      "bike": "Dân chơi hai bánh",
+      "bikeSubtitle": "Top 1 di chuyển bằng xe đạp"
+    },
+    "ranking": {
+      "top1": "Top 1 tháng này",
+      "top2": "Top 2 tháng này",
+      "top3": "Top 3 tháng này",
+      "rank": "Hạng trong bảng"
     }
   }
 }

@@ -84,8 +84,12 @@ export const styles = StyleSheet.create((theme) => ({
     shadowRadius: 20,
     elevation: theme.colors.shadow.elevationLarge,
   },
+  addBubbleDark: {
+    width: theme.metrics.spacing.p60,
+    height: theme.metrics.spacing.p60,
+  },
   addBubbleActive: {
-    transform: [{ scale: 1.06 }],
+    transform: [{ scale: 1.03 }],
     shadowOpacity: 0.34,
     shadowRadius: 24,
   },

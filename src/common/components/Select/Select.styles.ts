@@ -157,6 +157,9 @@ export const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text.primary,
     fontWeight: '600',
   },
+  optionTextDestructive: {
+    color: theme.colors.state.error,
+  },
 }));
 
 export type SelectStyleVariants = UnistylesVariants<typeof styles>;

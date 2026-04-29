@@ -221,7 +221,7 @@ export function MonthSelector({
           accessibilityLabel={t('common.back')}
         />
         <View style={styles.monthTitleWrap}>
-          <Text variant="h3" style={styles.monthTitle}>
+          <Text variant="body" weight="bold" style={styles.monthTitle}>
             {monthFormatter.format(currentMonth)}
           </Text>
         </View>

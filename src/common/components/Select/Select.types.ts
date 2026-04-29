@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ImageSourcePropType } from 'react-native';
+import type { IconProps } from '@/common/components/Icon';
 import type { ComponentSize } from '@/common/components/shared.types';
 
 type SelectTriggerVariant = 'plain';
@@ -10,10 +11,14 @@ export interface SelectOption {
   label: string;
   /** Optional leading image displayed with this option. */
   iconSource?: ImageSourcePropType;
+  /** Optional leading icon displayed with this option. */
+  iconName?: IconProps['name'];
   /** Unique value associated with this option. */
   value: string;
   /** Whether this option is disabled. Defaults to `false`. */
   disabled?: boolean;
+  /** Whether this option is destructive, rendering it in error colors. */
+  destructive?: boolean;
 }
 
 /** Props for the {@link Select} component. */

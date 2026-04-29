@@ -4,10 +4,10 @@ export const lightColors: ThemeColors = {
   mode: 'light',
 
   brand: {
-    primary: '#8BC34A', // xanh chính (calories ring)
+    primary: '#52A13C', // xanh chính (calories ring)
     secondary: '#1C1C1E', // text chính
     tertiary: '#FF7A2F', // CTA (+ button)
-    primaryVariant: '#9FD65A',
+    primaryVariant: '#6FB85A',
     secondaryVariant: '#6B7280',
     onBrand: '#FFFFFF',
   },
@@ -30,15 +30,15 @@ export const lightColors: ThemeColors = {
     muted: '#B0B3B8',
     inverse: '#FFFFFF',
     accent: '#FF7A2F',
-    link: '#8BC34A',
-    linkHover: '#6FAF3A',
+    link: '#52A13C',
+    linkHover: '#438130',
   },
 
   border: {
     default: '#E5E7EB',
     subtle: '#F0F2F4',
     strong: '#D1D5DB',
-    focus: '#8BC34A',
+    focus: '#52A13C',
     disabled: '#E5E7EB',
   },
 
@@ -69,15 +69,15 @@ export const lightColors: ThemeColors = {
 
   overlay: {
     modal: 'rgba(0, 0, 0, 0.5)',
-    pressed: 'rgba(139, 195, 74, 0.15)',
-    hover: 'rgba(139, 195, 74, 0.08)',
-    focus: 'rgba(139, 195, 74, 0.2)',
+    pressed: 'rgba(82, 161, 60, 0.15)',
+    hover: 'rgba(82, 161, 60, 0.08)',
+    focus: 'rgba(82, 161, 60, 0.2)',
     ripple: 'rgba(0, 0, 0, 0.08)',
     shadow: 'rgba(0, 0, 0, 0.08)',
   },
 
   gradient: {
-    primary: ['#7ED321', '#C0E86B'], // vòng calories đẹp hơn
+    primary: ['#52A13C', '#8ED36F'], // vòng calories đẹp hơn
     secondary: ['#FFFFFF', '#F3F4F6'],
     accent: ['#FF8C42', '#FF7A2F'],
 

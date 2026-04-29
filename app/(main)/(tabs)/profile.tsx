@@ -4,7 +4,15 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, type ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Card, Dialog, Icon, ListItem, ScreenContainer, Text } from '@/common/components';
+import {
+  Card,
+  Dialog,
+  Icon,
+  ListItem,
+  ScreenContainer,
+  SupportPromptCard,
+  Text,
+} from '@/common/components';
 import type { IconProps } from '@/common/components/Icon';
 import { logout } from '@/features/auth/services/authService';
 import { toast } from '@/utils/toast';
@@ -15,6 +23,10 @@ function getRowIconName(key: string): IconProps['name'] {
       return 'person-outline';
     case 'goal':
       return 'trophy-outline';
+    case 'achievements':
+      return 'medal-outline';
+    case 'leaderboard':
+      return 'podium-outline';
     case 'reminders':
       return 'notifications-outline';
     case 'language':
@@ -23,14 +35,14 @@ function getRowIconName(key: string): IconProps['name'] {
       return 'scale-outline';
     case 'theme':
       return 'sunny-outline';
-    case 'support':
-      return 'heart-outline';
     case 'about':
       return 'information-circle-outline';
     case 'terms':
       return 'document-text-outline';
     case 'privacy':
       return 'shield-checkmark-outline';
+    case 'contact':
+      return 'mail-outline';
     case 'logout':
       return 'log-out-outline';
     default:
@@ -53,16 +65,9 @@ function SettingsMenuRow({
   rightLabel,
   destructive,
 }: SettingsMenuRowProps) {
-  const { t } = useTranslation();
   const left = (
     <View style={[styles.rowIcon, destructive ? styles.rowIconDanger : undefined]}>
-      {iconKey === 'support' ? (
-        <Text variant="bodySmall" weight="bold">
-          {t('settings.menu.supportEmoji')}
-        </Text>
-      ) : (
-        <Icon name={getRowIconName(iconKey)} size={20} destructive={destructive} />
-      )}
+      <Icon name={getRowIconName(iconKey)} size={20} destructive={destructive} />
     </View>
   );
 
@@ -137,6 +142,20 @@ export default function ProfileTab() {
               }}
             />
             <SettingsMenuRow
+              title={t('settings.menu.achievements')}
+              iconKey="achievements"
+              onPress={() => {
+                router.push('/achievements');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.menu.leaderboard')}
+              iconKey="leaderboard"
+              onPress={() => {
+                router.push('/leaderboard');
+              }}
+            />
+            <SettingsMenuRow
               title={t('settings.menu.reminders')}
               iconKey="reminders"
               onPress={() => {
@@ -145,13 +164,12 @@ export default function ProfileTab() {
             />
           </SettingsGroup>
 
-          <SettingsGroup style={styles.supportGroup}>
-            <SettingsMenuRow
-              title={t('settings.menu.support')}
-              iconKey="support"
-              onPress={handleSupportPress}
-            />
-          </SettingsGroup>
+          <SupportPromptCard
+            message={t('foodDetail.supportMessage')}
+            actionLabel={t('foodDetail.supportAction')}
+            onActionPress={handleSupportPress}
+            style={styles.supportCard}
+          />
 
           <SettingsGroup>
             <SettingsMenuRow
@@ -173,6 +191,13 @@ export default function ProfileTab() {
               iconKey="privacy"
               onPress={() => {
                 router.push('/privacy');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.contact')}
+              iconKey="contact"
+              onPress={() => {
+                router.push('/contact');
               }}
             />
           </SettingsGroup>
@@ -232,9 +257,8 @@ const styles = StyleSheet.create((theme) => ({
     padding: 0,
     overflow: 'hidden',
   },
-  supportGroup: {
-    backgroundColor: theme.colors.state.warningBg,
-    borderColor: theme.colors.state.warningBg,
+  supportCard: {
+    paddingVertical: 0,
   },
   rowIcon: {
     width: theme.metrics.spacing.p36,

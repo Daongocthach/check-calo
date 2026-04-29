@@ -59,12 +59,12 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
         const icons = TAB_ICONS[route.name] ?? { active: 'ellipse', inactive: 'ellipse-outline' };
         const iconName = isFocused ? icons.active : icons.inactive;
         const isAddTab = route.name === 'add';
-        let iconColor = theme.colors.icon.primary;
+        let iconColor = theme.colors.icon.secondary;
 
         if (isAddTab) {
           iconColor = theme.colors.icon.inverse;
         } else if (isFocused) {
-          iconColor = theme.colors.icon.primary;
+          iconColor = theme.colors.brand.onBrand;
         }
 
         return (
@@ -79,7 +79,13 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
           >
             {isAddTab ? (
               <View style={styles.addTabContent}>
-                <View style={[styles.addBubble, isFocused && styles.addBubbleActive]}>
+                <View
+                  style={[
+                    styles.addBubble,
+                    theme.colors.mode === 'dark' && styles.addBubbleDark,
+                    isFocused && styles.addBubbleActive,
+                  ]}
+                >
                   <View
                     style={[
                       styles.addBubbleGradient,
@@ -87,7 +93,11 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
                       isFocused && styles.addBubbleSolidActive,
                     ]}
                   >
-                    <Ionicons name={iconName} size={32} color={iconColor} />
+                    <Ionicons
+                      name={iconName}
+                      size={theme.colors.mode === 'dark' ? 30 : 32}
+                      color={iconColor}
+                    />
                   </View>
                 </View>
               </View>

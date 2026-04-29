@@ -1,10 +1,8 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { Image } from 'expo-image';
 import type { ComponentProps } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
-import type { StyleProp, ViewStyle } from 'react-native';
 import Svg, {
   Circle,
   Defs,
@@ -17,14 +15,8 @@ import Svg, {
   Text as SvgText,
 } from 'react-native-svg';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import {
-  GiftedCircularProgress,
-  Icon,
-  ProgressBar,
-  ScreenContainer,
-  SegmentedControl,
-  Text,
-} from '@/common/components';
+import { Icon, ProgressBar, ScreenContainer, SegmentedControl, Text } from '@/common/components';
+import { GoalTrackingCard } from '@/features/nutrition/components/GoalTrackingCard';
 import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
 import {
   getDailyNutritionSummary,
@@ -37,20 +29,13 @@ import type {
   NutritionTrendPoint,
   UserProfile,
 } from '@/features/nutrition/types';
-import {
-  formatWeightGoalTitle,
-  getGoalCycleDayProgress,
-} from '@/features/nutrition/utils/goalTracking';
 import { useCurrentDate } from '@/hooks';
 import { hs, vs } from '@/theme/metrics';
-import GoalArrowImage from '../../../assets/goal-arrow.png';
 
 type TrendMode = 'day' | 'month';
 type TranslateFn = (key: string) => string;
 
 const TREND_MODE_OPTIONS: TrendMode[] = ['day', 'month'];
-const KCAL_PER_KG_FAT = 7700;
-
 const STAT_EMOJIS = {
   sunrise: String.fromCodePoint(0x1f305),
   flag: String.fromCodePoint(0x1f1fb, 0x1f1f3),
@@ -226,13 +211,6 @@ function formatNumber(value: number, locale: string) {
   }).format(Math.round(value));
 }
 
-function formatOneDecimal(value: number, locale: string) {
-  return new Intl.NumberFormat(locale, {
-    maximumFractionDigits: 1,
-    minimumFractionDigits: 1,
-  }).format(value);
-}
-
 function createSmoothPath(points: Array<{ x: number; y: number }>) {
   if (points.length === 0) {
     return '';
@@ -358,28 +336,6 @@ export default function StatsTab() {
   const consumedCalories = Math.max(0, Math.round(todaySummary.consumedCalories));
   const targetCalories = Math.max(0, Math.round(todaySummary.calorieTarget));
   const remainingCalories = Math.abs(Math.round(todaySummary.remainingCalories));
-  const planProgressPercent = clampPercent(goalTracking?.activeGoal?.progressPercent ?? 0);
-  const goalCycleProgress = goalTracking?.activeGoal
-    ? getGoalCycleDayProgress(goalTracking.activeGoal)
-    : null;
-  const planProgressCurrent =
-    goalCycleProgress?.current ?? goalTracking?.activeGoal?.progressValue ?? 0;
-  const planProgressTarget =
-    goalCycleProgress?.target ?? goalTracking?.activeGoal?.targetValue ?? 30;
-  const planTitle = goalTracking?.activeGoal
-    ? formatWeightGoalTitle(t, goalTracking.activeGoal.goal)
-    : t('goalTracking.goalNames.maintainWithOneMonth');
-  const activeGoal = goalTracking?.activeGoal;
-  const deficitGoal =
-    activeGoal?.unit === 'kcal' && activeGoal.goal.mode === 'lose' ? activeGoal : null;
-  const targetWeightLossKg = deficitGoal ? Math.max(1, deficitGoal.goal.targetKg ?? 1) : 1;
-  const targetDeficitCalories = deficitGoal
-    ? Math.max(1, deficitGoal.goal.targetKcalDelta)
-    : KCAL_PER_KG_FAT * targetWeightLossKg;
-  const achievedDeficitCalories = deficitGoal
-    ? deficitGoal.progressValue
-    : Math.max(0, targetDeficitCalories - todaySummary.consumedCalories);
-  const remainingDeficitCalories = Math.max(0, targetDeficitCalories - achievedDeficitCalories);
 
   const trendModeOptions = useMemo(
     () =>
@@ -472,110 +428,16 @@ export default function StatsTab() {
     }
   };
 
-  const planMetricItems = [
-    <PlanMetric
-      key="plan"
-      label={t('goalTracking.activeTitle')}
-      value={planTitle}
-      style={styles.planMetricCompact}
-    />,
-    <PlanMetric
-      key="progress"
-      label={t('goalTracking.progressLabel')}
-      value={`${formatNumber(Math.round(planProgressCurrent), i18n.language)} / ${formatNumber(
-        Math.round(planProgressTarget),
-        i18n.language
-      )}\u00A0${t('common.units.day')}`}
-      style={styles.planMetricProgress}
-    />,
-  ];
-
-  planMetricItems.push(
-    <PlanMetric
-      key="achieved"
-      label={t('goalTracking.deficitAchievedLabel')}
-      value={`${formatOneDecimal(achievedDeficitCalories, i18n.language)} ${t(
-        'common.units.kcal'
-      )}`}
-      meta={t('goalTracking.fatEquivalent', {
-        value: formatOneDecimal(achievedDeficitCalories / KCAL_PER_KG_FAT, i18n.language),
-      })}
-      style={styles.planMetricEmphasis}
-    />,
-    <PlanMetric
-      key="remaining"
-      label={t('goalTracking.deficitRemainingLabel', {
-        value: formatOneDecimal(targetWeightLossKg, i18n.language),
-      })}
-      value={`${formatNumber(remainingDeficitCalories, i18n.language)} ${t('common.units.kcal')}`}
-      meta={t('goalTracking.fatEquivalent', {
-        value: formatOneDecimal(remainingDeficitCalories / KCAL_PER_KG_FAT, i18n.language),
-      })}
-      style={styles.planMetricEmphasis}
-    />
-  );
-
   return (
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
-        <View style={styles.planCard}>
-          <View style={styles.planHeroRow}>
-            <Image source={GoalArrowImage} style={styles.goalImage} contentFit="contain" />
-            <View style={styles.planCopy}>
-              <Text
-                variant="h3"
-                weight="bold"
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                style={styles.planTitleText}
-              >
-                {t('goalTracking.profileTitle')}
-              </Text>
-              <Text
-                variant="bodySmall"
-                color="secondary"
-                numberOfLines={2}
-                style={styles.planSubtitleText}
-              >
-                {t('statsScreen.todayProgress.subtitle')}
-              </Text>
-            </View>
-            <View style={styles.circleProgress}>
-              <GiftedCircularProgress
-                progress={planProgressPercent}
-                size={96}
-                strokeWidth={10}
-                trackColor={theme.colors.background.section}
-                progressColor={theme.colors.brand.primary}
-                accessibilityLabel={t('goalTracking.profileTitle')}
-                style={styles.circleRing}
-              >
-                <Text variant="h2" weight="bold" color="primary" style={styles.circlePercentText}>
-                  {`${planProgressPercent}%`}
-                </Text>
-              </GiftedCircularProgress>
-            </View>
-          </View>
-          <View style={styles.planMetrics}>
-            {planMetricItems.flatMap((item, index, array) =>
-              index === array.length - 1
-                ? [item]
-                : [item, <View key={`divider-${index}`} style={styles.planMetricDivider} />]
-            )}
-          </View>
-        </View>
+        <GoalTrackingCard goalTracking={goalTracking} todaySummary={todaySummary} />
 
         <View style={styles.todayCard}>
           <View style={styles.todayHeader}>
             <View style={styles.todayCopy}>
               <View style={styles.todayTitleRow}>
-                <Text
-                  variant="h3"
-                  weight="bold"
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={styles.cardTitle}
-                >
+                <Text variant="body" weight="bold" numberOfLines={1} adjustsFontSizeToFit>
                   {t('statsScreen.todayProgress.title')}
                 </Text>
               </View>
@@ -584,7 +446,7 @@ export default function StatsTab() {
               </Text>
             </View>
             <View style={styles.percentCopy}>
-              <Text variant="h3" weight="bold" color="primary" style={styles.todayPercentText}>
+              <Text variant="body" weight="bold" color="primary" style={styles.todayPercentText}>
                 {`${todayProgressPercent}%`}
               </Text>
             </View>
@@ -597,7 +459,7 @@ export default function StatsTab() {
               <Text variant="body">{STAT_EMOJIS.fire}</Text>
             </View>
             <View>
-              <Text variant="h3" weight="bold" style={styles.calorieValue}>
+              <Text variant="body" weight="bold" style={styles.calorieValue}>
                 {formatNumber(consumedCalories, i18n.language)}
               </Text>
               <Text variant="caption" color="secondary" style={styles.calorieLabel}>
@@ -629,13 +491,7 @@ export default function StatsTab() {
           <View style={styles.nutritionHeader}>
             <View style={styles.nutritionCopy}>
               <View style={styles.nutritionTitleRow}>
-                <Text
-                  variant="h3"
-                  weight="bold"
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={styles.cardTitle}
-                >
+                <Text variant="body" weight="bold" numberOfLines={1} adjustsFontSizeToFit>
                   {t('statsScreen.macros.title')}
                 </Text>
                 <Text variant="body">{STAT_EMOJIS.leaf}</Text>
@@ -644,7 +500,7 @@ export default function StatsTab() {
                 {t('statsScreen.macros.subtitle')}
               </Text>
             </View>
-            <Text variant="h3" style={styles.foodEmojiRow}>
+            <Text variant="body" weight="bold" style={styles.foodEmojiRow}>
               {`${STAT_EMOJIS.salmon}${STAT_EMOJIS.avocado}${STAT_EMOJIS.rice}`}
             </Text>
           </View>
@@ -739,7 +595,7 @@ function SmallStat({
       ) : null}
       <View style={styles.smallStatCopy}>
         <View style={styles.smallStatValueRow}>
-          <Text variant="h3" weight="bold" style={styles.smallStatValue}>
+          <Text variant="body" weight="bold" style={styles.smallStatValue}>
             {formatNumber(value, locale)}
           </Text>
           <View style={styles.unitPill}>
@@ -780,13 +636,13 @@ function CaloriesTrendCard({
 }) {
   const { theme } = useUnistyles();
   const pointSpacing = hs(58);
-  const chartWidth = Math.max(hs(314), hs(42) + hs(8) + data.length * pointSpacing);
-  const chartHeight = vs(250);
-  const plotLeft = hs(34);
+  const axisWidth = hs(34);
+  const chartWidth = Math.max(hs(280), hs(8) + data.length * pointSpacing);
+  const chartHeight = vs(258);
   const plotRight = hs(8);
   const plotTop = vs(34);
-  const plotBottom = vs(38);
-  const plotWidth = chartWidth - plotLeft - plotRight;
+  const plotBottom = vs(46);
+  const plotWidth = chartWidth - plotRight;
   const plotHeight = chartHeight - plotTop - plotBottom;
   const maxValue = Math.max(
     600,
@@ -796,7 +652,7 @@ function CaloriesTrendCard({
   const xStep = data.length > 1 ? plotWidth / (data.length - 1) : plotWidth;
   const points = data.map((point, index) => ({
     ...point,
-    x: plotLeft + index * xStep,
+    x: index * xStep,
     y: plotTop + plotHeight - (point.value / maxValue) * plotHeight,
   }));
   const linePath = createSmoothPath(points);
@@ -810,7 +666,7 @@ function CaloriesTrendCard({
   return (
     <View style={styles.statsChartCard}>
       <View style={styles.statsChartHeader}>
-        <Text variant="h3" weight="bold" style={styles.statsChartTitle}>
+        <Text variant="body" weight="bold">
           {title}
         </Text>
         <View style={styles.statsSegmentWrap}>
@@ -824,34 +680,12 @@ function CaloriesTrendCard({
         </Text>
       </View>
 
-      <ScrollView
-        horizontal
-        nestedScrollEnabled
-        directionalLockEnabled
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chartScrollContent}
-      >
-        <Svg width={chartWidth} height={chartHeight}>
-          <Defs>
-            <LinearGradient id="calorieArea" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={theme.colors.brand.primary} stopOpacity="0.32" />
-              <Stop offset="1" stopColor={theme.colors.brand.primary} stopOpacity="0.03" />
-            </LinearGradient>
-          </Defs>
-
+      <View style={styles.chartStickyWrap}>
+        <Svg width={axisWidth} height={chartHeight} style={styles.stickyYAxis}>
           {sectionValues.map((value) => {
             const y = plotTop + plotHeight - (value / maxValue) * plotHeight;
             return (
               <G key={value}>
-                <Line
-                  x1={plotLeft}
-                  x2={plotLeft + plotWidth}
-                  y1={y}
-                  y2={y}
-                  stroke={theme.colors.border.default}
-                  strokeDasharray="6 6"
-                  strokeWidth={1}
-                />
                 <SvgText
                   x={0}
                   y={y + 4}
@@ -863,60 +697,93 @@ function CaloriesTrendCard({
               </G>
             );
           })}
-
           <Line
-            x1={plotLeft}
-            x2={plotLeft}
+            x1={axisWidth - 1}
+            x2={axisWidth - 1}
             y1={plotTop}
             y2={plotTop + plotHeight}
             stroke={theme.colors.border.default}
             strokeWidth={1}
           />
-          <Line
-            x1={plotLeft}
-            x2={plotLeft + plotWidth}
-            y1={plotTop + plotHeight}
-            y2={plotTop + plotHeight}
-            stroke={theme.colors.border.default}
-            strokeWidth={1}
-          />
-          {areaPath ? <Path d={areaPath} fill="url(#calorieArea)" /> : null}
-          {linePath ? (
-            <Path
-              d={linePath}
-              fill="none"
-              stroke={theme.colors.brand.primary}
-              strokeWidth={2.5}
-              strokeLinecap="round"
-            />
-          ) : null}
-
-          {points.map((point) => (
-            <G key={`${point.label}-${point.x}`}>
-              <Circle cx={point.x} cy={point.y} r={4} fill={theme.colors.brand.primary} />
-              <SvgText
-                x={point.x}
-                y={Math.max(plotTop + 12, point.y - 14)}
-                fill={theme.colors.brand.primary}
-                fontSize={theme.fonts.size.sm}
-                fontWeight="700"
-                textAnchor="middle"
-              >
-                {formatNumber(point.value, locale)}
-              </SvgText>
-              <SvgText
-                x={point.x}
-                y={chartHeight - 6}
-                fill={theme.colors.text.secondary}
-                fontSize={theme.fonts.size.xs}
-                textAnchor="middle"
-              >
-                {point.label}
-              </SvgText>
-            </G>
-          ))}
         </Svg>
-      </ScrollView>
+        <ScrollView
+          horizontal
+          nestedScrollEnabled
+          directionalLockEnabled
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chartScrollContent}
+          style={styles.chartScrollArea}
+        >
+          <Svg width={chartWidth} height={chartHeight}>
+            <Defs>
+              <LinearGradient id="calorieArea" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0" stopColor={theme.colors.brand.primary} stopOpacity="0.32" />
+                <Stop offset="1" stopColor={theme.colors.brand.primary} stopOpacity="0.03" />
+              </LinearGradient>
+            </Defs>
+
+            {sectionValues.map((value) => {
+              const y = plotTop + plotHeight - (value / maxValue) * plotHeight;
+              return (
+                <Line
+                  key={value}
+                  x1={0}
+                  x2={plotWidth}
+                  y1={y}
+                  y2={y}
+                  stroke={theme.colors.border.default}
+                  strokeDasharray="6 6"
+                  strokeWidth={1}
+                />
+              );
+            })}
+
+            <Line
+              x1={0}
+              x2={plotWidth}
+              y1={plotTop + plotHeight}
+              y2={plotTop + plotHeight}
+              stroke={theme.colors.border.default}
+              strokeWidth={1}
+            />
+            {areaPath ? <Path d={areaPath} fill="url(#calorieArea)" /> : null}
+            {linePath ? (
+              <Path
+                d={linePath}
+                fill="none"
+                stroke={theme.colors.brand.primary}
+                strokeWidth={2.5}
+                strokeLinecap="round"
+              />
+            ) : null}
+
+            {points.map((point) => (
+              <G key={`${point.label}-${point.x}`}>
+                <Circle cx={point.x} cy={point.y} r={4} fill={theme.colors.brand.primary} />
+                <SvgText
+                  x={point.x}
+                  y={Math.max(plotTop + 12, point.y - 14)}
+                  fill={theme.colors.brand.primary}
+                  fontSize={theme.fonts.size.sm}
+                  fontWeight="700"
+                  textAnchor="middle"
+                >
+                  {formatNumber(point.value, locale)}
+                </SvgText>
+                <SvgText
+                  x={point.x}
+                  y={chartHeight - 12}
+                  fill={theme.colors.text.secondary}
+                  fontSize={theme.fonts.size.xs}
+                  textAnchor="middle"
+                >
+                  {point.label}
+                </SvgText>
+              </G>
+            ))}
+          </Svg>
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -951,13 +818,13 @@ function NutritionDistributionCard({
 }) {
   const { theme } = useUnistyles();
   const barSlotWidth = hs(58);
-  const chartWidth = Math.max(hs(314), hs(42) + hs(8) + data.length * barSlotWidth);
-  const chartHeight = vs(246);
-  const plotLeft = hs(34);
+  const axisWidth = hs(34);
+  const chartWidth = Math.max(hs(280), hs(8) + data.length * barSlotWidth);
+  const chartHeight = vs(254);
   const plotRight = hs(8);
   const plotTop = vs(26);
-  const plotBottom = vs(36);
-  const plotWidth = chartWidth - plotLeft - plotRight;
+  const plotBottom = vs(44);
+  const plotWidth = chartWidth - plotRight;
   const plotHeight = chartHeight - plotTop - plotBottom;
   const totals = data.map((item) => item.proteinValue + item.carbsValue + item.fatValue);
   const maxValue = Math.max(120, Math.ceil(Math.max(...totals, 1) / 30) * 30);
@@ -978,7 +845,7 @@ function NutritionDistributionCard({
     <View style={styles.statsChartCard}>
       <View style={styles.statsChartHeader}>
         <View style={styles.headerCopy}>
-          <Text variant="h3" weight="bold" style={styles.statsChartTitle}>
+          <Text variant="body" weight="bold">
             {title}
           </Text>
           <View style={styles.chartLegendRow}>
@@ -998,27 +865,12 @@ function NutritionDistributionCard({
         </Text>
       </View>
 
-      <ScrollView
-        horizontal
-        nestedScrollEnabled
-        directionalLockEnabled
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chartScrollContent}
-      >
-        <Svg width={chartWidth} height={chartHeight}>
+      <View style={styles.chartStickyWrap}>
+        <Svg width={axisWidth} height={chartHeight} style={styles.stickyYAxis}>
           {sectionValues.map((value) => {
             const y = plotTop + plotHeight - (value / maxValue) * plotHeight;
             return (
               <G key={value}>
-                <Line
-                  x1={plotLeft}
-                  x2={plotLeft + plotWidth}
-                  y1={y}
-                  y2={y}
-                  stroke={theme.colors.border.default}
-                  strokeDasharray="6 6"
-                  strokeWidth={1}
-                />
                 <SvgText
                   x={0}
                   y={y + 4}
@@ -1030,47 +882,180 @@ function NutritionDistributionCard({
               </G>
             );
           })}
-
           <Line
-            x1={plotLeft}
-            x2={plotLeft}
+            x1={axisWidth - 1}
+            x2={axisWidth - 1}
             y1={plotTop}
             y2={plotTop + plotHeight}
             stroke={theme.colors.border.default}
             strokeWidth={1}
           />
-          <Line
-            x1={plotLeft}
-            x2={plotLeft + plotWidth}
-            y1={plotTop + plotHeight}
-            y2={plotTop + plotHeight}
-            stroke={theme.colors.border.default}
-            strokeWidth={1}
-          />
+        </Svg>
+        <ScrollView
+          horizontal
+          nestedScrollEnabled
+          directionalLockEnabled
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chartScrollContent}
+          style={styles.chartScrollArea}
+        >
+          <Svg width={chartWidth} height={chartHeight}>
+            {sectionValues.map((value) => {
+              const y = plotTop + plotHeight - (value / maxValue) * plotHeight;
+              return (
+                <Line
+                  key={value}
+                  x1={0}
+                  x2={plotWidth}
+                  y1={y}
+                  y2={y}
+                  stroke={theme.colors.border.default}
+                  strokeDasharray="6 6"
+                  strokeWidth={1}
+                />
+              );
+            })}
 
-          {data.map((item, index) => {
-            const total = totals[index];
-            const x = plotLeft + xStep * index + xStep / 2 - barWidth / 2;
-            const proteinHeight = (item.proteinValue / maxValue) * plotHeight;
-            const carbsHeight = (item.carbsValue / maxValue) * plotHeight;
-            const fatHeight = (item.fatValue / maxValue) * plotHeight;
-            let segmentY = plotTop + plotHeight;
+            <Line
+              x1={0}
+              x2={plotWidth}
+              y1={plotTop + plotHeight}
+              y2={plotTop + plotHeight}
+              stroke={theme.colors.border.default}
+              strokeWidth={1}
+            />
 
-            if (total <= 0) {
+            {data.map((item, index) => {
+              const total = totals[index];
+              const x = xStep * index + xStep / 2 - barWidth / 2;
+              const proteinHeight = (item.proteinValue / maxValue) * plotHeight;
+              const carbsHeight = (item.carbsValue / maxValue) * plotHeight;
+              const fatHeight = (item.fatValue / maxValue) * plotHeight;
+              let segmentY = plotTop + plotHeight;
+
+              if (total <= 0) {
+                return (
+                  <G key={item.label}>
+                    <Rect
+                      x={x}
+                      y={plotTop + plotHeight - vs(100)}
+                      width={barWidth}
+                      height={vs(100)}
+                      rx={12}
+                      fill={theme.colors.background.section}
+                      opacity={0.76}
+                    />
+                    <SvgText
+                      x={x + barWidth / 2}
+                      y={chartHeight - 6}
+                      fill={theme.colors.text.secondary}
+                      fontSize={theme.fonts.size.xs}
+                      textAnchor="middle"
+                    >
+                      {item.label}
+                    </SvgText>
+                  </G>
+                );
+              }
+
+              segmentY -= proteinHeight;
+              const proteinY = segmentY;
+              segmentY -= carbsHeight;
+              const carbsY = segmentY;
+              segmentY -= fatHeight;
+              const fatY = segmentY;
+              const totalPillY = Math.max(plotTop, fatY - totalPillHeight - vs(14));
+
               return (
                 <G key={item.label}>
+                  {fatHeight > 0 ? (
+                    <Path
+                      d={createStackSegmentPath({
+                        x,
+                        y: fatY,
+                        width: barWidth,
+                        height: fatHeight,
+                        radius: 12,
+                        roundTop: true,
+                        roundBottom: false,
+                      })}
+                      fill={theme.colors.brand.primary}
+                    />
+                  ) : null}
                   <Rect
                     x={x}
-                    y={plotTop + plotHeight - vs(100)}
+                    y={carbsY}
                     width={barWidth}
-                    height={vs(100)}
-                    rx={12}
-                    fill={theme.colors.background.section}
-                    opacity={0.76}
+                    height={carbsHeight}
+                    fill={theme.colors.state.warning}
+                  />
+                  {proteinHeight > 0 ? (
+                    <Path
+                      d={createStackSegmentPath({
+                        x,
+                        y: proteinY,
+                        width: barWidth,
+                        height: proteinHeight,
+                        radius: 12,
+                        roundTop: false,
+                        roundBottom: true,
+                      })}
+                      fill={theme.colors.state.info}
+                    />
+                  ) : null}
+                  <SvgText
+                    x={x + barWidth / 2}
+                    y={proteinY + proteinHeight / 2 + 4}
+                    fill={theme.colors.text.inverse}
+                    fontSize={theme.fonts.size.xs}
+                    fontWeight="700"
+                    textAnchor="middle"
+                  >
+                    {formatNumber(item.proteinValue, locale)}
+                  </SvgText>
+                  <SvgText
+                    x={x + barWidth / 2}
+                    y={carbsY + carbsHeight / 2 + 4}
+                    fill={theme.colors.text.inverse}
+                    fontSize={theme.fonts.size.xs}
+                    fontWeight="700"
+                    textAnchor="middle"
+                  >
+                    {formatNumber(item.carbsValue, locale)}
+                  </SvgText>
+                  <SvgText
+                    x={x + barWidth / 2}
+                    y={fatY + fatHeight / 2 + 4}
+                    fill={theme.colors.text.inverse}
+                    fontSize={theme.fonts.size.xs}
+                    fontWeight="700"
+                    textAnchor="middle"
+                  >
+                    {formatNumber(item.fatValue, locale)}
+                  </SvgText>
+                  <Rect
+                    x={x + barWidth / 2 - totalPillWidth / 2}
+                    y={totalPillY}
+                    width={totalPillWidth}
+                    height={totalPillHeight}
+                    rx={totalPillRadius}
+                    fill={theme.colors.background.surface}
+                    stroke={theme.colors.border.subtle}
+                    strokeWidth={1}
                   />
                   <SvgText
                     x={x + barWidth / 2}
-                    y={chartHeight - 6}
+                    y={totalPillY + totalPillHeight / 2 + 4}
+                    fill={theme.colors.text.primary}
+                    fontSize={theme.fonts.size.xs}
+                    fontWeight="700"
+                    textAnchor="middle"
+                  >
+                    {`${formatNumber(total, locale)} ${unitLabel}`}
+                  </SvgText>
+                  <SvgText
+                    x={x + barWidth / 2}
+                    y={chartHeight - 12}
                     fill={theme.colors.text.secondary}
                     fontSize={theme.fonts.size.xs}
                     textAnchor="middle"
@@ -1079,117 +1064,10 @@ function NutritionDistributionCard({
                   </SvgText>
                 </G>
               );
-            }
-
-            segmentY -= proteinHeight;
-            const proteinY = segmentY;
-            segmentY -= carbsHeight;
-            const carbsY = segmentY;
-            segmentY -= fatHeight;
-            const fatY = segmentY;
-            const totalPillY = Math.max(plotTop, fatY - totalPillHeight - vs(8));
-
-            return (
-              <G key={item.label}>
-                <Rect
-                  x={x + barWidth / 2 - totalPillWidth / 2}
-                  y={totalPillY}
-                  width={totalPillWidth}
-                  height={totalPillHeight}
-                  rx={totalPillRadius}
-                  fill={theme.colors.background.surface}
-                  stroke={theme.colors.border.subtle}
-                  strokeWidth={1}
-                />
-                <SvgText
-                  x={x + barWidth / 2}
-                  y={totalPillY + totalPillHeight / 2 + 4}
-                  fill={theme.colors.text.primary}
-                  fontSize={theme.fonts.size.xs}
-                  fontWeight="700"
-                  textAnchor="middle"
-                >
-                  {`${formatNumber(total, locale)} ${unitLabel}`}
-                </SvgText>
-                {fatHeight > 0 ? (
-                  <Path
-                    d={createStackSegmentPath({
-                      x,
-                      y: fatY,
-                      width: barWidth,
-                      height: fatHeight,
-                      radius: 12,
-                      roundTop: true,
-                      roundBottom: false,
-                    })}
-                    fill={theme.colors.brand.primary}
-                  />
-                ) : null}
-                <Rect
-                  x={x}
-                  y={carbsY}
-                  width={barWidth}
-                  height={carbsHeight}
-                  fill={theme.colors.state.warning}
-                />
-                {proteinHeight > 0 ? (
-                  <Path
-                    d={createStackSegmentPath({
-                      x,
-                      y: proteinY,
-                      width: barWidth,
-                      height: proteinHeight,
-                      radius: 12,
-                      roundTop: false,
-                      roundBottom: true,
-                    })}
-                    fill={theme.colors.state.info}
-                  />
-                ) : null}
-                <SvgText
-                  x={x + barWidth / 2}
-                  y={proteinY + proteinHeight / 2 + 4}
-                  fill={theme.colors.text.inverse}
-                  fontSize={theme.fonts.size.xs}
-                  fontWeight="700"
-                  textAnchor="middle"
-                >
-                  {formatNumber(item.proteinValue, locale)}
-                </SvgText>
-                <SvgText
-                  x={x + barWidth / 2}
-                  y={carbsY + carbsHeight / 2 + 4}
-                  fill={theme.colors.text.inverse}
-                  fontSize={theme.fonts.size.xs}
-                  fontWeight="700"
-                  textAnchor="middle"
-                >
-                  {formatNumber(item.carbsValue, locale)}
-                </SvgText>
-                <SvgText
-                  x={x + barWidth / 2}
-                  y={fatY + fatHeight / 2 + 4}
-                  fill={theme.colors.text.inverse}
-                  fontSize={theme.fonts.size.xs}
-                  fontWeight="700"
-                  textAnchor="middle"
-                >
-                  {formatNumber(item.fatValue, locale)}
-                </SvgText>
-                <SvgText
-                  x={x + barWidth / 2}
-                  y={chartHeight - 6}
-                  fill={theme.colors.text.secondary}
-                  fontSize={theme.fonts.size.xs}
-                  textAnchor="middle"
-                >
-                  {item.label}
-                </SvgText>
-              </G>
-            );
-          })}
-        </Svg>
-      </ScrollView>
+            })}
+          </Svg>
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -1201,61 +1079,6 @@ function LegendDot({ label, color }: { label: string; color: string }) {
       <Text variant="caption" color="secondary">
         {label}
       </Text>
-    </View>
-  );
-}
-
-function PlanMetric({
-  iconName,
-  iconVariant,
-  label,
-  meta,
-  value,
-  style,
-}: {
-  iconName?: ComponentProps<typeof Icon>['name'];
-  iconVariant?: ComponentProps<typeof Icon>['variant'];
-  label: string;
-  meta?: string;
-  value: string;
-  style?: StyleProp<ViewStyle>;
-}) {
-  return (
-    <View style={[styles.planMetric, style]}>
-      <View style={styles.planMetricHeader}>
-        {iconName ? <Icon name={iconName} variant={iconVariant ?? 'accent'} size={16} /> : null}
-        <Text
-          variant="caption"
-          style={styles.metricLabel}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.85}
-        >
-          {label}
-        </Text>
-      </View>
-      <Text
-        variant="bodySmall"
-        weight="bold"
-        style={styles.planMetricValue}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.8}
-      >
-        {value}
-      </Text>
-      {meta ? (
-        <Text
-          variant="caption"
-          color="secondary"
-          style={styles.planMetricMeta}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.85}
-        >
-          {meta}
-        </Text>
-      ) : null}
     </View>
   );
 }
@@ -1274,111 +1097,6 @@ const styles = StyleSheet.create((theme) => ({
   headerCopy: {
     flex: 1,
     gap: theme.metrics.spacingV.p4,
-  },
-  cardTitle: {
-    fontSize: theme.fonts.size.lg,
-    lineHeight: theme.fonts.size['2xl'],
-  },
-  metricLabel: {
-    fontSize: theme.fonts.size.xxs,
-    lineHeight: theme.fonts.size.sm,
-  },
-  planCard: {
-    minHeight: vs(168),
-    gap: theme.metrics.spacingV.p12,
-    padding: theme.metrics.spacing.p16,
-    borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.surface,
-    shadowColor: theme.colors.shadow.color,
-    shadowOpacity: 1,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: theme.colors.shadow.elevation,
-  },
-  planHeroRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p8,
-  },
-  goalImage: {
-    width: hs(68),
-    height: hs(68),
-  },
-  planCopy: {
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
-    gap: theme.metrics.spacingV.p4,
-  },
-  planTitleText: {
-    fontSize: theme.fonts.size.md,
-    lineHeight: theme.fonts.size.xl,
-  },
-  planSubtitleText: {
-    fontSize: theme.fonts.size.sm,
-    lineHeight: theme.fonts.size.md,
-  },
-  circlePercentText: {
-    fontSize: theme.fonts.size.xl,
-    lineHeight: theme.fonts.size['2xl'],
-  },
-  circleProgress: {
-    width: hs(96),
-    height: hs(96),
-    flexShrink: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  circleRing: {
-    width: hs(96),
-    height: hs(96),
-  },
-  planMetrics: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    paddingHorizontal: theme.metrics.spacing.p8,
-    paddingVertical: theme.metrics.spacingV.p8,
-    borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.section,
-  },
-  planMetric: {
-    flex: 1,
-    minWidth: 0,
-    gap: theme.metrics.spacingV.p4,
-    paddingHorizontal: theme.metrics.spacing.p8,
-    paddingVertical: theme.metrics.spacingV.p4,
-  },
-  planMetricCompact: {
-    flex: 0.78,
-  },
-  planMetricProgress: {
-    flex: 0.92,
-  },
-  planMetricEmphasis: {
-    flex: 1.18,
-  },
-  planMetricHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p4,
-    minHeight: theme.metrics.iconSize.sm,
-  },
-  planMetricDivider: {
-    width: 1,
-    alignSelf: 'stretch',
-    marginVertical: theme.metrics.spacingV.p8,
-    backgroundColor: theme.colors.border.default,
-  },
-  planMetricValue: {
-    fontSize: theme.fonts.size.xs,
-    lineHeight: theme.fonts.size.sm,
-    letterSpacing: 0,
-  },
-  planMetricMeta: {
-    fontSize: theme.fonts.size.xxs,
-    lineHeight: theme.fonts.size.xs,
-    letterSpacing: 0,
   },
   todayCard: {
     gap: theme.metrics.spacingV.p12,
@@ -1577,16 +1295,22 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
   },
-  statsChartTitle: {
-    fontSize: theme.fonts.size.md,
-    lineHeight: theme.fonts.size.xl,
-  },
   statsSegmentWrap: {
     width: hs(146),
   },
   axisUnitWrap: {
     minHeight: theme.fonts.size.md,
     justifyContent: 'center',
+  },
+  chartStickyWrap: {
+    flexDirection: 'row',
+    overflow: 'hidden',
+  },
+  stickyYAxis: {
+    backgroundColor: theme.colors.background.surface,
+  },
+  chartScrollArea: {
+    flex: 1,
   },
   chartScrollContent: {
     paddingRight: theme.metrics.spacing.p8,

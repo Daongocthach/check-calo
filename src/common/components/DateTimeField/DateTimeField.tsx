@@ -244,7 +244,7 @@ export function DateTimeField({
       >
         <BottomSheetView style={styles.sheetContent}>
           <View style={styles.header}>
-            <Text variant="h3" style={styles.title}>
+            <Text variant="body" weight="bold" style={styles.title}>
               {modalTitle}
             </Text>
           </View>

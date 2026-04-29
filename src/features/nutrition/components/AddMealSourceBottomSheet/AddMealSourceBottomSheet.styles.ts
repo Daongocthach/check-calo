@@ -61,7 +61,7 @@ export const styles = StyleSheet.create((theme) => ({
   },
   optionPhoto: {
     backgroundColor: theme.colors.state.infoBg,
-    borderColor: theme.colors.state.info,
+    borderColor: theme.colors.border.default,
   },
   optionLibrary: {
     backgroundColor: theme.colors.background.section,
@@ -109,6 +109,17 @@ export const styles = StyleSheet.create((theme) => ({
   recentList: {
     gap: theme.metrics.spacing.p8,
     paddingRight: theme.metrics.spacing.p20,
+  },
+  recentListFooter: {
+    width: hs(44),
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: theme.metrics.spacing.p8,
+  },
+  recentLoadingState: {
+    minHeight: vs(84),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   recentChip: {
     width: hs(132),

@@ -30,7 +30,7 @@ export function EmptyState({
   return (
     <View style={styles.container} accessibilityRole="alert">
       {icon && <View style={styles.iconContainer}>{icon}</View>}
-      <Text variant="h3" align="center">
+      <Text variant="body" weight="bold" align="center">
         {title}
       </Text>
       {message && (

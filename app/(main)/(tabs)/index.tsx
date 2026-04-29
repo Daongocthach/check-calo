@@ -24,7 +24,7 @@ import {
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import type { DailyNutritionSummary, FoodEntry, UserProfile } from '@/features/nutrition/types';
-import { useCurrentDate, useScreenDimensions } from '@/hooks';
+import { useBottomPadding, useCurrentDate, useScreenDimensions } from '@/hooks';
 import { vs } from '@/theme/metrics';
 
 interface MealSection {
@@ -221,6 +221,7 @@ function CaloriesRing({
 export default function HomeTab() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
+  const bottomPadding = useBottomPadding();
   const currentDate = useCurrentDate();
   const previousCurrentDateRef = useRef(currentDate);
   const [selectedDate, setSelectedDate] = useState(() => currentDate);
@@ -350,14 +351,17 @@ export default function HomeTab() {
   );
 
   return (
-    <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
+    <ScreenContainer padded={false} edges={['bottom']}>
       <SectionList
         sections={mealSections}
         keyExtractor={(item) => item.id}
         stickySectionHeadersEnabled={false}
         showsVerticalScrollIndicator={false}
         style={styles.list}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: bottomPadding + theme.metrics.spacingV.p32 },
+        ]}
         renderSectionHeader={({ section }) => (
           <View style={styles.mealSection}>
             <Text variant="caption" weight="semibold" color="secondary">
@@ -418,12 +422,6 @@ export default function HomeTab() {
 
             {hasProfile ? (
               <Card variant="elevated" style={styles.calorieCard}>
-                <View style={styles.cardHeaderRow}>
-                  <View style={styles.cardHeaderCopy}>
-                    <Text variant="h3">{t('homeScreen.caloriesRemainingTitle')}</Text>
-                  </View>
-                </View>
-
                 <CaloriesRing
                   remainingCalories={caloriesLeft}
                   consumedCalories={summary.consumedCalories}
@@ -437,7 +435,9 @@ export default function HomeTab() {
               <Card variant="elevated" style={styles.calorieCard}>
                 <View style={styles.cardHeaderRow}>
                   <View style={styles.cardHeaderCopy}>
-                    <Text variant="h3">{t('homeScreen.profilePrompt.title')}</Text>
+                    <Text variant="body" weight="bold">
+                      {t('homeScreen.profilePrompt.title')}
+                    </Text>
                     <Text variant="bodySmall" color="secondary">
                       {t('homeScreen.profilePrompt.subtitle')}
                     </Text>
@@ -453,7 +453,9 @@ export default function HomeTab() {
             <Card variant="elevated" style={styles.macroCard}>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.cardHeaderCopy}>
-                  <Text variant="h3">{t('homeScreen.macroToday')}</Text>
+                  <Text variant="body" weight="bold">
+                    {t('homeScreen.macroToday')}
+                  </Text>
                   <Text variant="bodySmall" color="secondary">
                     {t('statsScreen.macros.title')}
                   </Text>
@@ -519,7 +521,9 @@ export default function HomeTab() {
 
             <View style={styles.mealsHeaderRow}>
               <View style={styles.cardHeaderCopy}>
-                <Text variant="h3">{t('homeScreen.meals.title')}</Text>
+                <Text variant="body" weight="bold">
+                  {t('homeScreen.meals.title')}
+                </Text>
                 <Text variant="bodySmall" color="secondary">
                   {t('homeScreen.meals.subtitle')}
                 </Text>
@@ -544,7 +548,9 @@ export default function HomeTab() {
 
             {entries.length === 0 ? (
               <Card variant="elevated" style={styles.emptyCard}>
-                <Text variant="h3">{t('homeScreen.meals.emptyTitle')}</Text>
+                <Text variant="body" weight="bold">
+                  {t('homeScreen.meals.emptyTitle')}
+                </Text>
                 <Text variant="bodySmall" color="secondary">
                   {t('homeScreen.meals.emptySubtitle')}
                 </Text>
@@ -845,10 +851,11 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.brand.primary,
   },
   mealSection: {
-    gap: theme.metrics.spacingV.p12,
+    gap: theme.metrics.spacingV.p4,
   },
   mealItemWrap: {
-    marginTop: theme.metrics.spacingV.p16,
+    marginTop: theme.metrics.spacingV.p4,
+    marginBottom: theme.metrics.spacingV.p16,
   },
   addFoodIconCircle: {
     width: theme.metrics.spacing.p24,
@@ -861,18 +868,18 @@ const styles = StyleSheet.create((theme) => ({
   sectionTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: theme.metrics.spacing.p20,
+    minHeight: theme.metrics.spacing.p12,
   },
   itemTimelineRow: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    gap: theme.metrics.spacing.p8,
-    paddingLeft: theme.metrics.spacing.p12,
+    gap: theme.metrics.spacing.p4,
+    paddingLeft: theme.metrics.spacing.p4,
   },
   itemRail: {
     width: theme.metrics.spacing.p20,
     alignItems: 'center',
-    paddingTop: theme.metrics.spacingV.p12,
+    paddingTop: theme.metrics.spacingV.p4,
   },
   itemDot: {
     width: theme.metrics.spacing.p8,

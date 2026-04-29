@@ -79,7 +79,9 @@ export function FoodImagePreview({
             />
           ) : (
             <View style={styles.placeholder}>
-              <Icon name="image-outline" variant="primary" size={iconSize} />
+              <View style={styles.placeholderIconWrap}>
+                <Icon name="image-outline" variant="secondary" size={iconSize + 4} />
+              </View>
             </View>
           )}
           {resolvedDevSyncBadgeLabel ? (
@@ -160,6 +162,14 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background.section,
+  },
+  placeholderIconWrap: {
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.surface,
   },
   devBadge: {
     position: 'absolute',

@@ -93,8 +93,11 @@ export function AppHeader() {
     if (pathname === '/profile') return t('settings.title');
     if (pathname === '/support') return t('supportScreen.title');
     if (pathname === '/goal-history') return t('goalTracking.history.title');
+    if (pathname === '/achievements') return t('achievementsScreen.title');
+    if (pathname === '/leaderboard') return t('leaderboardScreen.title');
     if (pathname === '/notification-settings') return t('profileScreen.reminders.title');
     if (pathname === '/about') return t('settings.about');
+    if (pathname === '/contact') return t('contactScreen.title');
     if (pathname === '/terms') return t('settings.terms');
     if (pathname === '/privacy') return t('settings.privacy');
     if (pathname === '/food-detail') {
@@ -156,8 +159,8 @@ export function AppHeader() {
         <Icon name="chevron-back" variant="primary" size={18} />
       </Pressable>
       <Text
-        variant="h3"
-        weight="semibold"
+        variant="body"
+        weight="bold"
         numberOfLines={1}
         ellipsizeMode="tail"
         style={styles.title}
@@ -176,35 +179,14 @@ export function AppHeader() {
           </Text>
         </View>
         <View style={styles.textWrap}>
-          <Text variant="h3">{t('homeScreen.greetingTitle', { name: displayName })}</Text>
+          <Text variant="body" weight="bold">
+            {t('homeScreen.greetingTitle', { name: displayName })}
+          </Text>
           <Text variant="bodySmall" color="secondary">
             {t(`homeScreen.greetings.${greeting}`)}
           </Text>
         </View>
       </View>
-    );
-  }
-
-  if (pathname === '/menu') {
-    headerContent = (
-      <>
-        <Pressable
-          onPress={handleBackPress}
-          accessibilityRole="button"
-          accessibilityLabel={t('header.back')}
-          style={styles.backButtonWrap}
-        >
-          <Icon name="chevron-back" variant="primary" size={22} />
-        </Pressable>
-        <View style={styles.textWrap}>
-          <Text variant="h2" weight="bold" numberOfLines={1}>
-            {t('menuScreen.title')}
-          </Text>
-          <Text variant="bodySmall" color="secondary">
-            {t('menuScreen.headerSubtitle')}
-          </Text>
-        </View>
-      </>
     );
   }
 

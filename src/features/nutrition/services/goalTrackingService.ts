@@ -109,7 +109,7 @@ function calculateGoalProgress(
     summaries.reduce((total, summary) => total + Math.max(0, summary.consumedCalories), 0)
   );
   const targetCalories = Math.round(
-    Math.max(0, profile.maintenanceCalorieTarget) * goal.targetDays
+    summaries.reduce((total, summary) => total + Math.max(0, summary.calorieTarget), 0)
   );
 
   if (goal.mode === 'maintain') {

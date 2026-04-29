@@ -88,7 +88,7 @@ export default function LoginScreen() {
         <View style={styles.heroSection}>
           <Image source={LoginBanner} style={styles.heroImage} contentFit="contain" />
           <View style={styles.heroCopy}>
-            <Text variant="h3" align="center">
+            <Text variant="body" weight="bold" align="center">
               {t('auth.welcomeBack')}
             </Text>
             <Text variant="body" color="secondary" align="center">

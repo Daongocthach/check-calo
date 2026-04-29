@@ -98,6 +98,24 @@ const ABOUT_FEATURES: LegalItem[] = [
   },
 ];
 
+const TERMS_MORE_ITEMS: LegalItem[] = [
+  {
+    icon: 'refresh-outline',
+    titleKey: 'legal.terms.moreItems.changes.title',
+    bodyKey: 'legal.terms.moreItems.changes.body',
+  },
+  {
+    icon: 'time-outline',
+    titleKey: 'legal.terms.moreItems.retention.title',
+    bodyKey: 'legal.terms.moreItems.retention.body',
+  },
+  {
+    icon: 'mail-outline',
+    titleKey: 'legal.terms.moreItems.contact.title',
+    bodyKey: 'legal.terms.moreItems.contact.body',
+  },
+];
+
 function LeafBadge() {
   const { theme } = useUnistyles();
 
@@ -183,7 +201,7 @@ function HelpCard() {
         title={t('legal.help.action')}
         size="sm"
         rightIcon={<Icon name="chevron-forward-outline" variant="onBrand" size={16} />}
-        onPress={() => router.push('/support')}
+        onPress={() => router.push('/contact')}
       />
     </View>
   );
@@ -191,7 +209,6 @@ function HelpCard() {
 
 function AboutScreenContent() {
   const { t } = useTranslation();
-  const { theme } = useUnistyles();
   const router = useRouter();
 
   return (
@@ -199,7 +216,7 @@ function AboutScreenContent() {
       <View style={styles.aboutScreen}>
         <View style={styles.aboutHero}>
           <LeafBadge />
-          <Text variant="h3" weight="bold" style={styles.aboutTitle}>
+          <Text variant="body" weight="bold" style={styles.aboutTitle}>
             {t('legal.about.heroTitle')}
           </Text>
           <Text variant="body" color="secondary" style={styles.aboutSubtitle}>
@@ -217,9 +234,6 @@ function AboutScreenContent() {
         </View>
 
         <View style={styles.aboutCtaCard}>
-          <View style={styles.saladBowl}>
-            <Icon name="nutrition-outline" color={theme.colors.brand.primary} size={58} />
-          </View>
           <Text variant="bodySmall" weight="bold">
             {t('legal.about.ctaTitle')}
           </Text>
@@ -237,8 +251,7 @@ function AboutScreenContent() {
 }
 
 function LegalDocumentScreen({ type }: { type: Exclude<LegalScreenType, 'about'> }) {
-  const { t } = useTranslation();
-  const items = type === 'terms' ? TERMS_ITEMS : PRIVACY_ITEMS;
+  const items = type === 'terms' ? [...TERMS_ITEMS, ...TERMS_MORE_ITEMS] : PRIVACY_ITEMS;
 
   return (
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
@@ -250,17 +263,7 @@ function LegalDocumentScreen({ type }: { type: Exclude<LegalScreenType, 'about'>
             <InfoItem key={item.titleKey} item={item} index={index} compact={type === 'privacy'} />
           ))}
         </View>
-
-        {type === 'terms' ? (
-          <View style={styles.readMoreRow}>
-            <Text variant="caption" color="link" weight="semibold">
-              {t('legal.terms.readMore')}
-            </Text>
-            <Icon name="chevron-down-outline" variant="accent" size={16} />
-          </View>
-        ) : (
-          <HelpCard />
-        )}
+        {type !== 'terms' ? <HelpCard /> : null}
       </View>
     </ScreenContainer>
   );
@@ -319,13 +322,6 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.metrics.spacing.p16,
     borderRadius: theme.metrics.borderRadius.xl,
     backgroundColor: theme.colors.state.successBg,
-  },
-  saladBowl: {
-    alignSelf: 'center',
-    width: hs(132),
-    height: vs(82),
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   aboutButton: {
     paddingHorizontal: theme.metrics.spacing.p16,
@@ -393,13 +389,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   itemBody: {
     lineHeight: theme.fonts.size.md,
-  },
-  readMoreRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.metrics.spacing.p4,
-    paddingVertical: theme.metrics.spacingV.p8,
   },
   helpCard: {
     flexDirection: 'row',

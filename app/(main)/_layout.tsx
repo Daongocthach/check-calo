@@ -7,9 +7,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 import { Loading } from '@/common/components';
 import { AddMealSourceBottomSheet } from '@/features/nutrition/components/AddMealSourceBottomSheet';
+import { MealPlanSuggestionSheet } from '@/features/nutrition/components/MealPlanSuggestionSheet';
 import { lookupFoodByBarcode } from '@/features/nutrition/services/barcodeFoodLookup';
 import { analyzeFoodPhotoWithGemini } from '@/features/nutrition/services/geminiFoodAnalyzer';
 import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
+import { useMealPlanSuggestionSheetStore } from '@/features/nutrition/stores/useMealPlanSuggestionSheetStore';
 import { useOpenCamera, useOpenImageLibrary, useOpenQrScanner } from '@/providers/camera';
 import { toast } from '@/utils/toast';
 
@@ -21,10 +23,16 @@ export default function MainLayout() {
   const openImageLibrary = useOpenImageLibrary();
   const openQrScanner = useOpenQrScanner();
   const addMealSheetRef = useRef<BottomSheetModal>(null);
+  const mealPlanSuggestionSheetRef = useRef<BottomSheetModal>(null);
   const openRequestId = useAddMealSourceSheetStore((state) => state.openRequestId);
   const sheetState = useAddMealSourceSheetStore((state) => state.sheetState);
+  const addMealSheetPayload = useAddMealSourceSheetStore((state) => state.payload);
   const setAddSheetState = useAddMealSourceSheetStore((state) => state.setSheetState);
+  const mealPlanOpenRequestId = useMealPlanSuggestionSheetStore((state) => state.openRequestId);
+  const mealPlanSheetState = useMealPlanSuggestionSheetStore((state) => state.sheetState);
+  const setMealPlanSheetState = useMealPlanSuggestionSheetStore((state) => state.setSheetState);
   const lastPresentedRequestIdRef = useRef(0);
+  const lastMealPlanPresentedRequestIdRef = useRef(0);
   const [isAnalyzingPhoto, setIsAnalyzingPhoto] = useState(false);
 
   useEffect(() => {
@@ -34,9 +42,29 @@ export default function MainLayout() {
     }
   }, [openRequestId, sheetState]);
 
+  useEffect(() => {
+    if (
+      mealPlanSheetState === 'opening' &&
+      mealPlanOpenRequestId > lastMealPlanPresentedRequestIdRef.current
+    ) {
+      lastMealPlanPresentedRequestIdRef.current = mealPlanOpenRequestId;
+      mealPlanSuggestionSheetRef.current?.present();
+    }
+  }, [mealPlanOpenRequestId, mealPlanSheetState]);
+
   const closeAddMealSheet = useCallback(() => {
     addMealSheetRef.current?.dismiss();
   }, []);
+
+  const getFoodFormParams = useCallback(
+    (params?: Record<string, string>) => ({
+      context: addMealSheetPayload?.context ?? 'addMeal',
+      submitMode: 'instant',
+      ...(addMealSheetPayload?.mealLocalId ? { mealLocalId: addMealSheetPayload.mealLocalId } : {}),
+      ...params,
+    }),
+    [addMealSheetPayload]
+  );
 
   const openFoodFormFromPhoto = useCallback(
     (imageUri: string, params?: Record<string, string>) => {
@@ -45,25 +73,20 @@ export default function MainLayout() {
         pathname: '/food-form',
         params: {
           imageUri,
-          context: 'addMeal',
-          submitMode: 'instant',
-          ...params,
+          ...getFoodFormParams(params),
         },
       });
     },
-    [closeAddMealSheet, router]
+    [closeAddMealSheet, getFoodFormParams, router]
   );
 
   const handleManualEntry = useCallback(() => {
     closeAddMealSheet();
     router.push({
       pathname: '/food-form',
-      params: {
-        context: 'addMeal',
-        submitMode: 'instant',
-      },
+      params: getFoodFormParams(),
     });
-  }, [closeAddMealSheet, router]);
+  }, [closeAddMealSheet, getFoodFormParams, router]);
 
   const handleViewAllRecentFoods = useCallback(() => {
     closeAddMealSheet();
@@ -119,9 +142,10 @@ export default function MainLayout() {
       return;
     }
 
+    closeAddMealSheet();
     setIsAnalyzingPhoto(true);
     await analyzeFoodImage(photo.uri);
-  }, [analyzeFoodImage, isAnalyzingPhoto, openCamera]);
+  }, [analyzeFoodImage, closeAddMealSheet, isAnalyzingPhoto, openCamera]);
 
   const handlePickFoodPhoto = useCallback(async () => {
     if (isAnalyzingPhoto) {
@@ -134,9 +158,10 @@ export default function MainLayout() {
       return;
     }
 
+    closeAddMealSheet();
     setIsAnalyzingPhoto(true);
     await analyzeFoodImage(photo.uri);
-  }, [analyzeFoodImage, isAnalyzingPhoto, openImageLibrary]);
+  }, [analyzeFoodImage, closeAddMealSheet, isAnalyzingPhoto, openImageLibrary]);
 
   const handleBarcodeScan = useCallback(async () => {
     const barcodeValue = await openQrScanner();
@@ -199,8 +224,11 @@ export default function MainLayout() {
         <Stack.Screen name="food-detail" />
         <Stack.Screen name="food-form" />
         <Stack.Screen name="goal-history" />
+        <Stack.Screen name="achievements" />
+        <Stack.Screen name="leaderboard" />
         <Stack.Screen name="notification-settings" />
         <Stack.Screen name="about" />
+        <Stack.Screen name="contact" />
         <Stack.Screen name="terms" />
         <Stack.Screen name="privacy" />
       </Stack>
@@ -222,9 +250,16 @@ export default function MainLayout() {
           setAddSheetState(index >= 0 ? 'open' : 'closed');
         }}
       />
+      <MealPlanSuggestionSheet
+        bottomSheetRef={mealPlanSuggestionSheetRef}
+        topInset={insets.top}
+        onSheetChange={(index) => {
+          setMealPlanSheetState(index >= 0 ? 'open' : 'closed');
+        }}
+      />
       {isAnalyzingPhoto ? (
         <View style={styles.analysisOverlay} pointerEvents="auto">
-          <Loading message={t('addScreen.captureModes.scanFoodAnalyzing')} />
+          <Loading message={t('addScreen.captureModes.scanFoodAnalyzingWithAi')} />
         </View>
       ) : null}
     </>
