@@ -4,30 +4,54 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { useUnistyles } from 'react-native-unistyles';
 import { Button, Chip, Icon, Switch, Text, TextArea } from '@/common/components';
+import {
+  createManualMealItem,
+  ensureDefaultManualMealsForWeek,
+  listManualMealsPage,
+} from '@/features/nutrition/services/manualMealsDatabase';
+import {
+  generateMockAiMealPlanSuggestions,
+  type MealPlanCriterion,
+} from '@/features/nutrition/services/mockAiMealPlanApi';
+import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import { useMealPlanSuggestionSheetStore } from '@/features/nutrition/stores/useMealPlanSuggestionSheetStore';
 import { useAppBottomSheet } from '@/providers/bottom-sheet';
 import { toast } from '@/utils/toast';
 import { styles } from './MealPlanSuggestionSheet.styles';
-
-type MealPlanCriterion = 'quick' | 'cheap' | 'satiating' | 'protein';
 
 interface MealPlanSuggestionSheetProps {
   onClose: () => void;
 }
 
 const DEFAULT_CRITERIA: MealPlanCriterion[] = [];
+const MEAL_PLAN_PAGE_SIZE = 20;
+
+function startOfDay(date: Date) {
+  const nextDate = new Date(date);
+  nextDate.setHours(0, 0, 0, 0);
+  return nextDate;
+}
+
+function endOfDay(date: Date) {
+  const nextDate = startOfDay(date);
+  nextDate.setHours(23, 59, 59, 999);
+  return nextDate;
+}
 
 export function MealPlanSuggestionSheet({ onClose }: MealPlanSuggestionSheetProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { theme } = useUnistyles();
   const { openSheet, closeSheet } = useAppBottomSheet();
   const sheetState = useMealPlanSuggestionSheetStore((state) => state.sheetState);
+  const payload = useMealPlanSuggestionSheetStore((state) => state.payload);
+  const markGenerated = useMealPlanSuggestionSheetStore((state) => state.markGenerated);
   const setSheetState = useMealPlanSuggestionSheetStore((state) => state.setSheetState);
   const [preferRecentFoods, setPreferRecentFoods] = useState(true);
   const [availableIngredients, setAvailableIngredients] = useState('');
   const [contraindications, setContraindications] = useState('');
   const [criteria, setCriteria] = useState<MealPlanCriterion[]>(DEFAULT_CRITERIA);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     if (sheetState === 'opening') {
@@ -35,6 +59,7 @@ export function MealPlanSuggestionSheet({ onClose }: MealPlanSuggestionSheetProp
       setAvailableIngredients('');
       setContraindications('');
       setCriteria(DEFAULT_CRITERIA);
+      setIsGenerating(false);
     }
   }, [sheetState]);
 
@@ -77,10 +102,82 @@ export function MealPlanSuggestionSheet({ onClose }: MealPlanSuggestionSheetProp
     [t]
   );
 
-  const handleGenerate = useCallback(() => {
-    toast.success(t('menuScreen.aiForm.submitted'));
-    closeSheet();
-  }, [closeSheet, t]);
+  const handleGenerate = useCallback(async () => {
+    if (isGenerating) {
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      const selectedDate = new Date(payload?.selectedDateIso ?? Date.now());
+      const selectedDayStart = startOfDay(selectedDate);
+      const selectedDayEnd = endOfDay(selectedDate);
+
+      await ensureDefaultManualMealsForWeek(selectedDayStart);
+
+      const [profile, mealsPage] = await Promise.all([
+        getUserProfile(),
+        listManualMealsPage({
+          page: 1,
+          pageSize: MEAL_PLAN_PAGE_SIZE,
+          startDate: selectedDayStart,
+          endDate: selectedDayEnd,
+        }),
+      ]);
+      const suggestions = await generateMockAiMealPlanSuggestions({
+        selectedDateIso: selectedDayStart.toISOString(),
+        targetMealType: payload?.mealType,
+        preferRecentFoods,
+        availableIngredients,
+        contraindications,
+        criteria,
+        profile,
+        locale: i18n.language,
+      });
+
+      let createdCount = 0;
+
+      for (const suggestion of suggestions) {
+        const matchedMeal = payload?.mealLocalId
+          ? mealsPage.items.find((meal) => meal.localId === payload.mealLocalId)
+          : mealsPage.items.find((meal) => meal.mealType === suggestion.mealType);
+
+        if (!matchedMeal) {
+          continue;
+        }
+
+        await createManualMealItem(matchedMeal.localId, suggestion.item);
+        createdCount += 1;
+      }
+
+      if (createdCount === 0) {
+        toast.info(t('menuScreen.aiForm.noMealFound'));
+        return;
+      }
+
+      markGenerated();
+      toast.success(t('menuScreen.aiForm.generated', { count: createdCount }));
+      closeSheet();
+    } catch {
+      toast.error(t('menuScreen.aiForm.generateFailed'));
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [
+    availableIngredients,
+    closeSheet,
+    contraindications,
+    criteria,
+    i18n.language,
+    isGenerating,
+    markGenerated,
+    payload?.mealLocalId,
+    payload?.mealType,
+    payload?.selectedDateIso,
+    preferRecentFoods,
+    t,
+  ]);
 
   const handleViewMoreRecentFoods = useCallback(() => {
     closeSheet();
@@ -173,14 +270,22 @@ export function MealPlanSuggestionSheet({ onClose }: MealPlanSuggestionSheetProp
           <Button
             title={t('common.cancel')}
             variant="outline"
+            disabled={isGenerating}
             onPress={() => {
               closeSheet();
             }}
           />
           <Button
-            title={t('menuScreen.aiForm.generateAction')}
+            title={
+              isGenerating
+                ? t('menuScreen.aiForm.generating')
+                : t('menuScreen.aiForm.generateAction')
+            }
             variant="primary"
-            onPress={handleGenerate}
+            loading={isGenerating}
+            onPress={() => {
+              void handleGenerate();
+            }}
           />
         </View>
       </View>
@@ -193,6 +298,7 @@ export function MealPlanSuggestionSheet({ onClose }: MealPlanSuggestionSheetProp
       criterionOptions,
       handleGenerate,
       handleViewMoreRecentFoods,
+      isGenerating,
       preferRecentFoods,
       t,
       theme.colors.brand.primaryVariant,

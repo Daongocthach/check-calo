@@ -11,6 +11,7 @@ import {
   deleteFavoriteFood,
   listFavoriteFoodsPage,
 } from '@/features/nutrition/services/nutritionDatabase';
+import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import type { FavoriteFood } from '@/features/nutrition/types';
 import { useAppAlert } from '@/providers/app-alert';
 
@@ -47,6 +48,7 @@ export default function FavoritesTab() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const requestAddMealSourceSheet = useAddMealSourceSheetStore((state) => state.requestOpen);
 
   const debouncedSearchValue = useDebouncedValue(searchValue, 250);
   const normalizedSearchValue = debouncedSearchValue.trim();
@@ -267,7 +269,9 @@ export default function FavoritesTab() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={addNewFoodLabel}
-          onPress={() => router.push('/food-form')}
+          onPress={() => {
+            requestAddMealSourceSheet({ context: 'recentFood' });
+          }}
           style={styles.floatingAddButton}
         >
           <Icon name="add" variant="onBrand" size={28} />

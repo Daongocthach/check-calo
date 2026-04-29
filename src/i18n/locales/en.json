@@ -59,6 +59,8 @@
     "title": "Menu",
     "headerSubtitle": "Track each meal every day",
     "todayTotal": "Today total",
+    "planLabel": "Plan",
+    "planValue": "{{count}} meals",
     "aiTitle": "AI suggestion",
     "aiSubtitle": "You are about ~{{value}}g protein short of today's target.",
     "viewSuggestion": "View ideas",
@@ -86,7 +88,11 @@
         "protein": "High protein"
       },
       "generateAction": "Create suggestions",
-      "submitted": "Suggestion preferences saved."
+      "generating": "Creating...",
+      "submitted": "Suggestion preferences saved.",
+      "generated": "Created {{count}} mock AI suggestions.",
+      "generateFailed": "Could not create suggestions. Please try again.",
+      "noMealFound": "No matching meal was found for these suggestions."
     },
     "mealSuggestions": {
       "short": "Suggest",
@@ -474,6 +480,7 @@
     "saveError": "Could not save the meal. Please try again.",
     "aiAnalysisFallback": "AI is not fully confident about this meal yet. Please review it in the form.",
     "aiAnalysisError": "Unable to analyze the food photo right now.",
+    "barcodeNotFound": "Product not found. You can add it manually.",
     "clearMeal": "Clear current meal",
     "clearMealTitle": "Clear current meal",
     "clearMealMessage": "Are you sure you want to remove every item from this meal?",

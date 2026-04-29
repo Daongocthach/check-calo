@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 8;
+const DATABASE_VERSION = 9;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -367,6 +367,41 @@ async function runVersion8Migration(database: SQLite.SQLiteDatabase) {
   await addColumnIfMissing(database, 'meal_items', 'thumbnail_uri', 'thumbnail_uri TEXT');
 }
 
+async function runVersion9Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(database, 'food_entries', 'barcode', 'barcode TEXT');
+  await addColumnIfMissing(database, 'favorite_foods', 'barcode', 'barcode TEXT');
+
+  await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS food_products (
+      id TEXT PRIMARY KEY NOT NULL,
+      barcode TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      brand TEXT,
+      quantity_label TEXT NOT NULL,
+      quantity_grams REAL,
+      total_calories REAL NOT NULL,
+      protein_grams REAL NOT NULL,
+      carbs_grams REAL NOT NULL,
+      fat_grams REAL NOT NULL,
+      notes TEXT,
+      image_uri TEXT,
+      source TEXT NOT NULL CHECK (source IN ('user', 'openfoodfacts', 'admin')),
+      verified_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_food_entries_barcode
+      ON food_entries(barcode);
+
+    CREATE INDEX IF NOT EXISTS idx_favorite_foods_barcode
+      ON favorite_foods(barcode);
+
+    CREATE INDEX IF NOT EXISTS idx_food_products_barcode
+      ON food_products(barcode);
+  `);
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -402,6 +437,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 8) {
     await runVersion8Migration(database);
+  }
+
+  if (currentVersion < 9) {
+    await runVersion9Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {

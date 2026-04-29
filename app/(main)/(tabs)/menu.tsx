@@ -115,6 +115,26 @@ function getPositiveTarget(value?: number | null) {
   return value && value > 0 ? value : 0;
 }
 
+function getMonthlyWeightGoalLabel(t: TFunction, monthlyWeightGoalKg: number) {
+  switch (monthlyWeightGoalKg) {
+    case 0.5:
+      return t('goalTracking.goalNames.loseWithValue', { value: 0.5 });
+    case 1:
+      return t('goalTracking.goalNames.loseWithValue', { value: 1 });
+    case 2:
+      return t('goalTracking.goalNames.loseWithValue', { value: 2 });
+    case -0.5:
+      return t('goalTracking.goalNames.gainWithValue', { value: 0.5 });
+    case -1:
+      return t('goalTracking.goalNames.gainWithValue', { value: 1 });
+    case -2:
+      return t('goalTracking.goalNames.gainWithValue', { value: 2 });
+    case 0:
+    default:
+      return t('goalTracking.goalNames.maintain');
+  }
+}
+
 type MacroTone = 'protein' | 'carbs' | 'fat';
 
 function getMealIconName(mealType: MealType) {
@@ -329,6 +349,9 @@ export default function MenuTab() {
   const requestMealPlanSuggestionSheet = useMealPlanSuggestionSheetStore(
     (state) => state.requestOpen
   );
+  const mealPlanSuggestionRevision = useMealPlanSuggestionSheetStore(
+    (state) => state.generationRevision
+  );
   const loadGenerationRef = useRef(0);
   const didMountRef = useRef(false);
   const [selectedDate, setSelectedDate] = useState(() => currentDate);
@@ -417,6 +440,12 @@ export default function MenuTab() {
     didMountRef.current = true;
   }, [refreshMenu]);
 
+  useEffect(() => {
+    if (mealPlanSuggestionRevision > 0) {
+      refreshMenu();
+    }
+  }, [mealPlanSuggestionRevision, refreshMenu]);
+
   const orderedMeals = useMemo(() => {
     const mealMap = new Map<MealType, ManualMeal>();
 
@@ -461,6 +490,7 @@ export default function MenuTab() {
   const proteinTarget = getPositiveTarget(profile?.proteinTargetGrams);
   const carbsTarget = getPositiveTarget(profile?.carbsTargetGrams);
   const fatTarget = getPositiveTarget(profile?.fatTargetGrams);
+  const monthlyWeightGoalLabel = getMonthlyWeightGoalLabel(t, profile?.monthlyWeightGoalKg ?? 0);
 
   const openEditItemDialog = useCallback((meal: ManualMeal, item: ManualMealItem) => {
     setItemDialog({
@@ -625,9 +655,20 @@ export default function MenuTab() {
     }
   }, [closeDeleteDialog, deleteDialog.itemId, loadData, t]);
 
-  const handleOpenAiSuggestion = useCallback(() => {
-    requestMealPlanSuggestionSheet();
-  }, [requestMealPlanSuggestionSheet]);
+  const handleOpenAiSuggestion = useCallback(
+    (meal?: ManualMeal) => {
+      requestMealPlanSuggestionSheet({
+        selectedDateIso: selectedDayStart.toISOString(),
+        ...(meal
+          ? {
+              mealLocalId: meal.localId,
+              mealType: meal.mealType,
+            }
+          : {}),
+      });
+    },
+    [requestMealPlanSuggestionSheet, selectedDayStart]
+  );
 
   const handleAddMealItem = useCallback(
     (meal: ManualMeal) => {
@@ -697,17 +738,27 @@ export default function MenuTab() {
             />
             <View style={styles.summaryCard}>
               <View style={styles.summaryHeader}>
-                <Text variant="bodySmall" weight="semibold" color="secondary">
-                  {t('menuScreen.todayTotal')}
-                </Text>
-                <View style={styles.calorieValueRow}>
-                  <Text variant="h2" weight="bold" style={styles.calorieValue}>
-                    {formatNumber(Math.round(dayTotals.calories), locale)}
-                  </Text>
+                <View style={styles.summaryHeaderLeft}>
                   <Text variant="bodySmall" weight="semibold" color="secondary">
-                    {`/ ${formatNumber(Math.round(calorieTarget), locale)} ${t(
-                      'common.units.kcal'
-                    )}`}
+                    {t('menuScreen.todayTotal')}
+                  </Text>
+                  <View style={styles.calorieValueRow}>
+                    <Text variant="h3" weight="bold" style={styles.calorieValue}>
+                      {formatNumber(Math.round(dayTotals.calories), locale)}
+                    </Text>
+                    <Text variant="bodySmall" weight="semibold" color="secondary">
+                      {`/ ${formatNumber(Math.round(calorieTarget), locale)} ${t(
+                        'common.units.kcal'
+                      )}`}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.planSummary}>
+                  <Text variant="bodySmall" weight="semibold" color="secondary">
+                    {t('menuScreen.planLabel')}
+                  </Text>
+                  <Text variant="body" weight="semibold" style={styles.planValue}>
+                    {monthlyWeightGoalLabel}
                   </Text>
                 </View>
               </View>
@@ -745,7 +796,9 @@ export default function MenuTab() {
                 leftIcon={
                   <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
                 }
-                onPress={handleOpenAiSuggestion}
+                onPress={() => {
+                  handleOpenAiSuggestion();
+                }}
               />
             </View>
           </View>
@@ -786,7 +839,9 @@ export default function MenuTab() {
                       <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
                     }
                     accessibilityLabel={mealSuggestionLabel}
-                    onPress={handleOpenAiSuggestion}
+                    onPress={() => {
+                      handleOpenAiSuggestion(section.meal);
+                    }}
                   />
                   <Select
                     value={section.meal.localId}
@@ -1081,15 +1136,33 @@ const styles = StyleSheet.create((theme) => ({
     elevation: theme.colors.shadow.elevationSmall,
   },
   summaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: theme.metrics.spacingV.p4,
+  },
+  summaryHeaderLeft: {
+    flex: 1,
+    minWidth: 0,
+    gap: theme.metrics.spacingV.p8,
   },
   calorieValueRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'baseline',
     gap: theme.metrics.spacing.p8,
   },
   calorieValue: {
     color: theme.colors.brand.primary,
+    lineHeight: theme.fonts.size.xl,
+  },
+  planSummary: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    minWidth: 92,
+    gap: theme.metrics.spacingV.p8,
+  },
+  planValue: {
+    color: theme.colors.text.primary,
   },
   macroSummaryGrid: {
     flexDirection: 'row',

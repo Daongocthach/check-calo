@@ -19,6 +19,7 @@ import {
   Text,
 } from '@/common/components';
 import type { DateTimeFieldHandle } from '@/common/components';
+import { upsertFoodProductCatalog } from '@/features/nutrition/services/barcodeFoodLookup';
 import {
   enqueueFoodEntryImageSync,
   processPendingFoodEntryImageSyncQueue,
@@ -57,10 +58,12 @@ interface FoodDetailSearchParams {
   imageUri?: string;
   thumbnailUri?: string;
   consumedAt?: string;
+  barcode?: string;
 }
 
 interface FoodDetailData {
   source: FoodDetailSource;
+  barcode: string | null;
   title: string;
   quantityLabel: string;
   quantityGrams: number | null;
@@ -225,6 +228,7 @@ function toFoodDetailDataFromParams(
 
   return {
     source,
+    barcode: params.barcode?.trim() || null,
     title: params.foodName?.trim() || t('foodDetail.unknownFoodName'),
     quantityLabel:
       quantityGrams !== null
@@ -340,6 +344,8 @@ export default function FoodDetailScreen() {
   const favoriteId = typedParams.favoriteId ?? '';
   const mealLocalId = typedParams.mealLocalId ?? '';
   const itemLocalId = typedParams.itemLocalId ?? '';
+  const isRecentFoodFlow = typedParams.context === 'recentFood';
+  const shouldReuseFavorite = isRecentFoodFlow && favoriteId.length > 0;
 
   useEffect(() => {
     let active = true;
@@ -354,6 +360,7 @@ export default function FoodDetailScreen() {
           if (entry && active) {
             setDetail({
               source: 'entry',
+              barcode: entry.barcode ?? null,
               title: entry.mealName,
               quantityLabel: formatMealWeight(
                 entry.quantityGrams,
@@ -378,6 +385,7 @@ export default function FoodDetailScreen() {
           if (favorite && active) {
             setDetail({
               source: 'favorite',
+              barcode: favorite.barcode ?? null,
               title: favorite.name,
               quantityLabel: formatMealWeight(
                 favorite.quantityGrams,
@@ -408,6 +416,9 @@ export default function FoodDetailScreen() {
 
             setDetail({
               source: 'manual',
+              barcode: item.sourceKey?.startsWith('barcode:')
+                ? item.sourceKey.replace('barcode:', '')
+                : null,
               title: item.title,
               quantityLabel: formatMealWeight(
                 quantityGrams,
@@ -443,6 +454,7 @@ export default function FoodDetailScreen() {
                 notes: typedParams.notes,
                 imageUri: typedParams.imageUri,
                 thumbnailUri: typedParams.thumbnailUri,
+                barcode: typedParams.barcode,
                 consumedAt: typedParams.consumedAt,
               },
               source,
@@ -468,6 +480,7 @@ export default function FoodDetailScreen() {
     itemLocalId,
     mealLocalId,
     typedParams.calories,
+    typedParams.barcode,
     typedParams.carbs,
     typedParams.consumedAt,
     typedParams.fat,
@@ -484,7 +497,8 @@ export default function FoodDetailScreen() {
 
   const sourceLabel = detail ? getSourceLabel(detail.source, t) : '';
   const canPreviewQuantity = detail
-    ? detail.source === 'ai' || detail.source === 'barcode' || detail.source === 'favorite'
+    ? !isRecentFoodFlow &&
+      (detail.source === 'ai' || detail.source === 'barcode' || detail.source === 'favorite')
     : false;
   const showSaveAction = detail
     ? detail.source === 'ai' || detail.source === 'barcode' || detail.source === 'favorite'
@@ -622,6 +636,7 @@ export default function FoodDetailScreen() {
       if (updatedEntry) {
         setDetail({
           source: 'entry',
+          barcode: updatedEntry.barcode ?? null,
           title: updatedEntry.mealName,
           quantityLabel: updatedEntry.quantityLabel,
           quantityGrams: updatedEntry.quantityGrams ?? null,
@@ -642,6 +657,7 @@ export default function FoodDetailScreen() {
     if (detail.source === 'favorite' && typeof params.favoriteId === 'string') {
       const updatedFavorite = await updateFavoriteFood(params.favoriteId, {
         name: title,
+        barcode: detail.barcode,
         quantityLabel,
         quantityGrams,
         totalCalories: Math.round(calories),
@@ -654,8 +670,25 @@ export default function FoodDetailScreen() {
       });
 
       if (updatedFavorite) {
+        if (updatedFavorite.barcode) {
+          await upsertFoodProductCatalog({
+            barcode: updatedFavorite.barcode,
+            name: updatedFavorite.name,
+            quantityLabel: updatedFavorite.quantityLabel,
+            quantityGrams: updatedFavorite.quantityGrams,
+            totalCalories: updatedFavorite.totalCalories,
+            proteinGrams: updatedFavorite.proteinGrams,
+            carbsGrams: updatedFavorite.carbsGrams,
+            fatGrams: updatedFavorite.fatGrams,
+            notes: updatedFavorite.notes,
+            imageUri: updatedFavorite.imageUri,
+            source: 'user',
+          });
+        }
+
         setDetail({
           source: 'favorite',
+          barcode: updatedFavorite.barcode ?? null,
           title: updatedFavorite.name,
           quantityLabel: updatedFavorite.quantityLabel,
           quantityGrams: updatedFavorite.quantityGrams,
@@ -701,6 +734,7 @@ export default function FoodDetailScreen() {
 
     try {
       const savedFood = {
+        barcode: detail.barcode,
         mealName: detail.title,
         quantityLabel:
           displayQuantityGrams !== null
@@ -717,22 +751,55 @@ export default function FoodDetailScreen() {
         consumedAt: detail.consumedAt ?? new Date().toISOString(),
       };
 
-      const syncedFavorite = await upsertFavoriteFoodFromInput({
-        name: savedFood.mealName,
-        quantityLabel: savedFood.quantityLabel,
-        quantityGrams: savedFood.quantityGrams,
-        totalCalories: savedFood.totalCalories,
-        proteinGrams: savedFood.proteinGrams,
-        carbsGrams: savedFood.carbsGrams,
-        fatGrams: savedFood.fatGrams,
-        notes: savedFood.notes,
-        imageUri: savedFood.imageUri,
-        thumbnailUri: savedFood.thumbnailUri,
-      });
+      const syncedFavorite = shouldReuseFavorite
+        ? await getFavoriteFoodById(favoriteId)
+        : await upsertFavoriteFoodFromInput({
+            name: savedFood.mealName,
+            barcode: savedFood.barcode,
+            quantityLabel: savedFood.quantityLabel,
+            quantityGrams: savedFood.quantityGrams,
+            totalCalories: savedFood.totalCalories,
+            proteinGrams: savedFood.proteinGrams,
+            carbsGrams: savedFood.carbsGrams,
+            fatGrams: savedFood.fatGrams,
+            notes: savedFood.notes,
+            imageUri: savedFood.imageUri,
+            thumbnailUri: savedFood.thumbnailUri,
+          });
+
+      if (!shouldReuseFavorite && savedFood.barcode && syncedFavorite) {
+        await upsertFoodProductCatalog({
+          barcode: savedFood.barcode,
+          name: syncedFavorite.name,
+          quantityLabel: syncedFavorite.quantityLabel,
+          quantityGrams: syncedFavorite.quantityGrams,
+          totalCalories: syncedFavorite.totalCalories,
+          proteinGrams: syncedFavorite.proteinGrams,
+          carbsGrams: syncedFavorite.carbsGrams,
+          fatGrams: syncedFavorite.fatGrams,
+          notes: syncedFavorite.notes,
+          imageUri: syncedFavorite.imageUri,
+          source: 'user',
+        });
+      }
+
+      if (isRecentFoodFlow) {
+        toast.success(t('foodDetail.saveSuccess'));
+        router.replace('/recently-food');
+        return;
+      }
 
       if (mealLocalId && !itemLocalId) {
+        let sourceKey: string | null = shouldReuseFavorite ? `favorite:${favoriteId}` : null;
+
+        if (!sourceKey && savedFood.barcode) {
+          sourceKey = `barcode:${savedFood.barcode}`;
+        } else if (!sourceKey && syncedFavorite) {
+          sourceKey = `favorite:${syncedFavorite.id}`;
+        }
+
         await createManualMealItem(mealLocalId, {
-          sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
+          sourceKey,
           title: savedFood.mealName,
           quantityLabel: savedFood.quantityLabel,
           quantityGrams: savedFood.quantityGrams,
@@ -770,9 +837,12 @@ export default function FoodDetailScreen() {
     displayFatGrams,
     displayProteinGrams,
     displayQuantityGrams,
+    favoriteId,
     isSaving,
+    isRecentFoodFlow,
     itemLocalId,
     mealLocalId,
+    shouldReuseFavorite,
     t,
   ]);
 
@@ -937,23 +1007,25 @@ export default function FoodDetailScreen() {
 
         {showSaveAction ? (
           <View style={styles.saveFooter}>
-            <View style={styles.servingsBlock}>
-              <Text variant="bodySmall" weight="semibold">
-                {t('manualFoodEntry.portionCountLabel')}
-              </Text>
-              <QuantityStepper
-                value={servings}
-                minValue={1}
-                decreaseLabel={t('addScreen.decreasePortion')}
-                increaseLabel={t('addScreen.increasePortion')}
-                onDecrease={() => {
-                  setServings((currentValue) => Math.max(1, currentValue - 1));
-                }}
-                onIncrease={() => {
-                  setServings((currentValue) => currentValue + 1);
-                }}
-              />
-            </View>
+            {canPreviewQuantity ? (
+              <View style={styles.servingsBlock}>
+                <Text variant="bodySmall" weight="semibold">
+                  {t('manualFoodEntry.portionCountLabel')}
+                </Text>
+                <QuantityStepper
+                  value={servings}
+                  minValue={1}
+                  decreaseLabel={t('addScreen.decreasePortion')}
+                  increaseLabel={t('addScreen.increasePortion')}
+                  onDecrease={() => {
+                    setServings((currentValue) => Math.max(1, currentValue - 1));
+                  }}
+                  onIncrease={() => {
+                    setServings((currentValue) => currentValue + 1);
+                  }}
+                />
+              </View>
+            ) : null}
             <Button
               title={t('foodDetail.saveAction')}
               onPress={() => {

@@ -18,6 +18,7 @@ import {
   Text,
   TextArea,
 } from '@/common/components';
+import { upsertFoodProductCatalog } from '@/features/nutrition/services/barcodeFoodLookup';
 import {
   deleteOrphanedFoodEntryAssets,
   persistFoodEntryAssetsLocally,
@@ -127,6 +128,7 @@ export default function FoodFormScreen() {
     fat?: string;
     notes?: string;
     imageUri?: string;
+    barcode?: string;
   }>();
   const openCamera = useOpenCamera();
   const openImageLibrary = useOpenImageLibrary();
@@ -159,6 +161,7 @@ export default function FoodFormScreen() {
   const isEditing = isEditingEntry || isEditingFavorite;
   const isAddMealFlow = params.context === 'addMeal' && !isEditing;
   const isMenuMealFlow = params.context === 'menuMeal' && !isEditing;
+  const isRecentFoodFlow = params.context === 'recentFood' && !isEditing;
   const isInstantAddMealFlow = isAddMealFlow && params.submitMode === 'instant';
 
   const loadScreenData = useCallback(async () => {
@@ -313,6 +316,7 @@ export default function FoodFormScreen() {
 
       const servingsMultiplier = isAddMealFlow ? servings : 1;
       const basePayload = {
+        barcode: typeof params.barcode === 'string' ? params.barcode : null,
         mealName: form.foodName.trim(),
         quantityLabel: formatMealWeight(quantityGrams, null, t('common.units.gram')),
         quantityGrams,
@@ -339,9 +343,45 @@ export default function FoodFormScreen() {
         fatGrams: basePayload.fatGrams * servingsMultiplier,
       };
 
+      if (isRecentFoodFlow) {
+        const syncedRecentFavorite = await upsertFavoriteFoodFromInput({
+          name: basePayload.mealName,
+          barcode: basePayload.barcode,
+          quantityLabel: basePayload.quantityLabel,
+          quantityGrams: basePayload.quantityGrams ?? null,
+          totalCalories: basePayload.totalCalories,
+          proteinGrams: basePayload.proteinGrams,
+          carbsGrams: basePayload.carbsGrams,
+          fatGrams: basePayload.fatGrams,
+          notes: basePayload.notes,
+          imageUri: basePayload.imageUri,
+          thumbnailUri: basePayload.thumbnailUri,
+        });
+
+        if (basePayload.barcode && syncedRecentFavorite) {
+          await upsertFoodProductCatalog({
+            barcode: basePayload.barcode,
+            name: syncedRecentFavorite.name,
+            quantityLabel: syncedRecentFavorite.quantityLabel,
+            quantityGrams: syncedRecentFavorite.quantityGrams,
+            totalCalories: syncedRecentFavorite.totalCalories,
+            proteinGrams: syncedRecentFavorite.proteinGrams,
+            carbsGrams: syncedRecentFavorite.carbsGrams,
+            fatGrams: syncedRecentFavorite.fatGrams,
+            notes: syncedRecentFavorite.notes,
+            imageUri: syncedRecentFavorite.imageUri,
+            source: 'user',
+          });
+        }
+
+        router.replace('/recently-food');
+        return;
+      }
+
       const syncedFavorite = !isEditingFavorite
         ? await upsertFavoriteFoodFromInput({
             name: basePayload.mealName,
+            barcode: basePayload.barcode,
             quantityLabel: basePayload.quantityLabel,
             quantityGrams: basePayload.quantityGrams ?? null,
             totalCalories: basePayload.totalCalories,
@@ -353,6 +393,22 @@ export default function FoodFormScreen() {
             thumbnailUri: basePayload.thumbnailUri,
           })
         : null;
+
+      if (basePayload.barcode && syncedFavorite) {
+        await upsertFoodProductCatalog({
+          barcode: basePayload.barcode,
+          name: basePayload.mealName,
+          quantityLabel: basePayload.quantityLabel,
+          quantityGrams: basePayload.quantityGrams ?? null,
+          totalCalories: basePayload.totalCalories,
+          proteinGrams: basePayload.proteinGrams,
+          carbsGrams: basePayload.carbsGrams,
+          fatGrams: basePayload.fatGrams,
+          notes: basePayload.notes,
+          imageUri: basePayload.imageUri,
+          source: 'user',
+        });
+      }
 
       if (isAddMealFlow) {
         if (isInstantAddMealFlow) {
@@ -372,8 +428,16 @@ export default function FoodFormScreen() {
           return;
         }
 
+        let draftSourceKey: string | null = null;
+
+        if (basePayload.barcode) {
+          draftSourceKey = `barcode:${basePayload.barcode}`;
+        } else if (syncedFavorite) {
+          draftSourceKey = `favorite:${syncedFavorite.id}`;
+        }
+
         const nextDraftItem = {
-          sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
+          sourceKey: draftSourceKey,
           title: basePayload.mealName,
           quantityLabel: basePayload.quantityLabel,
           quantityGrams: basePayload.quantityGrams,
@@ -402,8 +466,16 @@ export default function FoodFormScreen() {
         typeof params.mealLocalId === 'string' &&
         params.mealLocalId.length > 0
       ) {
+        let menuSourceKey: string | null = null;
+
+        if (payload.barcode) {
+          menuSourceKey = `barcode:${payload.barcode}`;
+        } else if (syncedFavorite) {
+          menuSourceKey = `favorite:${syncedFavorite.id}`;
+        }
+
         await createManualMealItem(params.mealLocalId, {
-          sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
+          sourceKey: menuSourceKey,
           title: payload.mealName,
           quantityLabel: payload.quantityLabel,
           quantityGrams: payload.quantityGrams ?? null,
@@ -423,8 +495,9 @@ export default function FoodFormScreen() {
       }
 
       if (isEditingFavorite && typeof params.favoriteId === 'string') {
-        await updateFavoriteFood(params.favoriteId, {
+        const updatedFavorite = await updateFavoriteFood(params.favoriteId, {
           name: payload.mealName,
+          barcode: payload.barcode ?? previousFavorite?.barcode ?? null,
           quantityLabel: payload.quantityLabel,
           quantityGrams: payload.quantityGrams ?? null,
           totalCalories: payload.totalCalories,
@@ -435,6 +508,23 @@ export default function FoodFormScreen() {
           imageUri: payload.imageUri,
           thumbnailUri: payload.thumbnailUri,
         });
+
+        if (updatedFavorite?.barcode) {
+          await upsertFoodProductCatalog({
+            barcode: updatedFavorite.barcode,
+            name: updatedFavorite.name,
+            quantityLabel: updatedFavorite.quantityLabel,
+            quantityGrams: updatedFavorite.quantityGrams,
+            totalCalories: updatedFavorite.totalCalories,
+            proteinGrams: updatedFavorite.proteinGrams,
+            carbsGrams: updatedFavorite.carbsGrams,
+            fatGrams: updatedFavorite.fatGrams,
+            notes: updatedFavorite.notes,
+            imageUri: updatedFavorite.imageUri,
+            source: 'user',
+          });
+        }
+
         await deleteOrphanedFoodEntryAssets(
           previousFavorite?.imageUri,
           previousFavorite?.thumbnailUri

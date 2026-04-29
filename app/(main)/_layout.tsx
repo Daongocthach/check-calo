@@ -31,7 +31,7 @@ export default function MainLayout() {
   const getFoodFormParams = useCallback(
     (params?: Record<string, string>) => ({
       context: addMealSheetPayload?.context ?? 'addMeal',
-      submitMode: 'instant',
+      ...(addMealSheetPayload?.context === 'recentFood' ? {} : { submitMode: 'instant' }),
       ...(addMealSheetPayload?.mealLocalId ? { mealLocalId: addMealSheetPayload.mealLocalId } : {}),
       ...params,
     }),
@@ -162,20 +162,36 @@ export default function MainLayout() {
     try {
       const lookupResult = await lookupFoodByBarcode(barcodeValue);
 
+      if (!lookupResult) {
+        toast.info(t('addScreen.barcodeNotFound'));
+        closeAddMealSheet();
+        router.push({
+          pathname: '/food-form',
+          params: {
+            barcode: barcodeValue,
+            quantityLabel: t('foodDetail.defaultQuantity'),
+            notes: barcodeValue,
+            ...getFoodFormParams(),
+          },
+        });
+        return;
+      }
+
       closeAddMealSheet();
       router.push({
         pathname: '/food-detail',
         params: {
           source: 'barcode',
-          notes: lookupResult?.notes || barcodeValue,
-          foodName: lookupResult?.foodName || t('foodDetail.unknownFoodName'),
-          quantityLabel: lookupResult?.quantityLabel || t('foodDetail.defaultQuantity'),
-          quantityGrams: '',
-          calories: lookupResult?.calories || '',
-          carbs: lookupResult?.carbs || '',
-          protein: lookupResult?.protein || '',
-          fat: lookupResult?.fat || '',
-          imageUri: lookupResult?.imageUri,
+          barcode: barcodeValue,
+          notes: lookupResult.notes || barcodeValue,
+          foodName: lookupResult.foodName || t('foodDetail.unknownFoodName'),
+          quantityLabel: lookupResult.quantityLabel || t('foodDetail.defaultQuantity'),
+          quantityGrams: lookupResult.quantityGrams,
+          calories: lookupResult.calories,
+          carbs: lookupResult.carbs,
+          protein: lookupResult.protein,
+          fat: lookupResult.fat,
+          imageUri: lookupResult.imageUri,
           ...getFoodFormParams(),
         },
       });
@@ -186,18 +202,13 @@ export default function MainLayout() {
       toast.error(message);
     }
 
+    closeAddMealSheet();
     router.push({
-      pathname: '/food-detail',
+      pathname: '/food-form',
       params: {
-        source: 'barcode',
+        barcode: barcodeValue,
         notes: barcodeValue,
-        foodName: t('foodDetail.unknownFoodName'),
         quantityLabel: t('foodDetail.defaultQuantity'),
-        quantityGrams: '',
-        calories: '',
-        carbs: '',
-        protein: '',
-        fat: '',
         ...getFoodFormParams(),
       },
     });

@@ -118,6 +118,7 @@ export interface GoalTrackingSnapshot {
 }
 
 export interface FoodEntryInput {
+  barcode?: string | null;
   mealName: string;
   quantityLabel: string;
   quantityGrams?: number | null;
@@ -145,6 +146,7 @@ export interface FoodEntry extends FoodEntryInput {
 export interface FavoriteFood {
   id: string;
   sourceEntryId: string | null;
+  barcode: string | null;
   name: string;
   quantityLabel: string;
   quantityGrams: number | null;

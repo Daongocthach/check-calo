@@ -59,6 +59,8 @@
     "title": "Thực đơn",
     "headerSubtitle": "Theo dõi bữa ăn mỗi ngày",
     "todayTotal": "Tổng hôm nay",
+    "planLabel": "Kế hoạch",
+    "planValue": "{{count}} bữa",
     "aiTitle": "Gợi ý từ AI",
     "aiSubtitle": "Bạn còn thiếu ~{{value}}g protein để đạt mục tiêu hôm nay.",
     "viewSuggestion": "Xem gợi ý",
@@ -86,7 +88,11 @@
         "protein": "Nhiều protein"
       },
       "generateAction": "Tạo gợi ý",
-      "submitted": "Đã ghi nhận tuỳ chọn gợi ý."
+      "generating": "Đang tạo...",
+      "submitted": "Đã ghi nhận tuỳ chọn gợi ý.",
+      "generated": "Đã tạo {{count}} gợi ý từ AI mock.",
+      "generateFailed": "Chưa tạo được gợi ý. Vui lòng thử lại.",
+      "noMealFound": "Chưa tìm thấy bữa ăn phù hợp để thêm gợi ý."
     },
     "mealSuggestions": {
       "short": "Gợi ý",
@@ -474,6 +480,7 @@
     "saveError": "Không thể lưu bữa ăn. Vui lòng thử lại.",
     "aiAnalysisFallback": "AI chưa chắc chắn về món này. Bạn hãy kiểm tra và chỉnh lại trong form.",
     "aiAnalysisError": "Không thể phân tích ảnh món ăn lúc này.",
+    "barcodeNotFound": "Không tìm thấy sản phẩm. Bạn có thể nhập thủ công.",
     "clearMeal": "Đặt lại",
     "clearMealTitle": "Xóa bữa ăn hiện tại",
     "clearMealMessage": "Bạn có chắc muốn xóa toàn bộ món đang thêm không?",

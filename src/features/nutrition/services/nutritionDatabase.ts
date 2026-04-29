@@ -43,6 +43,7 @@ interface UserProfileRow {
 
 interface FoodEntryRow {
   id: string;
+  barcode: string | null;
   entry_date: string;
   consumed_at: string;
   meal_name: string;
@@ -63,6 +64,7 @@ interface FoodEntryRow {
 interface FavoriteFoodRow {
   id: string;
   source_entry_id: string | null;
+  barcode: string | null;
   name: string;
   quantity_label: string;
   quantity_grams: number | null;
@@ -109,6 +111,7 @@ function mapProfile(row: UserProfileRow): UserProfile {
 function mapFoodEntry(row: FoodEntryRow): FoodEntry {
   return {
     id: row.id,
+    barcode: row.barcode,
     entryDate: row.entry_date,
     consumedAt: row.consumed_at,
     mealName: row.meal_name,
@@ -131,6 +134,7 @@ function mapFavoriteFood(row: FavoriteFoodRow): FavoriteFood {
   return {
     id: row.id,
     sourceEntryId: row.source_entry_id,
+    barcode: row.barcode,
     name: row.name,
     quantityLabel: row.quantity_label,
     quantityGrams: row.quantity_grams,
@@ -516,6 +520,7 @@ export async function createFoodEntry(input: FoodEntryInput) {
         id,
         entry_date,
         consumed_at,
+        barcode,
         meal_name,
         quantity_label,
         quantity_grams,
@@ -529,12 +534,13 @@ export async function createFoodEntry(input: FoodEntryInput) {
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
       id,
       entryDate,
       consumedAt,
+      input.barcode ?? null,
       input.mealName,
       input.quantityLabel,
       input.quantityGrams ?? null,
@@ -577,6 +583,7 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
       SET
         entry_date = ?,
         consumed_at = ?,
+        barcode = ?,
         meal_name = ?,
         quantity_label = ?,
         quantity_grams = ?,
@@ -593,6 +600,7 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
     [
       entryDate,
       consumedAt,
+      input.barcode ?? existingEntry.barcode ?? null,
       input.mealName,
       input.quantityLabel,
       input.quantityGrams ?? null,
@@ -782,6 +790,7 @@ export async function toggleFavoriteFoodEntry(entryId: string) {
       INSERT INTO favorite_foods (
         id,
         source_entry_id,
+        barcode,
         name,
         quantity_label,
         quantity_grams,
@@ -795,11 +804,12 @@ export async function toggleFavoriteFoodEntry(entryId: string) {
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
       createEntityId('favorite'),
       entry.id,
+      entry.barcode ?? null,
       entry.mealName,
       entry.quantityLabel,
       entry.quantityGrams ?? null,
@@ -828,6 +838,7 @@ export async function updateFavoriteFood(
   input: Pick<
     FavoriteFood,
     | 'name'
+    | 'barcode'
     | 'quantityLabel'
     | 'quantityGrams'
     | 'totalCalories'
@@ -847,6 +858,7 @@ export async function updateFavoriteFood(
       UPDATE favorite_foods
       SET
         name = ?,
+        barcode = ?,
         quantity_label = ?,
         quantity_grams = ?,
         total_calories = ?,
@@ -861,6 +873,7 @@ export async function updateFavoriteFood(
     `,
     [
       input.name,
+      input.barcode ?? null,
       input.quantityLabel,
       input.quantityGrams ?? null,
       input.totalCalories,
@@ -882,6 +895,7 @@ export async function upsertFavoriteFoodFromInput(
   input: Pick<
     FavoriteFood,
     | 'name'
+    | 'barcode'
     | 'quantityLabel'
     | 'quantityGrams'
     | 'totalCalories'
@@ -895,8 +909,10 @@ export async function upsertFavoriteFoodFromInput(
 ) {
   const database = await getDatabase();
   const existingFavorite = await database.getFirstAsync<{ id: string }>(
-    'SELECT id FROM favorite_foods WHERE name = ? COLLATE NOCASE LIMIT 1;',
-    [input.name]
+    input.barcode
+      ? 'SELECT id FROM favorite_foods WHERE barcode = ? LIMIT 1;'
+      : 'SELECT id FROM favorite_foods WHERE name = ? COLLATE NOCASE LIMIT 1;',
+    [input.barcode ?? input.name]
   );
 
   if (existingFavorite) {
@@ -911,6 +927,7 @@ export async function upsertFavoriteFoodFromInput(
       INSERT INTO favorite_foods (
         id,
         source_entry_id,
+        barcode,
         name,
         quantity_label,
         quantity_grams,
@@ -924,10 +941,11 @@ export async function upsertFavoriteFoodFromInput(
         created_at,
         updated_at
       )
-      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
       favoriteId,
+      input.barcode ?? null,
       input.name,
       input.quantityLabel,
       input.quantityGrams ?? null,
@@ -960,6 +978,7 @@ export async function createFoodEntryFromFavorite(
 
   return createFoodEntry({
     mealName: favorite.name,
+    barcode: favorite.barcode,
     quantityLabel: overrides?.quantityLabel ?? favorite.quantityLabel,
     quantityGrams: overrides?.quantityGrams ?? favorite.quantityGrams,
     totalCalories: favorite.totalCalories,
