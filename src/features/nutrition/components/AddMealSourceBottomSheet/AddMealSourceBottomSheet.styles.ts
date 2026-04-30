@@ -95,6 +95,14 @@ export const styles = StyleSheet.create((theme) => ({
     marginTop: theme.metrics.spacingV.p16,
     marginBottom: theme.metrics.spacingV.p8,
   },
+  menuTodayHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p16,
+    marginTop: theme.metrics.spacingV.p20,
+    marginBottom: theme.metrics.spacingV.p8,
+  },
   viewAllButton: {
     minHeight: theme.metrics.spacing.p32,
     flexDirection: 'row' as const,
@@ -169,6 +177,50 @@ export const styles = StyleSheet.create((theme) => ({
   recentEmptyCopy: {
     flex: 1,
     gap: theme.metrics.spacingV.p4,
+  },
+  mealChip: {
+    width: hs(156),
+    minHeight: vs(64),
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+    padding: theme.metrics.spacing.p8,
+    borderRadius: theme.metrics.borderRadius.xl,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
+    backgroundColor: theme.colors.background.surface,
+  },
+  mealThumb: {
+    width: hs(42),
+    height: hs(42),
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.section,
+  },
+  menuMealDialogContent: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  menuMealDialogSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
+    padding: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.lg,
+    backgroundColor: theme.colors.background.section,
+  },
+  menuMealDialogSummaryCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  menuMealDialogItems: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  menuMealDialogItem: {
+    gap: theme.metrics.spacingV.p4,
+    paddingVertical: theme.metrics.spacingV.p4,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.subtle,
   },
   footer: {
     alignItems: 'center',

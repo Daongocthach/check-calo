@@ -164,7 +164,7 @@ function toMealName(note: string | null) {
 
 function translateMealType(mealType: MealRecord['mealType']) {
   const translate = i18n.t as unknown as (key: string) => string;
-  return translate(`meals.${mealType}`);
+  return translate(`homeScreen.meals.${mealType}`);
 }
 
 function normalizePage(page?: number) {

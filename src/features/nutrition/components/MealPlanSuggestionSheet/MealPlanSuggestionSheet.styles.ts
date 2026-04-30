@@ -67,10 +67,60 @@ export const styles = StyleSheet.create((theme) => ({
   sectionBlock: {
     gap: theme.metrics.spacingV.p12,
   },
+  resultsHeader: {
+    minHeight: theme.metrics.spacing.p56,
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    justifyContent: 'space-between' as const,
+    gap: theme.metrics.spacing.p16,
+  },
+  resultsHeaderCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    gap: theme.metrics.spacing.p12,
+  },
   chipWrap: {
     flexDirection: 'row' as const,
     flexWrap: 'wrap' as const,
     gap: theme.metrics.spacing.p8,
+  },
+  suggestionList: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  suggestionCard: {
+    gap: theme.metrics.spacingV.p12,
+    padding: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
+  },
+  suggestionHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    justifyContent: 'space-between' as const,
+    gap: theme.metrics.spacing.p12,
+  },
+  suggestionHeaderCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  suggestionActions: {
+    flexDirection: 'row' as const,
+    gap: theme.metrics.spacing.p8,
+    justifyContent: 'flex-end' as const,
+  },
+  emptySuggestionCard: {
+    gap: theme.metrics.spacingV.p4,
+    padding: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
   },
   actions: {
     flexDirection: 'row' as const,

@@ -79,6 +79,21 @@ export default function MainLayout() {
     [closeAddMealSheet, getFoodFormParams, router]
   );
 
+  const getAiErrorToastMessage = useCallback(
+    (message: string) => {
+      if (message.includes('Daily AI usage limit reached')) {
+        return t('common.aiQuotaExceeded');
+      }
+
+      if (message.includes('Authentication required') || message.includes('Unauthorized')) {
+        return t('common.signInRequired');
+      }
+
+      return message;
+    },
+    [t]
+  );
+
   const analyzeFoodImage = useCallback(
     async (imageUri: string) => {
       closeAddMealSheet();
@@ -111,13 +126,22 @@ export default function MainLayout() {
         openFoodFormFromPhoto(imageUri);
       } catch (error) {
         const message = error instanceof Error ? error.message : t('addScreen.aiAnalysisError');
-        toast.error(message);
+        const toastMessage = getAiErrorToastMessage(message);
+        toast.error(toastMessage);
+
+        if (
+          toastMessage === t('common.aiQuotaExceeded') ||
+          toastMessage === t('common.signInRequired')
+        ) {
+          return;
+        }
+
         openFoodFormFromPhoto(imageUri);
       } finally {
         setIsAnalyzingPhoto(false);
       }
     },
-    [closeAddMealSheet, getFoodFormParams, openFoodFormFromPhoto, router, t]
+    [closeAddMealSheet, getAiErrorToastMessage, getFoodFormParams, openFoodFormFromPhoto, router, t]
   );
 
   const handleCaptureFood = useCallback(async () => {

@@ -4,6 +4,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 interface RequestPayload {
   prompt?: string;
   userMessage?: string | null;
+  purpose?: 'food_photo' | 'home_review';
   image?: {
     base64?: string;
     mimeType?: string;
@@ -54,29 +55,54 @@ function extractResponseText(payload: GeminiGenerateResponse): string {
   return typeof text === 'string' ? text.trim() : '';
 }
 
+async function consumeDailyAiUsage(
+  userClient: ReturnType<typeof createClient>,
+  purpose: 'food_photo' | 'home_review'
+): Promise<{ allowed: boolean; usageCount: number; remaining: number }> {
+  const limit = purpose === 'food_photo' ? 30 : 10;
+  const { data, error } = await userClient.rpc('consume_ai_usage', {
+    p_purpose: purpose,
+    p_limit: limit,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const usageRow = Array.isArray(data) ? data[0] : data;
+
+  return {
+    allowed: Boolean(usageRow?.allowed),
+    usageCount: typeof usageRow?.usage_count === 'number' ? usageRow.usage_count : 0,
+    remaining: typeof usageRow?.remaining === 'number' ? usageRow.remaining : 0,
+  };
+}
+
 Deno.serve(async (request) => {
   if (request.method !== 'POST') {
     return createResponse(405, { error: 'Method not allowed' });
   }
 
   const authorization = request.headers.get('Authorization');
-  if (authorization) {
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: authorization,
-        },
+  if (!authorization) {
+    return createResponse(401, { error: 'Authentication required' });
+  }
+
+  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: {
+        Authorization: authorization,
       },
-    });
+    },
+  });
 
-    const {
-      data: { user },
-      error: userError,
-    } = await userClient.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await userClient.auth.getUser();
 
-    if (userError || !user) {
-      return createResponse(401, { error: userError?.message ?? 'Unauthorized' });
-    }
+  if (userError || !user) {
+    return createResponse(401, { error: userError?.message ?? 'Unauthorized' });
   }
 
   let body: RequestPayload;
@@ -89,6 +115,15 @@ Deno.serve(async (request) => {
   const prompt = body.prompt?.trim();
   if (!prompt) {
     return createResponse(400, { error: 'Missing prompt' });
+  }
+
+  const purpose = body.purpose ?? 'food_photo';
+  const quotaResult = await consumeDailyAiUsage(userClient, purpose);
+  if (!quotaResult.allowed) {
+    const limit = purpose === 'food_photo' ? 30 : 10;
+    return createResponse(429, {
+      error: `Daily AI usage limit reached for ${purpose}. Limit is ${limit} per day.`,
+    });
   }
 
   const userMessage = body.userMessage?.trim();

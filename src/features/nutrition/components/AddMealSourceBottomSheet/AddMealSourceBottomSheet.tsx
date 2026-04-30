@@ -1,14 +1,27 @@
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
+import type { TFunction } from 'i18next';
 import type { ComponentProps, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useUnistyles } from 'react-native-unistyles';
-import { Icon, Loading, Text } from '@/common/components';
-import { listFavoriteFoodsPage } from '@/features/nutrition/services/nutritionDatabase';
+import { Dialog, Icon, Loading, Text } from '@/common/components';
+import {
+  ensureDefaultManualMealsForWeek,
+  listManualMealsPage,
+  type ManualMeal,
+} from '@/features/nutrition/services/manualMealsDatabase';
+import {
+  createFoodEntry,
+  listFavoriteFoodsPage,
+} from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
-import type { FavoriteFood } from '@/features/nutrition/types';
+import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
+import type { FavoriteFood, MealType } from '@/features/nutrition/types';
+import { formatMealWeight } from '@/features/nutrition/utils/quantity';
 import { useAppBottomSheet } from '@/providers/bottom-sheet';
+import { toast } from '@/utils/toast';
 import { styles } from './AddMealSourceBottomSheet.styles';
 import type { AddMealSourceBottomSheetProps } from './AddMealSourceBottomSheet.types';
 
@@ -22,7 +35,87 @@ interface RecentFoodChip {
   imageUri: string | null;
 }
 
+interface TodayMealChip {
+  key: string;
+  meal: ManualMeal;
+  mealType: MealType;
+  title: string;
+  subtitle: string;
+  itemCount: number;
+  calories: string;
+}
+
 const RECENT_FOOD_LIMIT = 4;
+const MENU_MEAL_LIMIT = 12;
+const MENU_TODAY_MEAL_ORDER: Readonly<Record<MealType, number>> = {
+  breakfast: 0,
+  lunch: 1,
+  dinner: 2,
+  snack: 3,
+  other: 4,
+};
+
+function getMealTypeLabel(t: TFunction, mealType: MealType) {
+  const translate = t as unknown as (key: string) => string;
+
+  switch (mealType) {
+    case 'breakfast':
+      return translate('homeScreen.meals.breakfast');
+    case 'lunch':
+      return translate('homeScreen.meals.lunch');
+    case 'dinner':
+      return translate('homeScreen.meals.dinner');
+    case 'snack':
+      return translate('menuScreen.sections.snack');
+    default:
+      return translate('menuScreen.sections.snack');
+  }
+}
+
+function getTodayMealTitle(t: TFunction, meal: ManualMeal) {
+  const mealName = meal.name.trim();
+
+  if (
+    mealName.length > 0 &&
+    !mealName.includes('meals.') &&
+    !mealName.includes('homeScreen.meals.') &&
+    !mealName.includes('menuScreen.')
+  ) {
+    return mealName;
+  }
+
+  return getMealTypeLabel(t, meal.mealType);
+}
+
+function getMealTypeIconName(mealType: MealType) {
+  switch (mealType) {
+    case 'breakfast':
+      return 'sunny-outline';
+    case 'lunch':
+      return 'restaurant-outline';
+    case 'dinner':
+      return 'moon-outline';
+    case 'snack':
+      return 'leaf-outline';
+    default:
+      return 'restaurant-outline';
+  }
+}
+
+function getMealTypeIconVariant(mealType: MealType) {
+  switch (mealType) {
+    case 'breakfast':
+      return 'accent';
+    case 'lunch':
+      return 'primary';
+    case 'dinner':
+      return 'muted';
+    case 'snack':
+      return 'secondary';
+    default:
+      return 'primary';
+  }
+}
 
 export function AddMealSourceBottomSheet({
   onManualPress,
@@ -34,15 +127,34 @@ export function AddMealSourceBottomSheet({
 }: AddMealSourceBottomSheetProps) {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
+  const router = useRouter();
   const { openSheet, closeSheet } = useAppBottomSheet();
   const sheetState = useAddMealSourceSheetStore((state) => state.sheetState);
+  const payload = useAddMealSourceSheetStore((state) => state.payload);
   const setSheetState = useAddMealSourceSheetStore((state) => state.setSheetState);
+  const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const [recentFoods, setRecentFoods] = useState<FavoriteFood[]>([]);
   const [recentPage, setRecentPage] = useState(1);
   const [hasNextRecentPage, setHasNextRecentPage] = useState(false);
   const [isLoadingRecentFoods, setIsLoadingRecentFoods] = useState(false);
   const [isLoadingMoreRecentFoods, setIsLoadingMoreRecentFoods] = useState(false);
+  const [todayMeals, setTodayMeals] = useState<ManualMeal[]>([]);
+  const [isLoadingTodayMeals, setIsLoadingTodayMeals] = useState(false);
+  const [pendingMenuMeal, setPendingMenuMeal] = useState<ManualMeal | null>(null);
   const pendingActionRef = useRef<(() => void) | null>(null);
+  const fallbackSelectedDayIsoRef = useRef(new Date().toISOString());
+  const selectedDayIso = payload?.selectedDateIso ?? fallbackSelectedDayIsoRef.current;
+  const selectedDay = useMemo(() => new Date(selectedDayIso), [selectedDayIso]);
+  const selectedDayStart = useMemo(() => {
+    const nextDate = new Date(selectedDay);
+    nextDate.setHours(0, 0, 0, 0);
+    return nextDate;
+  }, [selectedDay]);
+  const selectedDayEnd = useMemo(() => {
+    const nextDate = new Date(selectedDayStart);
+    nextDate.setHours(23, 59, 59, 999);
+    return nextDate;
+  }, [selectedDayStart]);
 
   const handleSelect = useCallback(
     (action: () => void) => {
@@ -88,6 +200,26 @@ export function AddMealSourceBottomSheet({
     }
   }, []);
 
+  const loadTodayMeals = useCallback(async () => {
+    setIsLoadingTodayMeals(true);
+
+    try {
+      await ensureDefaultManualMealsForWeek(selectedDayStart);
+      const result = await listManualMealsPage({
+        page: 1,
+        pageSize: MENU_MEAL_LIMIT,
+        startDate: selectedDayStart,
+        endDate: selectedDayEnd,
+      });
+
+      setTodayMeals(result.items);
+    } catch {
+      setTodayMeals([]);
+    } finally {
+      setIsLoadingTodayMeals(false);
+    }
+  }, [selectedDayEnd, selectedDayStart]);
+
   useEffect(() => {
     if (sheetState !== 'opening') {
       return;
@@ -96,8 +228,74 @@ export function AddMealSourceBottomSheet({
     setRecentFoods([]);
     setRecentPage(1);
     setHasNextRecentPage(false);
+    setTodayMeals([]);
     void loadRecentFoods(1, false);
-  }, [loadRecentFoods, sheetState]);
+    void loadTodayMeals();
+  }, [loadRecentFoods, loadTodayMeals, sheetState]);
+
+  useEffect(() => {
+    if (sheetState === 'closed') {
+      setPendingMenuMeal(null);
+    }
+  }, [sheetState]);
+
+  const handleMenuMealPress = useCallback((meal: ManualMeal) => {
+    setPendingMenuMeal(meal);
+  }, []);
+
+  const handleConfirmMenuMeal = useCallback(() => {
+    if (!pendingMenuMeal) {
+      return;
+    }
+
+    void (async () => {
+      try {
+        const mealTitle = pendingMenuMeal.name;
+        const nowIso = new Date().toISOString();
+
+        for (const item of pendingMenuMeal.items) {
+          const servings = Math.max(1, item.servings);
+          const quantityGrams =
+            item.quantityGrams !== null && item.quantityGrams !== undefined
+              ? item.quantityGrams * servings
+              : null;
+
+          await createFoodEntry({
+            barcode: item.sourceKey?.startsWith('barcode:')
+              ? item.sourceKey.replace('barcode:', '')
+              : null,
+            mealName: item.title,
+            quantityLabel: formatMealWeight(
+              quantityGrams,
+              item.quantityLabel,
+              t('common.units.gram')
+            ),
+            quantityGrams,
+            totalCalories: item.totalCalories * servings,
+            proteinGrams: item.proteinGrams * servings,
+            carbsGrams: item.carbsGrams * servings,
+            fatGrams: item.fatGrams * servings,
+            notes: item.notes,
+            imageUri: item.imageUri,
+            thumbnailUri: item.thumbnailUri,
+            consumedAt: nowIso,
+            entryDate: nowIso,
+          });
+        }
+
+        markFoodEntriesChanged();
+        toast.success(
+          t('addScreen.menuToday.loggedSuccess', {
+            mealName: mealTitle,
+          })
+        );
+        setPendingMenuMeal(null);
+        closeSheet();
+      } catch {
+        toast.error(t('addScreen.menuToday.saveFailed'));
+      }
+    })();
+  }, [closeSheet, markFoodEntriesChanged, pendingMenuMeal, t]);
 
   const handleLoadMoreRecentFoods = useCallback(() => {
     if (isLoadingRecentFoods || isLoadingMoreRecentFoods || !hasNextRecentPage) {
@@ -144,7 +342,93 @@ export function AddMealSourceBottomSheet({
     [recentFoods]
   );
 
+  const todayMealChips = useMemo<TodayMealChip[]>(
+    () =>
+      [...todayMeals]
+        .sort((left, right) => {
+          const leftOrder = MENU_TODAY_MEAL_ORDER[left.mealType] ?? MENU_TODAY_MEAL_ORDER.other;
+          const rightOrder = MENU_TODAY_MEAL_ORDER[right.mealType] ?? MENU_TODAY_MEAL_ORDER.other;
+
+          if (leftOrder !== rightOrder) {
+            return leftOrder - rightOrder;
+          }
+
+          return left.eatenAt.localeCompare(right.eatenAt);
+        })
+        .map((meal) => ({
+          key: meal.localId,
+          meal,
+          mealType: meal.mealType,
+          title: getTodayMealTitle(t, meal),
+          subtitle: t('addScreen.menuToday.itemSummary', { count: meal.items.length }),
+          itemCount: meal.items.length,
+          calories: `${Math.round(meal.totalCalories)} kcal`,
+        })),
+    [t, todayMeals]
+  );
+
   let recentFoodsContent: ReactNode;
+  let todayMealsContent: ReactNode;
+
+  if (isLoadingTodayMeals) {
+    todayMealsContent = (
+      <View style={styles.recentLoadingState}>
+        <Loading size="small" />
+      </View>
+    );
+  } else if (todayMealChips.length === 0) {
+    todayMealsContent = (
+      <View style={styles.recentEmptyState}>
+        <View style={styles.recentEmptyIcon}>
+          <Icon name="restaurant-outline" size={22} variant="primary" />
+        </View>
+        <View style={styles.recentEmptyCopy}>
+          <Text variant="bodySmall" weight="semibold">
+            {t('addScreen.menuToday.emptyTitle')}
+          </Text>
+          <Text variant="caption" color="secondary">
+            {t('addScreen.menuToday.emptySubtitle')}
+          </Text>
+        </View>
+      </View>
+    );
+  } else {
+    todayMealsContent = (
+      <ScrollView
+        horizontal
+        keyboardShouldPersistTaps="handled"
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.recentList}
+      >
+        {todayMealChips.map((item) => (
+          <Pressable
+            key={item.key}
+            accessibilityRole="button"
+            accessibilityLabel={item.title}
+            onPress={() => handleMenuMealPress(item.meal)}
+            style={styles.mealChip}
+          >
+            <View style={styles.mealThumb}>
+              <Icon
+                name={getMealTypeIconName(item.mealType)}
+                size={20}
+                variant={getMealTypeIconVariant(item.mealType)}
+                color={item.mealType === 'dinner' ? theme.colors.text.primary : undefined}
+              />
+            </View>
+            <View style={styles.recentCopy}>
+              <Text variant="bodySmall" weight="semibold" numberOfLines={1}>
+                {item.title}
+              </Text>
+              <Text variant="caption" color="secondary" numberOfLines={1}>
+                {`${item.subtitle} · ${item.calories}`}
+              </Text>
+            </View>
+          </Pressable>
+        ))}
+      </ScrollView>
+    );
+  }
 
   if (isLoadingRecentFoods) {
     recentFoodsContent = (
@@ -297,8 +581,30 @@ export function AddMealSourceBottomSheet({
             <Icon name="chevron-forward" size={16} color={theme.colors.icon.primary} />
           </Pressable>
         </View>
-
         {recentFoodsContent}
+
+        <View style={styles.menuTodayHeader}>
+          <Text variant="body" weight="semibold">
+            {t('addScreen.menuToday.title')}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('addScreen.menuToday.viewMenu')}
+            onPress={() => {
+              handleSelect(() => {
+                router.push('/menu');
+              });
+            }}
+            style={styles.viewAllButton}
+          >
+            <Text variant="bodySmall" weight="semibold" color="primary">
+              {t('addScreen.menuToday.viewMenu')}
+            </Text>
+            <Icon name="chevron-forward" size={16} color={theme.colors.icon.primary} />
+          </Pressable>
+        </View>
+
+        {todayMealsContent}
       </View>
     ),
     [
@@ -306,11 +612,77 @@ export function AddMealSourceBottomSheet({
       onViewAllRecentPress,
       options,
       recentFoodsContent,
+      todayMealsContent,
       t,
       theme.colors.brand.primaryVariant,
       theme.colors.icon.primary,
+      router,
     ]
   );
+
+  const menuMealDialog = useMemo(() => {
+    if (!pendingMenuMeal) {
+      return null;
+    }
+
+    return (
+      <Dialog
+        visible
+        onDismiss={() => setPendingMenuMeal(null)}
+        title={t('addScreen.menuToday.alertTitle')}
+        message={t('addScreen.menuToday.alertMessage')}
+        actions={[
+          {
+            label: t('common.cancel'),
+            variant: 'outline',
+            onPress: () => setPendingMenuMeal(null),
+          },
+          {
+            label: t('addScreen.menuToday.confirmAction'),
+            onPress: handleConfirmMenuMeal,
+          },
+        ]}
+        keyboardAware
+      >
+        <View style={styles.menuMealDialogContent}>
+          <View style={styles.menuMealDialogSummary}>
+            <Icon
+              name={getMealTypeIconName(pendingMenuMeal.mealType)}
+              size={20}
+              variant={getMealTypeIconVariant(pendingMenuMeal.mealType)}
+              color={pendingMenuMeal.mealType === 'dinner' ? theme.colors.text.primary : undefined}
+            />
+            <View style={styles.menuMealDialogSummaryCopy}>
+              <Text variant="bodySmall" weight="semibold">
+                {getTodayMealTitle(t, pendingMenuMeal)}
+              </Text>
+              <Text variant="caption" color="secondary">
+                {getMealTypeLabel(t, pendingMenuMeal.mealType)} ·{' '}
+                {t('addScreen.menuToday.itemSummary', {
+                  count: pendingMenuMeal.items.length,
+                })}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.menuMealDialogItems}>
+            {pendingMenuMeal.items.map((item) => (
+              <View key={item.localId} style={styles.menuMealDialogItem}>
+                <Text variant="bodySmall" weight="semibold" numberOfLines={1}>
+                  {item.title}
+                </Text>
+                <Text variant="caption" color="secondary" numberOfLines={1}>
+                  {formatMealWeight(item.quantityGrams, item.quantityLabel, t('common.units.gram'))}
+                  {' · '}
+                  {`${Math.round(item.totalCalories)} ${t('common.units.kcal')}`}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </Dialog>
+    );
+  }, [handleConfirmMenuMeal, pendingMenuMeal, t, theme.colors.text.primary]);
 
   useEffect(() => {
     if (sheetState === 'closed') {
@@ -318,14 +690,14 @@ export function AddMealSourceBottomSheet({
     }
 
     openSheet(sheetContent, {
-      snapPoints: ['80%', '100%'],
+      snapPoints: ['100%'],
       containerVariant: 'scroll',
       enablePanDownToClose: true,
       onDismiss: handleDismiss,
     });
   }, [handleDismiss, openSheet, sheetContent, sheetState]);
 
-  return null;
+  return menuMealDialog;
 }
 
 function AddMealSourceOption({

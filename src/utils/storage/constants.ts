@@ -23,5 +23,6 @@ export const STORAGE_KEYS = {
   app: {
     lastVersion: 'app_last_version',
     launchCount: 'app_launch_count',
+    homeAiReviewHistory: 'home_ai_review_history',
   },
 } as const;

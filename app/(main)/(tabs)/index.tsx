@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { TFunction } from 'i18next';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionList, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -9,6 +10,7 @@ import {
   Button,
   Card,
   Icon,
+  Loading,
   MonthSelector,
   ProgressBar,
   ScreenContainer,
@@ -18,7 +20,17 @@ import { GoalTrackingCard } from '@/features/nutrition/components/GoalTrackingCa
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
 import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import { getFoodEntryImageSyncStateMap } from '@/features/nutrition/services/foodEntrySyncQueue';
+import {
+  analyzeHomeNutritionWithGemini,
+  type HomeNutritionReviewDraft,
+} from '@/features/nutrition/services/geminiHomeNutritionReview';
 import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
+import {
+  getLatestHomeAiReviewHistoryRecord,
+  getHomeAiReviewHistoryRecords,
+  saveHomeAiReviewHistoryRecord,
+  type HomeAiReviewHistoryRecord,
+} from '@/features/nutrition/services/homeAiReviewHistoryStorage';
 import {
   deleteFoodEntry,
   getDailyNutritionSummary,
@@ -26,15 +38,17 @@ import {
   listFoodEntriesByDate,
   listLoggedDailyStatuses,
 } from '@/features/nutrition/services/nutritionDatabase';
-import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
+import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
 import type {
   DailyNutritionSummary,
   FoodEntry,
   GoalTrackingSnapshot,
   UserProfile,
 } from '@/features/nutrition/types';
+import { formatDateKey } from '@/features/nutrition/utils/calorie';
 import { useBottomPadding, useCurrentDate, useScreenDimensions } from '@/hooks';
 import { useAppAlert } from '@/providers/app-alert';
+import { useAppBottomSheet } from '@/providers/bottom-sheet';
 import { vs } from '@/theme/metrics';
 import { toast } from '@/utils/toast';
 
@@ -46,6 +60,20 @@ interface MealSection {
 type FoodEntryWithSyncDebug = FoodEntry & {
   devSyncBadgeLabel?: string | null;
 };
+
+type HomeAiReviewState =
+  | {
+      status: 'idle' | 'loading';
+    }
+  | {
+      status: 'ready';
+      review: HomeNutritionReviewDraft;
+      assistantMessage: string | null;
+    }
+  | {
+      status: 'need_more_info' | 'unsupported' | 'error';
+      message: string;
+    };
 
 function toDevSyncBadgeLabel(
   imageUri: string | null | undefined,
@@ -111,6 +139,141 @@ function createEmptySummary(date: Date): DailyNutritionSummary {
 
 function formatNumber(value: number, locale: string) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatReviewDateLabel(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(date);
+}
+
+function formatReviewTimeLabel(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
+function parseLocalDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split('-').map((value) => Number(value));
+
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day) ||
+    month <= 0 ||
+    month > 12 ||
+    day <= 0 ||
+    day > 31
+  ) {
+    return new Date(dateKey);
+  }
+
+  return new Date(year, month - 1, day);
+}
+
+function groupHomeAiReviewHistory(records: HomeAiReviewHistoryRecord[]) {
+  const grouped = new Map<string, HomeAiReviewHistoryRecord[]>();
+
+  for (const record of records) {
+    const list = grouped.get(record.reviewDateKey);
+    if (list) {
+      list.push(record);
+      continue;
+    }
+
+    grouped.set(record.reviewDateKey, [record]);
+  }
+
+  return Array.from(grouped, ([dateKey, items]) => ({ dateKey, items }));
+}
+
+function getHomeAiReviewRecordTitle(record: HomeAiReviewHistoryRecord, t: TFunction): string {
+  if (record.status === 'ready') {
+    return record.review?.title ?? t('homeScreen.aiReview.errorTitle');
+  }
+
+  return getHomeAiReviewStatusTitle(t, record.status === 'error' ? 'error' : record.status);
+}
+
+function getHomeAiReviewRecordSummary(record: HomeAiReviewHistoryRecord, t: TFunction): string {
+  if (record.status === 'ready') {
+    return record.review?.summary ?? t('homeScreen.aiReview.generateFailed');
+  }
+
+  return (
+    record.assistantMessage ??
+    (record.status === 'error'
+      ? t('homeScreen.aiReview.generateFailed')
+      : t('homeScreen.aiReview.noEnoughDataFallback'))
+  );
+}
+
+function getGoalTrackingCalorieLabel(t: TFunction, mode: 'lose' | 'gain' | 'maintain') {
+  switch (mode) {
+    case 'lose':
+      return t('goalTracking.calorieDeficitLabel');
+    case 'gain':
+      return t('goalTracking.calorieSurplusLabel');
+    case 'maintain':
+    default:
+      return t('goalTracking.calorieDifferenceLabel');
+  }
+}
+
+function getHomeAiReviewStatusTitle(
+  t: TFunction,
+  status: 'error' | 'need_more_info' | 'unsupported'
+) {
+  switch (status) {
+    case 'error':
+      return t('homeScreen.aiReview.errorTitle');
+    case 'need_more_info':
+      return t('homeScreen.aiReview.needMoreInfoTitle');
+    case 'unsupported':
+      return t('homeScreen.aiReview.unsupportedTitle');
+  }
+}
+
+function getHomeAiReviewAccentColors(
+  theme: ReturnType<typeof useUnistyles>['theme'],
+  status: HomeAiReviewState['status']
+) {
+  if (status === 'ready') {
+    return {
+      iconColor: theme.colors.state.success,
+      accentColor: theme.colors.state.success,
+      accentBg: theme.colors.state.successBg,
+      softBg: theme.colors.state.successBg,
+    };
+  }
+
+  if (status === 'need_more_info') {
+    return {
+      iconColor: theme.colors.state.warning,
+      accentColor: theme.colors.state.warning,
+      accentBg: theme.colors.state.warningBg,
+      softBg: theme.colors.state.warningBg,
+    };
+  }
+
+  if (status === 'unsupported') {
+    return {
+      iconColor: theme.colors.state.info,
+      accentColor: theme.colors.state.info,
+      accentBg: theme.colors.state.infoBg,
+      softBg: theme.colors.state.infoBg,
+    };
+  }
+
+  return {
+    iconColor: theme.colors.state.success,
+    accentColor: theme.colors.state.success,
+    accentBg: theme.colors.state.successBg,
+    softBg: theme.colors.state.successBg,
+  };
 }
 
 function getMacroProgress(value: number, target: number) {
@@ -233,6 +396,7 @@ export default function HomeTab() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
   const appAlert = useAppAlert();
+  const { openSheet, closeSheet } = useAppBottomSheet();
   const bottomPadding = useBottomPadding();
   const currentDate = useCurrentDate();
   const previousCurrentDateRef = useRef(currentDate);
@@ -248,6 +412,19 @@ export default function HomeTab() {
   const [hasProfile, setHasProfile] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
+  const [homeAiReviewState, setHomeAiReviewState] = useState<HomeAiReviewState>({
+    status: 'idle',
+  });
+  const [homeAiReviewDateKey, setHomeAiReviewDateKey] = useState<string | null>(null);
+  const [homeAiReviewSheetMode, setHomeAiReviewSheetMode] = useState<'review' | 'history'>(
+    'review'
+  );
+  const [homeAiReviewHistoryRecords, setHomeAiReviewHistoryRecords] = useState<
+    HomeAiReviewHistoryRecord[]
+  >([]);
+  const [isHomeAiReviewSheetOpen, setIsHomeAiReviewSheetOpen] = useState(false);
+  const foodEntryRefreshRevision = useFoodEntryRefreshStore((state) => state.refreshRevision);
+  const lastFoodEntryRefreshRevisionRef = useRef(foodEntryRefreshRevision);
 
   useEffect(() => {
     const previousCurrentDate = previousCurrentDateRef.current;
@@ -294,6 +471,491 @@ export default function HomeTab() {
     );
   }, []);
 
+  const closeHomeAiReviewSheet = useCallback(() => {
+    closeSheet();
+    setIsHomeAiReviewSheetOpen(false);
+    setHomeAiReviewSheetMode('review');
+  }, [closeSheet]);
+
+  const applyHomeAiReviewRecord = useCallback(
+    (record: HomeAiReviewHistoryRecord) => {
+      setHomeAiReviewDateKey(record.reviewDateKey);
+
+      if (record.status === 'ready' && record.review) {
+        setHomeAiReviewState({
+          status: 'ready',
+          review: record.review,
+          assistantMessage: record.assistantMessage,
+        });
+        return;
+      }
+
+      if (record.status === 'error') {
+        setHomeAiReviewState({
+          status: 'error',
+          message: record.assistantMessage ?? t('homeScreen.aiReview.generateFailed'),
+        });
+        return;
+      }
+
+      if (record.status === 'unsupported' || record.status === 'need_more_info') {
+        setHomeAiReviewState({
+          status: record.status,
+          message: record.assistantMessage ?? t('homeScreen.aiReview.noEnoughDataFallback'),
+        });
+      }
+    },
+    [t]
+  );
+
+  const refreshHomeAiReviewHistory = useCallback(() => {
+    setHomeAiReviewHistoryRecords(getHomeAiReviewHistoryRecords());
+  }, []);
+
+  const handleOpenHomeAiReviewHistory = useCallback(() => {
+    refreshHomeAiReviewHistory();
+    setHomeAiReviewSheetMode('history');
+    setIsHomeAiReviewSheetOpen(true);
+  }, [refreshHomeAiReviewHistory]);
+
+  const openHomeAiReviewRecord = useCallback(
+    (record: HomeAiReviewHistoryRecord) => {
+      applyHomeAiReviewRecord(record);
+      setHomeAiReviewSheetMode('review');
+      setIsHomeAiReviewSheetOpen(true);
+    },
+    [applyHomeAiReviewRecord]
+  );
+
+  const homeAiReviewHistorySections = useMemo(
+    () => groupHomeAiReviewHistory(homeAiReviewHistoryRecords),
+    [homeAiReviewHistoryRecords]
+  );
+
+  const buildHomeAiReviewContext = useCallback(() => {
+    const selectedDateLabel = formatReviewDateLabel(selectedDate, i18n.language);
+    const selectedDateIso = selectedDate.toISOString();
+    const reviewEntries = entries.slice(0, 12).map((entry) => ({
+      timeLabel: formatTimeLabel(entry.consumedAt),
+      mealName: entry.mealName,
+      calories: Math.round(entry.totalCalories),
+      proteinGrams: Math.round(entry.proteinGrams),
+      carbsGrams: Math.round(entry.carbsGrams),
+      fatGrams: Math.round(entry.fatGrams),
+      quantityLabel: entry.quantityLabel,
+    }));
+
+    return {
+      selectedDateLabel,
+      selectedDateIso,
+      summary: {
+        consumedCalories: summary.consumedCalories,
+        calorieTarget: summary.calorieTarget,
+        remainingCalories: summary.remainingCalories,
+        progressPercent: summary.progressPercent,
+        proteinGrams: summary.proteinGrams,
+        carbsGrams: summary.carbsGrams,
+        fatGrams: summary.fatGrams,
+      },
+      goalTracking: goalTracking?.activeGoal
+        ? {
+            activeGoalTitle: t('goalTracking.activeTitle'),
+            progressPercent: goalTracking.activeGoal.progressPercent,
+            currentStreak: goalTracking.currentStreak,
+            calorieDifferenceLabel: getGoalTrackingCalorieLabel(
+              t,
+              goalTracking.activeGoal.goal.mode
+            ),
+          }
+        : null,
+      entries: reviewEntries,
+      locale: i18n.language,
+    };
+  }, [entries, goalTracking, i18n.language, selectedDate, summary, t]);
+
+  const generateHomeAiReview = useCallback(async () => {
+    try {
+      const result = await analyzeHomeNutritionWithGemini(buildHomeAiReviewContext());
+      const savedRecord = saveHomeAiReviewHistoryRecord({
+        reviewDate: selectedDate,
+        status: result.status,
+        review: result.status === 'ready' ? result.review : null,
+        assistantMessage: result.assistantMessage,
+      });
+
+      if (result.status === 'ready') {
+        applyHomeAiReviewRecord(savedRecord);
+        refreshHomeAiReviewHistory();
+        return;
+      }
+
+      applyHomeAiReviewRecord(savedRecord);
+      refreshHomeAiReviewHistory();
+    } catch (error) {
+      const rawMessage =
+        error instanceof Error ? error.message : t('homeScreen.aiReview.generateFailed');
+      let message = rawMessage;
+      if (rawMessage.includes('Daily AI usage limit reached')) {
+        message = t('common.aiQuotaExceeded');
+      } else if (
+        rawMessage.includes('Authentication required') ||
+        rawMessage.includes('Unauthorized')
+      ) {
+        message = t('common.signInRequired');
+      }
+      const savedRecord = saveHomeAiReviewHistoryRecord({
+        reviewDate: selectedDate,
+        status: 'error',
+        review: null,
+        assistantMessage: message,
+      });
+      applyHomeAiReviewRecord(savedRecord);
+      refreshHomeAiReviewHistory();
+    }
+  }, [
+    applyHomeAiReviewRecord,
+    buildHomeAiReviewContext,
+    refreshHomeAiReviewHistory,
+    selectedDate,
+    t,
+  ]);
+
+  const handleOpenHomeAiReview = useCallback(() => {
+    if (!isSameCalendarDate(selectedDate, currentDate)) {
+      toast.info(t('homeScreen.aiReview.todayOnly'));
+      return;
+    }
+
+    const latestRecord = getLatestHomeAiReviewHistoryRecord(selectedDate);
+    if (latestRecord) {
+      applyHomeAiReviewRecord(latestRecord);
+      refreshHomeAiReviewHistory();
+      setHomeAiReviewSheetMode('review');
+      setIsHomeAiReviewSheetOpen(true);
+      return;
+    }
+
+    setHomeAiReviewDateKey(formatDateKey(selectedDate));
+    setHomeAiReviewSheetMode('review');
+    setIsHomeAiReviewSheetOpen(true);
+    setHomeAiReviewState({ status: 'loading' });
+  }, [applyHomeAiReviewRecord, currentDate, refreshHomeAiReviewHistory, selectedDate, t]);
+
+  useEffect(() => {
+    if (!isHomeAiReviewSheetOpen) {
+      return;
+    }
+
+    const isHistoryMode = homeAiReviewSheetMode === 'history';
+    const displayDateKey = homeAiReviewDateKey ?? formatDateKey(selectedDate);
+    const displayDate = parseLocalDateKey(displayDateKey);
+    const isTodayReview = displayDateKey === formatDateKey(currentDate);
+    const reviewColors = getHomeAiReviewAccentColors(theme, homeAiReviewState.status);
+    let reviewMoodTitle = t('homeScreen.aiReview.loading');
+    if (homeAiReviewState.status === 'ready') {
+      reviewMoodTitle = homeAiReviewState.review.title;
+    } else if (homeAiReviewState.status === 'need_more_info') {
+      reviewMoodTitle = t('homeScreen.aiReview.needMoreInfoTitle');
+    } else if (homeAiReviewState.status === 'unsupported') {
+      reviewMoodTitle = t('homeScreen.aiReview.unsupportedTitle');
+    }
+
+    let aiReviewBody: ReactNode;
+    if (isHistoryMode) {
+      if (homeAiReviewHistorySections.length > 0) {
+        aiReviewBody = (
+          <View style={styles.aiReviewHistoryList}>
+            {homeAiReviewHistorySections.map((section) => {
+              const sectionDate = parseLocalDateKey(section.dateKey);
+
+              return (
+                <View key={section.dateKey} style={styles.aiReviewHistorySection}>
+                  <Text variant="bodySmall" weight="bold">
+                    {formatReviewDateLabel(sectionDate, i18n.language)}
+                  </Text>
+                  <View style={styles.aiReviewHistorySectionItems}>
+                    {section.items.map((record) => (
+                      <Card
+                        key={record.id}
+                        pressable
+                        variant="outlined"
+                        onPress={() => {
+                          openHomeAiReviewRecord(record);
+                        }}
+                        style={styles.aiReviewHistoryItem}
+                      >
+                        <View style={styles.aiReviewHistoryItemTopRow}>
+                          <Text variant="caption" color="secondary">
+                            {formatReviewTimeLabel(new Date(record.createdAt), i18n.language)}
+                          </Text>
+                          <Text variant="bodySmall" weight="bold">
+                            {getHomeAiReviewRecordTitle(record, t)}
+                          </Text>
+                        </View>
+                        <Text variant="bodySmall" color="secondary">
+                          {getHomeAiReviewRecordSummary(record, t)}
+                        </Text>
+                      </Card>
+                    ))}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        );
+      } else {
+        aiReviewBody = (
+          <Card variant="elevated" style={styles.aiReviewEmptyCard}>
+            <Text variant="bodySmall" weight="bold">
+              {t('homeScreen.aiReview.historyEmpty')}
+            </Text>
+          </Card>
+        );
+      }
+    } else {
+      const homeAiReviewMessage =
+        homeAiReviewState.status === 'error' ||
+        homeAiReviewState.status === 'need_more_info' ||
+        homeAiReviewState.status === 'unsupported'
+          ? homeAiReviewState.message
+          : '';
+      let homeAiReviewEmptyTitle = t('homeScreen.aiReview.errorTitle');
+      if (
+        homeAiReviewState.status === 'error' ||
+        homeAiReviewState.status === 'need_more_info' ||
+        homeAiReviewState.status === 'unsupported'
+      ) {
+        homeAiReviewEmptyTitle = getHomeAiReviewStatusTitle(t, homeAiReviewState.status);
+      }
+
+      if (homeAiReviewState.status === 'loading') {
+        aiReviewBody = (
+          <View style={styles.aiReviewLoadingState}>
+            <Card variant="outlined" style={styles.aiReviewIntroCard}>
+              <View style={[styles.aiReviewIntroIcon, { backgroundColor: reviewColors.softBg }]}>
+                <Icon name="document-text-outline" size={20} color={reviewColors.iconColor} />
+              </View>
+              <View style={styles.aiReviewIntroCopy}>
+                <Text variant="body" weight="semibold">
+                  {t('homeScreen.aiReview.loading')}
+                </Text>
+                <Text variant="bodySmall" color="secondary">
+                  {t('homeScreen.aiReview.subtitle')}
+                </Text>
+              </View>
+              <View style={styles.aiReviewIntroChevron}>
+                <Loading size="small" />
+              </View>
+            </Card>
+          </View>
+        );
+      } else if (homeAiReviewState.status === 'ready') {
+        aiReviewBody = (
+          <View style={styles.aiReviewResult}>
+            <Card variant="outlined" style={styles.aiReviewSummaryCard}>
+              <View style={styles.aiReviewSummaryCopy}>
+                <Text variant="body" weight="bold">
+                  {reviewMoodTitle}
+                </Text>
+                <Text variant="bodySmall" color="secondary">
+                  {homeAiReviewState.review.summary}
+                </Text>
+              </View>
+            </Card>
+
+            {homeAiReviewState.review.strengths.length > 0 ? (
+              <Card variant="outlined" style={styles.aiReviewListBlock}>
+                <View style={styles.aiReviewListHeader}>
+                  <Icon
+                    name="checkmark-circle-outline"
+                    size={22}
+                    color={theme.colors.state.success}
+                  />
+                  <Text variant="bodySmall" weight="bold" color="primary">
+                    {t('homeScreen.aiReview.strengths')}
+                  </Text>
+                </View>
+                <View style={styles.aiReviewBulletList}>
+                  {homeAiReviewState.review.strengths.map((item, index) => (
+                    <View key={`${item}-${index}`} style={styles.aiReviewBulletRow}>
+                      <View style={[styles.aiReviewBulletDot, styles.aiReviewBulletDotSuccess]} />
+                      <Text variant="bodySmall" color="secondary" style={styles.aiReviewBulletText}>
+                        {item}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </Card>
+            ) : null}
+
+            {homeAiReviewState.review.improvements.length > 0 ? (
+              <Card variant="outlined" style={styles.aiReviewListBlock}>
+                <View style={styles.aiReviewListHeader}>
+                  <Icon name="warning-outline" size={22} color={theme.colors.state.warning} />
+                  <Text variant="bodySmall" weight="bold" color="primary">
+                    {t('homeScreen.aiReview.improvements')}
+                  </Text>
+                </View>
+                <View style={styles.aiReviewBulletList}>
+                  {homeAiReviewState.review.improvements.map((item, index) => (
+                    <View key={`${item}-${index}`} style={styles.aiReviewBulletRow}>
+                      <View style={[styles.aiReviewBulletDot, styles.aiReviewBulletDotWarning]} />
+                      <Text variant="bodySmall" color="secondary" style={styles.aiReviewBulletText}>
+                        {item}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </Card>
+            ) : null}
+
+            {homeAiReviewState.review.nextAction ? (
+              <Card
+                variant="outlined"
+                style={[styles.aiReviewActionCard, styles.aiReviewNextActionCard]}
+              >
+                <View style={styles.aiReviewListHeader}>
+                  <Icon name="bulb-outline" size={22} color={theme.colors.state.warning} />
+                  <Text variant="bodySmall" weight="bold" color="primary">
+                    {t('homeScreen.aiReview.nextAction')}
+                  </Text>
+                </View>
+                <Text variant="bodySmall" color="secondary">
+                  {homeAiReviewState.review.nextAction}
+                </Text>
+              </Card>
+            ) : null}
+
+            {homeAiReviewState.assistantMessage ? (
+              <Text variant="caption" color="secondary">
+                {homeAiReviewState.assistantMessage}
+              </Text>
+            ) : null}
+          </View>
+        );
+      } else {
+        aiReviewBody = (
+          <Card variant="elevated" style={styles.aiReviewEmptyCard}>
+            <Text variant="bodySmall" weight="bold">
+              {homeAiReviewEmptyTitle}
+            </Text>
+            <Text variant="bodySmall" color="secondary">
+              {homeAiReviewMessage}
+            </Text>
+          </Card>
+        );
+      }
+    }
+
+    openSheet(
+      <View style={styles.aiReviewSheetContent}>
+        <View style={styles.aiReviewHeader}>
+          <View style={styles.aiReviewHeaderCopy}>
+            <Text variant="h3" weight="bold">
+              {isHistoryMode
+                ? t('homeScreen.aiReview.historyTitle')
+                : t('homeScreen.aiReview.title')}
+            </Text>
+            <Text variant="bodySmall" color="secondary">
+              {isHistoryMode
+                ? t('homeScreen.aiReview.historySubtitle')
+                : t('homeScreen.aiReview.subtitle')}
+            </Text>
+          </View>
+          {isHistoryMode ? (
+            <Button
+              title={t('homeScreen.aiReview.backToReview')}
+              variant="ghost"
+              size="sm"
+              leftIcon={
+                <Icon name="chevron-back-outline" size={16} color={theme.colors.text.primary} />
+              }
+              onPress={() => {
+                setHomeAiReviewSheetMode('review');
+              }}
+            />
+          ) : (
+            <Button
+              title={t('homeScreen.aiReview.history')}
+              variant="ghost"
+              size="sm"
+              rightIcon={
+                <Icon name="chevron-forward-outline" size={16} color={theme.colors.brand.primary} />
+              }
+              onPress={handleOpenHomeAiReviewHistory}
+            />
+          )}
+        </View>
+
+        {isHistoryMode ? null : (
+          <View style={styles.aiReviewDatePill}>
+            <Text variant="caption" weight="semibold" color="secondary">
+              {formatReviewDateLabel(displayDate, i18n.language)}
+            </Text>
+          </View>
+        )}
+
+        {aiReviewBody}
+
+        <View style={styles.aiReviewActions}>
+          {!isHistoryMode && homeAiReviewState.status !== 'loading' && isTodayReview ? (
+            <Button
+              title={t('homeScreen.aiReview.retry')}
+              variant="outline"
+              size="sm"
+              leftIcon={
+                <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
+              }
+              onPress={() => {
+                setHomeAiReviewState({ status: 'loading' });
+              }}
+            />
+          ) : null}
+          <Button
+            title={t('common.close')}
+            variant="ghost"
+            size="sm"
+            onPress={closeHomeAiReviewSheet}
+          />
+        </View>
+      </View>,
+      {
+        snapPoints: ['90%', '100%'],
+        containerVariant: 'scroll',
+        enablePanDownToClose: true,
+        onDismiss: closeHomeAiReviewSheet,
+      }
+    );
+  }, [
+    closeHomeAiReviewSheet,
+    currentDate,
+    handleOpenHomeAiReviewHistory,
+    homeAiReviewDateKey,
+    homeAiReviewHistorySections,
+    homeAiReviewSheetMode,
+    homeAiReviewState,
+    i18n.language,
+    isHomeAiReviewSheetOpen,
+    openSheet,
+    openHomeAiReviewRecord,
+    selectedDate,
+    summary.calorieTarget,
+    summary.consumedCalories,
+    summary.progressPercent,
+    t,
+    theme.colors.brand.primaryVariant,
+    theme.colors.text.primary,
+    theme,
+  ]);
+
+  useEffect(() => {
+    if (!isHomeAiReviewSheetOpen || homeAiReviewState.status !== 'loading') {
+      return;
+    }
+
+    void generateHomeAiReview();
+  }, [generateHomeAiReview, homeAiReviewState.status, isHomeAiReviewSheetOpen]);
+
   const handleDeleteEntry = useCallback(
     (meal: FoodEntryWithSyncDebug) => {
       appAlert.alert(
@@ -333,6 +995,16 @@ export default function HomeTab() {
       void loadMonthStatuses(visibleMonth);
     }, [loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth])
   );
+
+  useEffect(() => {
+    if (lastFoodEntryRefreshRevisionRef.current === foodEntryRefreshRevision) {
+      return;
+    }
+
+    lastFoodEntryRefreshRevisionRef.current = foodEntryRefreshRevision;
+    void loadNutritionData(selectedDate);
+    void loadMonthStatuses(visibleMonth);
+  }, [foodEntryRefreshRevision, loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth]);
 
   const mealSections = useMemo<MealSection[]>(() => {
     return entries.reduce<MealSection[]>((accumulator, entry) => {
@@ -397,6 +1069,7 @@ export default function HomeTab() {
       theme.colors.state.warningBg,
     ]
   );
+  const isTodaySelected = isSameCalendarDate(selectedDate, currentDate);
 
   return (
     <ScreenContainer padded={false} edges={['bottom']}>
@@ -575,20 +1248,19 @@ export default function HomeTab() {
                 </Text>
               </View>
               <Button
-                title={t('homeScreen.meals.addFood')}
-                variant="ghost"
+                title={t('homeScreen.meals.review')}
+                variant="outline"
                 size="sm"
-                rightIcon={
+                leftIcon={
                   <Icon
-                    name="chevron-forward"
+                    name="sparkles-outline"
                     size={16}
-                    color={theme.colors.brand.primary}
+                    color={theme.colors.text.primary}
                     variant="primary"
                   />
                 }
-                onPress={() => {
-                  useAddMealSourceSheetStore.getState().requestOpen();
-                }}
+                disabled={!isTodaySelected}
+                onPress={handleOpenHomeAiReview}
               />
             </View>
 
@@ -716,6 +1388,148 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
+  },
+  aiReviewSheetContent: {
+    gap: theme.metrics.spacingV.p16,
+    paddingBottom: theme.metrics.spacingV.p12,
+  },
+  aiReviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p16,
+  },
+  aiReviewHeaderCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  aiReviewIntroCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.xl,
+    padding: theme.metrics.spacing.p16,
+    backgroundColor: theme.colors.background.surface,
+  },
+  aiReviewIntroIcon: {
+    width: theme.metrics.spacing.p44,
+    height: theme.metrics.spacing.p44,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiReviewIntroCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  aiReviewIntroChevron: {
+    width: theme.metrics.spacing.p28,
+    alignItems: 'flex-end',
+  },
+  aiReviewDatePill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p4,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.background.section,
+  },
+  aiReviewLoadingState: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  aiReviewResult: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  aiReviewHistoryList: {
+    gap: theme.metrics.spacingV.p16,
+  },
+  aiReviewHistorySection: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  aiReviewHistorySectionItems: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  aiReviewHistoryItem: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  aiReviewHistoryItemTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  aiReviewListBlock: {
+    gap: theme.metrics.spacingV.p8,
+    padding: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
+  },
+  aiReviewBulletList: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  aiReviewBulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: theme.metrics.spacing.p8,
+  },
+  aiReviewBulletDot: {
+    width: theme.metrics.spacing.p4,
+    height: theme.metrics.spacing.p4,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.brand.primary,
+    marginTop: theme.metrics.spacingV.p8,
+  },
+  aiReviewBulletDotSuccess: {
+    backgroundColor: theme.colors.state.success,
+  },
+  aiReviewBulletDotWarning: {
+    backgroundColor: theme.colors.state.warning,
+  },
+  aiReviewBulletText: {
+    flex: 1,
+  },
+  aiReviewActionCard: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  aiReviewNextActionCard: {
+    backgroundColor: theme.colors.state.warningBg,
+    borderColor: theme.colors.state.warningBg,
+  },
+  aiReviewSummaryCard: {
+    borderRadius: theme.metrics.borderRadius.xl,
+    padding: theme.metrics.spacing.p16,
+    borderColor: theme.colors.border.default,
+  },
+  aiReviewSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: theme.metrics.spacing.p12,
+  },
+  aiReviewSummaryIcon: {
+    width: theme.metrics.spacing.p48,
+    height: theme.metrics.spacing.p48,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiReviewSummaryCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  aiReviewListHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+  },
+  aiReviewEmptyCard: {
+    gap: theme.metrics.spacingV.p4,
+  },
+  aiReviewActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: theme.metrics.spacing.p12,
+    flexWrap: 'wrap',
   },
   heroCard: {
     borderRadius: theme.metrics.borderRadius.xl,

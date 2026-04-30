@@ -675,9 +675,10 @@ export default function MenuTab() {
       requestAddMealSourceSheet({
         context: 'menuMeal',
         mealLocalId: meal.localId,
+        selectedDateIso: selectedDayStart.toISOString(),
       });
     },
-    [requestAddMealSourceSheet]
+    [requestAddMealSourceSheet, selectedDayStart]
   );
 
   const handleLoadMore = useCallback(() => {
@@ -816,6 +817,9 @@ export default function MenuTab() {
                       name={getMealIconName(section.meal.mealType)}
                       size={22}
                       variant={getMealIconVariant(section.meal.mealType)}
+                      color={
+                        section.meal.mealType === 'dinner' ? theme.colors.text.primary : undefined
+                      }
                     />
                   </View>
                   <View style={styles.sectionHeaderCopy}>

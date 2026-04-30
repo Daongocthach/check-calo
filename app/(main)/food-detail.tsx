@@ -36,6 +36,7 @@ import {
   updateFavoriteFood,
   updateFoodEntry,
 } from '@/features/nutrition/services/nutritionDatabase';
+import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
 import { formatMealWeight } from '@/features/nutrition/utils/quantity';
 import { toast } from '@/utils/toast';
 
@@ -310,6 +311,7 @@ export default function FoodDetailScreen() {
   const [detail, setDetail] = useState<FoodDetailData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [servings, setServings] = useState(1);
+  const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const dateTimeFieldRef = useRef<DateTimeFieldHandle>(null);
   const [editDialog, setEditDialog] = useState<FoodDetailEditState>({
     visible: false,
@@ -825,6 +827,7 @@ export default function FoodDetailScreen() {
         void processPendingFoodEntryImageSyncQueue();
       }
 
+      markFoodEntriesChanged();
       toast.success(t('foodDetail.saveSuccess'));
       router.replace('/');
     } finally {
@@ -843,6 +846,7 @@ export default function FoodDetailScreen() {
     itemLocalId,
     mealLocalId,
     shouldReuseFavorite,
+    markFoodEntriesChanged,
     t,
   ]);
 

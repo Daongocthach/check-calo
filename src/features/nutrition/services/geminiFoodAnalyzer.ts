@@ -10,6 +10,7 @@ interface ReceiptImagePayload {
 interface InvokeParserPayload {
   prompt: string;
   userMessage?: string | null;
+  purpose: 'food_photo';
   image?: ReceiptImagePayload;
 }
 
@@ -185,6 +186,7 @@ export async function analyzeFoodPhotoWithGemini(
   const rawText = await invokeGeminiFoodParser({
     prompt: buildFoodPrompt(userMessage),
     userMessage,
+    purpose: 'food_photo',
     image,
   });
 

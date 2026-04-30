@@ -37,6 +37,7 @@ import {
   updateFoodEntry,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealStore } from '@/features/nutrition/stores/useAddMealStore';
+import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
 import { formatMealWeight, parseMealWeightInput } from '@/features/nutrition/utils/quantity';
 import { useOpenCamera, useOpenImageLibrary } from '@/providers/camera';
 import { toast } from '@/utils/toast';
@@ -139,6 +140,7 @@ export default function FoodFormScreen() {
   const [servings, setServings] = useState(1);
   const addMealItem = useAddMealStore((state) => state.addItem);
   const updateMealItem = useAddMealStore((state) => state.updateItem);
+  const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const {
     control,
     handleSubmit,
@@ -423,6 +425,7 @@ export default function FoodFormScreen() {
             void processPendingFoodEntryImageSyncQueue();
           }
 
+          markFoodEntriesChanged();
           toast.success(t('addScreen.saveSuccess'));
           router.replace('/');
           return;
@@ -549,6 +552,7 @@ export default function FoodFormScreen() {
         void processPendingFoodEntryImageSyncQueue();
       }
 
+      markFoodEntriesChanged();
       router.back();
     } finally {
       setIsSaving(false);

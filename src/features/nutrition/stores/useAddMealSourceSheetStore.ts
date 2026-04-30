@@ -3,6 +3,7 @@ import { create } from 'zustand';
 export interface AddMealSourceSheetPayload {
   context?: 'addMeal' | 'menuMeal' | 'recentFood';
   mealLocalId?: string;
+  selectedDateIso?: string;
 }
 
 interface AddMealSourceSheetState {
