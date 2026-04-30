@@ -46,7 +46,7 @@ import type {
   GoalTrackingSnapshot,
   UserProfile,
 } from '@/features/nutrition/types';
-import { formatDateKey } from '@/features/nutrition/utils/calorie';
+import { formatDateKey, getWeightGoalMode } from '@/features/nutrition/utils/calorie';
 import { useBottomPadding, useCurrentDate, useScreenDimensions } from '@/hooks';
 import { useAppAlert } from '@/providers/app-alert';
 import { useAppBottomSheet } from '@/providers/bottom-sheet';
@@ -536,6 +536,18 @@ export default function HomeTab() {
   const buildHomeAiReviewContext = useCallback(() => {
     const selectedDateLabel = formatReviewDateLabel(selectedDate, i18n.language);
     const selectedDateIso = selectedDate.toISOString();
+    const goalMode = profile ? getWeightGoalMode(profile.monthlyWeightGoalKg) : 'maintain';
+    let goalLabel: string | null = null;
+
+    if (profile) {
+      if (goalMode === 'lose') {
+        goalLabel = t('menuScreen.review.goalMode.lose');
+      } else if (goalMode === 'gain') {
+        goalLabel = t('menuScreen.review.goalMode.gain');
+      } else {
+        goalLabel = t('menuScreen.review.goalMode.maintain');
+      }
+    }
     const reviewEntries = entries.slice(0, 12).map((entry) => ({
       timeLabel: formatTimeLabel(entry.consumedAt),
       mealName: entry.mealName,
@@ -549,6 +561,14 @@ export default function HomeTab() {
     return {
       selectedDateLabel,
       selectedDateIso,
+      targets: profile
+        ? {
+            calorieTarget: profile.dailyCalorieTarget,
+            proteinTargetGrams: profile.proteinTargetGrams,
+            carbsTargetGrams: profile.carbsTargetGrams,
+            fatTargetGrams: profile.fatTargetGrams,
+          }
+        : null,
       summary: {
         consumedCalories: summary.consumedCalories,
         calorieTarget: summary.calorieTarget,
@@ -558,6 +578,8 @@ export default function HomeTab() {
         carbsGrams: summary.carbsGrams,
         fatGrams: summary.fatGrams,
       },
+      goalMode,
+      goalLabel,
       goalTracking: goalTracking?.activeGoal
         ? {
             activeGoalTitle: t('goalTracking.activeTitle'),
@@ -572,7 +594,7 @@ export default function HomeTab() {
       entries: reviewEntries,
       locale: i18n.language,
     };
-  }, [entries, goalTracking, i18n.language, selectedDate, summary, t]);
+  }, [entries, goalTracking, i18n.language, profile, selectedDate, summary, t]);
 
   const generateHomeAiReview = useCallback(async () => {
     try {
@@ -764,31 +786,6 @@ export default function HomeTab() {
               </View>
             </Card>
 
-            {homeAiReviewState.review.strengths.length > 0 ? (
-              <Card variant="outlined" style={styles.aiReviewListBlock}>
-                <View style={styles.aiReviewListHeader}>
-                  <Icon
-                    name="checkmark-circle-outline"
-                    size={22}
-                    color={theme.colors.state.success}
-                  />
-                  <Text variant="bodySmall" weight="bold" color="primary">
-                    {t('homeScreen.aiReview.strengths')}
-                  </Text>
-                </View>
-                <View style={styles.aiReviewBulletList}>
-                  {homeAiReviewState.review.strengths.map((item, index) => (
-                    <View key={`${item}-${index}`} style={styles.aiReviewBulletRow}>
-                      <View style={[styles.aiReviewBulletDot, styles.aiReviewBulletDotSuccess]} />
-                      <Text variant="bodySmall" color="secondary" style={styles.aiReviewBulletText}>
-                        {item}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              </Card>
-            ) : null}
-
             {homeAiReviewState.review.improvements.length > 0 ? (
               <Card variant="outlined" style={styles.aiReviewListBlock}>
                 <View style={styles.aiReviewListHeader}>
@@ -807,23 +804,6 @@ export default function HomeTab() {
                     </View>
                   ))}
                 </View>
-              </Card>
-            ) : null}
-
-            {homeAiReviewState.review.nextAction ? (
-              <Card
-                variant="outlined"
-                style={[styles.aiReviewActionCard, styles.aiReviewNextActionCard]}
-              >
-                <View style={styles.aiReviewListHeader}>
-                  <Icon name="bulb-outline" size={22} color={theme.colors.state.warning} />
-                  <Text variant="bodySmall" weight="bold" color="primary">
-                    {t('homeScreen.aiReview.nextAction')}
-                  </Text>
-                </View>
-                <Text variant="bodySmall" color="secondary">
-                  {homeAiReviewState.review.nextAction}
-                </Text>
               </Card>
             ) : null}
 
@@ -1495,21 +1475,11 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.brand.primary,
     marginTop: theme.metrics.spacingV.p8,
   },
-  aiReviewBulletDotSuccess: {
-    backgroundColor: theme.colors.state.success,
-  },
   aiReviewBulletDotWarning: {
     backgroundColor: theme.colors.state.warning,
   },
   aiReviewBulletText: {
     flex: 1,
-  },
-  aiReviewActionCard: {
-    gap: theme.metrics.spacingV.p8,
-  },
-  aiReviewNextActionCard: {
-    backgroundColor: theme.colors.state.warningBg,
-    borderColor: theme.colors.state.warningBg,
   },
   aiReviewSummaryCard: {
     borderRadius: theme.metrics.borderRadius.xl,

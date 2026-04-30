@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { useUnistyles } from 'react-native-unistyles';
-import { Button, Card, Icon, Loading, Text } from '@/common/components';
+import { Button, Card, Dialog, Icon, IconButton, Loading, Text } from '@/common/components';
 import { NutritionReviewSheet } from '@/features/nutrition/components/NutritionReviewSheet/NutritionReviewSheet';
 import {
   analyzeHomeNutritionWithGemini,
@@ -15,13 +15,16 @@ import {
   type ManualMeal,
 } from '@/features/nutrition/services/manualMealsDatabase';
 import {
+  deleteMenuAiReviewHistoryRecord,
   getLatestMenuAiReviewHistoryRecord,
   getMenuAiReviewHistoryRecords,
   saveMenuAiReviewHistoryRecord,
   type MenuAiReviewHistoryRecord,
 } from '@/features/nutrition/services/menuAiReviewHistoryStorage';
+import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import { useMealPlanSuggestionSheetStore } from '@/features/nutrition/stores/useMealPlanSuggestionSheetStore';
 import type { MealType } from '@/features/nutrition/types';
+import { getDailyCalorieGoalState, getWeightGoalMode } from '@/features/nutrition/utils/calorie';
 import { useAppBottomSheet } from '@/providers/bottom-sheet';
 import { styles } from './MealPlanSuggestionSheet.styles';
 
@@ -35,7 +38,7 @@ interface MealPlanReviewContentProps {
     mealLocalId?: string;
     mealType?: MealType;
   } | null;
-  onClose: () => void;
+  onRequestClose: () => void;
 }
 
 interface ReviewStateIdle {
@@ -50,11 +53,6 @@ interface ReviewStateReady {
   status: 'ready';
   review: HomeNutritionReviewDraft;
   assistantMessage: string | null;
-  reviewedMealCount: number;
-  totalCalories: number;
-  totalProtein: number;
-  totalCarbs: number;
-  totalFat: number;
 }
 
 interface ReviewStateNeedsAttention {
@@ -67,6 +65,16 @@ type ReviewState =
   | ReviewStateLoading
   | ReviewStateReady
   | ReviewStateNeedsAttention;
+
+type ReviewTone = 'good' | 'warning' | 'attention';
+
+interface ReviewMetric {
+  key: 'calories' | 'protein' | 'carbs' | 'fat';
+  label: string;
+  current: number;
+  target: number;
+  unit: string;
+}
 
 const MEAL_PLAN_PAGE_SIZE = 20;
 
@@ -130,15 +138,48 @@ function getRecordTitle(record: MenuAiReviewHistoryRecord, t: TFunction) {
   return t('menuScreen.review.title');
 }
 
-function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps) {
+function formatPercent(value: number) {
+  return `${Math.max(0, Math.min(100, Math.round(value)))}%`;
+}
+
+function getGoalModeLabel(t: TFunction, goalMode: ReturnType<typeof getWeightGoalMode>) {
+  switch (goalMode) {
+    case 'lose':
+      return t('menuScreen.review.goalMode.lose');
+    case 'gain':
+      return t('menuScreen.review.goalMode.gain');
+    case 'maintain':
+    default:
+      return t('menuScreen.review.goalMode.maintain');
+  }
+}
+
+function getMetricLabel(t: TFunction, key: ReviewMetric['key']) {
+  switch (key) {
+    case 'calories':
+      return t('menuScreen.review.caloriesTitle');
+    case 'protein':
+      return t('statsScreen.macros.protein');
+    case 'carbs':
+      return t('statsScreen.macros.carbs');
+    case 'fat':
+      return t('statsScreen.macros.fat');
+  }
+}
+
+function MealPlanReviewContent({ payload, onRequestClose }: MealPlanReviewContentProps) {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
 
   const [reviewState, setReviewState] = useState<ReviewState>({ status: 'loading' });
   const [dayMeals, setDayMeals] = useState<ManualMeal[]>([]);
+  const [profile, setProfile] = useState<Awaited<ReturnType<typeof getUserProfile>>>(null);
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null);
   const [isHistoryMode, setIsHistoryMode] = useState(false);
   const [historyRecords, setHistoryRecords] = useState<MenuAiReviewHistoryRecord[]>([]);
+  const [deleteTargetRecord, setDeleteTargetRecord] = useState<MenuAiReviewHistoryRecord | null>(
+    null
+  );
   const didInitializeRef = useRef(false);
 
   const refreshHistory = useCallback(() => {
@@ -152,17 +193,21 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
 
     await ensureDefaultManualMealsForWeek(selectedDayStart);
 
-    const mealsPage = await listManualMealsPage({
-      page: 1,
-      pageSize: MEAL_PLAN_PAGE_SIZE,
-      startDate: selectedDayStart,
-      endDate: selectedDayEnd,
-    });
+    const [nextProfile, mealsPage] = await Promise.all([
+      getUserProfile(),
+      listManualMealsPage({
+        page: 1,
+        pageSize: MEAL_PLAN_PAGE_SIZE,
+        startDate: selectedDayStart,
+        endDate: selectedDayEnd,
+      }),
+    ]);
 
     const selectedMeals = payload?.mealLocalId
       ? mealsPage.items.filter((meal) => meal.localId === payload.mealLocalId)
       : mealsPage.items;
 
+    setProfile(nextProfile);
     setDayMeals(selectedMeals);
     setSelectedMealType(
       payload?.mealType && payload.mealType !== 'other' ? payload.mealType : null
@@ -171,11 +216,15 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
   }, [payload?.mealLocalId, payload?.mealType, payload?.selectedDateIso]);
 
   const buildReviewContext = useCallback(
-    (meals: ManualMeal[]) => {
+    (meals: ManualMeal[], currentProfile: Awaited<ReturnType<typeof getUserProfile>> | null) => {
       const selectedDate = new Date(payload?.selectedDateIso ?? Date.now());
       const selectedDateLabel = new Intl.DateTimeFormat(i18n.language, {
         dateStyle: 'full',
       }).format(selectedDate);
+      const goalMode = currentProfile
+        ? getWeightGoalMode(currentProfile.monthlyWeightGoalKg)
+        : 'maintain';
+      const goalLabel = currentProfile ? getGoalModeLabel(t, goalMode) : null;
 
       const reviewedMeals = meals.slice(0, 12);
       const entries = reviewedMeals.map((meal) => ({
@@ -191,6 +240,16 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
       return {
         selectedDateLabel,
         selectedDateIso: selectedDate.toISOString(),
+        targets: currentProfile
+          ? {
+              calorieTarget: currentProfile.dailyCalorieTarget,
+              proteinTargetGrams: currentProfile.proteinTargetGrams,
+              carbsTargetGrams: currentProfile.carbsTargetGrams,
+              fatTargetGrams: currentProfile.fatTargetGrams,
+            }
+          : null,
+        goalMode,
+        goalLabel,
         summary: reviewedMeals.reduce(
           (totals, meal) => ({
             consumedCalories: totals.consumedCalories + Math.round(meal.totalCalories),
@@ -262,29 +321,21 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
       setReviewState({ status: 'loading' });
 
       try {
-        const result = await analyzeHomeNutritionWithGemini(buildReviewContext(meals));
+        const currentProfile = profile ?? (await getUserProfile());
+        if (!profile) {
+          setProfile(currentProfile);
+        }
+
+        const result = await analyzeHomeNutritionWithGemini(
+          buildReviewContext(meals, currentProfile)
+        );
         const selectedDate = new Date(payload?.selectedDateIso ?? Date.now());
 
         if (result.status === 'ready') {
-          const totals = meals.reduce(
-            (accumulator, meal) => ({
-              calories: accumulator.calories + Math.round(meal.totalCalories),
-              protein: accumulator.protein + Math.round(meal.totalProteinGrams),
-              carbs: accumulator.carbs + Math.round(meal.totalCarbsGrams),
-              fat: accumulator.fat + Math.round(meal.totalFatGrams),
-            }),
-            { calories: 0, protein: 0, carbs: 0, fat: 0 }
-          );
-
           setReviewState({
             status: 'ready',
             review: result.review,
             assistantMessage: result.assistantMessage,
-            reviewedMealCount: meals.length,
-            totalCalories: totals.calories,
-            totalProtein: totals.protein,
-            totalCarbs: totals.carbs,
-            totalFat: totals.fat,
           });
 
           saveMenuAiReviewHistoryRecord({
@@ -348,6 +399,7 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
       payload?.selectedDateIso,
       persistReviewHistory,
       refreshHistory,
+      profile,
       t,
     ]
   );
@@ -372,25 +424,10 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
         (!payload?.mealLocalId || latestRecord.mealLocalId === payload.mealLocalId)
       ) {
         if (latestRecord.status === 'ready' && latestRecord.review) {
-          const totals = meals.reduce(
-            (accumulator, meal) => ({
-              calories: accumulator.calories + Math.round(meal.totalCalories),
-              protein: accumulator.protein + Math.round(meal.totalProteinGrams),
-              carbs: accumulator.carbs + Math.round(meal.totalCarbsGrams),
-              fat: accumulator.fat + Math.round(meal.totalFatGrams),
-            }),
-            { calories: 0, protein: 0, carbs: 0, fat: 0 }
-          );
-
           setReviewState({
             status: 'ready',
             review: latestRecord.review,
             assistantMessage: latestRecord.assistantMessage,
-            reviewedMealCount: meals.length,
-            totalCalories: totals.calories,
-            totalProtein: totals.protein,
-            totalCarbs: totals.carbs,
-            totalFat: totals.fat,
           });
           return;
         }
@@ -433,13 +470,127 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
     return t('menuScreen.review.title');
   }, [selectedMealType, t]);
 
-  const reviewDateLabel = useMemo(() => {
-    const selectedDate = new Date(payload?.selectedDateIso ?? Date.now());
+  const dayTotals = useMemo(
+    () =>
+      dayMeals.reduce(
+        (totals, meal) => ({
+          calories: totals.calories + Math.round(meal.totalCalories),
+          protein: totals.protein + Math.round(meal.totalProteinGrams),
+          carbs: totals.carbs + Math.round(meal.totalCarbsGrams),
+          fat: totals.fat + Math.round(meal.totalFatGrams),
+        }),
+        { calories: 0, protein: 0, carbs: 0, fat: 0 }
+      ),
+    [dayMeals]
+  );
 
-    return new Intl.DateTimeFormat(i18n.language, {
-      dateStyle: 'medium',
-    }).format(selectedDate);
-  }, [i18n.language, payload?.selectedDateIso]);
+  const goalMode = useMemo(
+    () => (profile ? getWeightGoalMode(profile.monthlyWeightGoalKg) : 'maintain'),
+    [profile]
+  );
+
+  const heroTone = useMemo<ReviewTone>(() => {
+    if (!profile) {
+      return 'warning';
+    }
+
+    const calorieState = getDailyCalorieGoalState(
+      profile,
+      profile.dailyCalorieTarget,
+      dayTotals.calories
+    );
+    const proteinProgress =
+      profile.proteinTargetGrams > 0 ? dayTotals.protein / profile.proteinTargetGrams : 0;
+
+    if (calorieState === 'on_target' && proteinProgress >= 0.8) {
+      return 'good';
+    }
+
+    if (calorieState === 'above_target' || proteinProgress < 0.65) {
+      return 'attention';
+    }
+
+    return 'warning';
+  }, [dayTotals.calories, dayTotals.protein, profile]);
+
+  const heroToneLabel = useMemo(() => {
+    switch (heroTone) {
+      case 'good':
+        return t('menuScreen.review.heroStatus.good');
+      case 'attention':
+        return t('menuScreen.review.heroStatus.attention');
+      case 'warning':
+      default:
+        return t('menuScreen.review.heroStatus.warning');
+    }
+  }, [heroTone, t]);
+
+  const heroToneIcon = useMemo(() => {
+    switch (heroTone) {
+      case 'good':
+        return 'checkmark-circle-outline';
+      case 'attention':
+        return 'warning-outline';
+      case 'warning':
+      default:
+        return 'sparkles-outline';
+    }
+  }, [heroTone]);
+
+  const heroToneColor = useMemo(() => {
+    switch (heroTone) {
+      case 'good':
+        return theme.colors.state.success;
+      case 'attention':
+        return theme.colors.state.warning;
+      case 'warning':
+      default:
+        return theme.colors.brand.primary;
+    }
+  }, [
+    heroTone,
+    theme.colors.brand.primary,
+    theme.colors.state.success,
+    theme.colors.state.warning,
+  ]);
+
+  const metrics = useMemo<ReviewMetric[]>(() => {
+    if (!profile || reviewState.status !== 'ready') {
+      return [];
+    }
+
+    const targetMap = {
+      calories: profile.dailyCalorieTarget,
+      protein: profile.proteinTargetGrams,
+      carbs: profile.carbsTargetGrams,
+      fat: profile.fatTargetGrams,
+    } as const;
+
+    const currentMap = {
+      calories: dayTotals.calories,
+      protein: dayTotals.protein,
+      carbs: dayTotals.carbs,
+      fat: dayTotals.fat,
+    } as const;
+
+    const metricKeys: Array<ReviewMetric['key']> = ['calories', 'protein', 'carbs', 'fat'];
+
+    return metricKeys.map((key) => ({
+      key,
+      label: getMetricLabel(t, key),
+      current: currentMap[key],
+      target: targetMap[key],
+      unit: key === 'calories' ? t('common.units.kcal') : t('common.units.gram'),
+    }));
+  }, [dayTotals, profile, reviewState.status, t]);
+
+  const activeGoalLabel = useMemo(() => {
+    if (!profile) {
+      return null;
+    }
+
+    return getGoalModeLabel(t, goalMode);
+  }, [goalMode, profile, t]);
 
   const openReviewRecord = useCallback(
     (record: MenuAiReviewHistoryRecord) => {
@@ -448,11 +599,6 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
           status: 'ready',
           review: record.review,
           assistantMessage: record.assistantMessage,
-          reviewedMealCount: 0,
-          totalCalories: 0,
-          totalProtein: 0,
-          totalCarbs: 0,
-          totalFat: 0,
         });
         setIsHistoryMode(false);
         return;
@@ -484,6 +630,16 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
     [t]
   );
 
+  const handleConfirmDeleteHistoryRecord = useCallback(() => {
+    if (!deleteTargetRecord) {
+      return;
+    }
+
+    deleteMenuAiReviewHistoryRecord(deleteTargetRecord.id);
+    setDeleteTargetRecord(null);
+    refreshHistory();
+  }, [deleteTargetRecord, refreshHistory]);
+
   return (
     <NutritionReviewSheet
       title={t('menuScreen.review.title')}
@@ -491,28 +647,25 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
       iconColor={theme.colors.brand.primaryVariant}
       headerActions={
         !isHistoryMode ? (
-          <Button
-            title={t('menuScreen.review.history')}
-            variant="ghost"
-            size="sm"
-            rightIcon={
-              <Icon name="chevron-forward-outline" size={16} color={theme.colors.brand.primary} />
-            }
-            onPress={() => {
-              refreshHistory();
-              setIsHistoryMode(true);
-            }}
-          />
+          <View style={styles.headerActionButtons}>
+            <Button
+              title={t('menuScreen.review.history')}
+              variant="ghost"
+              size="sm"
+              rightIcon={
+                <Icon name="chevron-forward-outline" size={16} color={theme.colors.brand.primary} />
+              }
+              onPress={() => {
+                refreshHistory();
+                setIsHistoryMode(true);
+              }}
+            />
+          </View>
         ) : null
       }
       headerMeta={
         isHistoryMode ? (
           <View style={styles.reviewHistoryHeaderRow}>
-            <View style={styles.reviewDatePill}>
-              <Text variant="caption" weight="semibold" color="secondary">
-                {reviewDateLabel}
-              </Text>
-            </View>
             <Button
               title={t('menuScreen.review.backToReview')}
               variant="ghost"
@@ -561,7 +714,7 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
               variant="ghost"
               size="sm"
               onPress={() => {
-                onClose();
+                onRequestClose();
               }}
             />
           </>
@@ -580,27 +733,29 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
                 </Text>
                 <View style={styles.reviewBulletList}>
                   {section.items.map((record) => (
-                    <Card
-                      key={record.id}
-                      pressable
-                      variant="outlined"
-                      style={styles.reviewActionCard}
-                      onPress={() => {
-                        openReviewRecord(record);
-                      }}
-                    >
+                    <Card key={record.id} variant="outlined" style={styles.reviewActionCard}>
                       <View style={styles.reviewSummaryRow}>
-                        <View style={styles.reviewSummaryCopy}>
-                          <Text variant="bodySmall" weight="semibold">
-                            {getRecordTitle(record, t)}
-                          </Text>
-                          <Text variant="caption" color="secondary">
-                            {record.review
-                              ? record.review.summary
-                              : (record.assistantMessage ?? '')}
-                          </Text>
-                        </View>
+                        <Button
+                          title={getRecordTitle(record, t)}
+                          variant="ghost"
+                          size="sm"
+                          onPress={() => {
+                            openReviewRecord(record);
+                          }}
+                        />
+                        <IconButton
+                          icon="trash-outline"
+                          size="sm"
+                          variant="ghost"
+                          accessibilityLabel={t('menuScreen.review.deleteHistoryTitle')}
+                          onPress={() => {
+                            setDeleteTargetRecord(record);
+                          }}
+                        />
                       </View>
+                      <Text variant="caption" color="secondary">
+                        {record.review ? record.review.summary : (record.assistantMessage ?? '')}
+                      </Text>
                     </Card>
                   ))}
                 </View>
@@ -616,6 +771,29 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
         </View>
       ) : null}
 
+      <Dialog
+        visible={deleteTargetRecord !== null}
+        onDismiss={() => {
+          setDeleteTargetRecord(null);
+        }}
+        title={t('menuScreen.review.deleteHistoryTitle')}
+        message={t('menuScreen.review.deleteHistoryMessage')}
+        actions={[
+          {
+            label: t('common.cancel'),
+            onPress: () => {
+              setDeleteTargetRecord(null);
+            },
+            variant: 'ghost',
+          },
+          {
+            label: t('common.delete'),
+            onPress: handleConfirmDeleteHistoryRecord,
+            variant: 'outline',
+          },
+        ]}
+      />
+
       {!isHistoryMode && reviewState.status === 'loading' ? (
         <Card variant="outlined" style={styles.emptySuggestionCard}>
           <View style={styles.reviewLoadingRow}>
@@ -629,69 +807,76 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
 
       {!isHistoryMode && reviewState.status === 'ready' ? (
         <View style={styles.reviewResult}>
-          <Card variant="outlined" style={styles.reviewSummaryCard}>
-            <View style={styles.reviewSummaryRow}>
-              <View style={styles.reviewSummaryCopy}>
-                <Text variant="body" weight="bold">
-                  {reviewState.review.title}
-                </Text>
-                <Text variant="bodySmall" color="secondary">
-                  {reviewState.review.summary}
-                </Text>
-              </View>
-              <View style={styles.reviewSummaryBadge}>
+          <Card variant="outlined" style={styles.heroCard}>
+            <View style={styles.heroTopRow}>
+              <View
+                style={[
+                  styles.heroToneBadge,
+                  heroTone === 'good' && styles.heroToneBadgeGood,
+                  heroTone === 'warning' && styles.heroToneBadgeWarning,
+                  heroTone === 'attention' && styles.heroToneBadgeAttention,
+                ]}
+              >
+                <Icon name={heroToneIcon} size={16} color={heroToneColor} />
                 <Text variant="caption" weight="semibold" color="secondary">
-                  {t('menuScreen.review.mealsReviewed', {
-                    count: reviewState.reviewedMealCount,
-                  })}
+                  {heroToneLabel}
                 </Text>
               </View>
-            </View>
-          </Card>
 
-          <Card variant="outlined" style={styles.reviewStatsCard}>
-            <View style={styles.reviewStatsGrid}>
-              <ReviewStat
-                label={t('statsScreen.macros.protein')}
-                value={reviewState.totalProtein}
-              />
-              <ReviewStat label={t('statsScreen.macros.carbs')} value={reviewState.totalCarbs} />
-              <ReviewStat label={t('statsScreen.macros.fat')} value={reviewState.totalFat} />
-              <ReviewStat label={t('common.units.kcal')} value={reviewState.totalCalories} />
+              {activeGoalLabel ? (
+                <View style={styles.goalPill}>
+                  <Text variant="caption" weight="semibold" color="secondary">
+                    {activeGoalLabel}
+                  </Text>
+                </View>
+              ) : null}
             </View>
-          </Card>
 
-          {reviewState.review.strengths.length > 0 ? (
-            <Card variant="outlined" style={styles.reviewListBlock}>
-              <View style={styles.reviewListHeader}>
-                <Icon
-                  name="checkmark-circle-outline"
-                  size={22}
-                  color={theme.colors.state.success}
-                />
-                <Text variant="bodySmall" weight="bold" color="primary">
-                  {t('homeScreen.aiReview.strengths')}
-                </Text>
+            <View style={styles.heroCopy}>
+              <Text variant="body" weight="bold">
+                {reviewState.review.title}
+              </Text>
+              <Text variant="bodySmall" color="secondary">
+                {reviewState.review.summary}
+              </Text>
+            </View>
+
+            {metrics.length > 0 ? (
+              <View style={styles.metricList}>
+                {metrics.map((metric) => {
+                  const percentage =
+                    metric.target > 0
+                      ? formatPercent((metric.current / metric.target) * 100)
+                      : null;
+                  let metricText = `${metric.label}: ${metric.current} ${metric.unit}`;
+
+                  if (metric.target > 0) {
+                    metricText = `${metric.label}: ${metric.current} / ${metric.target} ${metric.unit} - ${
+                      percentage ?? '0%'
+                    }`;
+                  }
+
+                  return (
+                    <View key={metric.key} style={styles.metricRow}>
+                      <View
+                        style={[styles.metricDot, { backgroundColor: theme.colors.state.success }]}
+                      />
+                      <Text variant="bodySmall" color="secondary" style={styles.metricRowText}>
+                        {metricText}
+                      </Text>
+                    </View>
+                  );
+                })}
               </View>
-              <View style={styles.reviewBulletList}>
-                {reviewState.review.strengths.map((item, index) => (
-                  <View key={`${item}-${index}`} style={styles.reviewBulletRow}>
-                    <View style={[styles.reviewBulletDot, styles.reviewBulletDotSuccess]} />
-                    <Text variant="bodySmall" color="secondary" style={styles.reviewBulletText}>
-                      {item}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </Card>
-          ) : null}
+            ) : null}
+          </Card>
 
           {reviewState.review.improvements.length > 0 ? (
-            <Card variant="outlined" style={styles.reviewListBlock}>
+            <Card variant="outlined" style={styles.sectionCard}>
               <View style={styles.reviewListHeader}>
                 <Icon name="warning-outline" size={22} color={theme.colors.state.warning} />
                 <Text variant="bodySmall" weight="bold" color="primary">
-                  {t('homeScreen.aiReview.improvements')}
+                  {t('menuScreen.review.sections.adjustments')}
                 </Text>
               </View>
               <View style={styles.reviewBulletList}>
@@ -704,20 +889,6 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
                   </View>
                 ))}
               </View>
-            </Card>
-          ) : null}
-
-          {reviewState.review.nextAction ? (
-            <Card variant="outlined" style={styles.reviewActionCard}>
-              <View style={styles.reviewListHeader}>
-                <Icon name="bulb-outline" size={22} color={theme.colors.state.warning} />
-                <Text variant="bodySmall" weight="bold" color="primary">
-                  {t('homeScreen.aiReview.nextAction')}
-                </Text>
-              </View>
-              <Text variant="bodySmall" color="secondary">
-                {reviewState.review.nextAction}
-              </Text>
             </Card>
           ) : null}
 
@@ -757,7 +928,7 @@ function MealPlanReviewContent({ payload, onClose }: MealPlanReviewContentProps)
 }
 
 export function MealPlanSuggestionSheet({ onClose }: MealPlanSuggestionSheetProps) {
-  const { openSheet } = useAppBottomSheet();
+  const { openSheet, closeSheet } = useAppBottomSheet();
   const sheetState = useMealPlanSuggestionSheetStore((state) => state.sheetState);
   const payload = useMealPlanSuggestionSheetStore((state) => state.payload);
   const setSheetState = useMealPlanSuggestionSheetStore((state) => state.setSheetState);
@@ -780,26 +951,13 @@ export function MealPlanSuggestionSheet({ onClose }: MealPlanSuggestionSheetProp
 
     openedRef.current = true;
 
-    openSheet(<MealPlanReviewContent payload={payload} onClose={handleDismiss} />, {
+    openSheet(<MealPlanReviewContent payload={payload} onRequestClose={closeSheet} />, {
       snapPoints: ['100%'],
       containerVariant: 'scroll',
       enablePanDownToClose: true,
       onDismiss: handleDismiss,
     });
-  }, [handleDismiss, openSheet, payload, sheetState]);
+  }, [closeSheet, handleDismiss, openSheet, payload, sheetState]);
 
   return null;
-}
-
-function ReviewStat({ label, value }: { label: string; value: number }) {
-  return (
-    <View style={styles.reviewStat}>
-      <Text variant="caption" color="secondary" numberOfLines={1}>
-        {label}
-      </Text>
-      <Text variant="body" weight="bold" numberOfLines={1}>
-        {value}
-      </Text>
-    </View>
-  );
 }

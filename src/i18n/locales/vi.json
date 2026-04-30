@@ -74,10 +74,28 @@
     },
     "review": {
       "title": "Nhận xét thực đơn",
-      "subtitle": "AI đọc các bữa hiện có và tóm tắt những điểm nên giữ, nên chỉnh.",
+      "subtitle": "Coach dinh dưỡng hằng ngày cho các bữa bạn đã ghi trong hôm nay.",
       "dailyAction": "Nhận xét thực đơn",
+      "goalMode": {
+        "lose": "Chế độ giảm cân",
+        "maintain": "Chế độ giữ cân",
+        "gain": "Chế độ tăng cơ"
+      },
+      "heroStatus": {
+        "good": "Đang ổn",
+        "warning": "Cần chỉnh",
+        "attention": "Nên xử lý ngay"
+      },
+      "caloriesTitle": "Calo",
+      "sections": {
+        "adjustments": "Cần chỉnh"
+      },
+      "metricTarget": "{{current}} / {{target}}{{unit}}",
+      "metricNoTarget": "Chưa có mục tiêu",
       "history": "Lịch sử",
       "backToReview": "Quay lại nhận xét",
+      "deleteHistoryTitle": "Xóa nhận xét",
+      "deleteHistoryMessage": "Xóa nhận xét này khỏi lịch sử?",
       "historyEmpty": "Chưa có lịch sử nhận xét",
       "historyMealTitle": "Nhận xét: {{name}}",
       "mealAction": "Nhận xét",
@@ -91,7 +109,6 @@
       "generateFailed": "Chưa nhận xét được. Vui lòng thử lại.",
       "unsupportedTitle": "Không thể nhận xét",
       "errorTitle": "Không nhận xét được",
-      "mealsReviewed": "{{count}} bữa được xem xét",
       "mealItemCount": "{{count}} món",
       "breakfast": "Nhận xét bữa sáng",
       "lunch": "Nhận xét bữa trưa",
@@ -454,9 +471,7 @@
       "loading": "AI đang xem nhật ký hôm nay...",
       "calories": "Calories",
       "progress": "Tiến độ",
-      "strengths": "Điểm tốt",
       "improvements": "Cần chỉnh",
-      "nextAction": "Gợi ý tiếp theo",
       "retry": "Nhận xét lại",
       "generateFailed": "Không thể tạo nhận xét. Vui lòng thử lại.",
       "noEnoughDataFallback": "Chưa đủ dữ liệu để nhận xét kỹ hơn. Hãy thêm vài món trước.",

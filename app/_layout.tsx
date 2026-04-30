@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Appearance, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -153,9 +153,9 @@ export default function RootLayout() {
     };
   }, []);
 
-  const onLayoutRootView = useCallback(async () => {
+  useEffect(() => {
     if ((fontsLoaded || fontError) && databaseReady) {
-      await SplashScreen.hideAsync();
+      void SplashScreen.hideAsync();
     }
   }, [databaseReady, fontsLoaded, fontError]);
 
@@ -164,7 +164,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={styles.rootView} onLayout={onLayoutRootView}>
+    <GestureHandlerRootView style={styles.rootView}>
       <ErrorBoundary>
         <QueryProvider>
           <KeyboardProvider>

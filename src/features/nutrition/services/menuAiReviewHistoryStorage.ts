@@ -119,3 +119,8 @@ export function saveMenuAiReviewHistoryRecord(input: {
 
   return nextRecord;
 }
+
+export function deleteMenuAiReviewHistoryRecord(id: string): void {
+  const nextHistory = loadHistoryRecords().filter((record) => record.id !== id);
+  persistHistoryRecords(nextHistory);
+}

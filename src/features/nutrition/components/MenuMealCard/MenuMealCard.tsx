@@ -120,7 +120,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   quantityStepper: {
     alignSelf: 'flex-end',
-    width: theme.metrics.spacing.p120,
+    width: theme.metrics.spacing.p100,
     paddingHorizontal: theme.metrics.spacing.p4,
     paddingVertical: theme.metrics.spacingV.p4,
     justifyContent: 'space-between',

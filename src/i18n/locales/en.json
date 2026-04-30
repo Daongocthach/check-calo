@@ -74,10 +74,28 @@
     },
     "review": {
       "title": "Meal review",
-      "subtitle": "AI reads the meals you already added and summarizes what to keep and what to adjust.",
+      "subtitle": "Your daily nutrition coach for the meals already logged today.",
       "dailyAction": "Meal review",
+      "goalMode": {
+        "lose": "Weight loss mode",
+        "maintain": "Maintenance mode",
+        "gain": "Muscle gain mode"
+      },
+      "heroStatus": {
+        "good": "On track",
+        "warning": "Needs a tweak",
+        "attention": "Act now"
+      },
+      "caloriesTitle": "Calories",
+      "sections": {
+        "adjustments": "What to adjust"
+      },
+      "metricTarget": "{{current}} / {{target}}{{unit}}",
+      "metricNoTarget": "No target set",
       "history": "History",
       "backToReview": "Back to review",
+      "deleteHistoryTitle": "Delete review",
+      "deleteHistoryMessage": "Delete this review from history?",
       "historyEmpty": "No review history yet",
       "historyMealTitle": "Review: {{name}}",
       "mealAction": "Review",
@@ -91,7 +109,6 @@
       "generateFailed": "Could not review the menu. Please try again.",
       "unsupportedTitle": "Cannot review",
       "errorTitle": "Could not review",
-      "mealsReviewed": "{{count}} meals reviewed",
       "mealItemCount": "{{count}} items",
       "breakfast": "Review breakfast",
       "lunch": "Review lunch",
@@ -454,9 +471,7 @@
       "loading": "AI is reviewing today’s log...",
       "calories": "Calories",
       "progress": "Progress",
-      "strengths": "What looks good",
       "improvements": "What to adjust",
-      "nextAction": "Next suggestion",
       "retry": "Review again",
       "generateFailed": "Could not generate a review. Please try again.",
       "noEnoughDataFallback": "Not enough data for a detailed review yet. Add a few foods first.",

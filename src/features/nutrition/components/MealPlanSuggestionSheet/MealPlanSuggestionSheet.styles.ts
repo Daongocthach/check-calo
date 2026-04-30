@@ -57,13 +57,6 @@ export const styles = StyleSheet.create((theme) => ({
     justifyContent: 'space-between' as const,
     gap: theme.metrics.spacing.p12,
   },
-  reviewDatePill: {
-    flexShrink: 1,
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p4,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.background.section,
-  },
   switchCard: {
     flexDirection: 'row' as const,
     alignItems: 'flex-start' as const,
@@ -100,51 +93,81 @@ export const styles = StyleSheet.create((theme) => ({
   reviewResult: {
     gap: theme.metrics.spacingV.p12,
   },
-  reviewSummaryCard: {
-    gap: theme.metrics.spacingV.p8,
+  heroCard: {
+    gap: theme.metrics.spacingV.p12,
     padding: theme.metrics.spacing.p16,
     borderRadius: theme.metrics.borderRadius.xl,
     backgroundColor: theme.colors.background.surface,
     borderWidth: 1,
     borderColor: theme.colors.border.default,
+    shadowColor: theme.colors.shadow.color,
+    shadowOpacity: 1,
+    shadowRadius: theme.metrics.spacing.p16,
+    shadowOffset: { width: 0, height: theme.metrics.spacingV.p8 },
+    elevation: theme.colors.shadow.elevationSmall,
   },
-  reviewSummaryRow: {
+  heroTopRow: {
     flexDirection: 'row' as const,
-    alignItems: 'flex-start' as const,
+    alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     gap: theme.metrics.spacing.p12,
   },
-  reviewSummaryCopy: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
-  },
-  reviewSummaryBadge: {
-    paddingHorizontal: theme.metrics.spacing.p8,
+  heroToneBadge: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: theme.metrics.spacing.p8,
+    paddingHorizontal: theme.metrics.spacing.p12,
     paddingVertical: theme.metrics.spacingV.p4,
     borderRadius: theme.metrics.borderRadius.full,
     backgroundColor: theme.colors.background.section,
   },
-  reviewStatsCard: {
-    padding: theme.metrics.spacing.p16,
-    borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border.default,
+  heroToneBadgeGood: {
+    backgroundColor: theme.colors.state.successBg,
   },
-  reviewStatsGrid: {
+  heroToneBadgeWarning: {
+    backgroundColor: theme.colors.state.warningBg,
+  },
+  heroToneBadgeAttention: {
+    backgroundColor: theme.colors.state.errorBg,
+  },
+  goalPill: {
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p4,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.background.section,
+  },
+  heroCopy: {
+    gap: theme.metrics.spacingV.p4,
+  },
+  reviewListBlock: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  reviewSummaryRow: {
     flexDirection: 'row' as const,
-    flexWrap: 'wrap' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
     gap: theme.metrics.spacing.p12,
   },
-  reviewStat: {
-    flexGrow: 1,
-    flexBasis: '46%',
-    gap: theme.metrics.spacingV.p4,
+  metricList: {
+    gap: theme.metrics.spacingV.p8,
     padding: theme.metrics.spacing.p12,
     borderRadius: theme.metrics.borderRadius.lg,
     backgroundColor: theme.colors.background.section,
   },
-  reviewListBlock: {
+  metricRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: theme.metrics.spacing.p4,
+  },
+  metricDot: {
+    width: theme.metrics.spacing.p8,
+    height: theme.metrics.spacing.p8,
+    borderRadius: theme.metrics.borderRadius.full,
+  },
+  metricRowText: {
+    flex: 1,
+  },
+  sectionCard: {
     gap: theme.metrics.spacingV.p12,
     padding: theme.metrics.spacing.p16,
     borderRadius: theme.metrics.borderRadius.xl,
@@ -170,9 +193,6 @@ export const styles = StyleSheet.create((theme) => ({
     height: theme.metrics.spacing.p8,
     borderRadius: theme.metrics.borderRadius.full,
     marginTop: theme.metrics.spacingV.p8,
-  },
-  reviewBulletDotSuccess: {
-    backgroundColor: theme.colors.state.success,
   },
   reviewBulletDotWarning: {
     backgroundColor: theme.colors.state.warning,
