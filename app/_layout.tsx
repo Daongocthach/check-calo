@@ -109,7 +109,6 @@ function AppContent() {
       />
       <AppHeader />
       <RootNavigator />
-      <Toast />
     </View>
   );
 }
@@ -175,6 +174,7 @@ export default function RootLayout() {
                   <AppContent />
                 </AppAlertProvider>
               </AppBottomSheetProvider>
+              <Toast />
             </CameraProvider>
           </KeyboardProvider>
         </QueryProvider>

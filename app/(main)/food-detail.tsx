@@ -13,12 +13,12 @@ import {
   Icon,
   DateTimeField,
   Input,
-  QuantityStepper,
   ScreenContainer,
   SupportPromptCard,
   Text,
 } from '@/common/components';
 import type { DateTimeFieldHandle } from '@/common/components';
+import { QuantitySelector } from '@/features/nutrition/components/QuantitySelector';
 import { upsertFoodProductCatalog } from '@/features/nutrition/services/barcodeFoodLookup';
 import {
   enqueueFoodEntryImageSync,
@@ -1012,23 +1012,20 @@ export default function FoodDetailScreen() {
         {showSaveAction ? (
           <View style={styles.saveFooter}>
             {canPreviewQuantity ? (
-              <View style={styles.servingsBlock}>
-                <Text variant="bodySmall" weight="semibold">
-                  {t('manualFoodEntry.portionCountLabel')}
-                </Text>
-                <QuantityStepper
-                  value={servings}
-                  minValue={1}
-                  decreaseLabel={t('addScreen.decreasePortion')}
-                  increaseLabel={t('addScreen.increasePortion')}
-                  onDecrease={() => {
-                    setServings((currentValue) => Math.max(1, currentValue - 1));
-                  }}
-                  onIncrease={() => {
-                    setServings((currentValue) => currentValue + 1);
-                  }}
-                />
-              </View>
+              <QuantitySelector
+                label={t('manualFoodEntry.portionCountLabel')}
+                value={servings}
+                minValue={1}
+                decreaseLabel={t('addScreen.decreasePortion')}
+                increaseLabel={t('addScreen.increasePortion')}
+                onDecrease={() => {
+                  setServings((currentValue) => Math.max(1, currentValue - 1));
+                }}
+                onIncrease={() => {
+                  setServings((currentValue) => currentValue + 1);
+                }}
+                style={styles.servingsBlock}
+              />
             ) : null}
             <Button
               title={t('foodDetail.saveAction')}
@@ -1339,10 +1336,6 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background.app,
   },
   servingsBlock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p12,
     marginBottom: theme.metrics.spacingV.p12,
   },
   saveButton: {

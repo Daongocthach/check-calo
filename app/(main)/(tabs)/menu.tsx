@@ -12,14 +12,15 @@ import {
   Icon,
   Input,
   Loading,
-  Select,
   ScreenContainer,
+  Select,
   Text,
 } from '@/common/components';
 import { MenuMealCard } from '@/features/nutrition/components/MenuMealCard';
 import { MenuWeekSelector } from '@/features/nutrition/components/MenuWeekSelector';
 import {
   deleteManualMealItem,
+  createManualMeal,
   ensureDefaultManualMealsForWeek,
   listManualMealsPage,
   deleteManualMeal,
@@ -42,21 +43,6 @@ interface MenuSection {
   data: ManualMealItem[];
 }
 
-interface ItemDialogState {
-  visible: boolean;
-  mealId: string | null;
-  itemId: string | null;
-  title: string;
-  quantityLabel: string;
-  quantityGrams: string;
-  totalCalories: string;
-  proteinGrams: string;
-  carbsGrams: string;
-  fatGrams: string;
-  notes: string;
-  error: string | null;
-}
-
 interface DeleteDialogState {
   visible: boolean;
   itemId: string | null;
@@ -70,23 +56,14 @@ interface MealDialogState {
   error: string | null;
 }
 
+interface CreateMealDialogState {
+  visible: boolean;
+  mealName: string;
+  error: string | null;
+}
+
 const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
 const MENU_PAGE_SIZE = 20;
-
-const DEFAULT_ITEM_DIALOG_STATE: ItemDialogState = {
-  visible: false,
-  mealId: null,
-  itemId: null,
-  title: '',
-  quantityLabel: '',
-  quantityGrams: '',
-  totalCalories: '',
-  proteinGrams: '',
-  carbsGrams: '',
-  fatGrams: '',
-  notes: '',
-  error: null,
-};
 
 const DEFAULT_DELETE_DIALOG_STATE: DeleteDialogState = {
   visible: false,
@@ -97,6 +74,12 @@ const DEFAULT_DELETE_DIALOG_STATE: DeleteDialogState = {
 const DEFAULT_MEAL_DIALOG_STATE: MealDialogState = {
   visible: false,
   mealId: null,
+  mealName: '',
+  error: null,
+};
+
+const DEFAULT_CREATE_MEAL_DIALOG_STATE: CreateMealDialogState = {
+  visible: false,
   mealName: '',
   error: null,
 };
@@ -197,21 +180,6 @@ function getMealTitle(t: TFunction, mealType: MealType) {
   }
 }
 
-function getMealSuggestionLabelKey(mealType: MealType) {
-  switch (mealType) {
-    case 'breakfast':
-      return 'menuScreen.mealSuggestions.breakfast';
-    case 'lunch':
-      return 'menuScreen.mealSuggestions.lunch';
-    case 'dinner':
-      return 'menuScreen.mealSuggestions.dinner';
-    case 'snack':
-      return 'menuScreen.mealSuggestions.snack';
-    default:
-      return 'menuScreen.mealSuggestions.snack';
-  }
-}
-
 function getMacroTextStyle(tone: MacroTone) {
   switch (tone) {
     case 'protein':
@@ -250,70 +218,6 @@ function MacroSummary({
       </Text>
     </View>
   );
-}
-
-function parseRequiredNumber(value: string) {
-  const parsed = Number(value.trim());
-
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    return null;
-  }
-
-  return parsed;
-}
-
-function parseOptionalNumber(value: string) {
-  const trimmed = value.trim();
-
-  if (!trimmed) {
-    return null;
-  }
-
-  const parsed = Number(trimmed);
-
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    return null;
-  }
-
-  return parsed;
-}
-
-function toItemInput(dialogState: ItemDialogState) {
-  const title = dialogState.title.trim();
-  const quantityLabel = dialogState.quantityLabel.trim();
-  const calories = parseRequiredNumber(dialogState.totalCalories);
-  const protein = parseRequiredNumber(dialogState.proteinGrams);
-  const carbs = parseRequiredNumber(dialogState.carbsGrams);
-  const fat = parseRequiredNumber(dialogState.fatGrams);
-
-  if (
-    !title ||
-    !quantityLabel ||
-    calories === null ||
-    protein === null ||
-    carbs === null ||
-    fat === null
-  ) {
-    return null;
-  }
-
-  const quantityGrams = parseOptionalNumber(dialogState.quantityGrams);
-
-  if (dialogState.quantityGrams.trim() && quantityGrams === null) {
-    return null;
-  }
-
-  return {
-    title,
-    quantityLabel,
-    quantityGrams,
-    totalCalories: calories,
-    proteinGrams: protein,
-    carbsGrams: carbs,
-    fatGrams: fat,
-    notes: dialogState.notes.trim() ? dialogState.notes.trim() : null,
-    servings: 1,
-  };
 }
 
 function toMealNameInput(value: string) {
@@ -363,9 +267,11 @@ export default function MenuTab() {
   const [page, setPage] = useState(1);
   const [isSavingItem, setIsSavingItem] = useState(false);
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
-  const [itemDialog, setItemDialog] = useState<ItemDialogState>(DEFAULT_ITEM_DIALOG_STATE);
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>(DEFAULT_DELETE_DIALOG_STATE);
   const [mealDialog, setMealDialog] = useState<MealDialogState>(DEFAULT_MEAL_DIALOG_STATE);
+  const [createMealDialog, setCreateMealDialog] = useState<CreateMealDialogState>(
+    DEFAULT_CREATE_MEAL_DIALOG_STATE
+  );
 
   const selectedDayStart = useMemo(() => startOfDay(selectedDate), [selectedDate]);
   const selectedDayEnd = useMemo(() => {
@@ -492,26 +398,6 @@ export default function MenuTab() {
   const fatTarget = getPositiveTarget(profile?.fatTargetGrams);
   const monthlyWeightGoalLabel = getMonthlyWeightGoalLabel(t, profile?.monthlyWeightGoalKg ?? 0);
 
-  const openEditItemDialog = useCallback((meal: ManualMeal, item: ManualMealItem) => {
-    setItemDialog({
-      visible: true,
-      mealId: meal.localId,
-      itemId: item.localId,
-      title: item.title,
-      quantityLabel: item.quantityLabel,
-      quantityGrams:
-        item.quantityGrams !== null && item.quantityGrams !== undefined
-          ? String(item.quantityGrams)
-          : '',
-      totalCalories: String(item.totalCalories),
-      proteinGrams: String(item.proteinGrams),
-      carbsGrams: String(item.carbsGrams),
-      fatGrams: String(item.fatGrams),
-      notes: item.notes ?? '',
-      error: null,
-    });
-  }, []);
-
   const openDeleteItemDialog = useCallback((item: ManualMealItem) => {
     setDeleteDialog({
       visible: true,
@@ -555,10 +441,6 @@ export default function MenuTab() {
     [appAlert, loadData, t]
   );
 
-  const closeItemDialog = useCallback(() => {
-    setItemDialog(DEFAULT_ITEM_DIALOG_STATE);
-  }, []);
-
   const closeDeleteDialog = useCallback(() => {
     setDeleteDialog(DEFAULT_DELETE_DIALOG_STATE);
   }, []);
@@ -567,31 +449,17 @@ export default function MenuTab() {
     setMealDialog(DEFAULT_MEAL_DIALOG_STATE);
   }, []);
 
-  const saveItem = useCallback(async () => {
-    if (isSavingItem || !itemDialog.mealId || !itemDialog.itemId) {
-      return;
-    }
+  const openCreateMealDialog = useCallback(() => {
+    setCreateMealDialog({
+      visible: true,
+      mealName: '',
+      error: null,
+    });
+  }, []);
 
-    const itemInput = toItemInput(itemDialog);
-
-    if (!itemInput) {
-      setItemDialog((previous) => ({
-        ...previous,
-        error: t('menuScreen.validation.itemFormInvalid'),
-      }));
-      return;
-    }
-
-    setIsSavingItem(true);
-
-    try {
-      await updateManualMealItem(itemDialog.itemId, itemInput);
-      closeItemDialog();
-      await loadData(1, false);
-    } finally {
-      setIsSavingItem(false);
-    }
-  }, [closeItemDialog, isSavingItem, itemDialog, loadData, t]);
+  const closeCreateMealDialog = useCallback(() => {
+    setCreateMealDialog(DEFAULT_CREATE_MEAL_DIALOG_STATE);
+  }, []);
 
   const saveMeal = useCallback(async () => {
     if (!mealDialog.mealId) {
@@ -618,6 +486,31 @@ export default function MenuTab() {
       setIsSavingItem(false);
     }
   }, [closeMealDialog, loadData, mealDialog.mealId, mealDialog.mealName, t]);
+
+  const saveNewMeal = useCallback(async () => {
+    const mealName = toMealNameInput(createMealDialog.mealName);
+
+    if (!mealName) {
+      setCreateMealDialog((previous) => ({
+        ...previous,
+        error: t('menuScreen.validation.mealNameRequired'),
+      }));
+      return;
+    }
+
+    setIsSavingItem(true);
+
+    try {
+      await createManualMeal(mealName);
+      closeCreateMealDialog();
+      await loadData(1, false);
+      toast.success(t('menuScreen.createMealSuccess', { name: mealName }));
+    } catch {
+      toast.error(t('profileScreen.actionError'));
+    } finally {
+      setIsSavingItem(false);
+    }
+  }, [closeCreateMealDialog, createMealDialog.mealName, loadData, t]);
 
   const handleUpdateQuantity = useCallback(
     async (item: ManualMealItem, servings: number) => {
@@ -655,7 +548,7 @@ export default function MenuTab() {
     }
   }, [closeDeleteDialog, deleteDialog.itemId, loadData, t]);
 
-  const handleOpenAiSuggestion = useCallback(
+  const handleOpenMealReview = useCallback(
     (meal?: ManualMeal) => {
       requestMealPlanSuggestionSheet({
         selectedDateIso: selectedDayStart.toISOString(),
@@ -681,14 +574,6 @@ export default function MenuTab() {
     [requestAddMealSourceSheet, selectedDayStart]
   );
 
-  const handleLoadMore = useCallback(() => {
-    if (isLoading || isLoadingMore || !hasNextPage) {
-      return;
-    }
-
-    void loadData(page + 1, true);
-  }, [hasNextPage, isLoading, isLoadingMore, loadData, page]);
-
   const handleMealAction = useCallback(
     (meal: ManualMeal, action: string) => {
       if (action === 'add') {
@@ -707,6 +592,14 @@ export default function MenuTab() {
     },
     [handleAddMealItem, openDeleteMealDialog, openEditMealDialog]
   );
+
+  const handleLoadMore = useCallback(() => {
+    if (isLoading || isLoadingMore || !hasNextPage) {
+      return;
+    }
+
+    void loadData(page + 1, true);
+  }, [hasNextPage, isLoading, isLoadingMore, loadData, page]);
 
   if (isLoading) {
     return (
@@ -790,23 +683,33 @@ export default function MenuTab() {
                   locale={locale}
                 />
               </View>
-              <Button
-                title={t('menuScreen.aiPanel.dailyAction')}
-                variant="outline"
-                size="sm"
-                leftIcon={
-                  <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
-                }
-                onPress={() => {
-                  handleOpenAiSuggestion();
-                }}
-              />
+              <View style={styles.summaryActions}>
+                <Button
+                  title={t('menuScreen.addMeal')}
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<Icon name="add" size={16} color={theme.colors.text.primary} />}
+                  onPress={openCreateMealDialog}
+                  style={styles.summaryActionButton}
+                />
+                <Button
+                  title={t('menuScreen.review.dailyAction')}
+                  variant="outline"
+                  size="sm"
+                  leftIcon={
+                    <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
+                  }
+                  onPress={() => {
+                    handleOpenMealReview();
+                  }}
+                  style={styles.summaryActionButton}
+                />
+              </View>
             </View>
           </View>
         }
         renderItem={({ item: section }) => {
           const mealTitle = getMealTitle(t, section.meal.mealType);
-          const mealSuggestionLabel = t(getMealSuggestionLabelKey(section.meal.mealType));
 
           return (
             <View style={styles.sectionBlock}>
@@ -835,18 +738,6 @@ export default function MenuTab() {
                 </View>
 
                 <View style={styles.sectionActions}>
-                  <Button
-                    title={t('menuScreen.mealSuggestions.short')}
-                    variant="outline"
-                    size="sm"
-                    leftIcon={
-                      <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
-                    }
-                    accessibilityLabel={mealSuggestionLabel}
-                    onPress={() => {
-                      handleOpenAiSuggestion(section.meal);
-                    }}
-                  />
                   <Select
                     value={section.meal.localId}
                     onChange={(action) => {
@@ -887,26 +778,21 @@ export default function MenuTab() {
                     <MenuMealCard
                       key={item.localId}
                       item={item}
-                      quantityLabel={t('menuScreen.quantityLabel')}
-                      editLabel={t('common.edit')}
                       deleteLabel={t('common.delete')}
-                      decreaseQuantityLabel={t('common.decreaseQuantity')}
-                      increaseQuantityLabel={t('common.increaseQuantity')}
+                      decreaseQuantityLabel={t('addScreen.decreasePortion')}
+                      increaseQuantityLabel={t('addScreen.increasePortion')}
                       proteinTargetGrams={profile?.proteinTargetGrams}
                       carbsTargetGrams={profile?.carbsTargetGrams}
                       fatTargetGrams={profile?.fatTargetGrams}
                       onPress={() => {
                         router.push({
-                          pathname: '/food-detail',
+                          pathname: '/food-form',
                           params: {
-                            source: 'manual',
+                            context: 'menuMeal',
                             mealLocalId: section.meal.localId,
                             itemLocalId: item.localId,
                           },
                         });
-                      }}
-                      onEdit={() => {
-                        openEditItemDialog(section.meal, item);
                       }}
                       onDelete={() => {
                         openDeleteItemDialog(item);
@@ -946,108 +832,6 @@ export default function MenuTab() {
           </View>
         }
       />
-
-      <Dialog
-        visible={itemDialog.visible}
-        onDismiss={closeItemDialog}
-        title={t('menuScreen.editItemTitle')}
-        size="lg"
-        actions={[
-          {
-            label: t('common.cancel'),
-            variant: 'ghost',
-            onPress: closeItemDialog,
-          },
-          {
-            label: isSavingItem ? t('common.loading') : t('common.save'),
-            variant: 'primary',
-            onPress: () => {
-              void saveItem();
-            },
-          },
-        ]}
-      >
-        <View style={styles.dialogFields}>
-          <Input
-            label={t('menuScreen.itemNameLabel')}
-            value={itemDialog.title}
-            onChangeText={(value) => {
-              setItemDialog((previous) => ({ ...previous, title: value, error: null }));
-            }}
-            placeholder={t('menuScreen.itemNamePlaceholder')}
-            error={itemDialog.error ?? undefined}
-          />
-          <Input
-            label={t('menuScreen.quantityLabel')}
-            value={itemDialog.quantityLabel}
-            onChangeText={(value) => {
-              setItemDialog((previous) => ({ ...previous, quantityLabel: value, error: null }));
-            }}
-            placeholder={t('menuScreen.quantityPlaceholder')}
-          />
-          <Input
-            label={t('menuScreen.quantityGramsLabel')}
-            value={itemDialog.quantityGrams}
-            keyboardType="decimal-pad"
-            onChangeText={(value) => {
-              setItemDialog((previous) => ({ ...previous, quantityGrams: value, error: null }));
-            }}
-            placeholder={t('menuScreen.quantityGramsPlaceholder')}
-          />
-          <Input
-            label={t('menuScreen.caloriesLabel')}
-            value={itemDialog.totalCalories}
-            keyboardType="decimal-pad"
-            onChangeText={(value) => {
-              setItemDialog((previous) => ({ ...previous, totalCalories: value, error: null }));
-            }}
-            placeholder={t('common.numberPlaceholder')}
-          />
-          <View style={styles.dialogMacroRow}>
-            <View style={styles.dialogMacroItem}>
-              <Input
-                label={t('statsScreen.macros.protein')}
-                value={itemDialog.proteinGrams}
-                keyboardType="decimal-pad"
-                onChangeText={(value) => {
-                  setItemDialog((previous) => ({ ...previous, proteinGrams: value, error: null }));
-                }}
-                placeholder={t('common.numberPlaceholder')}
-              />
-            </View>
-            <View style={styles.dialogMacroItem}>
-              <Input
-                label={t('statsScreen.macros.carbs')}
-                value={itemDialog.carbsGrams}
-                keyboardType="decimal-pad"
-                onChangeText={(value) => {
-                  setItemDialog((previous) => ({ ...previous, carbsGrams: value, error: null }));
-                }}
-                placeholder={t('common.numberPlaceholder')}
-              />
-            </View>
-            <View style={styles.dialogMacroItem}>
-              <Input
-                label={t('statsScreen.macros.fat')}
-                value={itemDialog.fatGrams}
-                keyboardType="decimal-pad"
-                onChangeText={(value) => {
-                  setItemDialog((previous) => ({ ...previous, fatGrams: value, error: null }));
-                }}
-                placeholder={t('common.numberPlaceholder')}
-              />
-            </View>
-          </View>
-          <Input
-            label={t('menuScreen.notesLabel')}
-            value={itemDialog.notes}
-            onChangeText={(value) => {
-              setItemDialog((previous) => ({ ...previous, notes: value, error: null }));
-            }}
-            placeholder={t('menuScreen.notesPlaceholder')}
-          />
-        </View>
-      </Dialog>
 
       <Dialog
         visible={deleteDialog.visible}
@@ -1103,6 +887,39 @@ export default function MenuTab() {
             }}
             placeholder={t('menuScreen.mealNamePlaceholder')}
             error={mealDialog.error ?? undefined}
+          />
+        </View>
+      </Dialog>
+
+      <Dialog
+        visible={createMealDialog.visible}
+        onDismiss={closeCreateMealDialog}
+        title={t('menuScreen.createMealTitle')}
+        size="md"
+        actions={[
+          {
+            label: t('common.cancel'),
+            variant: 'ghost',
+            onPress: closeCreateMealDialog,
+          },
+          {
+            label: isSavingItem ? t('common.loading') : t('common.save'),
+            variant: 'primary',
+            onPress: () => {
+              void saveNewMeal();
+            },
+          },
+        ]}
+      >
+        <View style={styles.dialogFields}>
+          <Input
+            label={t('menuScreen.mealNameLabel')}
+            value={createMealDialog.mealName}
+            onChangeText={(value) => {
+              setCreateMealDialog((previous) => ({ ...previous, mealName: value, error: null }));
+            }}
+            placeholder={t('menuScreen.mealNamePlaceholder')}
+            error={createMealDialog.error ?? undefined}
           />
         </View>
       </Dialog>
@@ -1173,6 +990,16 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'stretch',
     borderTopWidth: 1,
     borderTopColor: theme.colors.border.subtle,
+  },
+  summaryActions: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p8,
+  },
+  summaryActionButton: {
+    flex: 1,
+    minWidth: 0,
   },
   macroSummary: {
     flex: 1,
@@ -1303,13 +1130,5 @@ const styles = StyleSheet.create((theme) => ({
   },
   dialogFields: {
     gap: theme.metrics.spacingV.p8,
-  },
-  dialogMacroRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p8,
-  },
-  dialogMacroItem: {
-    flex: 1,
   },
 }));

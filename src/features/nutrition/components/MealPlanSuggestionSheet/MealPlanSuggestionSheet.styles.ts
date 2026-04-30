@@ -20,6 +20,7 @@ export const styles = StyleSheet.create((theme) => ({
     flex: 1,
   },
   sheetContent: {
+    flexGrow: 1,
     gap: theme.metrics.spacingV.p16,
   },
   header: {
@@ -42,12 +43,34 @@ export const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  switchCard: {
+  headerActions: {
+    alignItems: 'flex-end' as const,
+    gap: theme.metrics.spacingV.p8,
+  },
+  headerActionButtons: {
+    flexDirection: 'row' as const,
+    gap: theme.metrics.spacing.p8,
+  },
+  reviewHistoryHeaderRow: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
-    gap: theme.metrics.spacing.p16,
-    padding: theme.metrics.spacing.p16,
+    gap: theme.metrics.spacing.p12,
+  },
+  reviewDatePill: {
+    flexShrink: 1,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p4,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.background.section,
+  },
+  switchCard: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    justifyContent: 'space-between' as const,
+    gap: theme.metrics.spacing.p12,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
     borderRadius: theme.metrics.borderRadius.xl,
     backgroundColor: theme.colors.background.section,
     borderWidth: 1,
@@ -59,60 +82,7 @@ export const styles = StyleSheet.create((theme) => ({
   },
   switchActions: {
     alignItems: 'flex-end',
-    gap: theme.metrics.spacingV.p8,
-  },
-  recentViewMoreButton: {
-    alignSelf: 'flex-end',
-  },
-  sectionBlock: {
-    gap: theme.metrics.spacingV.p12,
-  },
-  resultsHeader: {
-    minHeight: theme.metrics.spacing.p56,
-    flexDirection: 'row' as const,
-    alignItems: 'flex-start' as const,
-    justifyContent: 'space-between' as const,
-    gap: theme.metrics.spacing.p16,
-  },
-  resultsHeaderCopy: {
-    flex: 1,
     gap: theme.metrics.spacingV.p4,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    gap: theme.metrics.spacing.p12,
-  },
-  chipWrap: {
-    flexDirection: 'row' as const,
-    flexWrap: 'wrap' as const,
-    gap: theme.metrics.spacing.p8,
-  },
-  suggestionList: {
-    gap: theme.metrics.spacingV.p12,
-  },
-  suggestionCard: {
-    gap: theme.metrics.spacingV.p12,
-    padding: theme.metrics.spacing.p16,
-    borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border.default,
-  },
-  suggestionHeader: {
-    flexDirection: 'row' as const,
-    alignItems: 'flex-start' as const,
-    justifyContent: 'space-between' as const,
-    gap: theme.metrics.spacing.p12,
-  },
-  suggestionHeaderCopy: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
-  },
-  suggestionActions: {
-    flexDirection: 'row' as const,
-    gap: theme.metrics.spacing.p8,
-    justifyContent: 'flex-end' as const,
   },
   emptySuggestionCard: {
     gap: theme.metrics.spacingV.p4,
@@ -122,12 +92,100 @@ export const styles = StyleSheet.create((theme) => ({
     borderWidth: 1,
     borderColor: theme.colors.border.default,
   },
-  actions: {
+  reviewLoadingRow: {
     flexDirection: 'row' as const,
+    alignItems: 'center' as const,
     gap: theme.metrics.spacing.p12,
-    justifyContent: 'flex-end' as const,
   },
-  actionsSpacer: {
+  reviewResult: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  reviewSummaryCard: {
+    gap: theme.metrics.spacingV.p8,
+    padding: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
+  },
+  reviewSummaryRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    justifyContent: 'space-between' as const,
+    gap: theme.metrics.spacing.p12,
+  },
+  reviewSummaryCopy: {
     flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  reviewSummaryBadge: {
+    paddingHorizontal: theme.metrics.spacing.p8,
+    paddingVertical: theme.metrics.spacingV.p4,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.background.section,
+  },
+  reviewStatsCard: {
+    padding: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
+  },
+  reviewStatsGrid: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: theme.metrics.spacing.p12,
+  },
+  reviewStat: {
+    flexGrow: 1,
+    flexBasis: '46%',
+    gap: theme.metrics.spacingV.p4,
+    padding: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.lg,
+    backgroundColor: theme.colors.background.section,
+  },
+  reviewListBlock: {
+    gap: theme.metrics.spacingV.p12,
+    padding: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
+  },
+  reviewListHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: theme.metrics.spacing.p8,
+  },
+  reviewBulletList: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  reviewBulletRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    gap: theme.metrics.spacing.p8,
+  },
+  reviewBulletDot: {
+    width: theme.metrics.spacing.p8,
+    height: theme.metrics.spacing.p8,
+    borderRadius: theme.metrics.borderRadius.full,
+    marginTop: theme.metrics.spacingV.p8,
+  },
+  reviewBulletDotSuccess: {
+    backgroundColor: theme.colors.state.success,
+  },
+  reviewBulletDotWarning: {
+    backgroundColor: theme.colors.state.warning,
+  },
+  reviewBulletText: {
+    flex: 1,
+  },
+  reviewActionCard: {
+    gap: theme.metrics.spacingV.p12,
+    padding: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
   },
 }));

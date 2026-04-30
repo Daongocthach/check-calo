@@ -24,5 +24,7 @@ export const STORAGE_KEYS = {
     lastVersion: 'app_last_version',
     launchCount: 'app_launch_count',
     homeAiReviewHistory: 'home_ai_review_history',
+    menuAiReviewHistory: 'menu_ai_review_history',
+    mealPlanSuggestionLast: 'meal_plan_suggestion_last',
   },
 } as const;

@@ -1,22 +1,19 @@
-import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Icon, Menu } from '@/common/components';
+import { Icon } from '@/common/components';
 import { HomeMealCard } from '@/features/nutrition/components/HomeMealCard';
+import { QuantitySelector } from '@/features/nutrition/components/QuantitySelector';
 import type { ManualMealItem } from '@/features/nutrition/services/manualMealsDatabase';
 
 interface MenuMealCardProps {
   item: ManualMealItem;
   onPress: () => void;
-  onEdit: () => void;
   onDelete: () => void;
   onDecreaseQuantity: () => void;
   onIncreaseQuantity: () => void;
   proteinTargetGrams?: number;
   carbsTargetGrams?: number;
   fatTargetGrams?: number;
-  quantityLabel: string;
-  editLabel: string;
   deleteLabel: string;
   decreaseQuantityLabel: string;
   increaseQuantityLabel: string;
@@ -44,7 +41,7 @@ function toHomeMenuItem(item: ManualMealItem) {
   };
 }
 
-function MoreButton({ label, onPress }: { label: string; onPress: () => void }) {
+function DeleteButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -53,9 +50,9 @@ function MoreButton({ label, onPress }: { label: string; onPress: () => void }) 
         event.stopPropagation();
         onPress();
       }}
-      style={styles.moreButton}
+      style={styles.deleteButton}
     >
-      <Icon name="ellipsis-vertical" size={18} variant="tertiary" />
+      <Icon name="trash-outline" size={18} destructive />
     </Pressable>
   );
 }
@@ -63,11 +60,9 @@ function MoreButton({ label, onPress }: { label: string; onPress: () => void }) 
 export function MenuMealCard({
   item,
   onPress,
-  onEdit,
   onDelete,
   onDecreaseQuantity,
   onIncreaseQuantity,
-  editLabel,
   deleteLabel,
   decreaseQuantityLabel,
   increaseQuantityLabel,
@@ -75,7 +70,6 @@ export function MenuMealCard({
   carbsTargetGrams,
   fatTargetGrams,
 }: MenuMealCardProps) {
-  const [menuVisible, setMenuVisible] = useState(false);
   const cardItem = toHomeMenuItem(item);
 
   return (
@@ -84,41 +78,22 @@ export function MenuMealCard({
         <HomeMealCard.Preview />
         <HomeMealCard.Content>
           <HomeMealCard.Header>
-            <Menu
-              visible={menuVisible}
-              onDismiss={() => {
-                setMenuVisible(false);
-              }}
-              anchor={
-                <MoreButton
-                  label={editLabel}
-                  onPress={() => {
-                    setMenuVisible(true);
-                  }}
-                />
-              }
-              items={[
-                { label: editLabel, icon: 'create-outline', onPress: onEdit },
-                {
-                  label: deleteLabel,
-                  icon: 'trash-outline',
-                  destructive: true,
-                  onPress: onDelete,
-                },
-                {
-                  label: decreaseQuantityLabel,
-                  icon: 'remove-outline',
-                  disabled: item.servings <= 1,
-                  onPress: onDecreaseQuantity,
-                },
-                { label: increaseQuantityLabel, icon: 'add-outline', onPress: onIncreaseQuantity },
-              ]}
-            />
+            <DeleteButton label={deleteLabel} onPress={onDelete} />
           </HomeMealCard.Header>
           <HomeMealCard.Macros
             proteinTargetGrams={proteinTargetGrams}
             carbsTargetGrams={carbsTargetGrams}
             fatTargetGrams={fatTargetGrams}
+          />
+          <QuantitySelector
+            value={item.servings}
+            minValue={1}
+            decreaseLabel={decreaseQuantityLabel}
+            increaseLabel={increaseQuantityLabel}
+            onDecrease={onDecreaseQuantity}
+            onIncrease={onIncreaseQuantity}
+            style={styles.quantityRow}
+            stepperStyle={styles.quantityStepper}
           />
         </HomeMealCard.Content>
       </HomeMealCard.Root>
@@ -130,12 +105,25 @@ const styles = StyleSheet.create((theme) => ({
   cardWrap: {
     width: '100%',
   },
-  moreButton: {
+  deleteButton: {
     width: theme.metrics.spacing.p32,
     height: theme.metrics.spacing.p32,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background.surface,
+  },
+  quantityRow: {
+    width: '100%',
+    justifyContent: 'flex-end',
+    paddingBottom: theme.metrics.spacingV.p4,
+  },
+  quantityStepper: {
+    alignSelf: 'flex-end',
+    width: theme.metrics.spacing.p120,
+    paddingHorizontal: theme.metrics.spacing.p4,
+    paddingVertical: theme.metrics.spacingV.p4,
+    justifyContent: 'space-between',
+    gap: 0,
   },
 }));

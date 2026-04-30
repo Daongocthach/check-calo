@@ -18,6 +18,7 @@ import {
 } from '@/common/components';
 import { GoalTrackingCard } from '@/features/nutrition/components/GoalTrackingCard';
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
+import { NutritionReviewSheet } from '@/features/nutrition/components/NutritionReviewSheet/NutritionReviewSheet';
 import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import { getFoodEntryImageSyncStateMap } from '@/features/nutrition/services/foodEntrySyncQueue';
 import {
@@ -848,33 +849,18 @@ export default function HomeTab() {
     }
 
     openSheet(
-      <View style={styles.aiReviewSheetContent}>
-        <View style={styles.aiReviewHeader}>
-          <View style={styles.aiReviewHeaderCopy}>
-            <Text variant="h3" weight="bold">
-              {isHistoryMode
-                ? t('homeScreen.aiReview.historyTitle')
-                : t('homeScreen.aiReview.title')}
-            </Text>
-            <Text variant="bodySmall" color="secondary">
-              {isHistoryMode
-                ? t('homeScreen.aiReview.historySubtitle')
-                : t('homeScreen.aiReview.subtitle')}
-            </Text>
-          </View>
-          {isHistoryMode ? (
-            <Button
-              title={t('homeScreen.aiReview.backToReview')}
-              variant="ghost"
-              size="sm"
-              leftIcon={
-                <Icon name="chevron-back-outline" size={16} color={theme.colors.text.primary} />
-              }
-              onPress={() => {
-                setHomeAiReviewSheetMode('review');
-              }}
-            />
-          ) : (
+      <NutritionReviewSheet
+        title={
+          isHistoryMode ? t('homeScreen.aiReview.historyTitle') : t('homeScreen.aiReview.title')
+        }
+        subtitle={
+          isHistoryMode
+            ? t('homeScreen.aiReview.historySubtitle')
+            : t('homeScreen.aiReview.subtitle')
+        }
+        iconColor={reviewColors.iconColor}
+        headerActions={
+          !isHistoryMode ? (
             <Button
               title={t('homeScreen.aiReview.history')}
               variant="ghost"
@@ -884,41 +870,65 @@ export default function HomeTab() {
               }
               onPress={handleOpenHomeAiReviewHistory}
             />
-          )}
-        </View>
-
-        {isHistoryMode ? null : (
-          <View style={styles.aiReviewDatePill}>
-            <Text variant="caption" weight="semibold" color="secondary">
-              {formatReviewDateLabel(displayDate, i18n.language)}
-            </Text>
-          </View>
-        )}
-
-        {aiReviewBody}
-
-        <View style={styles.aiReviewActions}>
-          {!isHistoryMode && homeAiReviewState.status !== 'loading' && isTodayReview ? (
+          ) : null
+        }
+        headerMeta={
+          isHistoryMode ? (
+            <View style={styles.aiReviewHistoryHeaderRow}>
+              <View style={styles.aiReviewDatePill}>
+                <Text variant="caption" weight="semibold" color="secondary">
+                  {formatReviewDateLabel(displayDate, i18n.language)}
+                </Text>
+              </View>
+              <Button
+                title={t('homeScreen.aiReview.backToReview')}
+                variant="ghost"
+                size="sm"
+                leftIcon={
+                  <Icon name="chevron-back-outline" size={16} color={theme.colors.text.primary} />
+                }
+                onPress={() => {
+                  setHomeAiReviewSheetMode('review');
+                }}
+              />
+            </View>
+          ) : null
+        }
+        badge={
+          isHistoryMode ? null : (
+            <View style={styles.aiReviewDatePill}>
+              <Text variant="caption" weight="semibold" color="secondary">
+                {formatReviewDateLabel(displayDate, i18n.language)}
+              </Text>
+            </View>
+          )
+        }
+        footerActions={
+          <>
+            {!isHistoryMode && homeAiReviewState.status !== 'loading' && isTodayReview ? (
+              <Button
+                title={t('homeScreen.aiReview.retry')}
+                variant="outline"
+                size="sm"
+                leftIcon={
+                  <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
+                }
+                onPress={() => {
+                  setHomeAiReviewState({ status: 'loading' });
+                }}
+              />
+            ) : null}
             <Button
-              title={t('homeScreen.aiReview.retry')}
-              variant="outline"
+              title={t('common.close')}
+              variant="ghost"
               size="sm"
-              leftIcon={
-                <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
-              }
-              onPress={() => {
-                setHomeAiReviewState({ status: 'loading' });
-              }}
+              onPress={closeHomeAiReviewSheet}
             />
-          ) : null}
-          <Button
-            title={t('common.close')}
-            variant="ghost"
-            size="sm"
-            onPress={closeHomeAiReviewSheet}
-          />
-        </View>
-      </View>,
+          </>
+        }
+      >
+        {aiReviewBody}
+      </NutritionReviewSheet>,
       {
         snapPoints: ['90%', '100%'],
         containerVariant: 'scroll',
@@ -943,7 +953,6 @@ export default function HomeTab() {
     summary.consumedCalories,
     summary.progressPercent,
     t,
-    theme.colors.brand.primaryVariant,
     theme.colors.text.primary,
     theme,
   ]);
@@ -1432,6 +1441,12 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.metrics.spacingV.p4,
     borderRadius: theme.metrics.borderRadius.full,
     backgroundColor: theme.colors.background.section,
+  },
+  aiReviewHistoryHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
   },
   aiReviewLoadingState: {
     gap: theme.metrics.spacingV.p12,

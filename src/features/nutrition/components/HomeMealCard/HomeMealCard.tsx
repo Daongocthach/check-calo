@@ -231,13 +231,14 @@ function Actions({ children }: { children: ReactNode }) {
 }
 
 interface ActionButtonProps {
-  icon: 'create-outline' | 'trash-outline' | 'ellipsis-vertical';
+  icon: 'create-outline' | 'trash-outline' | 'ellipsis-vertical' | 'add-circle-outline';
   label: string;
   onPress: () => void;
   tone?: 'default' | 'danger';
+  iconColor?: string;
 }
 
-function ActionButton({ icon, label, onPress, tone = 'default' }: ActionButtonProps) {
+function ActionButton({ icon, label, onPress, tone = 'default', iconColor }: ActionButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -248,7 +249,7 @@ function ActionButton({ icon, label, onPress, tone = 'default' }: ActionButtonPr
         onPress();
       }}
     >
-      <Icon name={icon} size={16} destructive={tone === 'danger'} />
+      <Icon name={icon} size={16} destructive={tone === 'danger'} color={iconColor} />
     </Pressable>
   );
 }

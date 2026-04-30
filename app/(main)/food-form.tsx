@@ -13,11 +13,11 @@ import {
   DateTimeField,
   Icon,
   Input,
-  QuantityStepper,
   ScreenContainer,
   Text,
   TextArea,
 } from '@/common/components';
+import { QuantitySelector } from '@/features/nutrition/components/QuantitySelector';
 import { upsertFoodProductCatalog } from '@/features/nutrition/services/barcodeFoodLookup';
 import {
   deleteOrphanedFoodEntryAssets,
@@ -27,7 +27,12 @@ import {
   enqueueFoodEntryImageSync,
   processPendingFoodEntryImageSyncQueue,
 } from '@/features/nutrition/services/foodEntrySyncQueue';
-import { createManualMealItem } from '@/features/nutrition/services/manualMealsDatabase';
+import {
+  createManualMealItem,
+  getManualMealByItemIds,
+  updateManualMealItem,
+  type ManualMealItem,
+} from '@/features/nutrition/services/manualMealsDatabase';
 import {
   createFoodEntry,
   getFavoriteFoodById,
@@ -119,6 +124,7 @@ export default function FoodFormScreen() {
     context?: string;
     submitMode?: string;
     mealLocalId?: string;
+    itemLocalId?: string;
     servings?: string;
     consumedAt?: string;
     foodName?: string;
@@ -138,6 +144,7 @@ export default function FoodFormScreen() {
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [servings, setServings] = useState(1);
+  const [menuMealItem, setMenuMealItem] = useState<ManualMealItem | null>(null);
   const addMealItem = useAddMealStore((state) => state.addItem);
   const updateMealItem = useAddMealStore((state) => state.updateItem);
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
@@ -160,19 +167,31 @@ export default function FoodFormScreen() {
     () => typeof params.favoriteId === 'string' && params.favoriteId.length > 0,
     [params.favoriteId]
   );
-  const isEditing = isEditingEntry || isEditingFavorite;
+  const isAIDraftFlow = params.context === 'aiDraft' && !isEditingEntry && !isEditingFavorite;
+  const isDraftEditing =
+    isAIDraftFlow && typeof params.draftItemId === 'string' && params.draftItemId.length > 0;
+  const isEditingMenuMealItem =
+    params.context === 'menuMeal' &&
+    typeof params.mealLocalId === 'string' &&
+    params.mealLocalId.length > 0 &&
+    typeof params.itemLocalId === 'string' &&
+    params.itemLocalId.length > 0;
+  const isEditing = isEditingEntry || isEditingFavorite || isDraftEditing || isEditingMenuMealItem;
   const isAddMealFlow = params.context === 'addMeal' && !isEditing;
-  const isMenuMealFlow = params.context === 'menuMeal' && !isEditing;
+  const isMenuMealFlow = params.context === 'menuMeal' && !isEditingMenuMealItem;
   const isRecentFoodFlow = params.context === 'recentFood' && !isEditing;
   const isInstantAddMealFlow = isAddMealFlow && params.submitMode === 'instant';
+  const isServingsFlow = isAddMealFlow || isAIDraftFlow;
 
   const loadScreenData = useCallback(async () => {
     setIsLoading(true);
+    setMenuMealItem(null);
 
     if (isEditingEntry && typeof params.entryId === 'string') {
       const entry = await getFoodEntryById(params.entryId);
 
       if (entry) {
+        setMenuMealItem(null);
         setServings(1);
         reset({
           foodName: entry.mealName,
@@ -193,6 +212,7 @@ export default function FoodFormScreen() {
       const favorite = await getFavoriteFoodById(params.favoriteId);
 
       if (favorite) {
+        setMenuMealItem(null);
         setServings(1);
         reset({
           foodName: favorite.name,
@@ -209,7 +229,30 @@ export default function FoodFormScreen() {
         });
         setImageUri(favorite.imageUri ?? null);
       }
+    } else if (isEditingMenuMealItem && params.mealLocalId && params.itemLocalId) {
+      const result = await getManualMealByItemIds(params.mealLocalId, params.itemLocalId);
+
+      if (result) {
+        const { meal, item } = result;
+        setMenuMealItem(item);
+        setServings(item.servings);
+        reset({
+          foodName: item.title,
+          quantityLabel:
+            item.quantityGrams !== null && item.quantityGrams !== undefined
+              ? toRoundedString(item.quantityGrams)
+              : item.quantityLabel,
+          consumedAt: formatDateTimeInputValue(meal.eatenAt),
+          calories: toRoundedString(item.totalCalories),
+          protein: toRoundedString(item.proteinGrams),
+          carbs: toRoundedString(item.carbsGrams),
+          fat: toRoundedString(item.fatGrams),
+          notes: item.notes ?? '',
+        });
+        setImageUri(item.imageUri ?? null);
+      }
     } else {
+      setMenuMealItem(null);
       setServings(
         typeof params.servings === 'string' && Number(params.servings) > 0
           ? Number(params.servings)
@@ -233,6 +276,7 @@ export default function FoodFormScreen() {
 
     setIsLoading(false);
   }, [
+    isEditingMenuMealItem,
     isEditingEntry,
     isEditingFavorite,
     params.calories,
@@ -243,6 +287,8 @@ export default function FoodFormScreen() {
     params.favoriteId,
     params.foodName,
     params.imageUri,
+    params.itemLocalId,
+    params.mealLocalId,
     params.notes,
     params.protein,
     params.quantityLabel,
@@ -286,7 +332,7 @@ export default function FoodFormScreen() {
       return t('manualFoodEntry.updateAction');
     }
 
-    if (isAddMealFlow) {
+    if (isServingsFlow) {
       return t('manualFoodEntry.saveActionWithCalories', {
         calories: Math.round(totalCaloriesForSave),
         kcal: t('common.units.kcal'),
@@ -294,7 +340,7 @@ export default function FoodFormScreen() {
     }
 
     return t('manualFoodEntry.saveAction');
-  }, [isAddMealFlow, isEditing, t, totalCaloriesForSave]);
+  }, [isEditing, isServingsFlow, t, totalCaloriesForSave]);
 
   const onSubmit = async (form: FoodFormState) => {
     const quantityGrams = parseMealWeightInput(form.quantityLabel);
@@ -344,6 +390,39 @@ export default function FoodFormScreen() {
         carbsGrams: basePayload.carbsGrams * servingsMultiplier,
         fatGrams: basePayload.fatGrams * servingsMultiplier,
       };
+
+      if (isAIDraftFlow) {
+        const existingDraft =
+          isDraftEditing && typeof params.draftItemId === 'string'
+            ? useAddMealStore
+                .getState()
+                .items.find((draftItem) => draftItem.id === params.draftItemId)
+            : null;
+        const nextDraftItem = {
+          sourceKey: existingDraft?.sourceKey ?? null,
+          title: basePayload.mealName,
+          quantityLabel: basePayload.quantityLabel,
+          quantityGrams: basePayload.quantityGrams,
+          totalCalories: basePayload.totalCalories,
+          proteinGrams: basePayload.proteinGrams,
+          carbsGrams: basePayload.carbsGrams,
+          fatGrams: basePayload.fatGrams,
+          notes: basePayload.notes,
+          imageUri: basePayload.imageUri,
+          thumbnailUri: basePayload.thumbnailUri,
+          consumedAt: basePayload.consumedAt,
+          servings,
+        };
+
+        if (isDraftEditing && typeof params.draftItemId === 'string') {
+          updateMealItem(params.draftItemId, nextDraftItem);
+        } else {
+          addMealItem(nextDraftItem);
+        }
+
+        router.back();
+        return;
+      }
 
       if (isRecentFoodFlow) {
         const syncedRecentFavorite = await upsertFavoriteFoodFromInput({
@@ -493,6 +572,42 @@ export default function FoodFormScreen() {
         });
 
         toast.success(t('menuItemEntry.manualAddSuccess', { name: payload.mealName }));
+        router.replace('/menu');
+        return;
+      }
+
+      if (
+        isEditingMenuMealItem &&
+        typeof params.mealLocalId === 'string' &&
+        typeof params.itemLocalId === 'string'
+      ) {
+        const existingMenuItem =
+          menuMealItem ??
+          (await getManualMealByItemIds(params.mealLocalId, params.itemLocalId))?.item;
+
+        if (!existingMenuItem) {
+          return;
+        }
+
+        const existingSourceKey =
+          payload.barcode !== null ? `barcode:${payload.barcode}` : existingMenuItem.sourceKey;
+
+        await updateManualMealItem(params.itemLocalId, {
+          sourceKey: existingSourceKey,
+          title: payload.mealName,
+          quantityLabel: payload.quantityLabel,
+          quantityGrams: payload.quantityGrams ?? null,
+          totalCalories: payload.totalCalories,
+          proteinGrams: payload.proteinGrams,
+          carbsGrams: payload.carbsGrams,
+          fatGrams: payload.fatGrams,
+          notes: payload.notes,
+          imageUri: payload.imageUri,
+          thumbnailUri: payload.thumbnailUri,
+          servings: existingMenuItem.servings,
+        });
+
+        toast.success(t('manualFoodEntry.updateSuccess', { name: payload.mealName }));
         router.replace('/menu');
         return;
       }
@@ -810,24 +925,21 @@ export default function FoodFormScreen() {
         >
           <View style={styles.footer}>
             <View style={styles.actions}>
-              {isAddMealFlow ? (
-                <View style={styles.servingsBlock}>
-                  <Text variant="bodySmall" weight="semibold">
-                    {t('manualFoodEntry.portionCountLabel')}
-                  </Text>
-                  <QuantityStepper
-                    value={servings}
-                    minValue={1}
-                    decreaseLabel={t('addScreen.decreasePortion')}
-                    increaseLabel={t('addScreen.increasePortion')}
-                    onDecrease={() => {
-                      setServings((currentValue) => Math.max(1, currentValue - 1));
-                    }}
-                    onIncrease={() => {
-                      setServings((currentValue) => currentValue + 1);
-                    }}
-                  />
-                </View>
+              {isServingsFlow ? (
+                <QuantitySelector
+                  label={t('manualFoodEntry.portionCountLabel')}
+                  value={servings}
+                  minValue={1}
+                  decreaseLabel={t('addScreen.decreasePortion')}
+                  increaseLabel={t('addScreen.increasePortion')}
+                  onDecrease={() => {
+                    setServings((currentValue) => Math.max(1, currentValue - 1));
+                  }}
+                  onIncrease={() => {
+                    setServings((currentValue) => currentValue + 1);
+                  }}
+                  style={styles.servingsBlock}
+                />
               ) : null}
               <Button
                 title={saveButtonTitle}

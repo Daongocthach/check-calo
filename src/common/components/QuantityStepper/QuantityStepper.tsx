@@ -32,7 +32,10 @@ export function QuantityStepper({
         accessibilityState={{ disabled: isDecreaseDisabled }}
         disabled={isDecreaseDisabled}
         style={[styles.stepperButton, isDecreaseDisabled && styles.stepperButtonDisabled]}
-        onPress={onDecrease}
+        onPress={(event) => {
+          event.stopPropagation();
+          onDecrease();
+        }}
       >
         <Icon name="remove" variant="primary" size={16} />
       </Pressable>
@@ -43,7 +46,10 @@ export function QuantityStepper({
         accessibilityRole="button"
         accessibilityLabel={increaseLabel}
         style={styles.stepperButton}
-        onPress={onIncrease}
+        onPress={(event) => {
+          event.stopPropagation();
+          onIncrease();
+        }}
       >
         <Icon name="add" variant="primary" size={16} />
       </Pressable>

@@ -6,10 +6,7 @@ export type MealPlanCriterion = 'quick' | 'cheap' | 'satiating' | 'protein';
 export interface MockAiMealPlanRequest {
   selectedDateIso: string;
   targetMealType?: MealType;
-  preferRecentFoods: boolean;
-  availableIngredients: string;
-  contraindications: string;
-  criteria: MealPlanCriterion[];
+  noteText: string;
   profile: UserProfile | null;
   locale: string;
 }
@@ -128,13 +125,22 @@ function getPlan(locale: string) {
 function adjustForCriteria(
   item: ManualMealItemInput,
   criteria: MealPlanCriterion[],
-  profile: UserProfile | null
+  profile: UserProfile | null,
+  noteText: string
 ): ManualMealItemInput {
-  const proteinBoost = criteria.includes('protein') ? 8 : 0;
+  const normalizedNote = noteText.toLowerCase();
+  const proteinBoost = criteria.includes('protein') || normalizedNote.includes('protein') ? 8 : 0;
   const calorieTarget = profile?.dailyCalorieTarget ?? 0;
   const shouldKeepLighter = calorieTarget > 0 && calorieTarget < 1800;
-  const satiatingAdjustment = criteria.includes('satiating') ? 60 : 0;
-  const calorieAdjustment = shouldKeepLighter ? -40 : satiatingAdjustment;
+  const satiatingAdjustment =
+    criteria.includes('satiating') ||
+    normalizedNote.includes('no lâu') ||
+    normalizedNote.includes('no lau')
+      ? 60
+      : 0;
+  const quickAdjustment =
+    normalizedNote.includes('nhanh') || normalizedNote.includes('quick') ? -20 : 0;
+  const calorieAdjustment = shouldKeepLighter ? -40 : satiatingAdjustment + quickAdjustment;
 
   return {
     ...item,
@@ -146,7 +152,7 @@ function adjustForCriteria(
 
 export async function generateMockAiMealPlanSuggestions({
   targetMealType,
-  criteria,
+  noteText,
   profile,
   locale,
 }: MockAiMealPlanRequest): Promise<MockAiMealPlanSuggestion[]> {
@@ -158,6 +164,6 @@ export async function generateMockAiMealPlanSuggestions({
 
   return requestedMealTypes.map((mealType) => ({
     mealType,
-    item: adjustForCriteria(plan[mealType === 'other' ? 'snack' : mealType], criteria, profile),
+    item: adjustForCriteria(plan[mealType === 'other' ? 'snack' : mealType], [], profile, noteText),
   }));
 }
