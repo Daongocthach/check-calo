@@ -73,9 +73,6 @@ function ContactDetailRow({
 
 export default function ContactScreen() {
   const { t } = useTranslation();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [problem, setProblem] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,16 +120,6 @@ export default function ContactScreen() {
                 void copyValue(t('contactScreen.phoneValue'));
               }}
             />
-            <ContactDetailRow
-              iconName="location-outline"
-              label={t('contactScreen.locationLabel')}
-              value={t('contactScreen.locationValue')}
-            />
-            <ContactDetailRow
-              iconName="calendar-outline"
-              label={t('contactScreen.workingDaysLabel')}
-              value={t('contactScreen.workingDaysValue')}
-            />
           </View>
 
           <Card variant="elevated" style={styles.formCard}>
@@ -145,42 +132,13 @@ export default function ContactScreen() {
               </Text>
             </View>
 
-            <View style={styles.rowGap}>
-              <View style={styles.halfField}>
-                <Input
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  placeholder={t('contactScreen.firstNamePlaceholder')}
-                />
-              </View>
-              <View style={styles.halfField}>
-                <Input
-                  value={lastName}
-                  onChangeText={setLastName}
-                  placeholder={t('contactScreen.lastNamePlaceholder')}
-                />
-              </View>
-            </View>
-
-            <View style={styles.rowGap}>
-              <View style={styles.halfField}>
-                <Input
-                  value={phoneNumber}
-                  onChangeText={setPhoneNumber}
-                  placeholder={t('contactScreen.phonePlaceholder')}
-                  keyboardType="phone-pad"
-                />
-              </View>
-              <View style={styles.halfField}>
-                <Input
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder={t('contactScreen.emailPlaceholder')}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-            </View>
+            <Input
+              value={email}
+              onChangeText={setEmail}
+              placeholder={t('contactScreen.emailPlaceholder')}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
             <TextArea
               value={problem}
@@ -246,14 +204,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   formHeader: {
     gap: theme.metrics.spacingV.p4,
-  },
-  rowGap: {
-    flexDirection: 'row',
-    gap: theme.metrics.spacing.p12,
-  },
-  halfField: {
-    flex: 1,
-    minWidth: 0,
   },
   submitButton: {
     marginTop: theme.metrics.spacingV.p4,

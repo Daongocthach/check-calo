@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 9;
+const DATABASE_VERSION = 10;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -39,6 +39,7 @@ async function runVersion1Migration(database: SQLite.SQLiteDatabase) {
 
     CREATE TABLE IF NOT EXISTS user_profile (
       id INTEGER PRIMARY KEY CHECK (id = 1),
+      display_name TEXT NOT NULL DEFAULT '',
       gender TEXT NOT NULL,
       age INTEGER NOT NULL,
       height_cm REAL NOT NULL,
@@ -402,6 +403,15 @@ async function runVersion9Migration(database: SQLite.SQLiteDatabase) {
   `);
 }
 
+async function runVersion10Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'display_name',
+    "display_name TEXT NOT NULL DEFAULT ''"
+  );
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -441,6 +451,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 9) {
     await runVersion9Migration(database);
+  }
+
+  if (currentVersion < 10) {
+    await runVersion10Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {

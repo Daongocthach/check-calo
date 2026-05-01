@@ -791,6 +791,7 @@
       "ready": "BMI {{bmi}} • {{calorieTarget}} kcal/ngày"
     },
     "fields": {
+      "displayName": "Tên hiển thị",
       "gender": "Giới tính",
       "age": "Tuổi",
       "height": "Chiều cao (cm)",
@@ -820,6 +821,7 @@
       "gain_2": "Tăng 2 kg/tháng"
     },
     "placeholders": {
+      "displayName": "Nhập tên của bạn",
       "age": "Nhập tuổi",
       "height": "Nhập chiều cao",
       "weight": "Nhập cân nặng"
@@ -861,6 +863,9 @@
     "logoutConfirmMessage": "Bạn có chắc muốn đăng xuất khỏi tài khoản đã liên kết này không?",
     "logoutSuccess": "Đã đăng xuất thành công.",
     "actionError": "Không thể cập nhật dữ liệu lúc này. Vui lòng thử lại.",
+    "signInPromptTitle": "Đã có tài khoản?",
+    "signInPromptSubtitle": "Đăng nhập để đồng bộ thiết bị này với một tài khoản có sẵn.",
+    "signInAction": "Đăng nhập",
     "account": {
       "title": "Tài khoản đồng bộ",
       "anonymousSubtitle": "Liên kết phiên ẩn danh này với tài khoản thật để bảo vệ dữ liệu món ăn và ảnh đã đồng bộ.",
@@ -1165,22 +1170,19 @@
     "title": "Liên hệ",
     "heroTitle": "Liên hệ",
     "formTitle": "Gửi tin nhắn",
-    "formSubtitle": "Điền vài thông tin để chúng tôi phản hồi nhanh hơn.",
+    "formSubtitle": "Chỉ cần để lại email và vấn đề bạn gặp phải.",
     "copyHint": "Chạm để sao chép",
     "copySuccess": "Đã sao chép thông tin liên hệ.",
     "submitAction": "Gửi",
     "submitSuccess": "Đã ghi nhận yêu cầu liên hệ.",
     "emailLabel": "Địa chỉ email",
-    "emailValue": "support@checkcalo.app",
+    "emailValue": "checkcalosupport@gmail.com",
     "phoneLabel": "Số điện thoại",
-    "phoneValue": "0784524242",
+    "phoneValue": "0373060206",
     "locationLabel": "Địa chỉ văn phòng",
     "locationValue": "No. 2A, Street 55, Quarter 2, Binh Duong Ward, Ho Chi Minh City, Vietnam",
     "workingDaysLabel": "Ngày làm việc",
     "workingDaysValue": "Monday - Saturday | 08:00 - 17:00",
-    "firstNamePlaceholder": "Họ",
-    "lastNamePlaceholder": "Tên",
-    "phonePlaceholder": "Số điện thoại",
     "emailPlaceholder": "Email của bạn",
     "problemPlaceholder": "Vấn đề của bạn"
   },
@@ -1375,80 +1377,89 @@
   },
   "achievementsScreen": {
     "title": "Danh hiệu",
-    "heroTitle": "Thành tích của bạn",
-    "heroBody": "Theo dõi chuỗi ngày, mục tiêu hoàn thành và bộ huy hiệu đã mở khóa.",
-    "heroFallbackTitle": "Hành trình bám mục tiêu",
-    "currentStreakLabel": "Chuỗi hiện tại",
-    "currentStreakUnit": "ngày",
-    "viewGoalsAction": "Xem lịch sử mục tiêu",
-    "progressLabel": "Mốc tiếp theo",
-    "progressBody": "Còn {{remaining}} ngày nữa để mở {{label}}",
-    "progressComplete": "Bạn đã vượt qua mốc chuỗi đầu tiên",
-    "nextMilestoneFallback": "một mốc mới",
-    "summaryTitle": "Thành tích {{year}}",
-    "summaryBody": "Tổng hợp các chỉ số quan trọng trong hành trình dinh dưỡng.",
-    "stats": {
-      "totalGoals": "Mục tiêu đã theo dõi",
-      "totalGoalsSubtitle": "Tất cả mục tiêu đã ghi nhận",
-      "completedGoals": "Mục tiêu hoàn thành",
-      "completedGoalsSubtitle": "Số mục tiêu đã chốt",
-      "unlocked": "Danh hiệu mở khóa",
-      "unlockedSubtitle": "Huy hiệu đang sở hữu"
+    "subtitle": "Kiên trì mỗi ngày để nâng cấp danh hiệu và chinh phục phiên bản tốt hơn của chính bạn!",
+    "back": "Quay lại",
+    "status": {
+      "unlocked": "Đã mở khóa",
+      "locked": "Đã khóa"
     },
-    "collectionTitle": "Bộ sưu tập danh hiệu",
-    "collectionSubtitle": "Mở khóa các huy hiệu bằng chuỗi ngày và mục tiêu hoàn thành.",
-    "emptyTitle": "Bạn hiện chưa có danh hiệu nào...",
-    "emptyBody": "Hãy giữ chuỗi ngày bám mục tiêu và hoàn thành thêm vài mốc đầu tiên nhé.",
-    "emptyAction": "Xem lịch sử mục tiêu",
-    "unlocked": "Đã mở khóa",
-    "items": {
-      "fireKeeper7": {
-        "title": "Chuỗi 7 ngày",
-        "body": "Duy trì bám mục tiêu 7 ngày liên tiếp.",
-        "requirement": "Cần 7 ngày liên tiếp"
-      },
-      "fireKeeper14": {
-        "title": "Chuỗi 14 ngày",
-        "body": "Duy trì bám mục tiêu 14 ngày liên tiếp.",
-        "requirement": "Cần 14 ngày liên tiếp"
-      },
-      "goalCrusher": {
-        "title": "Chinh phục mục tiêu",
-        "body": "Hoàn thành ít nhất một mục tiêu dinh dưỡng.",
-        "requirement": "Hoàn thành 1 mục tiêu"
-      },
-      "firstMaintainGoal": {
-        "title": "Duy trì đầu tiên",
-        "body": "Chốt thành công mục tiêu duy trì đầu tiên.",
-        "requirement": "Hoàn thành 1 mục tiêu duy trì"
-      }
+    "summary": {
+      "currentStreak": "Streak hiện tại",
+      "completedGoals": "Mục tiêu đã hoàn thành"
+    },
+    "units": {
+      "day": "ngày",
+      "days": "ngày",
+      "goal": "mục tiêu",
+      "goals": "mục tiêu"
+    },
+    "requirements": {
+      "streak": "Streak {{count}} {{unit}}",
+      "goals": "Hoàn thành {{count}} {{unit}}"
+    },
+    "ranks": {
+      "beginner": "Nhập môn",
+      "rookie": "Tập sự",
+      "learner": "Học viên",
+      "pro": "Tinh anh",
+      "elite": "Cao thủ",
+      "master": "Bậc thầy",
+      "ambassador": "Đại sứ",
+      "legend": "Huyền thoại"
     }
   },
   "leaderboardScreen": {
     "title": "Bảng xếp hạng",
-    "subtitle": "Green Race",
-    "monthTitle": "Chiến binh xanh - Tháng {{month}}",
-    "featureTitle": "Top đầu tháng này",
-    "featureSubtitle": "Những người đang dẫn đầu trong cuộc đua xanh.",
-    "rankingTitle": "Top 4 - 10",
-    "rankingSubtitle": "Danh sách tiếp theo trong bảng xếp hạng.",
-    "myTitle": "Tích lũy tháng này của tôi",
-    "mySubtitle": "Xem nhanh vị trí và tiến độ hiện tại.",
-    "myCategory": "Thống kê xanh",
-    "myRankLabel": "Hạng #{{rank}}",
-    "myProgressLabel": "Tiến độ tháng",
-    "scoreSuffix": "{{value}} KM tích lũy",
-    "categories": {
-      "car": "Cao thủ xe hơi",
-      "carSubtitle": "Top 1 di chuyển bằng xe hơi",
-      "bike": "Dân chơi hai bánh",
-      "bikeSubtitle": "Top 1 di chuyển bằng xe đạp"
+    "back": "Quay lại",
+    "anonymousName": "Ẩn danh",
+    "anonymousMaskedName": "AN****S",
+    "emptyStateTitle": "Chưa có dữ liệu bảng xếp hạng",
+    "emptyStateMessage": "Đồng bộ hồ sơ và streak để xuất hiện ở đây.",
+    "emptyPodiumTitle": "Đang chờ người chơi",
+    "levelPrefix": "Lv.",
+    "rowSubtitle": "Giữ chuỗi và đạt mục tiêu mỗi ngày.",
+    "listTitle": "Xếp hạng 4 - 10",
+    "monthPill": "Cuộc đua xanh • Tháng {{month}}",
+    "hero": {
+      "lossTitle": "Cuộc đua giảm cân",
+      "lossSubtitle": "Giảm đều, giữ nhịp, lên hạng",
+      "gainTitle": "Cuộc đua tăng cân",
+      "gainSubtitle": "Tăng đúng cách, tăng bền vững",
+      "maintainTitle": "Cuộc đua giữ cân",
+      "maintainSubtitle": "Ổn định từng ngày, bền vững từng tuần"
     },
-    "ranking": {
-      "top1": "Top 1 tháng này",
-      "top2": "Top 2 tháng này",
-      "top3": "Top 3 tháng này",
-      "rank": "Hạng trong bảng"
-    }
+    "tabs": {
+      "loss": "Giảm cân",
+      "gain": "Tăng cân",
+      "maintain": "Giữ cân"
+    },
+    "sections": {
+      "lossTopTitle": "Dẫn đầu tháng này",
+      "lossTopSubtitle": "Những người giảm cân bền bỉ nhất.",
+      "lossNextTitle": "Bảng xếp hạng tiếp theo",
+      "lossNextSubtitle": "Tiếp tục cố gắng để lọt vào Top 3.",
+      "gainTopTitle": "Dẫn đầu tháng này",
+      "gainTopSubtitle": "Những người tăng cân đúng nhịp nhất.",
+      "gainNextTitle": "Bảng xếp hạng tiếp theo",
+      "gainNextSubtitle": "Tiếp tục cố gắng để lọt vào Top 3.",
+      "maintainTopTitle": "Dẫn đầu tháng này",
+      "maintainTopSubtitle": "Những người giữ cân ổn định nhất.",
+      "maintainNextTitle": "Bảng xếp hạng tiếp theo",
+      "maintainNextSubtitle": "Tiếp tục cố gắng để lọt vào Top 3."
+    },
+    "cta": {
+      "lossTitle": "Giữ chuỗi là giữ hạng",
+      "lossBody": "Mở lịch sử mục tiêu để xem bạn đang tiến gần đến đâu.",
+      "gainTitle": "Giữ đà tăng mỗi ngày",
+      "gainBody": "Mở lịch sử mục tiêu để giữ nhịp tốt hơn.",
+      "maintainTitle": "Ổn định hôm nay, bền vững mai sau",
+      "maintainBody": "Mở lịch sử mục tiêu để giữ cân đều đặn.",
+      "button": "Cập nhật ngay"
+    },
+    "units": {
+      "kcal": "kcal",
+      "points": "điểm"
+    },
+    "deltaPrefix": "▲"
   }
 }

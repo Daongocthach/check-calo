@@ -3,23 +3,37 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Input, ScreenContainer, Text } from '@/common/components';
 import {
   linkAnonymousAccountWithProvider,
   login,
   signInWithProvider,
 } from '@/features/auth/services/authService';
+import { useResponsiveKeyboardLayout, useScreenDimensions } from '@/hooks';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { toast } from '@/utils/toast';
 import GoogleLogo from '../../assets/google-logo.png';
-import LoginBanner from '../../assets/login-banner.png';
+import AppLogo from '../../assets/splash-icon-light.png';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen() {
   const { t } = useTranslation();
+  const { theme } = useUnistyles();
   const authUser = useAuthStore((state) => state.user);
+  const { height } = useScreenDimensions();
+  const isCompactHeight = height < 700;
+  const { keyboardBottomOffset, footerBottomPadding } = useResponsiveKeyboardLayout({
+    compactHeightThreshold: 700,
+    compactKeyboardBottomOffset: theme.metrics.spacingV.p32,
+    regularKeyboardBottomOffset: theme.metrics.spacingV.p24,
+    compactKeyboardOpenedOffset: theme.metrics.spacingV.p20,
+    regularKeyboardOpenedOffset: theme.metrics.spacingV.p32,
+    compactFooterPadding: theme.metrics.spacingV.p12,
+    regularFooterPadding: theme.metrics.spacingV.p16,
+  });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,95 +97,120 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScreenContainer scrollable padded={false} edges={['bottom']}>
-      <View style={styles.screen}>
-        <View style={styles.heroSection}>
-          <Image source={LoginBanner} style={styles.heroImage} contentFit="contain" />
-          <View style={styles.heroCopy}>
-            <Text variant="body" weight="bold" align="center">
-              {t('auth.welcomeBack')}
-            </Text>
-            <Text variant="body" color="secondary" align="center">
-              {t('auth.welcomeBackSubtitle')}
-            </Text>
+    <ScreenContainer padded={false} edges={[]}>
+      <View style={styles.layout}>
+        <KeyboardAwareScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            isCompactHeight && styles.scrollContentCompact,
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bottomOffset={keyboardBottomOffset}
+        >
+          <View style={[styles.screen, isCompactHeight && styles.screenCompact]}>
+            <View style={styles.heroSection}>
+              <Image source={AppLogo} style={styles.heroLogo} contentFit="contain" />
+              <View style={styles.heroCopy}>
+                <Text variant="body" weight="bold" align="center">
+                  {t('auth.welcomeBack')}
+                </Text>
+                <Text variant="body" color="secondary" align="center">
+                  {t('auth.welcomeBackSubtitle')}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.formCard}>
+              <View style={styles.formHeader}>
+                <Text variant="h2">{t('auth.signIn')}</Text>
+                <Text variant="bodySmall" color="secondary">
+                  {t('auth.loginCardSubtitle')}
+                </Text>
+              </View>
+
+              <View style={styles.form}>
+                <Input
+                  label={t('auth.email')}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
+                  accessibilityLabel={t('auth.email')}
+                  placeholder={t('auth.emailPlaceholder')}
+                />
+
+                <Input
+                  label={t('auth.password')}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  textContentType="password"
+                  accessibilityLabel={t('auth.password')}
+                  placeholder={t('auth.passwordPlaceholder')}
+                />
+              </View>
+            </View>
+
+            <View style={[styles.actionsCard, { paddingBottom: footerBottomPadding }]}>
+              <Button
+                title={t('auth.signIn')}
+                loading={isSubmitting}
+                disabled={isSubmitting || isGoogleLoading}
+                onPress={handleSubmit}
+                style={styles.primaryButton}
+              />
+
+              <Button
+                title={t('auth.signInWithGoogle')}
+                variant="outline"
+                loading={isGoogleLoading}
+                disabled={isSubmitting || isGoogleLoading}
+                onPress={() => {
+                  void handleGoogleSignIn();
+                }}
+                style={styles.googleButton}
+                leftIcon={
+                  <Image source={GoogleLogo} style={styles.googleLogo} contentFit="contain" />
+                }
+              />
+            </View>
           </View>
-        </View>
-
-        <View style={styles.formCard}>
-          <View style={styles.formHeader}>
-            <Text variant="h2">{t('auth.signIn')}</Text>
-            <Text variant="bodySmall" color="secondary">
-              {t('auth.loginCardSubtitle')}
-            </Text>
-          </View>
-
-          <View style={styles.form}>
-            <Input
-              label={t('auth.email')}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              textContentType="emailAddress"
-              accessibilityLabel={t('auth.email')}
-              placeholder={t('auth.emailPlaceholder')}
-            />
-
-            <Input
-              label={t('auth.password')}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              textContentType="password"
-              accessibilityLabel={t('auth.password')}
-              placeholder={t('auth.passwordPlaceholder')}
-            />
-
-            <Button
-              title={t('auth.signIn')}
-              loading={isSubmitting}
-              disabled={isSubmitting || isGoogleLoading}
-              onPress={handleSubmit}
-              style={styles.primaryButton}
-            />
-
-            <Button
-              title={t('auth.signInWithGoogle')}
-              variant="outline"
-              loading={isGoogleLoading}
-              disabled={isSubmitting || isGoogleLoading}
-              onPress={() => {
-                void handleGoogleSignIn();
-              }}
-              style={styles.googleButton}
-              leftIcon={
-                <Image source={GoogleLogo} style={styles.googleLogo} contentFit="contain" />
-              }
-            />
-          </View>
-        </View>
+        </KeyboardAwareScrollView>
       </View>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
-  screen: {
+  layout: {
     flex: 1,
-    paddingHorizontal: theme.metrics.spacing.p20,
-    paddingTop: theme.metrics.spacingV.p24,
-    paddingBottom: theme.metrics.spacingV.p32,
-    gap: theme.metrics.spacingV.p24,
+  },
+  scrollContent: {
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingBottom: theme.metrics.spacingV.p120,
+  },
+  scrollContentCompact: {
+    paddingBottom: theme.metrics.spacingV.p88,
+  },
+  screen: {
+    gap: theme.metrics.spacingV.p20,
+  },
+  screenCompact: {
+    gap: theme.metrics.spacingV.p12,
   },
   heroSection: {
     gap: theme.metrics.spacingV.p16,
+    alignItems: 'center',
   },
-  heroImage: {
-    width: '100%',
-    height: 150,
+  heroLogo: {
+    width: theme.metrics.spacing.p120,
+    height: theme.metrics.spacing.p120,
+    transform: [{ scale: 1.2 }],
   },
   heroCopy: {
     gap: theme.metrics.spacingV.p8,
@@ -185,15 +224,16 @@ const styles = StyleSheet.create((theme) => ({
     borderWidth: 1,
     borderColor: theme.colors.border.default,
   },
+  actionsCard: {
+    gap: theme.metrics.spacingV.p12,
+  },
   formHeader: {
     gap: theme.metrics.spacingV.p8,
   },
   form: {
     gap: theme.metrics.spacingV.p12,
   },
-  primaryButton: {
-    marginTop: theme.metrics.spacingV.p8,
-  },
+  primaryButton: {},
   googleButton: {
     backgroundColor: theme.colors.background.surface,
     borderColor: theme.colors.border.default,

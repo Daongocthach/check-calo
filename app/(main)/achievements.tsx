@@ -1,58 +1,99 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, View } from 'react-native';
+import { Image, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Button, Card, Icon, ProgressBar, ScreenContainer, Text } from '@/common/components';
-import type { IconProps } from '@/common/components/Icon';
+import { Icon, ScreenContainer, Text } from '@/common/components';
 import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
-import type { AchievementKey, GoalTrackingSnapshot } from '@/features/nutrition/types';
-import { formatWeightGoalTitle } from '@/features/nutrition/utils/goalTracking';
-
-interface AchievementDefinition {
-  key: AchievementKey;
-  icon: IconProps['name'];
-  titleKey: string;
-  bodyKey: string;
-  requirementKey: string;
-  tone: 'gold' | 'green' | 'blue' | 'neutral';
-}
+import type { GoalTrackingSnapshot } from '@/features/nutrition/types';
+import AmbassadorRankImage from '../../assets/ambassador.png';
+import BeginnerRankImage from '../../assets/beginner.png';
+import EliteRankImage from '../../assets/elite.png';
+import LearnerRankImage from '../../assets/learner.png';
+import LegendRankImage from '../../assets/legend.png';
+import MasterRankImage from '../../assets/master.png';
+import ProRankImage from '../../assets/pro.png';
+import RookieRankImage from '../../assets/rookie.png';
 
 type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
 
-const ACHIEVEMENTS: AchievementDefinition[] = [
+type RankRequirement = {
+  kind: 'streak' | 'goals';
+  value: number;
+};
+
+interface RankDefinition {
+  key: string;
+  titleKey: string;
+  image: number;
+  tone: RankTone;
+  requirements: RankRequirement[];
+}
+
+type RankTone = 'green' | 'blue' | 'lime' | 'gold' | 'slate' | 'indigo' | 'red' | 'amber';
+
+const RANKS: RankDefinition[] = [
   {
-    key: 'fire_keeper_7',
-    icon: 'flame-outline',
-    titleKey: 'achievementsScreen.items.fireKeeper7.title',
-    bodyKey: 'achievementsScreen.items.fireKeeper7.body',
-    requirementKey: 'achievementsScreen.items.fireKeeper7.requirement',
-    tone: 'gold',
-  },
-  {
-    key: 'fire_keeper_14',
-    icon: 'flame',
-    titleKey: 'achievementsScreen.items.fireKeeper14.title',
-    bodyKey: 'achievementsScreen.items.fireKeeper14.body',
-    requirementKey: 'achievementsScreen.items.fireKeeper14.requirement',
-    tone: 'blue',
-  },
-  {
-    key: 'goal_crusher',
-    icon: 'trophy-outline',
-    titleKey: 'achievementsScreen.items.goalCrusher.title',
-    bodyKey: 'achievementsScreen.items.goalCrusher.body',
-    requirementKey: 'achievementsScreen.items.goalCrusher.requirement',
+    key: 'beginner',
+    titleKey: 'achievementsScreen.ranks.beginner',
+    image: BeginnerRankImage,
     tone: 'green',
+    requirements: [{ kind: 'streak', value: 1 }],
   },
   {
-    key: 'first_maintain_goal',
-    icon: 'leaf-outline',
-    titleKey: 'achievementsScreen.items.firstMaintainGoal.title',
-    bodyKey: 'achievementsScreen.items.firstMaintainGoal.body',
-    requirementKey: 'achievementsScreen.items.firstMaintainGoal.requirement',
-    tone: 'neutral',
+    key: 'rookie',
+    titleKey: 'achievementsScreen.ranks.rookie',
+    image: RookieRankImage,
+    tone: 'blue',
+    requirements: [{ kind: 'streak', value: 2 }],
+  },
+  {
+    key: 'learner',
+    titleKey: 'achievementsScreen.ranks.learner',
+    image: LearnerRankImage,
+    tone: 'lime',
+    requirements: [{ kind: 'streak', value: 3 }],
+  },
+  {
+    key: 'pro',
+    titleKey: 'achievementsScreen.ranks.pro',
+    image: ProRankImage,
+    tone: 'gold',
+    requirements: [{ kind: 'streak', value: 7 }],
+  },
+  {
+    key: 'elite',
+    titleKey: 'achievementsScreen.ranks.elite',
+    image: EliteRankImage,
+    tone: 'slate',
+    requirements: [
+      { kind: 'streak', value: 14 },
+      { kind: 'goals', value: 2 },
+    ],
+  },
+  {
+    key: 'master',
+    titleKey: 'achievementsScreen.ranks.master',
+    image: MasterRankImage,
+    tone: 'indigo',
+    requirements: [{ kind: 'goals', value: 3 }],
+  },
+  {
+    key: 'ambassador',
+    titleKey: 'achievementsScreen.ranks.ambassador',
+    image: AmbassadorRankImage,
+    tone: 'red',
+    requirements: [
+      { kind: 'goals', value: 4 },
+      { kind: 'streak', value: 21 },
+    ],
+  },
+  {
+    key: 'legend',
+    titleKey: 'achievementsScreen.ranks.legend',
+    image: LegendRankImage,
+    tone: 'amber',
+    requirements: [{ kind: 'goals', value: 5 }],
   },
 ];
 
@@ -60,119 +101,260 @@ function formatCount(value: number, locale: string) {
   return new Intl.NumberFormat(locale).format(value);
 }
 
-function AchievementStatCard({
-  label,
-  value,
-  subtitle,
-}: {
-  label: string;
-  value: string;
-  subtitle: string;
-}) {
+function getDayUnit(t: TranslateFn, value: number) {
+  return value === 1 ? t('achievementsScreen.units.day') : t('achievementsScreen.units.days');
+}
+
+function getGoalUnit(t: TranslateFn, value: number) {
+  return value === 1 ? t('achievementsScreen.units.goal') : t('achievementsScreen.units.goals');
+}
+
+function getToneColors(
+  theme: {
+    colors: {
+      brand: {
+        primary: string;
+        primaryVariant: string;
+        tertiary: string;
+        secondaryVariant: string;
+      };
+      background: {
+        surface: string;
+        surfaceAlt: string;
+        section: string;
+      };
+      border: {
+        default: string;
+        strong: string;
+      };
+      state: {
+        success: string;
+        successBg: string;
+        warning: string;
+        warningBg: string;
+        info: string;
+        infoBg: string;
+        error: string;
+        errorBg: string;
+      };
+      text: {
+        primary: string;
+        secondary: string;
+        tertiary: string;
+      };
+    };
+  },
+  tone: RankTone,
+  unlocked: boolean
+) {
+  switch (tone) {
+    case 'green':
+      return {
+        accent: theme.colors.state.success,
+        background: unlocked ? theme.colors.state.successBg : theme.colors.background.surface,
+        border: unlocked ? theme.colors.state.success : theme.colors.border.default,
+        title: theme.colors.state.success,
+      };
+    case 'blue':
+      return {
+        accent: theme.colors.state.info,
+        background: unlocked ? theme.colors.state.infoBg : theme.colors.background.surface,
+        border: unlocked ? theme.colors.state.info : theme.colors.border.default,
+        title: theme.colors.state.info,
+      };
+    case 'lime':
+      return {
+        accent: theme.colors.brand.primaryVariant,
+        background: unlocked ? theme.colors.background.section : theme.colors.background.surface,
+        border: unlocked ? theme.colors.brand.primaryVariant : theme.colors.border.default,
+        title: theme.colors.brand.primaryVariant,
+      };
+    case 'gold':
+      return {
+        accent: theme.colors.state.warning,
+        background: unlocked ? theme.colors.state.warningBg : theme.colors.background.surface,
+        border: unlocked ? theme.colors.state.warning : theme.colors.border.default,
+        title: theme.colors.state.warning,
+      };
+    case 'slate':
+      return {
+        accent: theme.colors.text.secondary,
+        background: unlocked ? theme.colors.background.surfaceAlt : theme.colors.background.surface,
+        border: unlocked ? theme.colors.border.strong : theme.colors.border.default,
+        title: theme.colors.text.primary,
+      };
+    case 'indigo':
+      return {
+        accent: theme.colors.brand.primary,
+        background: unlocked ? theme.colors.background.section : theme.colors.background.surface,
+        border: unlocked ? theme.colors.brand.primary : theme.colors.border.default,
+        title: theme.colors.brand.primary,
+      };
+    case 'red':
+      return {
+        accent: theme.colors.state.error,
+        background: unlocked ? theme.colors.state.errorBg : theme.colors.background.surface,
+        border: unlocked ? theme.colors.state.error : theme.colors.border.default,
+        title: theme.colors.state.error,
+      };
+    case 'amber':
+      return {
+        accent: theme.colors.brand.tertiary,
+        background: unlocked ? theme.colors.state.warningBg : theme.colors.background.surface,
+        border: unlocked ? theme.colors.brand.tertiary : theme.colors.border.default,
+        title: theme.colors.brand.tertiary,
+      };
+  }
+}
+
+function shouldUnlockRank(rank: RankDefinition, currentStreak: number, completedGoals: number) {
+  return rank.requirements.every((requirement) => {
+    if (requirement.kind === 'streak') {
+      return currentStreak >= requirement.value;
+    }
+
+    return completedGoals >= requirement.value;
+  });
+}
+
+function RankRail({ index, toneColor }: { index: number; toneColor: string }) {
+  const indexCircleStyle = { backgroundColor: toneColor };
+  const railLineStyle = { backgroundColor: toneColor };
+
   return (
-    <Card variant="filled" style={styles.statCard}>
-      <Text variant="caption" color="secondary">
-        {label}
-      </Text>
-      <Text variant="body" weight="bold" style={styles.statValue}>
-        {value}
-      </Text>
-      <Text variant="caption" color="secondary">
-        {subtitle}
-      </Text>
-    </Card>
+    <View style={styles.rail}>
+      <View style={[styles.rankIndexCircle, indexCircleStyle]}>
+        <Text variant="caption" weight="bold" color="inverse">
+          {index}
+        </Text>
+      </View>
+      <View style={[styles.railLine, railLineStyle]} />
+    </View>
   );
 }
 
-function AchievementCard({
-  definition,
+function RankStatus({ unlocked, label }: { unlocked: boolean; label: string }) {
+  const { theme } = useUnistyles();
+
+  if (unlocked) {
+    return (
+      <View
+        style={[styles.statusBadge, styles.statusBadgeUnlocked]}
+        accessibilityRole="image"
+        accessibilityLabel={label}
+      >
+        <Icon name="checkmark-circle" size={24} color={theme.colors.icon.inverse} />
+      </View>
+    );
+  }
+
+  return (
+    <View
+      style={[styles.statusBadge, styles.statusBadgeLocked]}
+      accessibilityRole="image"
+      accessibilityLabel={label}
+    >
+      <Icon name="lock-closed-outline" size={22} color={theme.colors.text.tertiary} />
+    </View>
+  );
+}
+
+function RankCard({
+  rank,
   unlocked,
+  rankNumber,
 }: {
-  definition: AchievementDefinition;
+  rank: RankDefinition;
   unlocked: boolean;
+  rankNumber: number;
 }) {
   const { t } = useTranslation();
   const translate = t as unknown as TranslateFn;
   const { theme } = useUnistyles();
-  let toneStyles:
-    | {
-        backgroundColor: string;
-        borderColor: string;
-        iconColor: string;
-        accentColor: string;
-      }
-    | undefined;
-
-  switch (definition.tone) {
-    case 'gold':
-      toneStyles = {
-        backgroundColor: theme.colors.state.warningBg,
-        borderColor: theme.colors.state.warning,
-        iconColor: theme.colors.state.warning,
-        accentColor: theme.colors.state.warning,
-      };
-      break;
-    case 'green':
-      toneStyles = {
-        backgroundColor: theme.colors.state.successBg,
-        borderColor: theme.colors.state.success,
-        iconColor: theme.colors.state.success,
-        accentColor: theme.colors.state.success,
-      };
-      break;
-    case 'blue':
-      toneStyles = {
-        backgroundColor: theme.colors.state.infoBg,
-        borderColor: theme.colors.state.info,
-        iconColor: theme.colors.state.info,
-        accentColor: theme.colors.state.info,
-      };
-      break;
-    case 'neutral':
-      toneStyles = {
-        backgroundColor: theme.colors.background.section,
-        borderColor: theme.colors.border.default,
-        iconColor: theme.colors.text.secondary,
-        accentColor: theme.colors.brand.primary,
-      };
-      break;
-  }
+  const toneColors = getToneColors(theme, rank.tone, unlocked);
+  const rankCardStyle = [
+    styles.rankCard,
+    { backgroundColor: toneColors.background, borderColor: toneColors.border },
+  ];
+  const rankTitleStyle = { color: toneColors.title };
+  const requirementToneStyle = { color: toneColors.accent };
 
   return (
-    <Card
-      variant="filled"
-      style={[
-        styles.achievementCard,
-        unlocked ? styles.achievementCardUnlocked : styles.achievementCardLocked,
-      ]}
-    >
-      <View
-        style={[
-          styles.achievementIconWrap,
-          {
-            backgroundColor: toneStyles.backgroundColor,
-            borderColor: toneStyles.borderColor,
-          },
-        ]}
-      >
-        <Icon name={definition.icon} size={24} color={toneStyles.iconColor} />
+    <View style={unlocked ? styles.rankRowUnlocked : styles.rankRowLocked}>
+      <RankRail index={rankNumber} toneColor={toneColors.accent} />
+      <View style={rankCardStyle}>
+        <View style={styles.rankImageWrap}>
+          <Image
+            source={rank.image}
+            style={styles.rankImage}
+            resizeMode="contain"
+            accessibilityRole="image"
+            accessibilityLabel={translate(rank.titleKey)}
+          />
+        </View>
+
+        <View style={styles.rankCopy}>
+          <View style={styles.rankTitleRow}>
+            <Text variant="bodySmall" weight="bold" style={rankTitleStyle}>
+              {`${rankNumber}. ${translate(rank.titleKey)}`}
+            </Text>
+          </View>
+
+          <View style={styles.requirements}>
+            {rank.requirements.map((requirement) => {
+              const requirementLabel =
+                requirement.kind === 'streak'
+                  ? translate('achievementsScreen.requirements.streak', {
+                      count: requirement.value,
+                      unit: getDayUnit(translate, requirement.value),
+                    })
+                  : translate('achievementsScreen.requirements.goals', {
+                      count: requirement.value,
+                      unit: getGoalUnit(translate, requirement.value),
+                    });
+
+              return (
+                <View
+                  key={`${rank.key}-${requirement.kind}-${requirement.value}`}
+                  style={styles.requirementRow}
+                >
+                  <Text variant="caption" weight="semibold" style={requirementToneStyle}>
+                    {requirement.kind === 'streak' ? '🔥' : '🎯'}
+                  </Text>
+                  <Text variant="caption" color="secondary">
+                    {requirementLabel}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        <RankStatus
+          unlocked={unlocked}
+          label={
+            unlocked
+              ? translate('achievementsScreen.status.unlocked')
+              : translate('achievementsScreen.status.locked')
+          }
+        />
       </View>
-      <View style={styles.achievementCopy}>
-        <Text variant="bodySmall" weight="bold" numberOfLines={2}>
-          {translate(definition.titleKey)}
-        </Text>
-        <Text variant="caption" color="secondary" numberOfLines={3}>
-          {translate(definition.bodyKey)}
-        </Text>
-      </View>
-      <View style={styles.achievementFooter}>
-        <Text variant="caption" weight="semibold" style={{ color: toneStyles.accentColor }}>
-          {unlocked
-            ? translate('achievementsScreen.unlocked')
-            : translate(definition.requirementKey)}
-        </Text>
-      </View>
-    </Card>
+    </View>
+  );
+}
+
+function SummaryMetric({ label, value, accent }: { label: string; value: string; accent: string }) {
+  const valueStyle = { color: accent };
+
+  return (
+    <View style={styles.summaryMetric}>
+      <Text variant="caption" color="secondary">
+        {label}
+      </Text>
+      <Text variant="body" weight="bold" style={valueStyle}>
+        {value}
+      </Text>
+    </View>
   );
 }
 
@@ -180,7 +362,6 @@ export default function AchievementsScreen() {
   const { t, i18n } = useTranslation();
   const translate = t as unknown as TranslateFn;
   const { theme } = useUnistyles();
-  const router = useRouter();
   const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
 
   useFocusEffect(
@@ -201,182 +382,53 @@ export default function AchievementsScreen() {
     }, [])
   );
 
-  const unlockedAchievements = useMemo(
-    () => goalTracking?.unlockedAchievements ?? [],
-    [goalTracking?.unlockedAchievements]
-  );
-  const unlockedAchievementKeys = useMemo(
-    () => new Set(unlockedAchievements.map((item) => item.achievementKey)),
-    [unlockedAchievements]
-  );
-  const completedGoals = goalTracking?.goalHistory.filter((goal) => goal.completed).length ?? 0;
-  const totalGoals = goalTracking?.goalHistory.length ?? 0;
   const currentStreak = goalTracking?.currentStreak ?? 0;
-  const currentYear = new Date().getFullYear();
-  let nextTarget = 30;
-  let nextLabelKey: 'fireKeeper7' | 'fireKeeper14' | null = null;
+  const completedGoals = goalTracking?.goalHistory.filter((goal) => goal.completed).length ?? 0;
+  const visibleGoalCount = Math.min(completedGoals, 5);
+  const footerCardStyle = { backgroundColor: theme.colors.background.surface };
+  const footerDividerStyle = { backgroundColor: theme.colors.border.subtle };
+  const currentStreakValueStyle = { color: theme.colors.brand.tertiary };
+  const completedGoalsValueStyle = { color: theme.colors.brand.primary };
+  const unlockedMap = useMemo(() => {
+    const map = new Map<string, boolean>();
 
-  if (currentStreak < 7) {
-    nextTarget = 7;
-    nextLabelKey = 'fireKeeper7';
-  } else if (currentStreak < 14) {
-    nextTarget = 14;
-    nextLabelKey = 'fireKeeper14';
-  }
+    for (const rank of RANKS) {
+      map.set(rank.key, shouldUnlockRank(rank, currentStreak, completedGoals));
+    }
 
-  const nextLabel = nextLabelKey
-    ? translate(`achievementsScreen.items.${nextLabelKey}.title`)
-    : translate('achievementsScreen.nextMilestoneFallback');
-  const streakProgress = Math.min(100, Math.round((currentStreak / nextTarget) * 100));
-  const activeGoalTitle = goalTracking?.activeGoal
-    ? formatWeightGoalTitle(t, goalTracking.activeGoal.goal)
-    : t('achievementsScreen.heroFallbackTitle');
-  const achievementCount = unlockedAchievements.length;
+    return map;
+  }, [completedGoals, currentStreak]);
 
   return (
-    <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
-      <View style={styles.screen}>
-        <View style={styles.content}>
-          <Card variant="elevated" style={styles.heroCard}>
-            <View style={styles.heroTopRow}>
-              <View style={styles.heroBadge}>
-                <Icon name="trophy-outline" size={36} color={theme.colors.brand.primary} />
-              </View>
-              <View style={styles.heroCopy}>
-                <Text variant="body" weight="bold" numberOfLines={1}>
-                  {translate('achievementsScreen.heroTitle')}
-                </Text>
-                <Text variant="bodySmall" color="secondary">
-                  {translate('achievementsScreen.heroBody')}
-                </Text>
-                <View style={styles.heroPill}>
-                  <Text variant="caption" weight="semibold" color="primary" numberOfLines={1}>
-                    {activeGoalTitle}
-                  </Text>
-                </View>
-              </View>
-            </View>
+    <ScreenContainer
+      scrollable
+      padded={false}
+      edges={['top', 'bottom']}
+      tabBarAware
+      style={styles.screen}
+    >
+      <View style={[styles.footerCard, footerCardStyle]}>
+        <SummaryMetric
+          label={translate('achievementsScreen.summary.currentStreak')}
+          value={`${formatCount(currentStreak, i18n.language)} ${getDayUnit(translate, currentStreak)}`}
+          accent={currentStreakValueStyle.color}
+        />
 
-            <View style={styles.heroSummary}>
-              <View style={styles.heroStreakBlock}>
-                <Text variant="bodySmall" color="secondary">
-                  {translate('achievementsScreen.currentStreakLabel')}
-                </Text>
-                <View style={styles.heroStreakRow}>
-                  <Text variant="h2" weight="bold" style={styles.heroStreakValue}>
-                    {formatCount(currentStreak, i18n.language)}
-                  </Text>
-                  <Text variant="bodySmall" weight="semibold" color="secondary">
-                    {translate('achievementsScreen.currentStreakUnit')}
-                  </Text>
-                </View>
-              </View>
-              <Button
-                title={translate('achievementsScreen.viewGoalsAction')}
-                variant="outline"
-                size="sm"
-                onPress={() => {
-                  router.push('/goal-history');
-                }}
-              />
-            </View>
+        <View style={[styles.footerDivider, footerDividerStyle]} />
 
-            <View style={styles.heroProgress}>
-              <View style={styles.heroProgressHeader}>
-                <Text variant="caption" color="secondary">
-                  {translate('achievementsScreen.progressLabel')}
-                </Text>
-                <Text variant="caption" weight="semibold" color="secondary">
-                  {currentStreak >= 14
-                    ? translate('achievementsScreen.progressComplete')
-                    : translate('achievementsScreen.progressBody', {
-                        remaining: Math.max(0, nextTarget - currentStreak),
-                        label: nextLabel,
-                      })}
-                </Text>
-              </View>
-              <ProgressBar
-                value={streakProgress}
-                size="md"
-                colorScheme="success"
-                accessibilityLabel={t('achievementsScreen.progressLabel')}
-              />
-            </View>
-          </Card>
+        <SummaryMetric
+          label={translate('achievementsScreen.summary.completedGoals')}
+          value={`${formatCount(visibleGoalCount, i18n.language)} / 5`}
+          accent={completedGoalsValueStyle.color}
+        />
+      </View>
 
-          <Card variant="filled" style={styles.summaryCard}>
-            <View style={styles.sectionHeader}>
-              <Text variant="body" weight="bold">
-                {translate('achievementsScreen.summaryTitle', { year: currentYear })}
-              </Text>
-              <Text variant="caption" color="secondary">
-                {translate('achievementsScreen.summaryBody')}
-              </Text>
-            </View>
+      <View style={styles.list}>
+        {RANKS.map((rank, index) => {
+          const unlocked = unlockedMap.get(rank.key) ?? false;
 
-            <View style={styles.statsGrid}>
-              <AchievementStatCard
-                label={translate('achievementsScreen.stats.totalGoals')}
-                value={formatCount(totalGoals, i18n.language)}
-                subtitle={translate('achievementsScreen.stats.totalGoalsSubtitle')}
-              />
-              <AchievementStatCard
-                label={translate('achievementsScreen.stats.completedGoals')}
-                value={formatCount(completedGoals, i18n.language)}
-                subtitle={translate('achievementsScreen.stats.completedGoalsSubtitle')}
-              />
-              <AchievementStatCard
-                label={translate('achievementsScreen.stats.unlocked')}
-                value={formatCount(achievementCount, i18n.language)}
-                subtitle={translate('achievementsScreen.stats.unlockedSubtitle')}
-              />
-            </View>
-          </Card>
-
-          <Card variant="elevated" style={styles.collectionCard}>
-            <View style={styles.sectionHeader}>
-              <Text variant="body" weight="bold">
-                {translate('achievementsScreen.collectionTitle')}
-              </Text>
-              <Text variant="caption" color="secondary">
-                {translate('achievementsScreen.collectionSubtitle')}
-              </Text>
-            </View>
-
-            {achievementCount === 0 ? (
-              <View style={styles.emptyState}>
-                <Text variant="bodySmall" weight="semibold" align="center">
-                  {translate('achievementsScreen.emptyTitle')}
-                </Text>
-                <Text variant="caption" color="secondary" align="center" style={styles.emptyBody}>
-                  {translate('achievementsScreen.emptyBody')}
-                </Text>
-                <Button
-                  title={translate('achievementsScreen.emptyAction')}
-                  variant="outline"
-                  size="sm"
-                  onPress={() => {
-                    router.push('/goal-history');
-                  }}
-                />
-              </View>
-            ) : (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.achievementList}
-              >
-                {ACHIEVEMENTS.map((definition) => (
-                  <AchievementCard
-                    key={definition.key}
-                    definition={definition}
-                    unlocked={unlockedAchievementKeys.has(definition.key)}
-                  />
-                ))}
-              </ScrollView>
-            )}
-          </Card>
-        </View>
+          return <RankCard key={rank.key} rank={rank} unlocked={unlocked} rankNumber={index + 1} />;
+        })}
       </View>
     </ScreenContainer>
   );
@@ -384,133 +436,112 @@ export default function AchievementsScreen() {
 
 const styles = StyleSheet.create((theme) => ({
   screen: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: theme.metrics.spacing.p16,
-    paddingTop: theme.metrics.spacingV.p12,
-    paddingBottom: theme.metrics.spacingV.p24,
+    paddingTop: theme.metrics.spacing.p8,
+    paddingBottom: theme.metrics.spacing.p24,
+    gap: theme.metrics.spacingV.p12,
+    backgroundColor: theme.colors.background.app,
   },
-  content: {
-    gap: theme.metrics.spacingV.p16,
+  list: {
+    gap: theme.metrics.spacingV.p12,
   },
-  heroCard: {
-    gap: theme.metrics.spacingV.p16,
-    padding: theme.metrics.spacing.p16,
-    backgroundColor: theme.colors.background.surface,
-  },
-  heroTopRow: {
+  rankRowUnlocked: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     gap: theme.metrics.spacing.p12,
   },
-  heroBadge: {
-    width: theme.metrics.spacing.p72,
-    height: theme.metrics.spacing.p72,
+  rankRowLocked: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: theme.metrics.spacing.p12,
+    opacity: 0.78,
+  },
+  rail: {
+    width: theme.metrics.spacing.p32,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: theme.metrics.spacingV.p4,
+  },
+  rankIndexCircle: {
+    width: theme.metrics.spacing.p32,
+    height: theme.metrics.spacing.p32,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.state.warningBg,
-    borderWidth: 1,
-    borderColor: theme.colors.state.warning,
   },
-  heroCopy: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
-  },
-  heroPill: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p4,
+  railLine: {
+    width: 2,
+    flexGrow: 1,
+    marginTop: theme.metrics.spacingV.p4,
     borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.background.section,
+    opacity: 0.9,
   },
-  heroSummary: {
+  rankCard: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
-  },
-  heroStreakBlock: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
-  },
-  heroStreakRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: theme.metrics.spacing.p8,
-  },
-  heroStreakValue: {
-    color: theme.colors.brand.primary,
-  },
-  heroProgress: {
-    gap: theme.metrics.spacingV.p8,
-  },
-  heroProgressHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p12,
-  },
-  summaryCard: {
-    gap: theme.metrics.spacingV.p12,
-  },
-  sectionHeader: {
-    gap: theme.metrics.spacingV.p4,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: theme.metrics.spacing.p8,
-  },
-  statCard: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
-    padding: theme.metrics.spacing.p12,
-  },
-  statValue: {
-    color: theme.colors.brand.primary,
-  },
-  collectionCard: {
-    gap: theme.metrics.spacingV.p12,
-  },
-  achievementList: {
-    gap: theme.metrics.spacing.p12,
-    paddingRight: theme.metrics.spacing.p16,
-  },
-  achievementCard: {
-    width: 184,
-    gap: theme.metrics.spacingV.p8,
-    padding: theme.metrics.spacing.p12,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacing.p12,
     borderRadius: theme.metrics.borderRadius.xl,
     borderWidth: 1,
   },
-  achievementCardUnlocked: {
-    borderColor: theme.colors.state.success,
+  rankImageWrap: {
+    width: theme.metrics.spacing.p72,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  achievementCardLocked: {
-    opacity: 0.78,
+  rankImage: {
+    width: theme.metrics.spacing.p72,
+    height: theme.metrics.spacing.p80,
   },
-  achievementIconWrap: {
-    width: theme.metrics.spacing.p48,
-    height: theme.metrics.spacing.p48,
+  rankCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  rankTitleRow: {
+    gap: theme.metrics.spacingV.p4,
+  },
+  requirements: {
+    gap: theme.metrics.spacingV.p4,
+  },
+  requirementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p4,
+  },
+  statusBadge: {
+    width: theme.metrics.spacing.p40,
+    height: theme.metrics.spacing.p40,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: theme.metrics.borderRadius.full,
+  },
+  statusBadgeUnlocked: {
+    backgroundColor: theme.colors.state.success,
+  },
+  statusBadgeLocked: {
+    backgroundColor: theme.colors.background.surface,
     borderWidth: 1,
+    borderColor: theme.colors.border.strong,
   },
-  achievementCopy: {
-    gap: theme.metrics.spacingV.p4,
-    flexGrow: 1,
-  },
-  achievementFooter: {
-    paddingTop: theme.metrics.spacingV.p4,
-  },
-  emptyState: {
-    gap: theme.metrics.spacingV.p12,
+  footerCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.metrics.spacingV.p20,
     paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.xl,
+    borderWidth: 1,
+    borderColor: theme.colors.border.subtle,
   },
-  emptyBody: {
-    lineHeight: theme.fonts.size.lg,
+  footerDivider: {
+    width: 1,
+    height: theme.metrics.spacing.p36,
+    marginHorizontal: theme.metrics.spacing.p12,
+  },
+  summaryMetric: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
   },
 }));

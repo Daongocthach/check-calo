@@ -1,3 +1,4 @@
+import { syncCurrentUserLeaderboardProfile } from '@/features/leaderboard/services/leaderboardService';
 import { getDatabase } from '@/services/database/sqlite';
 import type {
   AchievementKey,
@@ -611,6 +612,9 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
       return calculateGoalProgress(goal, summaries, profile);
     })
   );
+  const completedGoals = goalHistory.filter((goal) => goal.completed).length;
+
+  await syncCurrentUserLeaderboardProfile(profile, currentStreak, completedGoals);
 
   return {
     activeGoal: activeGoalSnapshot,

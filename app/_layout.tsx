@@ -50,9 +50,8 @@ function RootNavigator() {
         headerShown: false,
         contentStyle: { backgroundColor: 'transparent' },
       }}
-      initialRouteName="welcome"
+      initialRouteName="(main)"
     >
-      <Stack.Screen name="welcome" />
       <Stack.Screen name="(main)" />
     </Stack>
   );

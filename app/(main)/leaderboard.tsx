@@ -1,123 +1,41 @@
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Card, Chip, Icon, ProgressBar, ScreenContainer, Text } from '@/common/components';
-import type { IconProps } from '@/common/components/Icon';
+import {
+  Avatar,
+  Card,
+  EmptyState,
+  Icon,
+  Loading,
+  ScreenContainer,
+  Text,
+} from '@/common/components';
+import {
+  fetchLeaderboardProfiles,
+  type LeaderboardProfile,
+} from '@/features/leaderboard/services/leaderboardService';
+import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
+import CrownImage from '../../assets/crown.png';
 
-type RankTone = 'gold' | 'silver' | 'bronze' | 'teal' | 'mint' | 'violet' | 'neutral';
+type RankTone = 'gold' | 'silver' | 'bronze' | 'blue' | 'green' | 'neutral';
 type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
 
 interface LeaderboardEntry {
   rank: number;
-  name: string;
-  maskedName: string;
-  score: number;
-  subtitleKey: string;
-  icon: IconProps['name'];
+  displayName?: string;
+  streaks: number;
+  avatarInitials?: string;
   tone: RankTone;
 }
 
-const TOP_THREE: LeaderboardEntry[] = [
-  {
-    rank: 1,
-    name: 'Vuong',
-    maskedName: 'VU*****G',
-    score: 6507,
-    subtitleKey: 'leaderboardScreen.ranking.top1',
-    icon: 'medal-outline',
-    tone: 'gold',
-  },
-  {
-    rank: 2,
-    name: 'Tuan',
-    maskedName: 'TU*****N',
-    score: 4708,
-    subtitleKey: 'leaderboardScreen.ranking.top2',
-    icon: 'medal-outline',
-    tone: 'silver',
-  },
-  {
-    rank: 3,
-    name: 'Khanh',
-    maskedName: 'KH*****M',
-    score: 4232,
-    subtitleKey: 'leaderboardScreen.ranking.top3',
-    icon: 'medal-outline',
-    tone: 'bronze',
-  },
-];
-
-const TOP_FOUR_TO_TEN: LeaderboardEntry[] = [
-  {
-    rank: 4,
-    name: 'Khanh E',
-    maskedName: 'KH*****E',
-    score: 3875,
-    subtitleKey: 'leaderboardScreen.ranking.rank',
-    icon: 'leaf-outline',
-    tone: 'teal',
-  },
-  {
-    rank: 5,
-    name: 'Phuong P',
-    maskedName: 'PH*****P',
-    score: 3806,
-    subtitleKey: 'leaderboardScreen.ranking.rank',
-    icon: 'fitness-outline',
-    tone: 'mint',
-  },
-  {
-    rank: 6,
-    name: 'P*****L',
-    maskedName: 'P*****L',
-    score: 3621,
-    subtitleKey: 'leaderboardScreen.ranking.rank',
-    icon: 'restaurant-outline',
-    tone: 'violet',
-  },
-  {
-    rank: 7,
-    name: 'Le*****P',
-    maskedName: 'LÊ*****P',
-    score: 3092,
-    subtitleKey: 'leaderboardScreen.ranking.rank',
-    icon: 'flame-outline',
-    tone: 'teal',
-  },
-  {
-    rank: 8,
-    name: 'Ti*****8',
-    maskedName: 'TI*****8',
-    score: 3022,
-    subtitleKey: 'leaderboardScreen.ranking.rank',
-    icon: 'barbell-outline',
-    tone: 'mint',
-  },
-  {
-    rank: 9,
-    name: 'Hu*****G',
-    maskedName: 'HU*****G',
-    score: 2940,
-    subtitleKey: 'leaderboardScreen.ranking.rank',
-    icon: 'nutrition-outline',
-    tone: 'neutral',
-  },
-  {
-    rank: 10,
-    name: '*****Y',
-    maskedName: '*****Y',
-    score: 2919,
-    subtitleKey: 'leaderboardScreen.ranking.rank',
-    icon: 'walk-outline',
-    tone: 'violet',
-  },
-];
-
-function formatScore(value: number, locale: string) {
+function formatRank(value: number, locale: string) {
   return new Intl.NumberFormat(locale).format(value);
 }
 
-function getToneStyle(theme: ReturnType<typeof useUnistyles>['theme'], tone: RankTone) {
+function getTonePalette(theme: ReturnType<typeof useUnistyles>['theme'], tone: RankTone) {
   switch (tone) {
     case 'gold':
       return {
@@ -128,7 +46,7 @@ function getToneStyle(theme: ReturnType<typeof useUnistyles>['theme'], tone: Ran
     case 'silver':
       return {
         backgroundColor: theme.colors.background.section,
-        borderColor: theme.colors.border.default,
+        borderColor: theme.colors.border.strong,
         color: theme.colors.text.secondary,
       };
     case 'bronze':
@@ -137,25 +55,20 @@ function getToneStyle(theme: ReturnType<typeof useUnistyles>['theme'], tone: Ran
         borderColor: theme.colors.brand.tertiary,
         color: theme.colors.brand.tertiary,
       };
-    case 'teal':
+    case 'blue':
       return {
         backgroundColor: theme.colors.state.infoBg,
         borderColor: theme.colors.state.info,
         color: theme.colors.state.info,
       };
-    case 'mint':
+    case 'green':
       return {
         backgroundColor: theme.colors.state.successBg,
         borderColor: theme.colors.state.success,
         color: theme.colors.state.success,
       };
-    case 'violet':
-      return {
-        backgroundColor: theme.colors.background.section,
-        borderColor: theme.colors.brand.primaryVariant,
-        color: theme.colors.brand.primaryVariant,
-      };
     case 'neutral':
+    default:
       return {
         backgroundColor: theme.colors.background.section,
         borderColor: theme.colors.border.default,
@@ -164,80 +77,207 @@ function getToneStyle(theme: ReturnType<typeof useUnistyles>['theme'], tone: Ran
   }
 }
 
-function LeaderboardBadge({
-  rank,
-  title,
-  score,
-  subtitle,
-  icon,
-  tone,
-}: {
-  rank: number;
-  title: string;
-  score: string;
-  subtitle: string;
-  icon: IconProps['name'];
-  tone: RankTone;
-}) {
-  const { t } = useTranslation();
-  const translate = t as unknown as TranslateFn;
-  const { theme } = useUnistyles();
-  const toneStyle = getToneStyle(theme, tone);
-  let rankLabel = 'TOP 3';
-
-  if (rank === 1) {
-    rankLabel = 'TOP 1';
-  } else if (rank === 2) {
-    rankLabel = 'TOP 2';
+function getInitials(entry: LeaderboardEntry) {
+  if (entry.avatarInitials) {
+    return entry.avatarInitials;
   }
 
+  if (entry.displayName) {
+    return entry.displayName
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  return 'AN';
+}
+
+function getInitialsFromName(displayName: string) {
+  return displayName
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function getDisplayName(entry: LeaderboardEntry, t: TranslateFn) {
+  return entry.displayName ?? t('leaderboardScreen.anonymousName');
+}
+
+function getStreakLabel(entry: LeaderboardEntry, locale: string) {
+  return `🔥 ${formatRank(entry.streaks, locale)}`;
+}
+
+function getToneForRank(rank: number): RankTone {
+  if (rank === 1) {
+    return 'gold';
+  }
+
+  if (rank === 2) {
+    return 'blue';
+  }
+
+  if (rank === 3) {
+    return 'bronze';
+  }
+
+  return 'neutral';
+}
+
+function fromRemoteProfile(profile: LeaderboardProfile, rank: number): LeaderboardEntry {
+  const displayName = profile.displayName.trim();
+
+  return {
+    rank,
+    displayName: displayName.length > 0 ? displayName : undefined,
+    streaks: profile.currentStreak,
+    avatarInitials: displayName.length > 0 ? getInitialsFromName(displayName) : undefined,
+    tone: getToneForRank(rank),
+  };
+}
+
+function TopPodiumCard({
+  entry,
+  locale,
+  isCenter,
+  t,
+}: {
+  entry?: LeaderboardEntry;
+  locale: string;
+  isCenter?: boolean;
+  t: TranslateFn;
+}) {
+  const { theme } = useUnistyles();
+  const palette = entry ? getTonePalette(theme, entry.tone) : null;
+  const rankLabel = entry ? `No.${formatRank(entry.rank, locale)}` : 'No.--';
+  const streakLabel = entry ? getStreakLabel(entry, locale) : '';
+  const isTopOne = entry?.rank === 1;
+
   return (
-    <Card variant="elevated" style={[styles.podiumCard, { borderColor: toneStyle.borderColor }]}>
-      <View style={[styles.podiumRankPill, { borderColor: toneStyle.borderColor }]}>
-        <Text variant="caption" weight="bold" style={{ color: toneStyle.color }}>
-          {rankLabel}
-        </Text>
-      </View>
-      <View style={[styles.podiumAvatar, { backgroundColor: toneStyle.backgroundColor }]}>
-        <Icon name={icon} size={28} color={toneStyle.color} />
-      </View>
-      <Text variant="bodySmall" weight="bold" align="center" numberOfLines={1}>
-        {title}
-      </Text>
-      <Text variant="bodySmall" color="secondary" align="center" numberOfLines={1}>
-        {score}
-      </Text>
-      <Text variant="caption" color="secondary" align="center" numberOfLines={2}>
-        {translate(subtitle)}
-      </Text>
+    <Card
+      variant="filled"
+      style={[styles.podiumCard, isCenter ? styles.podiumCardCenter : styles.podiumCardSide]}
+    >
+      {entry && palette ? (
+        <>
+          <View
+            style={[
+              styles.podiumBadge,
+              { backgroundColor: palette.backgroundColor, borderColor: palette.borderColor },
+            ]}
+          >
+            <Text variant="bodySmall" weight="bold" style={{ color: palette.color }}>
+              {rankLabel}
+            </Text>
+          </View>
+
+          <View style={styles.podiumAvatarWrap}>
+            {isTopOne ? (
+              <Image source={CrownImage} style={styles.podiumCrown} contentFit="contain" />
+            ) : null}
+            {entry ? (
+              <Avatar
+                initials={getInitials(entry)}
+                size={isCenter ? 'xl' : 'lg'}
+                accessibilityLabel={getDisplayName(entry, t)}
+              />
+            ) : (
+              <Avatar
+                icon={
+                  <Icon name="remove-circle-outline" variant="muted" size={isCenter ? 28 : 24} />
+                }
+                size={isCenter ? 'xl' : 'lg'}
+                accessibilityLabel={t('leaderboardScreen.emptyPodiumTitle')}
+              />
+            )}
+          </View>
+
+          <Text
+            variant={isCenter ? 'body' : 'bodySmall'}
+            weight="bold"
+            align="center"
+            numberOfLines={1}
+          >
+            {getDisplayName(entry, t)}
+          </Text>
+
+          <View style={[styles.streakPill, { backgroundColor: palette.backgroundColor }]}>
+            <Text variant="bodySmall" weight="bold" style={{ color: palette.color }}>
+              {streakLabel}
+            </Text>
+          </View>
+        </>
+      ) : (
+        <>
+          <View style={styles.podiumBadge}>
+            <Text variant="bodySmall" weight="bold" color="secondary">
+              {rankLabel}
+            </Text>
+          </View>
+
+          <View style={styles.podiumAvatarWrap}>
+            <Avatar
+              icon={<Icon name="remove-circle-outline" variant="muted" size={isCenter ? 28 : 24} />}
+              size={isCenter ? 'xl' : 'lg'}
+              accessibilityLabel={t('leaderboardScreen.emptyPodiumTitle')}
+            />
+          </View>
+
+          <Text
+            variant={isCenter ? 'body' : 'bodySmall'}
+            weight="bold"
+            align="center"
+            numberOfLines={1}
+            color="secondary"
+          >
+            {t('leaderboardScreen.emptyPodiumTitle')}
+          </Text>
+        </>
+      )}
     </Card>
   );
 }
 
-function LeaderboardRow({ entry, locale }: { entry: LeaderboardEntry; locale: string }) {
+function RankingRow({
+  entry,
+  locale,
+  t,
+}: {
+  entry: LeaderboardEntry;
+  locale: string;
+  t: TranslateFn;
+}) {
   const { theme } = useUnistyles();
-  const toneStyle = getToneStyle(theme, entry.tone);
-  const { t } = useTranslation();
-  const translate = t as unknown as TranslateFn;
+  const streakLabel = getStreakLabel(entry, locale);
+  const streakColor = theme.colors.brand.tertiary;
+  const streakTextStyle = { color: streakColor };
 
   return (
     <View style={styles.listRow}>
-      <View style={styles.listRankWrap}>
-        <Text variant="body" weight="bold" style={{ color: toneStyle.color }}>
-          {formatScore(entry.rank, locale)}
+      <Text variant="body" weight="bold" style={styles.rankNumber}>
+        {formatRank(entry.rank, locale)}
+      </Text>
+
+      <Avatar
+        initials={getInitials(entry)}
+        size="sm"
+        accessibilityLabel={getDisplayName(entry, t)}
+      />
+
+      <View style={styles.rowCopy}>
+        <Text variant="body" weight="semibold" numberOfLines={1} style={styles.rowName}>
+          {getDisplayName(entry, t)}
         </Text>
       </View>
-      <View style={[styles.listIconWrap, { backgroundColor: toneStyle.backgroundColor }]}>
-        <Icon name={entry.icon} size={20} color={toneStyle.color} />
-      </View>
-      <View style={styles.listCopy}>
-        <Text variant="bodySmall" weight="semibold" numberOfLines={1}>
-          {entry.maskedName}
-        </Text>
-        <Text variant="caption" color="secondary" numberOfLines={1}>
-          {translate('leaderboardScreen.scoreSuffix', {
-            value: formatScore(entry.score, locale),
-          })}
+
+      <View style={styles.rowScore}>
+        <Text variant="bodySmall" weight="bold" style={streakTextStyle}>
+          {streakLabel}
         </Text>
       </View>
     </View>
@@ -249,277 +289,293 @@ export default function LeaderboardScreen() {
   const translate = t as unknown as TranslateFn;
   const { theme } = useUnistyles();
   const locale = i18n.language;
-  const currentMonth = new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date());
-  const monthTitle = translate('leaderboardScreen.monthTitle', { month: currentMonth });
-  const myRank = 7;
-  const myScore = 3092;
-  const myCategory = translate('leaderboardScreen.myCategory');
-  const monthProgress = 74;
-  const podiumOrder = [TOP_THREE[1], TOP_THREE[0], TOP_THREE[2]];
-  const scoreSuffix = (value: number) =>
-    translate('leaderboardScreen.scoreSuffix', {
-      value: formatScore(value, locale),
-    });
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadLeaderboard = async () => {
+      setIsLoading(true);
+
+      try {
+        await syncGoalTracking();
+        const remoteProfiles = await fetchLeaderboardProfiles(10);
+
+        if (!active) {
+          return;
+        }
+
+        const nextEntries = remoteProfiles
+          .map((profile, index) => fromRemoteProfile(profile, index + 1))
+          .sort((left, right) => {
+            if (right.streaks !== left.streaks) {
+              return right.streaks - left.streaks;
+            }
+
+            return left.rank - right.rank;
+          })
+          .map((entry, index) => ({
+            ...entry,
+            rank: index + 1,
+            tone: getToneForRank(index + 1),
+          }));
+
+        setEntries(nextEntries);
+      } catch (error) {
+        if (__DEV__) {
+          console.warn('Failed to load leaderboard profiles', error);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadLeaderboard();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <ScreenContainer scrollable padded={false} edges={[]}>
+        <LinearGradient
+          colors={[theme.colors.background.app, theme.colors.background.section]}
+          style={styles.shell}
+        >
+          <Loading fullScreen message={translate('common.loading')} />
+        </LinearGradient>
+      </ScreenContainer>
+    );
+  }
+
+  if (entries.length === 0) {
+    return (
+      <ScreenContainer scrollable padded={false} edges={[]}>
+        <LinearGradient
+          colors={[theme.colors.background.app, theme.colors.background.section]}
+          style={styles.shell}
+        >
+          <View style={styles.decorTopLeft} />
+          <View style={styles.decorTopRight} />
+
+          <View style={styles.page}>
+            <Card variant="elevated" style={styles.podiumPanel}>
+              <EmptyState
+                title={translate('leaderboardScreen.emptyStateTitle')}
+                message={translate('leaderboardScreen.emptyStateMessage')}
+              />
+            </Card>
+          </View>
+        </LinearGradient>
+      </ScreenContainer>
+    );
+  }
+
+  const sortedEntries = [...entries].sort((left, right) => {
+    if (right.streaks !== left.streaks) {
+      return right.streaks - left.streaks;
+    }
+
+    return left.rank - right.rank;
+  });
+  const podiumEntries = sortedEntries.slice(0, 3);
+  const listEntries = sortedEntries.slice(3);
 
   return (
-    <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.screen}>
-        <View style={styles.header}>
-          <Text variant="body" weight="bold" align="center" style={styles.title}>
-            {translate('leaderboardScreen.title')}
-          </Text>
-          <Text variant="body" weight="bold" align="center" style={styles.subtitle}>
-            {translate('leaderboardScreen.subtitle')}
-          </Text>
-          <Chip label={monthTitle} variant="solid" color={theme.colors.state.warning} />
-        </View>
+    <ScreenContainer scrollable padded={false} edges={[]}>
+      <LinearGradient
+        colors={[theme.colors.background.app, theme.colors.background.section]}
+        style={styles.shell}
+      >
+        <View style={styles.decorTopLeft} />
+        <View style={styles.decorTopRight} />
 
-        <Card variant="elevated" style={styles.featureCard}>
-          <View style={styles.featureHeader}>
-            <Text variant="bodySmall" weight="bold">
-              {translate('leaderboardScreen.featureTitle')}
-            </Text>
-            <Text variant="caption" color="secondary">
-              {translate('leaderboardScreen.featureSubtitle')}
-            </Text>
-          </View>
-          <View style={styles.podiumRow}>
-            {podiumOrder.map((entry) => (
-              <LeaderboardBadge
-                key={entry.rank}
-                rank={entry.rank}
-                title={entry.maskedName}
-                score={scoreSuffix(entry.score)}
-                subtitle={entry.subtitleKey}
-                icon={entry.icon}
-                tone={entry.tone}
-              />
-            ))}
-          </View>
-        </Card>
-
-        <Card variant="filled" style={styles.rankingCard}>
-          <View style={styles.sectionHeader}>
-            <Text variant="body" weight="bold">
-              {translate('leaderboardScreen.rankingTitle')}
-            </Text>
-            <Text variant="caption" color="secondary">
-              {translate('leaderboardScreen.rankingSubtitle')}
-            </Text>
-          </View>
-
-          <View style={styles.rankGrid}>
-            <View style={styles.rankGridCol}>
-              {TOP_FOUR_TO_TEN.slice(0, 3).map((entry) => (
-                <LeaderboardRow key={entry.rank} entry={entry} locale={locale} />
-              ))}
-            </View>
-            <View style={styles.rankGridCol}>
-              {TOP_FOUR_TO_TEN.slice(3).map((entry) => (
-                <LeaderboardRow key={entry.rank} entry={entry} locale={locale} />
-              ))}
-            </View>
-          </View>
-        </Card>
-
-        <View style={styles.categoryList}>
-          <Card variant="elevated" style={[styles.categoryCard, styles.categoryBlue]}>
-            <View style={styles.categoryTopRow}>
-              <View style={[styles.categoryIcon, { backgroundColor: theme.colors.state.infoBg }]}>
-                <Icon name="car-outline" size={22} color={theme.colors.state.info} />
+        <View style={styles.page}>
+          <Card variant="elevated" style={styles.podiumPanel}>
+            <View style={styles.podiumRow}>
+              <View style={styles.podiumSideColumn}>
+                <TopPodiumCard entry={podiumEntries[1]} locale={locale} t={translate} />
               </View>
-              <Text variant="body" weight="bold" color="primary">
-                {translate('leaderboardScreen.categories.car')}
-              </Text>
+              <View style={styles.podiumCenterColumn}>
+                <TopPodiumCard entry={podiumEntries[0]} locale={locale} t={translate} isCenter />
+              </View>
+              <View style={styles.podiumSideColumn}>
+                <TopPodiumCard entry={podiumEntries[2]} locale={locale} t={translate} />
+              </View>
             </View>
-            <Text variant="bodySmall" color="secondary">
-              {translate('leaderboardScreen.categories.carSubtitle')}
-            </Text>
           </Card>
 
-          <Card variant="elevated" style={[styles.categoryCard, styles.categoryGreen]}>
-            <View style={styles.categoryTopRow}>
-              <View
-                style={[styles.categoryIcon, { backgroundColor: theme.colors.state.successBg }]}
-              >
-                <Icon name="bicycle-outline" size={22} color={theme.colors.state.success} />
-              </View>
-              <Text variant="body" weight="bold" color="primary">
-                {translate('leaderboardScreen.categories.bike')}
+          <Card variant="elevated" style={styles.listPanel}>
+            <View style={styles.listHeader}>
+              <Text variant="bodySmall" weight="bold" color="secondary">
+                {translate('leaderboardScreen.listTitle')}
               </Text>
             </View>
-            <Text variant="bodySmall" color="secondary">
-              {translate('leaderboardScreen.categories.bikeSubtitle')}
-            </Text>
+
+            {listEntries.length > 0 ? (
+              <View style={styles.listBody}>
+                {listEntries.map((entry, index) => {
+                  const isLast = index === listEntries.length - 1;
+
+                  return (
+                    <View key={`${entry.rank}-${getDisplayName(entry, translate)}`}>
+                      <RankingRow entry={entry} locale={locale} t={translate} />
+                      {!isLast ? <View style={styles.rowDivider} /> : null}
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <View style={styles.listEmptyState}>
+                <EmptyState
+                  title={translate('leaderboardScreen.emptyStateTitle')}
+                  message={translate('leaderboardScreen.emptyStateMessage')}
+                />
+              </View>
+            )}
           </Card>
         </View>
-
-        <Card variant="elevated" style={styles.myCard}>
-          <View style={styles.sectionHeader}>
-            <Text variant="body" weight="bold">
-              {translate('leaderboardScreen.myTitle')}
-            </Text>
-            <Text variant="caption" color="secondary">
-              {translate('leaderboardScreen.mySubtitle')}
-            </Text>
-          </View>
-
-          <View style={styles.myStatsGrid}>
-            <Card variant="filled" style={styles.myStat}>
-              <Text variant="caption" color="secondary">
-                {myCategory}
-              </Text>
-              <Text variant="body" weight="bold" style={styles.myStatValue}>
-                {formatScore(myScore, locale)}
-              </Text>
-              <Text variant="caption" color="secondary">
-                {translate('leaderboardScreen.myRankLabel', { rank: myRank })}
-              </Text>
-            </Card>
-            <Card variant="filled" style={styles.myStat}>
-              <Text variant="caption" color="secondary">
-                {translate('leaderboardScreen.myProgressLabel')}
-              </Text>
-              <Text variant="body" weight="bold" style={styles.myStatValue}>
-                {formatScore(monthProgress, locale)}%
-              </Text>
-              <ProgressBar value={monthProgress} size="sm" colorScheme="success" />
-            </Card>
-          </View>
-        </Card>
-      </ScrollView>
+      </LinearGradient>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
-  screen: {
-    gap: theme.metrics.spacingV.p16,
+  shell: {
+    flexGrow: 1,
     paddingHorizontal: theme.metrics.spacing.p16,
+    paddingBottom: theme.metrics.spacing.p24,
+  },
+  page: {
+    gap: theme.metrics.spacingV.p16,
     paddingTop: theme.metrics.spacingV.p12,
-    paddingBottom: theme.metrics.spacingV.p24,
   },
-  header: {
-    gap: theme.metrics.spacingV.p8,
-    alignItems: 'center',
-  },
-  title: {
-    color: theme.colors.brand.primaryVariant,
-  },
-  subtitle: {
-    color: theme.colors.brand.primary,
-  },
-  featureCard: {
-    gap: theme.metrics.spacingV.p12,
+  podiumPanel: {
     padding: theme.metrics.spacing.p16,
-  },
-  featureHeader: {
-    gap: theme.metrics.spacingV.p4,
-    alignItems: 'center',
+    borderRadius: theme.metrics.borderRadius.xl,
+    overflow: 'hidden',
   },
   podiumRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'space-between',
     gap: theme.metrics.spacing.p8,
   },
-  podiumCard: {
+  podiumSideColumn: {
     flex: 1,
-    alignItems: 'center',
+  },
+  podiumCenterColumn: {
+    flex: 1.1,
+  },
+  podiumCard: {
     gap: theme.metrics.spacingV.p8,
-    paddingVertical: theme.metrics.spacingV.p12,
-    borderWidth: 1,
+    padding: theme.metrics.spacing.p12,
     borderRadius: theme.metrics.borderRadius.xl,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 208,
   },
-  podiumRankPill: {
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p4,
-    borderRadius: theme.metrics.borderRadius.full,
-    borderWidth: 1,
-    backgroundColor: theme.colors.background.surface,
+  podiumCardCenter: {
+    minHeight: 244,
+    paddingTop: theme.metrics.spacing.p16,
+    transform: [{ translateY: -10 }],
   },
-  podiumAvatar: {
-    width: theme.metrics.spacing.p68,
-    height: theme.metrics.spacing.p68,
+  podiumCardSide: {
+    minHeight: 200,
+    paddingTop: theme.metrics.spacing.p12,
+  },
+  podiumAvatarWrap: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  podiumCrown: {
+    width: theme.metrics.spacing.p32,
+    height: theme.metrics.spacing.p32,
+    marginBottom: -theme.metrics.spacing.p4,
+    zIndex: 1,
+  },
+  podiumBadge: {
+    minWidth: theme.metrics.spacing.p48,
+    height: theme.metrics.spacing.p32,
+    paddingHorizontal: theme.metrics.spacing.p8,
     borderRadius: theme.metrics.borderRadius.full,
     borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  rankingCard: {
-    gap: theme.metrics.spacingV.p12,
+  streakPill: {
+    borderRadius: theme.metrics.borderRadius.full,
+    paddingHorizontal: theme.metrics.spacing.p8,
+    paddingVertical: theme.metrics.spacingV.p4,
   },
-  sectionHeader: {
-    gap: theme.metrics.spacingV.p4,
+  listPanel: {
+    paddingVertical: theme.metrics.spacing.p8,
+    borderRadius: theme.metrics.borderRadius.xl,
+    overflow: 'hidden',
   },
-  rankGrid: {
-    flexDirection: 'row',
-    gap: theme.metrics.spacing.p12,
+  listHeader: {
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingTop: theme.metrics.spacing.p8,
+    paddingBottom: theme.metrics.spacing.p4,
   },
-  rankGridCol: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p8,
+  listBody: {
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingBottom: theme.metrics.spacing.p8,
+  },
+  listEmptyState: {
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingBottom: theme.metrics.spacing.p8,
   },
   listRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.metrics.spacing.p8,
-    paddingVertical: theme.metrics.spacingV.p8,
+    paddingVertical: theme.metrics.spacing.p12,
   },
-  listRankWrap: {
-    width: theme.metrics.spacing.p28,
-    alignItems: 'center',
+  rankNumber: {
+    width: theme.metrics.spacing.p24,
+    textAlign: 'center',
+    color: theme.colors.text.secondary,
   },
-  listIconWrap: {
-    width: theme.metrics.spacing.p36,
-    height: theme.metrics.spacing.p36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: theme.metrics.borderRadius.full,
-  },
-  listCopy: {
+  rowCopy: {
     flex: 1,
     gap: theme.metrics.spacingV.p4,
   },
-  categoryList: {
-    gap: theme.metrics.spacingV.p12,
-  },
-  categoryCard: {
-    gap: theme.metrics.spacingV.p8,
-    padding: theme.metrics.spacing.p16,
-  },
-  categoryBlue: {
-    backgroundColor: theme.colors.state.infoBg,
-  },
-  categoryGreen: {
-    backgroundColor: theme.colors.state.successBg,
-  },
-  categoryTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p8,
-  },
-  categoryIcon: {
-    width: theme.metrics.spacing.p40,
-    height: theme.metrics.spacing.p40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: theme.metrics.borderRadius.full,
-  },
-  myCard: {
-    gap: theme.metrics.spacingV.p12,
-    padding: theme.metrics.spacing.p16,
-  },
-  myStatsGrid: {
-    flexDirection: 'row',
-    gap: theme.metrics.spacing.p8,
-  },
-  myStat: {
+  rowName: {
     flex: 1,
-    gap: theme.metrics.spacingV.p8,
-    padding: theme.metrics.spacing.p12,
+    color: theme.colors.text.primary,
   },
-  myStatValue: {
-    color: theme.colors.brand.primary,
+  rowScore: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    minWidth: theme.metrics.spacing.p72,
+  },
+  rowDivider: {
+    height: 1,
+    backgroundColor: theme.colors.border.default,
+  },
+  decorTopLeft: {
+    position: 'absolute',
+    top: theme.metrics.spacing.p12,
+    left: -theme.metrics.spacing.p16,
+    width: theme.metrics.spacing.p72,
+    height: theme.metrics.spacing.p72,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.state.infoBg,
+    opacity: 0.55,
+  },
+  decorTopRight: {
+    position: 'absolute',
+    top: theme.metrics.spacing.p24,
+    right: -theme.metrics.spacing.p8,
+    width: theme.metrics.spacing.p56,
+    height: theme.metrics.spacing.p56,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.state.warningBg,
+    opacity: 0.5,
   },
 }));

@@ -241,11 +241,13 @@ export default function MainLayout() {
   return (
     <>
       <Stack
+        initialRouteName="welcome"
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: 'transparent' },
         }}
       >
+        <Stack.Screen name="welcome" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="food-detail" />
         <Stack.Screen name="food-form" />

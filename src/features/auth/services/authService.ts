@@ -240,6 +240,15 @@ export async function deleteCurrentUserCloudNutritionData() {
   if (deleteEntriesError) {
     throw deleteEntriesError;
   }
+
+  const { error: deleteProfileError } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('user_id', userId);
+
+  if (deleteProfileError && __DEV__) {
+    console.warn('Failed to delete leaderboard profile during disconnect', deleteProfileError);
+  }
 }
 
 export async function disconnectCurrentSyncAccount() {

@@ -78,11 +78,7 @@ export function Streak({ days, dayLabels, title, subtitle, style }: StreakProps)
                   status === STREAK_STATUS.MISSED_GOAL && styles.statusCircleMissed,
                 ]}
               >
-                {iconName ? (
-                  <Icon name={iconName} size={16} variant="onBrand" />
-                ) : (
-                  <View style={styles.statusDot} />
-                )}
+                {iconName ? <Icon name={iconName} size={18} variant="onBrand" /> : null}
               </View>
               <Text variant="caption" weight="semibold" color="secondary" style={styles.dayLabel}>
                 {label}

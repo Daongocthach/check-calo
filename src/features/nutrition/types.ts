@@ -23,6 +23,7 @@ export type SyncQueueOperation = 'create' | 'update' | 'delete' | 'upload';
 export type SyncQueueStatus = 'pending' | 'processing' | 'done' | 'failed';
 
 export interface UserProfileInput {
+  displayName: string;
   gender: Gender;
   age: number;
   heightCm: number;

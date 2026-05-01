@@ -24,6 +24,7 @@ import type { PageRequest, PaginatedResult } from './pagination';
 
 interface UserProfileRow {
   id: number;
+  display_name: string;
   gender: UserProfile['gender'];
   age: number;
   height_cm: number;
@@ -90,6 +91,7 @@ interface DailyTotalsRow {
 function mapProfile(row: UserProfileRow): UserProfile {
   return {
     id: row.id,
+    displayName: row.display_name,
     gender: row.gender,
     age: row.age,
     heightCm: row.height_cm,
@@ -225,6 +227,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
     `
       INSERT INTO user_profile (
         id,
+        display_name,
         gender,
         age,
         height_cm,
@@ -241,8 +244,9 @@ export async function upsertUserProfile(profile: UserProfileInput) {
         created_at,
         updated_at
       )
-      VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
+        display_name = excluded.display_name,
         gender = excluded.gender,
         age = excluded.age,
         height_cm = excluded.height_cm,
@@ -259,6 +263,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
         updated_at = excluded.updated_at;
     `,
     [
+      profile.displayName,
       profile.gender,
       profile.age,
       profile.heightCm,

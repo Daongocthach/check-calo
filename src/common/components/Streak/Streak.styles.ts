@@ -49,10 +49,4 @@ export const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.state.error,
     borderColor: theme.colors.state.error,
   },
-  statusDot: {
-    width: theme.metrics.spacing.p8,
-    height: theme.metrics.spacing.p8,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.text.muted,
-  },
 }));

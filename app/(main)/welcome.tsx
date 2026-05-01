@@ -5,9 +5,9 @@ import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Card, Icon, Input, ScreenContainer, Text } from '@/common/components';
+import { syncCurrentUserLeaderboardProfile } from '@/features/leaderboard/services/leaderboardService';
 import { GENDER_KEYS, MONTHLY_WEIGHT_GOAL_OPTIONS } from '@/features/nutrition/constants';
 import { syncActiveGoalToProfile } from '@/features/nutrition/services/goalTrackingService';
 import { getUserProfile, upsertUserProfile } from '@/features/nutrition/services/nutritionDatabase';
@@ -18,10 +18,11 @@ import {
   calculateMacroTargets,
   calculateMaintenanceCalorieTarget,
 } from '@/features/nutrition/utils/calorie';
-import { useScreenDimensions } from '@/hooks';
+import { useResponsiveKeyboardLayout } from '@/hooks';
 import { vs } from '@/theme/metrics';
 
 interface ProfileFormState {
+  displayName: string;
   gender: Gender;
   age: string;
   height: string;
@@ -31,6 +32,7 @@ interface ProfileFormState {
 }
 
 const DEFAULT_FORM: ProfileFormState = {
+  displayName: '',
   gender: 'male',
   age: '18',
   height: '170',
@@ -128,6 +130,7 @@ function buildProfileSummary(form: ProfileFormState): ProfileSummaryState | null
   }
 
   const profileInput = {
+    displayName: form.displayName.trim(),
     gender: form.gender,
     age: parseProfileNumber(form.age) ?? 0,
     heightCm: parseProfileNumber(form.height) ?? 0,
@@ -171,9 +174,6 @@ export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { theme } = useUnistyles();
-  const insets = useSafeAreaInsets();
-  const { height } = useScreenDimensions();
-  const isCompactHeight = height < 700;
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const {
@@ -196,6 +196,7 @@ export default function WelcomeScreen() {
   const weightValue = watch('weight');
   const debouncedProfileForm = useDebouncedValue(
     {
+      displayName: watch('displayName'),
       gender: selectedGender,
       age: ageValue,
       height: heightValue,
@@ -209,11 +210,16 @@ export default function WelcomeScreen() {
     () => buildProfileSummary(debouncedProfileForm),
     [debouncedProfileForm]
   );
-  const keyboardBottomOffset = isCompactHeight
-    ? theme.metrics.spacingV.p40
-    : theme.metrics.spacingV.p24;
-  const footerBottomPadding =
-    insets.bottom + (isCompactHeight ? theme.metrics.spacingV.p20 : theme.metrics.spacingV.p16);
+  const { isCompactHeight, keyboardBottomOffset, footerBottomPadding, footerKeyboardOffset } =
+    useResponsiveKeyboardLayout({
+      compactHeightThreshold: 700,
+      compactKeyboardBottomOffset: theme.metrics.spacingV.p32,
+      regularKeyboardBottomOffset: theme.metrics.spacingV.p24,
+      compactKeyboardOpenedOffset: theme.metrics.spacingV.p20,
+      regularKeyboardOpenedOffset: theme.metrics.spacingV.p32,
+      compactFooterPadding: theme.metrics.spacingV.p12,
+      regularFooterPadding: theme.metrics.spacingV.p16,
+    });
 
   const loadProfile = useCallback(async () => {
     setIsLoading(true);
@@ -226,6 +232,7 @@ export default function WelcomeScreen() {
     }
 
     reset({
+      displayName: profile.displayName,
       gender: profile.gender,
       age: String(profile.age),
       height: String(profile.heightCm),
@@ -246,6 +253,7 @@ export default function WelcomeScreen() {
     setIsSaving(true);
 
     const profile = await upsertUserProfile({
+      displayName: form.displayName.trim(),
       gender: form.gender,
       age: parseProfileNumber(form.age) ?? 0,
       heightCm: parseProfileNumber(form.height) ?? 0,
@@ -256,6 +264,7 @@ export default function WelcomeScreen() {
 
     if (profile) {
       await syncActiveGoalToProfile(profile);
+      await syncCurrentUserLeaderboardProfile(profile, 0, 0);
     }
 
     setIsSaving(false);
@@ -274,21 +283,47 @@ export default function WelcomeScreen() {
     <ScreenContainer padded={false} edges={[]}>
       <View style={styles.layout}>
         <KeyboardAwareScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isCompactHeight && styles.scrollContentCompact,
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           bottomOffset={keyboardBottomOffset}
         >
-          <View style={styles.screen}>
-            <Card variant="elevated" style={styles.formCard}>
-              <View style={styles.formHeader}>
-                <Text variant="h2">{t('welcomeScreen.formTitle')}</Text>
+          <View style={[styles.screen, isCompactHeight && styles.screenCompact]}>
+            <Card
+              variant="elevated"
+              style={[styles.formCard, isCompactHeight && styles.formCardCompact]}
+            >
+              <View style={[styles.formHeader, isCompactHeight && styles.formHeaderCompact]}>
+                <Text variant={isCompactHeight ? 'h3' : 'h2'}>{t('welcomeScreen.formTitle')}</Text>
                 <Text variant="bodySmall" color="secondary">
                   {t('welcomeScreen.formSubtitle')}
                 </Text>
               </View>
 
-              <View style={styles.optionGroup}>
+              <Controller
+                control={control}
+                name="displayName"
+                rules={{
+                  required: t('validation.required'),
+                  validate: (value) => value.trim().length > 0 || t('validation.required'),
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input
+                    label={t('welcomeScreen.fields.displayName')}
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    autoCapitalize="words"
+                    error={errors.displayName?.message}
+                    placeholder={t('welcomeScreen.placeholders.displayName')}
+                  />
+                )}
+              />
+
+              <View style={[styles.optionGroup, isCompactHeight && styles.optionGroupCompact]}>
                 <Text variant="label">{t('welcomeScreen.fields.gender')}</Text>
                 <View style={styles.optionRow}>
                   {GENDER_KEYS.map((gender) => {
@@ -340,7 +375,9 @@ export default function WelcomeScreen() {
                 )}
               />
 
-              <View style={styles.measurementRow}>
+              <View
+                style={[styles.measurementRow, isCompactHeight && styles.measurementRowCompact]}
+              >
                 <View style={styles.measurementField}>
                   <Controller
                     control={control}
@@ -397,7 +434,7 @@ export default function WelcomeScreen() {
                 </View>
               </View>
 
-              <View style={styles.optionGroup}>
+              <View style={[styles.optionGroup, isCompactHeight && styles.optionGroupCompact]}>
                 <Text variant="label">{t('welcomeScreen.fields.monthlyWeightPlan')}</Text>
                 <View style={styles.optionWrap}>
                   {MONTHLY_WEIGHT_GOAL_OPTIONS.map((option) => {
@@ -427,13 +464,15 @@ export default function WelcomeScreen() {
                 </View>
               </View>
 
-              <View style={styles.activityCard}>
-                <View style={styles.activityHeader}>
+              <View style={[styles.activityCard, isCompactHeight && styles.activityCardCompact]}>
+                <View
+                  style={[styles.activityHeader, isCompactHeight && styles.activityHeaderCompact]}
+                >
                   <View style={styles.activityHeaderTitle}>
                     <View style={styles.activityHeaderIcon}>
                       <Icon name="walk-outline" size={18} variant="primary" />
                     </View>
-                    <Text variant="body" weight="semibold">
+                    <Text variant={isCompactHeight ? 'bodySmall' : 'body'} weight="semibold">
                       {t('welcomeScreen.fields.activityLevel')}
                     </Text>
                   </View>
@@ -500,7 +539,10 @@ export default function WelcomeScreen() {
             </Card>
 
             {profileSummary ? (
-              <Card variant="filled" style={styles.summaryCard}>
+              <Card
+                variant="filled"
+                style={[styles.summaryCard, isCompactHeight && styles.summaryCardCompact]}
+              >
                 <Text variant="body" weight="bold">
                   {t('welcomeScreen.summaryTitle')}
                 </Text>
@@ -556,47 +598,29 @@ export default function WelcomeScreen() {
                 </View>
               </Card>
             ) : null}
-
-            {isCompactHeight ? (
-              <View style={[styles.footer, { paddingBottom: footerBottomPadding }]}>
-                <View style={styles.actions}>
-                  <Button
-                    title={t('welcomeScreen.saveAction')}
-                    fullWidth
-                    loading={isSaving}
-                    onPress={() => {
-                      void handleSubmit(onSubmit)();
-                    }}
-                  />
-                </View>
-              </View>
-            ) : null}
           </View>
         </KeyboardAwareScrollView>
 
-        {!isCompactHeight ? (
-          <KeyboardStickyView
-            enabled
-            offset={{
-              closed: 0,
-              opened: theme.metrics.spacingV.p32,
-            }}
-            style={styles.footerSticky}
+        <KeyboardStickyView enabled offset={footerKeyboardOffset} style={styles.footerSticky}>
+          <View
+            style={[
+              styles.footer,
+              isCompactHeight && styles.footerCompact,
+              { paddingBottom: footerBottomPadding },
+            ]}
           >
-            <View style={[styles.footer, { paddingBottom: footerBottomPadding }]}>
-              <View style={styles.actions}>
-                <Button
-                  title={t('welcomeScreen.saveAction')}
-                  fullWidth
-                  loading={isSaving}
-                  onPress={() => {
-                    void handleSubmit(onSubmit)();
-                  }}
-                />
-              </View>
+            <View style={[styles.actions, isCompactHeight && styles.actionsCompact]}>
+              <Button
+                title={t('welcomeScreen.saveAction')}
+                fullWidth
+                loading={isSaving}
+                onPress={() => {
+                  void handleSubmit(onSubmit)();
+                }}
+              />
             </View>
-          </KeyboardStickyView>
-        ) : null}
+          </View>
+        </KeyboardStickyView>
       </View>
     </ScreenContainer>
   );
@@ -610,17 +634,34 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingBottom: theme.metrics.spacingV.p120,
   },
+  scrollContentCompact: {
+    paddingBottom: theme.metrics.spacingV.p88,
+  },
   screen: {
     gap: theme.metrics.spacingV.p20,
+  },
+  screenCompact: {
+    gap: theme.metrics.spacingV.p12,
   },
   formCard: {
     gap: theme.metrics.spacingV.p16,
   },
+  formCardCompact: {
+    gap: theme.metrics.spacingV.p12,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingVertical: theme.metrics.spacingV.p16,
+  },
   formHeader: {
+    gap: theme.metrics.spacingV.p4,
+  },
+  formHeaderCompact: {
     gap: theme.metrics.spacingV.p4,
   },
   optionGroup: {
     gap: theme.metrics.spacingV.p8,
+  },
+  optionGroupCompact: {
+    gap: theme.metrics.spacingV.p4,
   },
   optionRow: {
     flexDirection: 'row',
@@ -635,6 +676,9 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: theme.metrics.spacing.p12,
+  },
+  measurementRowCompact: {
+    flexDirection: 'column',
   },
   measurementField: {
     flex: 1,
@@ -663,11 +707,18 @@ const styles = StyleSheet.create((theme) => ({
     borderWidth: 1,
     borderColor: theme.colors.border.subtle,
   },
+  activityCardCompact: {
+    gap: theme.metrics.spacingV.p8,
+    padding: theme.metrics.spacing.p8,
+  },
   activityHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
+  },
+  activityHeaderCompact: {
+    gap: theme.metrics.spacing.p8,
   },
   activityHeaderTitle: {
     flexDirection: 'row',
@@ -738,6 +789,9 @@ const styles = StyleSheet.create((theme) => ({
     gap: vs(6),
     backgroundColor: theme.colors.background.section,
   },
+  summaryCardCompact: {
+    gap: theme.metrics.spacingV.p4,
+  },
   summaryList: {
     gap: theme.metrics.spacingV.p8,
   },
@@ -761,7 +815,13 @@ const styles = StyleSheet.create((theme) => ({
     borderTopWidth: 1,
     borderTopColor: theme.colors.border.subtle,
   },
+  footerCompact: {
+    paddingTop: theme.metrics.spacingV.p8,
+  },
   actions: {
     gap: theme.metrics.spacingV.p12,
+  },
+  actionsCompact: {
+    gap: theme.metrics.spacingV.p8,
   },
 }));
