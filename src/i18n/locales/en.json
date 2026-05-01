@@ -340,6 +340,12 @@
     "accuracyLabel": "±10% accuracy",
     "estimatedDisclaimer": "This is an estimate; results may vary by ±10%",
     "quantityLabel": "Food quantity",
+    "quantityCountLabel": "Quantity",
+    "peopleCountAction": "People eating: {{count}}",
+    "peopleCountDialogTitle": "People eating",
+    "peopleCountInputLabel": "People eating",
+    "peopleCountHelper": "Enter a whole number from 1 to 100.",
+    "peopleCountError": "Enter a whole number from 1 to 100.",
     "consumedAtLabel": "Consumed at",
     "notesLabel": "Notes",
     "sourceLabels": {

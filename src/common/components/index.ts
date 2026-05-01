@@ -21,6 +21,9 @@ export { ListItem } from './ListItem';
 export type { ListItemProps } from './ListItem';
 export { LineTrendChart } from './LineTrendChart';
 export type { LineTrendChartPoint, LineTrendChartProps } from './LineTrendChart';
+export { Streak } from './Streak';
+export { STREAK_STATUS } from './Streak';
+export type { StreakProps, StreakStatus } from './Streak';
 
 // Disclosure
 export { Accordion } from './Accordion';

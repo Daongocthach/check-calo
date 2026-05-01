@@ -24,7 +24,7 @@ const config: ExpoConfig = {
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.thachdaongoc.checkcalo',
+    bundleIdentifier: 'com.gempixel.checkcalo',
     icon: {
       light: './assets/ios-light.png',
     },
@@ -34,15 +34,15 @@ const config: ExpoConfig = {
       CFBundleLocalizations: ['en', 'vi'],
       ITSAppUsesNonExemptEncryption: false,
     },
-    buildNumber: '2',
+    buildNumber: '1',
   },
   android: {
-    versionCode: 2,
+    versionCode: 1,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
-    package: 'com.thachdaongoc.checkcalo',
+    package: 'com.gempixel.checkcalo',
   },
   extra: {
     router: {},

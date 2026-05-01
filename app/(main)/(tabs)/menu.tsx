@@ -392,6 +392,8 @@ export default function MenuTab() {
       ),
     [orderedMeals]
   );
+  const hasAnyMealItems = orderedMeals.some((meal) => meal.items.length > 0);
+  const canOpenMealReview = hasAnyMealItems;
   const calorieTarget = profile?.dailyCalorieTarget ?? 0;
   const proteinTarget = getPositiveTarget(profile?.proteinTargetGrams);
   const carbsTarget = getPositiveTarget(profile?.carbsTargetGrams);
@@ -550,6 +552,10 @@ export default function MenuTab() {
 
   const handleOpenMealReview = useCallback(
     (meal?: ManualMeal) => {
+      if (!hasAnyMealItems) {
+        return;
+      }
+
       requestMealPlanSuggestionSheet({
         selectedDateIso: selectedDayStart.toISOString(),
         ...(meal
@@ -560,7 +566,7 @@ export default function MenuTab() {
           : {}),
       });
     },
-    [requestMealPlanSuggestionSheet, selectedDayStart]
+    [hasAnyMealItems, requestMealPlanSuggestionSheet, selectedDayStart]
   );
 
   const handleAddMealItem = useCallback(
@@ -699,6 +705,7 @@ export default function MenuTab() {
                   leftIcon={
                     <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
                   }
+                  disabled={!canOpenMealReview}
                   onPress={() => {
                     handleOpenMealReview();
                   }}

@@ -1,4 +1,4 @@
-import { Pressable, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Icon } from '@/common/components/Icon';
 import { Text } from '@/common/components/Text';
@@ -39,9 +39,11 @@ export function QuantityStepper({
       >
         <Icon name="remove" variant="primary" size={16} />
       </Pressable>
-      <Text variant="bodySmall" weight="semibold">
-        {value}
-      </Text>
+      <View style={styles.stepperValue}>
+        <Text variant="bodySmall" weight="semibold" align="center">
+          {value}
+        </Text>
+      </View>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={increaseLabel}
@@ -74,6 +76,11 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background.surface,
+  },
+  stepperValue: {
+    minWidth: theme.metrics.spacing.p28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   stepperButtonDisabled: {
     opacity: 0.5,

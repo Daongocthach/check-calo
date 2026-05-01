@@ -18,6 +18,7 @@ import {
   calculateMacroTargets,
   calculateMaintenanceCalorieTarget,
 } from '@/features/nutrition/utils/calorie';
+import { useScreenDimensions } from '@/hooks';
 import { vs } from '@/theme/metrics';
 
 interface ProfileFormState {
@@ -171,6 +172,8 @@ export default function WelcomeScreen() {
   const router = useRouter();
   const { theme } = useUnistyles();
   const insets = useSafeAreaInsets();
+  const { height } = useScreenDimensions();
+  const isCompactHeight = height < 700;
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const {
@@ -206,6 +209,11 @@ export default function WelcomeScreen() {
     () => buildProfileSummary(debouncedProfileForm),
     [debouncedProfileForm]
   );
+  const keyboardBottomOffset = isCompactHeight
+    ? theme.metrics.spacingV.p40
+    : theme.metrics.spacingV.p24;
+  const footerBottomPadding =
+    insets.bottom + (isCompactHeight ? theme.metrics.spacingV.p20 : theme.metrics.spacingV.p16);
 
   const loadProfile = useCallback(async () => {
     setIsLoading(true);
@@ -269,7 +277,7 @@ export default function WelcomeScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          bottomOffset={theme.metrics.spacingV.p24}
+          bottomOffset={keyboardBottomOffset}
         >
           <View style={styles.screen}>
             <Card variant="elevated" style={styles.formCard}>
@@ -548,37 +556,47 @@ export default function WelcomeScreen() {
                 </View>
               </Card>
             ) : null}
+
+            {isCompactHeight ? (
+              <View style={[styles.footer, { paddingBottom: footerBottomPadding }]}>
+                <View style={styles.actions}>
+                  <Button
+                    title={t('welcomeScreen.saveAction')}
+                    fullWidth
+                    loading={isSaving}
+                    onPress={() => {
+                      void handleSubmit(onSubmit)();
+                    }}
+                  />
+                </View>
+              </View>
+            ) : null}
           </View>
         </KeyboardAwareScrollView>
 
-        <KeyboardStickyView
-          enabled
-          offset={{
-            closed: 0,
-            opened: theme.metrics.spacingV.p32,
-          }}
-          style={styles.footerSticky}
-        >
-          <View
-            style={[
-              styles.footer,
-              {
-                paddingBottom: insets.bottom + theme.metrics.spacingV.p16,
-              },
-            ]}
+        {!isCompactHeight ? (
+          <KeyboardStickyView
+            enabled
+            offset={{
+              closed: 0,
+              opened: theme.metrics.spacingV.p32,
+            }}
+            style={styles.footerSticky}
           >
-            <View style={styles.actions}>
-              <Button
-                title={t('welcomeScreen.saveAction')}
-                fullWidth
-                loading={isSaving}
-                onPress={() => {
-                  void handleSubmit(onSubmit)();
-                }}
-              />
+            <View style={[styles.footer, { paddingBottom: footerBottomPadding }]}>
+              <View style={styles.actions}>
+                <Button
+                  title={t('welcomeScreen.saveAction')}
+                  fullWidth
+                  loading={isSaving}
+                  onPress={() => {
+                    void handleSubmit(onSubmit)();
+                  }}
+                />
+              </View>
             </View>
-          </View>
-        </KeyboardStickyView>
+          </KeyboardStickyView>
+        ) : null}
       </View>
     </ScreenContainer>
   );

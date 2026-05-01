@@ -345,6 +345,7 @@ export function AddMealSourceBottomSheet({
   const todayMealChips = useMemo<TodayMealChip[]>(
     () =>
       [...todayMeals]
+        .filter((meal) => meal.items.length > 0)
         .sort((left, right) => {
           const leftOrder = MENU_TODAY_MEAL_ORDER[left.mealType] ?? MENU_TODAY_MEAL_ORDER.other;
           const rightOrder = MENU_TODAY_MEAL_ORDER[right.mealType] ?? MENU_TODAY_MEAL_ORDER.other;
@@ -366,6 +367,8 @@ export function AddMealSourceBottomSheet({
         })),
     [t, todayMeals]
   );
+
+  const shouldShowTodayMealsSection = isLoadingTodayMeals || todayMealChips.length > 0;
 
   let recentFoodsContent: ReactNode;
   let todayMealsContent: ReactNode;
@@ -583,28 +586,32 @@ export function AddMealSourceBottomSheet({
         </View>
         {recentFoodsContent}
 
-        <View style={styles.menuTodayHeader}>
-          <Text variant="body" weight="semibold">
-            {t('addScreen.menuToday.title')}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('addScreen.menuToday.viewMenu')}
-            onPress={() => {
-              handleSelect(() => {
-                router.push('/menu');
-              });
-            }}
-            style={styles.viewAllButton}
-          >
-            <Text variant="bodySmall" weight="semibold" color="primary">
-              {t('addScreen.menuToday.viewMenu')}
-            </Text>
-            <Icon name="chevron-forward" size={16} color={theme.colors.icon.primary} />
-          </Pressable>
-        </View>
+        {shouldShowTodayMealsSection ? (
+          <>
+            <View style={styles.menuTodayHeader}>
+              <Text variant="body" weight="semibold">
+                {t('addScreen.menuToday.title')}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('addScreen.menuToday.viewMenu')}
+                onPress={() => {
+                  handleSelect(() => {
+                    router.push('/menu');
+                  });
+                }}
+                style={styles.viewAllButton}
+              >
+                <Text variant="bodySmall" weight="semibold" color="primary">
+                  {t('addScreen.menuToday.viewMenu')}
+                </Text>
+                <Icon name="chevron-forward" size={16} color={theme.colors.icon.primary} />
+              </Pressable>
+            </View>
 
-        {todayMealsContent}
+            {todayMealsContent}
+          </>
+        ) : null}
       </View>
     ),
     [
@@ -613,6 +620,7 @@ export function AddMealSourceBottomSheet({
       options,
       recentFoodsContent,
       todayMealsContent,
+      shouldShowTodayMealsSection,
       t,
       theme.colors.brand.primaryVariant,
       theme.colors.icon.primary,

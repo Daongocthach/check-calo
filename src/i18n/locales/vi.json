@@ -340,6 +340,12 @@
     "accuracyLabel": "Sai số ±10%",
     "estimatedDisclaimer": "Đây là ước tính tham khảo, kết quả có thể sai số ±10%",
     "quantityLabel": "Số lượng món ăn",
+    "quantityCountLabel": "Số lượng",
+    "peopleCountAction": "Số người cùng ăn: {{count}}",
+    "peopleCountDialogTitle": "Số người cùng ăn",
+    "peopleCountInputLabel": "Số người cùng ăn",
+    "peopleCountHelper": "Nhập số nguyên từ 1 đến 100.",
+    "peopleCountError": "Vui lòng nhập số nguyên từ 1 đến 100.",
     "consumedAtLabel": "Ngày giờ ăn",
     "notesLabel": "Ghi chú",
     "sourceLabels": {

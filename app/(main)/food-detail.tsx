@@ -18,7 +18,6 @@ import {
   Text,
 } from '@/common/components';
 import type { DateTimeFieldHandle } from '@/common/components';
-import { QuantitySelector } from '@/features/nutrition/components/QuantitySelector';
 import { upsertFoodProductCatalog } from '@/features/nutrition/services/barcodeFoodLookup';
 import {
   enqueueFoodEntryImageSync,
@@ -92,6 +91,12 @@ interface FoodDetailEditState {
   error: string | null;
 }
 
+interface FoodDetailPeopleCountState {
+  visible: boolean;
+  value: string;
+  error: string | null;
+}
+
 const NOTE_CHAR_LIMIT = 200;
 
 function parseNumber(value: string | undefined) {
@@ -132,6 +137,21 @@ function parseOptionalNumericInput(value: string) {
 
   const parsedValue = Number(trimmed);
   return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function parsePeopleCountInput(value: string) {
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  const parsedValue = Number(trimmed);
+  if (!Number.isFinite(parsedValue) || !Number.isInteger(parsedValue)) {
+    return null;
+  }
+
+  return parsedValue >= 1 && parsedValue <= 100 ? parsedValue : null;
 }
 
 function pad(value: number) {
@@ -324,6 +344,11 @@ export default function FoodDetailScreen() {
     carbsGrams: '',
     fatGrams: '',
     notes: '',
+    error: null,
+  });
+  const [peopleCountDialog, setPeopleCountDialog] = useState<FoodDetailPeopleCountState>({
+    visible: false,
+    value: '',
     error: null,
   });
 
@@ -578,6 +603,33 @@ export default function FoodDetailScreen() {
   const closeEditDialog = useCallback(() => {
     setEditDialog((previous) => ({ ...previous, visible: false, error: null }));
   }, []);
+
+  const openPeopleCountDialog = useCallback(() => {
+    setPeopleCountDialog({
+      visible: true,
+      value: String(servings),
+      error: null,
+    });
+  }, [servings]);
+
+  const closePeopleCountDialog = useCallback(() => {
+    setPeopleCountDialog((previous) => ({ ...previous, visible: false, error: null }));
+  }, []);
+
+  const savePeopleCountDialog = useCallback(() => {
+    const nextPeopleCount = parsePeopleCountInput(peopleCountDialog.value);
+
+    if (nextPeopleCount === null) {
+      setPeopleCountDialog((previous) => ({
+        ...previous,
+        error: t('foodDetail.peopleCountError'),
+      }));
+      return;
+    }
+
+    setServings(nextPeopleCount);
+    closePeopleCountDialog();
+  }, [closePeopleCountDialog, peopleCountDialog.value, t]);
 
   const saveEditDialog = useCallback(async () => {
     if (!detail) {
@@ -917,11 +969,34 @@ export default function FoodDetailScreen() {
             ) : null}
 
             {showEditAction ? (
+              <View style={styles.titleActionsRow}>
+                <Button
+                  title={t('foodDetail.editAction')}
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<Icon name="create-outline" size={16} variant="primary" />}
+                  onPress={openEditDialog}
+                  style={styles.editButton}
+                />
+                {canPreviewQuantity ? (
+                  <Button
+                    title={t('foodDetail.peopleCountAction', { count: servings })}
+                    variant="outline"
+                    size="sm"
+                    leftIcon={<Icon name="people-outline" size={16} variant="primary" />}
+                    onPress={openPeopleCountDialog}
+                    style={styles.editButton}
+                  />
+                ) : null}
+              </View>
+            ) : null}
+            {!showEditAction && canPreviewQuantity ? (
               <Button
-                title={t('foodDetail.editAction')}
+                title={t('foodDetail.peopleCountAction', { count: servings })}
                 variant="outline"
                 size="sm"
-                onPress={openEditDialog}
+                leftIcon={<Icon name="people-outline" size={16} variant="primary" />}
+                onPress={openPeopleCountDialog}
                 style={styles.editButton}
               />
             ) : null}
@@ -1011,22 +1086,6 @@ export default function FoodDetailScreen() {
 
         {showSaveAction ? (
           <View style={styles.saveFooter}>
-            {canPreviewQuantity ? (
-              <QuantitySelector
-                label={t('manualFoodEntry.portionCountLabel')}
-                value={servings}
-                minValue={1}
-                decreaseLabel={t('addScreen.decreasePortion')}
-                increaseLabel={t('addScreen.increasePortion')}
-                onDecrease={() => {
-                  setServings((currentValue) => Math.max(1, currentValue - 1));
-                }}
-                onIncrease={() => {
-                  setServings((currentValue) => currentValue + 1);
-                }}
-                style={styles.servingsBlock}
-              />
-            ) : null}
             <Button
               title={t('foodDetail.saveAction')}
               onPress={() => {
@@ -1046,6 +1105,7 @@ export default function FoodDetailScreen() {
         title={t('foodDetail.editTitle')}
         size="lg"
         keyboardAware
+        keyboardOffset={-30}
         actions={[
           {
             label: t('common.cancel'),
@@ -1159,6 +1219,40 @@ export default function FoodDetailScreen() {
         </View>
       </Dialog>
 
+      <Dialog
+        visible={peopleCountDialog.visible}
+        onDismiss={closePeopleCountDialog}
+        title={t('foodDetail.peopleCountDialogTitle')}
+        size="md"
+        keyboardAware
+        actions={[
+          {
+            label: t('common.cancel'),
+            variant: 'ghost',
+            onPress: closePeopleCountDialog,
+          },
+          {
+            label: t('common.save'),
+            variant: 'primary',
+            onPress: savePeopleCountDialog,
+          },
+        ]}
+      >
+        <View style={styles.editDialogContent}>
+          <Input
+            label={t('foodDetail.peopleCountInputLabel')}
+            value={peopleCountDialog.value}
+            keyboardType="number-pad"
+            maxLength={3}
+            onChangeText={(value) => {
+              setPeopleCountDialog((previous) => ({ ...previous, value, error: null }));
+            }}
+            helperText={t('foodDetail.peopleCountHelper')}
+            error={peopleCountDialog.error ?? undefined}
+          />
+        </View>
+      </Dialog>
+
       <View style={styles.hiddenDateTimeField}>
         <DateTimeField
           ref={dateTimeFieldRef}
@@ -1211,6 +1305,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   titleBlock: {
     gap: theme.metrics.spacingV.p4,
+  },
+  titleActionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.metrics.spacing.p8,
   },
   editButton: {
     alignSelf: 'flex-start',
@@ -1334,9 +1433,6 @@ const styles = StyleSheet.create((theme) => ({
     paddingTop: theme.metrics.spacingV.p12,
     paddingBottom: theme.metrics.spacingV.p16,
     backgroundColor: theme.colors.background.app,
-  },
-  servingsBlock: {
-    marginBottom: theme.metrics.spacingV.p12,
   },
   saveButton: {
     backgroundColor: theme.colors.brand.tertiary,

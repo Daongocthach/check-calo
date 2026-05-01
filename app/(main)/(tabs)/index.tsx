@@ -649,6 +649,10 @@ export default function HomeTab() {
       return;
     }
 
+    if (entries.length === 0) {
+      return;
+    }
+
     const latestRecord = getLatestHomeAiReviewHistoryRecord(selectedDate);
     if (latestRecord) {
       applyHomeAiReviewRecord(latestRecord);
@@ -662,7 +666,14 @@ export default function HomeTab() {
     setHomeAiReviewSheetMode('review');
     setIsHomeAiReviewSheetOpen(true);
     setHomeAiReviewState({ status: 'loading' });
-  }, [applyHomeAiReviewRecord, currentDate, refreshHomeAiReviewHistory, selectedDate, t]);
+  }, [
+    applyHomeAiReviewRecord,
+    currentDate,
+    entries.length,
+    refreshHomeAiReviewHistory,
+    selectedDate,
+    t,
+  ]);
 
   useEffect(() => {
     if (!isHomeAiReviewSheetOpen) {
@@ -1059,6 +1070,7 @@ export default function HomeTab() {
     ]
   );
   const isTodaySelected = isSameCalendarDate(selectedDate, currentDate);
+  const canOpenHomeAiReview = isTodaySelected && entries.length > 0;
 
   return (
     <ScreenContainer padded={false} edges={['bottom']}>
@@ -1248,7 +1260,7 @@ export default function HomeTab() {
                     variant="primary"
                   />
                 }
-                disabled={!isTodaySelected}
+                disabled={!canOpenHomeAiReview}
                 onPress={handleOpenHomeAiReview}
               />
             </View>
