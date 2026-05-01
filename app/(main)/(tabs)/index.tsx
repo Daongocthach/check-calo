@@ -410,7 +410,7 @@ export default function HomeTab() {
     createEmptySummary(currentDate)
   );
   const [entries, setEntries] = useState<FoodEntryWithSyncDebug[]>([]);
-  const [hasProfile, setHasProfile] = useState(false);
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
   const [homeAiReviewState, setHomeAiReviewState] = useState<HomeAiReviewState>({
@@ -1026,6 +1026,50 @@ export default function HomeTab() {
   }, [entries]);
 
   const caloriesLeft = Math.max(summary.remainingCalories, 0);
+  let profileCardContent: ReactNode;
+
+  if (hasProfile === null) {
+    profileCardContent = (
+      <Card variant="elevated" style={styles.calorieCard}>
+        <View style={styles.profilePromptLoading}>
+          <Loading size="small" />
+        </View>
+      </Card>
+    );
+  } else if (hasProfile) {
+    profileCardContent = (
+      <Card variant="elevated" style={styles.calorieCard}>
+        <CaloriesRing
+          remainingCalories={caloriesLeft}
+          consumedCalories={summary.consumedCalories}
+          targetCalories={summary.calorieTarget}
+          progressPercent={summary.progressPercent}
+          locale={i18n.language}
+          t={t}
+        />
+      </Card>
+    );
+  } else {
+    profileCardContent = (
+      <Card variant="elevated" style={styles.calorieCard}>
+        <View style={styles.cardHeaderRow}>
+          <View style={styles.cardHeaderCopy}>
+            <Text variant="body" weight="bold">
+              {t('homeScreen.profilePrompt.title')}
+            </Text>
+            <Text variant="bodySmall" color="secondary">
+              {t('homeScreen.profilePrompt.subtitle')}
+            </Text>
+          </View>
+        </View>
+        <Button
+          title={t('homeScreen.profilePrompt.action')}
+          onPress={() => router.push('/welcome')}
+        />
+      </Card>
+    );
+  }
+
   const macroRows = useMemo(
     () => [
       {
@@ -1138,35 +1182,7 @@ export default function HomeTab() {
               />
             </Card>
 
-            {hasProfile ? (
-              <Card variant="elevated" style={styles.calorieCard}>
-                <CaloriesRing
-                  remainingCalories={caloriesLeft}
-                  consumedCalories={summary.consumedCalories}
-                  targetCalories={summary.calorieTarget}
-                  progressPercent={summary.progressPercent}
-                  locale={i18n.language}
-                  t={t}
-                />
-              </Card>
-            ) : (
-              <Card variant="elevated" style={styles.calorieCard}>
-                <View style={styles.cardHeaderRow}>
-                  <View style={styles.cardHeaderCopy}>
-                    <Text variant="body" weight="bold">
-                      {t('homeScreen.profilePrompt.title')}
-                    </Text>
-                    <Text variant="bodySmall" color="secondary">
-                      {t('homeScreen.profilePrompt.subtitle')}
-                    </Text>
-                  </View>
-                </View>
-                <Button
-                  title={t('homeScreen.profilePrompt.action')}
-                  onPress={() => router.push('/welcome')}
-                />
-              </Card>
-            )}
+            {profileCardContent}
 
             <Card variant="elevated" style={styles.macroCard}>
               <View style={styles.cardHeaderRow}>
@@ -1630,6 +1646,11 @@ const styles = StyleSheet.create((theme) => ({
   profilePromptCopy: {
     flex: 1,
     gap: theme.metrics.spacingV.p4,
+  },
+  profilePromptLoading: {
+    minHeight: vs(140),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   goalTrackingCard: {
     gap: theme.metrics.spacingV.p12,

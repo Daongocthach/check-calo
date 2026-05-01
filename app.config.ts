@@ -24,7 +24,7 @@ const config: ExpoConfig = {
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.gempixel.checkcalo',
+    bundleIdentifier: 'com.ngocthach.checkcalo',
     icon: {
       light: './assets/ios-light.png',
     },
@@ -42,7 +42,7 @@ const config: ExpoConfig = {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
-    package: 'com.gempixel.checkcalo',
+    package: 'com.ngocthach.checkcalo',
   },
   extra: {
     router: {},

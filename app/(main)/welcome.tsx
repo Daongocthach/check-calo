@@ -678,7 +678,7 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacing.p12,
   },
   measurementRowCompact: {
-    flexDirection: 'column',
+    gap: theme.metrics.spacing.p8,
   },
   measurementField: {
     flex: 1,

@@ -13,6 +13,7 @@ import {
   Icon,
   DateTimeField,
   Input,
+  QuantityStepper,
   ScreenContainer,
   SupportPromptCard,
   Text,
@@ -331,6 +332,7 @@ export default function FoodDetailScreen() {
   const [detail, setDetail] = useState<FoodDetailData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [servings, setServings] = useState(1);
+  const [peopleCount, setPeopleCount] = useState(1);
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const dateTimeFieldRef = useRef<DateTimeFieldHandle>(null);
   const [editDialog, setEditDialog] = useState<FoodDetailEditState>({
@@ -532,8 +534,10 @@ export default function FoodDetailScreen() {
     : false;
   const showEditAction = detail ? detail.source !== 'barcode' : false;
   const quantityMultiplier = canPreviewQuantity ? servings : 1;
+  const previewShareDivider = canPreviewQuantity ? peopleCount : 1;
+  const displayMultiplier = canPreviewQuantity ? quantityMultiplier / previewShareDivider : 1;
   const displayQuantityGrams =
-    detail && detail.quantityGrams !== null ? detail.quantityGrams * quantityMultiplier : null;
+    detail && detail.quantityGrams !== null ? detail.quantityGrams * displayMultiplier : null;
   const quantityDisplay = detail
     ? getQuantityDisplay(
         {
@@ -543,10 +547,10 @@ export default function FoodDetailScreen() {
         t('common.units.gram')
       )
     : '';
-  const displayCalories = detail ? Math.round(detail.calories * quantityMultiplier) : 0;
-  const displayProteinGrams = detail ? Math.round(detail.proteinGrams * quantityMultiplier) : 0;
-  const displayCarbsGrams = detail ? Math.round(detail.carbsGrams * quantityMultiplier) : 0;
-  const displayFatGrams = detail ? Math.round(detail.fatGrams * quantityMultiplier) : 0;
+  const displayCalories = detail ? Math.round(detail.calories * displayMultiplier) : 0;
+  const displayProteinGrams = detail ? Math.round(detail.proteinGrams * displayMultiplier) : 0;
+  const displayCarbsGrams = detail ? Math.round(detail.carbsGrams * displayMultiplier) : 0;
+  const displayFatGrams = detail ? Math.round(detail.fatGrams * displayMultiplier) : 0;
   const displayConsumedAt = detail?.consumedAt
     ? toDisplayDate(detail.consumedAt, i18n.language)
     : '';
@@ -556,9 +560,9 @@ export default function FoodDetailScreen() {
       return [];
     }
 
-    const proteinGrams = Math.round(detail.proteinGrams * quantityMultiplier);
-    const carbsGrams = Math.round(detail.carbsGrams * quantityMultiplier);
-    const fatGrams = Math.round(detail.fatGrams * quantityMultiplier);
+    const proteinGrams = Math.round(detail.proteinGrams * displayMultiplier);
+    const carbsGrams = Math.round(detail.carbsGrams * displayMultiplier);
+    const fatGrams = Math.round(detail.fatGrams * displayMultiplier);
     const maxValue = Math.max(proteinGrams, carbsGrams, fatGrams, 1);
 
     return [
@@ -584,11 +588,12 @@ export default function FoodDetailScreen() {
         fill: Math.max(18, Math.round((fatGrams / maxValue) * 100)),
       },
     ];
-  }, [detail, quantityMultiplier, t]);
+  }, [detail, displayMultiplier, t]);
 
   useEffect(() => {
     if (canPreviewQuantity) {
       setServings(1);
+      setPeopleCount(1);
     }
   }, [canPreviewQuantity]);
 
@@ -607,10 +612,10 @@ export default function FoodDetailScreen() {
   const openPeopleCountDialog = useCallback(() => {
     setPeopleCountDialog({
       visible: true,
-      value: String(servings),
+      value: String(peopleCount),
       error: null,
     });
-  }, [servings]);
+  }, [peopleCount]);
 
   const closePeopleCountDialog = useCallback(() => {
     setPeopleCountDialog((previous) => ({ ...previous, visible: false, error: null }));
@@ -627,7 +632,7 @@ export default function FoodDetailScreen() {
       return;
     }
 
-    setServings(nextPeopleCount);
+    setPeopleCount(nextPeopleCount);
     closePeopleCountDialog();
   }, [closePeopleCountDialog, peopleCountDialog.value, t]);
 
@@ -980,7 +985,7 @@ export default function FoodDetailScreen() {
                 />
                 {canPreviewQuantity ? (
                   <Button
-                    title={t('foodDetail.peopleCountAction', { count: servings })}
+                    title={t('foodDetail.peopleCountAction', { count: peopleCount })}
                     variant="outline"
                     size="sm"
                     leftIcon={<Icon name="people-outline" size={16} variant="primary" />}
@@ -992,7 +997,7 @@ export default function FoodDetailScreen() {
             ) : null}
             {!showEditAction && canPreviewQuantity ? (
               <Button
-                title={t('foodDetail.peopleCountAction', { count: servings })}
+                title={t('foodDetail.peopleCountAction', { count: peopleCount })}
                 variant="outline"
                 size="sm"
                 leftIcon={<Icon name="people-outline" size={16} variant="primary" />}
@@ -1086,6 +1091,26 @@ export default function FoodDetailScreen() {
 
         {showSaveAction ? (
           <View style={styles.saveFooter}>
+            {canPreviewQuantity ? (
+              <View style={styles.quantityFooter}>
+                <Text variant="label">{t('foodDetail.quantityCountLabel')}</Text>
+                <View style={styles.quantityStepperWrap}>
+                  <QuantityStepper
+                    value={servings}
+                    minValue={1}
+                    decreaseLabel={t('addScreen.decreasePortion')}
+                    increaseLabel={t('addScreen.increasePortion')}
+                    onDecrease={() => {
+                      setServings((currentValue) => Math.max(1, currentValue - 1));
+                    }}
+                    onIncrease={() => {
+                      setServings((currentValue) => currentValue + 1);
+                    }}
+                    style={styles.quantityStepper}
+                  />
+                </View>
+              </View>
+            ) : null}
             <Button
               title={t('foodDetail.saveAction')}
               onPress={() => {
@@ -1433,6 +1458,19 @@ const styles = StyleSheet.create((theme) => ({
     paddingTop: theme.metrics.spacingV.p12,
     paddingBottom: theme.metrics.spacingV.p16,
     backgroundColor: theme.colors.background.app,
+    gap: theme.metrics.spacingV.p12,
+  },
+  quantityFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacingV.p8,
+  },
+  quantityStepperWrap: {
+    flexShrink: 0,
+  },
+  quantityStepper: {
+    alignSelf: 'flex-start',
   },
   saveButton: {
     backgroundColor: theme.colors.brand.tertiary,
