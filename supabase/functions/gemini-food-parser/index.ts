@@ -60,7 +60,7 @@ async function consumeDailyAiUsage(
   purpose: 'food_photo' | 'home_review'
 ): Promise<{ allowed: boolean; usageCount: number; remaining: number }> {
   const limit = purpose === 'food_photo' ? 30 : 10;
-  const { data, error } = await userClient.rpc('consume_ai_usage', {
+  const { data, error } = await userClient.rpc('consume_daily_ai_usage', {
     p_purpose: purpose,
     p_limit: limit,
   });

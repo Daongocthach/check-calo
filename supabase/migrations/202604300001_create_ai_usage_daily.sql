@@ -37,9 +37,7 @@ CREATE OR REPLACE FUNCTION public.consume_ai_usage(
 RETURNS TABLE (
   allowed boolean,
   usage_count integer,
-  remaining integer,
-  usage_date date,
-  purpose text
+  remaining integer
 )
 LANGUAGE plpgsql
 SECURITY INVOKER
@@ -64,8 +62,6 @@ BEGIN
   allowed := v_count <= p_limit;
   usage_count := v_count;
   remaining := GREATEST(p_limit - v_count, 0);
-  usage_date := v_usage_date;
-  purpose := p_purpose;
   RETURN NEXT;
 END;
 $$;

@@ -93,7 +93,7 @@
       "metricTarget": "{{current}} / {{target}}{{unit}}",
       "metricNoTarget": "Chưa có mục tiêu",
       "history": "Lịch sử",
-      "backToReview": "Quay lại nhận xét",
+      "backToReview": "Quay lại",
       "deleteHistoryTitle": "Xóa nhận xét",
       "deleteHistoryMessage": "Xóa nhận xét này khỏi lịch sử?",
       "historyEmpty": "Chưa có lịch sử nhận xét",

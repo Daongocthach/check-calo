@@ -670,8 +670,9 @@ function MealPlanReviewContent({ payload, onRequestClose }: MealPlanReviewConten
               title={t('menuScreen.review.backToReview')}
               variant="ghost"
               size="sm"
+              style={styles.historyBackButton}
               leftIcon={
-                <Icon name="chevron-back-outline" size={16} color={theme.colors.text.primary} />
+                <Icon name="chevron-back-outline" size={16} color={theme.colors.brand.primary} />
               }
               onPress={() => {
                 setIsHistoryMode(false);
@@ -726,7 +727,7 @@ function MealPlanReviewContent({ payload, onRequestClose }: MealPlanReviewConten
           {historySections.length > 0 ? (
             historySections.map((section) => (
               <View key={section.dateKey} style={styles.reviewListBlock}>
-                <Text variant="bodySmall" weight="bold">
+                <Text variant="bodySmall" weight="bold" color="primary">
                   {new Intl.DateTimeFormat(i18n.language, {
                     dateStyle: 'medium',
                   }).format(new Date(section.dateKey))}
@@ -739,6 +740,8 @@ function MealPlanReviewContent({ payload, onRequestClose }: MealPlanReviewConten
                           title={getRecordTitle(record, t)}
                           variant="ghost"
                           size="sm"
+                          style={styles.historyRecordButton}
+                          labelStyle={{ color: theme.colors.text.primary }}
                           onPress={() => {
                             openReviewRecord(record);
                           }}

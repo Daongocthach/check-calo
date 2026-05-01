@@ -52,10 +52,14 @@ export const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacing.p8,
   },
   reviewHistoryHeaderRow: {
+    width: '100%',
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
+    justifyContent: 'flex-end' as const,
     gap: theme.metrics.spacing.p12,
+  },
+  historyBackButton: {
+    paddingHorizontal: 0,
   },
   switchCard: {
     flexDirection: 'row' as const,
@@ -207,5 +211,9 @@ export const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background.surface,
     borderWidth: 1,
     borderColor: theme.colors.border.default,
+  },
+  historyRecordButton: {
+    paddingHorizontal: 0,
+    justifyContent: 'flex-start' as const,
   },
 }));
