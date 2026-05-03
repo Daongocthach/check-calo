@@ -27,6 +27,7 @@ interface LeaderboardEntry {
   rank: number;
   displayName?: string;
   streaks: number;
+  completedGoals: number;
   avatarInitials?: string;
   tone: RankTone;
 }
@@ -109,6 +110,12 @@ function getDisplayName(entry: LeaderboardEntry, t: TranslateFn) {
   return entry.displayName ?? t('leaderboardScreen.anonymousName');
 }
 
+function getGoalLabel(entry: LeaderboardEntry, t: TranslateFn, locale: string) {
+  const goalLabel = t('leaderboardScreen.completedGoals');
+
+  return `${formatRank(entry.completedGoals, locale)} ${goalLabel}`;
+}
+
 function getStreakLabel(entry: LeaderboardEntry, locale: string) {
   return `🔥 ${formatRank(entry.streaks, locale)}`;
 }
@@ -136,6 +143,7 @@ function fromRemoteProfile(profile: LeaderboardProfile, rank: number): Leaderboa
     rank,
     displayName: displayName.length > 0 ? displayName : undefined,
     streaks: profile.currentStreak,
+    completedGoals: profile.completedGoals,
     avatarInitials: displayName.length > 0 ? getInitialsFromName(displayName) : undefined,
     tone: getToneForRank(rank),
   };
@@ -156,6 +164,7 @@ function TopPodiumCard({
   const palette = entry ? getTonePalette(theme, entry.tone) : null;
   const rankLabel = entry ? `No.${formatRank(entry.rank, locale)}` : 'No.--';
   const streakLabel = entry ? getStreakLabel(entry, locale) : '';
+  const goalLabel = entry ? getGoalLabel(entry, t, locale) : '';
   const isTopOne = entry?.rank === 1;
 
   return (
@@ -206,6 +215,10 @@ function TopPodiumCard({
             {getDisplayName(entry, t)}
           </Text>
 
+          <Text variant="bodySmall" color="secondary" align="center" numberOfLines={1}>
+            {goalLabel}
+          </Text>
+
           <View style={[styles.streakPill, { backgroundColor: palette.backgroundColor }]}>
             <Text variant="bodySmall" weight="bold" style={{ color: palette.color }}>
               {streakLabel}
@@ -254,6 +267,7 @@ function RankingRow({
 }) {
   const { theme } = useUnistyles();
   const streakLabel = getStreakLabel(entry, locale);
+  const goalLabel = getGoalLabel(entry, t, locale);
   const streakColor = theme.colors.brand.tertiary;
   const streakTextStyle = { color: streakColor };
 
@@ -272,6 +286,10 @@ function RankingRow({
       <View style={styles.rowCopy}>
         <Text variant="body" weight="semibold" numberOfLines={1} style={styles.rowName}>
           {getDisplayName(entry, t)}
+        </Text>
+
+        <Text variant="bodySmall" color="secondary" numberOfLines={1} style={styles.rowGoal}>
+          {goalLabel}
         </Text>
       </View>
 
@@ -548,6 +566,9 @@ const styles = StyleSheet.create((theme) => ({
   rowName: {
     flex: 1,
     color: theme.colors.text.primary,
+  },
+  rowGoal: {
+    flex: 1,
   },
   rowScore: {
     alignItems: 'flex-end',

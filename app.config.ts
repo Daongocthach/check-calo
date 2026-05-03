@@ -21,6 +21,7 @@ const config: ExpoConfig = {
   },
   updates: {
     enabled: true,
+    url: 'https://u.expo.dev/70cde4e9-73b0-40ca-aa21-c4cbe8d72591',
   },
   ios: {
     supportsTablet: true,

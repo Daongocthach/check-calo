@@ -1424,6 +1424,7 @@
     "emptyStateMessage": "Sync your profile and streak to appear here.",
     "emptyPodiumTitle": "Waiting for players",
     "levelPrefix": "Lv.",
+    "completedGoals": "completed goals",
     "rowSubtitle": "Keep your streak alive and hit the goal every day.",
     "listTitle": "Rankings 4 - 10",
     "monthPill": "Green race • {{month}}",

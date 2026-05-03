@@ -1424,6 +1424,7 @@
     "emptyStateMessage": "Đồng bộ hồ sơ và streak để xuất hiện ở đây.",
     "emptyPodiumTitle": "Đang chờ người chơi",
     "levelPrefix": "Lv.",
+    "completedGoals": "hoàn thành",
     "rowSubtitle": "Giữ chuỗi và đạt mục tiêu mỗi ngày.",
     "listTitle": "Xếp hạng 4 - 10",
     "monthPill": "Cuộc đua xanh • Tháng {{month}}",
