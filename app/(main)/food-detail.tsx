@@ -908,8 +908,8 @@ export default function FoodDetailScreen() {
   ]);
 
   const handleSupportPress = useCallback(() => {
-    toast.success(t('foodDetail.supportThanks'));
-  }, [t]);
+    router.push('/support');
+  }, []);
 
   if (isLoading || !detail) {
     return (

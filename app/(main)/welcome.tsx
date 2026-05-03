@@ -32,7 +32,7 @@ interface ProfileFormState {
 }
 
 const DEFAULT_FORM: ProfileFormState = {
-  displayName: '',
+  displayName: 'Guest',
   gender: 'male',
   age: '18',
   height: '170',
@@ -232,7 +232,7 @@ export default function WelcomeScreen() {
     }
 
     reset({
-      displayName: profile.displayName,
+      displayName: profile.displayName.trim() || 'Guest',
       gender: profile.gender,
       age: String(profile.age),
       height: String(profile.heightCm),
@@ -253,7 +253,7 @@ export default function WelcomeScreen() {
     setIsSaving(true);
 
     const profile = await upsertUserProfile({
-      displayName: form.displayName.trim(),
+      displayName: form.displayName.trim() || 'Guest',
       gender: form.gender,
       age: parseProfileNumber(form.age) ?? 0,
       heightCm: parseProfileNumber(form.height) ?? 0,

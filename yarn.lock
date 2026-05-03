@@ -4577,6 +4577,11 @@ expo-manifests@~55.0.16:
   dependencies:
     expo-json-utils "~55.0.2"
 
+expo-media-library@^55.0.15:
+  version "55.0.15"
+  resolved "https://registry.npmjs.org/expo-media-library/-/expo-media-library-55.0.15.tgz"
+  integrity sha512-VD2Lppq0JR6TeI4ivVGsbz4UJ+hKD0DSB/P+I0eoOpoOcLc3/5WboDKgy2uW8YYZqee55V+JU7TMdRDi+lTnCg==
+
 expo-modules-autolinking@55.0.18:
   version "55.0.18"
   resolved "https://registry.npmjs.org/expo-modules-autolinking/-/expo-modules-autolinking-55.0.18.tgz"

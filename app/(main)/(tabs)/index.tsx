@@ -353,7 +353,13 @@ function CaloriesRing({
 
       <View style={[styles.calorieRingCenter, { top: centerTop }]}>
         <View style={styles.calorieRingPrimaryCopy}>
-          <Text variant="h2" weight="semibold" align="center" style={styles.calorieRingValue}>
+          <Text
+            variant="h2"
+            weight="bold"
+            align="center"
+            color="primary"
+            style={styles.calorieRingValue}
+          >
             {formatNumber(Math.max(remainingCalories, 0), locale)}
           </Text>
           <Text variant="bodySmall" color="secondary" align="center">
@@ -368,7 +374,7 @@ function CaloriesRing({
             })}
           </Text>
         </View>
-        <Text variant="bodySmall" weight="semibold" color="secondary" align="center">
+        <Text variant="bodySmall" weight="semibold" color="link" align="center">
           {translate('homeScreen.goalPercent', {
             percent: formatNumber(safeProgress, locale),
           })}
@@ -1367,6 +1373,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   calorieRingValue: {
     lineHeight: 44,
+    fontWeight: '800',
   },
   macroCard: {
     gap: theme.metrics.spacingV.p16,

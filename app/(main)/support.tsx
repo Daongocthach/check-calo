@@ -1,35 +1,90 @@
+import { Asset } from 'expo-asset';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
+import * as MediaLibrary from 'expo-media-library';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Button, Dialog, Icon, ScreenContainer, Text } from '@/common/components';
+import { Button, Card, Dialog, Icon, ScreenContainer, Text } from '@/common/components';
+import { toast } from '@/utils/toast';
 import CoffeeStickImage from '../../assets/coffee-stick.png';
 import QrCodeImage from '../../assets/qr-code.png';
 
 export default function SupportScreen() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
-  const [isCopying, setIsCopying] = useState(false);
-  const [copySuccessVisible, setCopySuccessVisible] = useState(false);
-  const accountNumber = t('supportScreen.accountNumber');
-  const accountNumberToCopy = accountNumber.replace(/-/g, '');
+  const [isSavingImage, setIsSavingImage] = useState(false);
+  const [saveSuccessVisible, setSaveSuccessVisible] = useState(false);
 
-  const handleCopyAccount = useCallback(async () => {
-    if (isCopying) {
+  const copyFields = [
+    {
+      key: 'account-number',
+      label: t('supportScreen.accountNumberLabel'),
+      value: t('supportScreen.accountNumber'),
+      actionLabel: t('supportScreen.copyAccountNumberAction'),
+    },
+    {
+      key: 'account-holder',
+      label: t('supportScreen.accountHolderLabel'),
+      value: t('supportScreen.accountHolder'),
+      actionLabel: t('supportScreen.copyAccountHolderAction'),
+    },
+    {
+      key: 'bank-name',
+      label: t('supportScreen.bankLabel'),
+      value: t('supportScreen.bankName'),
+      actionLabel: t('supportScreen.copyBankAction'),
+    },
+  ] as const;
+
+  const handleCopyValue = useCallback(
+    async (value: string) => {
+      await Clipboard.setStringAsync(value);
+      toast.success(t('supportScreen.copySuccess'));
+    },
+    [t]
+  );
+
+  const handleSaveImage = useCallback(async () => {
+    if (isSavingImage) {
       return;
     }
 
-    setIsCopying(true);
+    setIsSavingImage(true);
 
     try {
-      await Clipboard.setStringAsync(accountNumberToCopy);
-      setCopySuccessVisible(true);
+      const permission = await MediaLibrary.getPermissionsAsync();
+      let hasPermission = permission.status === 'granted';
+
+      if (!hasPermission) {
+        const nextPermission = await MediaLibrary.requestPermissionsAsync();
+        hasPermission = nextPermission.status === 'granted';
+      }
+
+      if (!hasPermission) {
+        toast.error(t('supportScreen.saveImagePermissionDenied'));
+        return;
+      }
+
+      const asset = Asset.fromModule(QrCodeImage);
+      await asset.downloadAsync();
+
+      const imageUri = asset.localUri ?? asset.uri;
+
+      if (!imageUri) {
+        toast.error(t('supportScreen.saveImageFailed'));
+        return;
+      }
+
+      await MediaLibrary.saveToLibraryAsync(imageUri);
+      setSaveSuccessVisible(true);
+    } catch {
+      toast.error(t('supportScreen.saveImageFailed'));
     } finally {
-      setIsCopying(false);
+      setIsSavingImage(false);
     }
-  }, [accountNumberToCopy, isCopying]);
+  }, [isSavingImage, t]);
 
   return (
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
@@ -57,17 +112,43 @@ export default function SupportScreen() {
             </View>
           </View>
 
+          <Card variant="outlined" style={styles.copyCard}>
+            <View style={styles.copyCardHeader}>
+              <Text variant="bodySmall" weight="semibold" align="center">
+                {t('supportScreen.copySectionTitle')}
+              </Text>
+            </View>
+            <View style={styles.copyActions}>
+              {copyFields.map((field) => (
+                <Button
+                  key={field.key}
+                  title={field.actionLabel}
+                  variant="outline"
+                  fullWidth
+                  leftIcon={
+                    <Icon name="copy-outline" size={18} color={theme.colors.brand.primary} />
+                  }
+                  style={styles.copyButton}
+                  labelStyle={styles.copyButtonLabel}
+                  onPress={() => {
+                    void handleCopyValue(field.value);
+                  }}
+                />
+              ))}
+            </View>
+          </Card>
+
           <Button
-            title={isCopying ? t('common.loading') : t('supportScreen.copyAction')}
+            title={isSavingImage ? t('common.loading') : t('supportScreen.saveImageAction')}
             variant="outline"
             fullWidth
-            leftIcon={<Icon name="copy-outline" size={18} color={theme.colors.brand.primary} />}
+            leftIcon={<Icon name="download-outline" size={18} color={theme.colors.brand.primary} />}
             style={styles.copyButton}
             labelStyle={styles.copyButtonLabel}
             onPress={() => {
-              void handleCopyAccount();
+              void handleSaveImage();
             }}
-            loading={isCopying}
+            loading={isSavingImage}
           />
 
           <Text variant="bodySmall" color="secondary" align="center">
@@ -77,15 +158,15 @@ export default function SupportScreen() {
       </View>
 
       <Dialog
-        visible={copySuccessVisible}
-        onDismiss={() => setCopySuccessVisible(false)}
+        visible={saveSuccessVisible}
+        onDismiss={() => setSaveSuccessVisible(false)}
         size="sm"
         actions={[
           {
             label: t('common.ok'),
             variant: 'primary',
             onPress: () => {
-              setCopySuccessVisible(false);
+              setSaveSuccessVisible(false);
             },
           },
         ]}
@@ -97,10 +178,10 @@ export default function SupportScreen() {
             </Text>
           </View>
           <Text variant="body" align="center" weight="semibold">
-            {t('supportScreen.copyModalTitle')}
+            {t('supportScreen.saveImageModalTitle')}
           </Text>
           <Text variant="bodySmall" align="center">
-            {t('supportScreen.copyModalBody')}
+            {t('supportScreen.saveImageModalBody')}
           </Text>
         </View>
       </Dialog>
@@ -137,6 +218,17 @@ const styles = StyleSheet.create((theme) => ({
   },
   subtitleQrGroup: {
     gap: theme.metrics.spacing.p8,
+  },
+  copyCard: {
+    gap: theme.metrics.spacingV.p12,
+    padding: theme.metrics.spacing.p16,
+  },
+  copyCardHeader: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  copyActions: {
+    gap: theme.metrics.spacingV.p8,
   },
   qrWrap: {
     alignItems: 'center',
