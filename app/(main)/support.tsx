@@ -112,6 +112,18 @@ export default function SupportScreen() {
             </View>
           </View>
 
+          <Button
+            title={isSavingImage ? t('common.loading') : t('supportScreen.saveImageAction')}
+            variant="primary"
+            fullWidth
+            leftIcon={<Icon name="download-outline" size={18} color={theme.colors.brand.onBrand} />}
+            style={styles.copyButton}
+            onPress={() => {
+              void handleSaveImage();
+            }}
+            loading={isSavingImage}
+          />
+
           <Card variant="outlined" style={styles.copyCard}>
             <View style={styles.copyCardHeader}>
               <Text variant="bodySmall" weight="semibold" align="center">
@@ -137,19 +149,6 @@ export default function SupportScreen() {
               ))}
             </View>
           </Card>
-
-          <Button
-            title={isSavingImage ? t('common.loading') : t('supportScreen.saveImageAction')}
-            variant="outline"
-            fullWidth
-            leftIcon={<Icon name="download-outline" size={18} color={theme.colors.brand.primary} />}
-            style={styles.copyButton}
-            labelStyle={styles.copyButtonLabel}
-            onPress={() => {
-              void handleSaveImage();
-            }}
-            loading={isSavingImage}
-          />
 
           <Text variant="bodySmall" color="secondary" align="center">
             {t('supportScreen.thanks')}
