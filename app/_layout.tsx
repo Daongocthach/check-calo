@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Updates from 'expo-updates';
 import { useEffect, useState } from 'react';
 import { Appearance, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -62,6 +63,38 @@ function AppContent() {
   useFoodEntrySyncQueue();
   const { theme } = useUnistyles();
   const router = useRouter();
+
+  useEffect(() => {
+    let active = true;
+
+    const checkForAppUpdate = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+
+        if (!active || !update.isAvailable) {
+          return;
+        }
+
+        await Updates.fetchUpdateAsync();
+
+        if (!active) {
+          return;
+        }
+
+        await Updates.reloadAsync();
+      } catch (error) {
+        if (__DEV__) {
+          console.warn('Failed to check for app update', error);
+        }
+      }
+    };
+
+    void checkForAppUpdate();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;

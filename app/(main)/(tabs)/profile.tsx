@@ -1,4 +1,6 @@
+import * as Application from 'expo-application';
 import { useRouter } from 'expo-router';
+import * as Updates from 'expo-updates';
 import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +19,9 @@ import {
 import type { IconProps } from '@/common/components/Icon';
 import { logout } from '@/features/auth/services/authService';
 import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
+import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
+import { setItem, STORAGE_KEYS } from '@/utils/storage';
 import { toast } from '@/utils/toast';
 
 function getRowIconName(key: string): IconProps['name'] {
@@ -62,6 +66,7 @@ interface SettingsMenuRowProps {
   rightLabel?: string;
   destructive?: boolean;
   avatarInitials?: string;
+  showChevron?: boolean;
 }
 
 function SettingsMenuRow({
@@ -71,6 +76,7 @@ function SettingsMenuRow({
   rightLabel,
   destructive,
   avatarInitials,
+  showChevron = true,
 }: SettingsMenuRowProps) {
   const { theme } = useUnistyles();
   const isLoginRow = iconKey === 'login';
@@ -102,7 +108,7 @@ function SettingsMenuRow({
           {rightLabel}
         </Text>
       ) : null}
-      <Icon name="chevron-forward-outline" size={18} variant="muted" />
+      {showChevron ? <Icon name="chevron-forward-outline" size={18} variant="muted" /> : null}
     </View>
   );
 
@@ -120,13 +126,18 @@ function SettingsGroup({ children, style }: { children: ReactNode; style?: ViewS
 export default function ProfileTab() {
   const { t } = useTranslation();
   const router = useRouter();
+  const appAlert = useAppAlert();
   const authUser = useAuthStore((state) => state.user);
   const [profileInitials, setProfileInitials] = useState('US');
   const [logoutVisible, setLogoutVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSupportVisible, setIsSupportVisible] = useState(true);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
   const showLogoutAction = Boolean(authUser && !authUser.isAnonymous);
   const showSignInPrompt = authUser?.isAnonymous ?? false;
+  const appVersion = Application.nativeApplicationVersion ?? '1.0.0';
+  const patchLabel = '2';
+  const versionLabel = `v${appVersion} • ${patchLabel}`;
 
   useEffect(() => {
     let active = true;
@@ -162,9 +173,43 @@ export default function ProfileTab() {
     };
   }, [authUser?.email]);
 
+  useEffect(() => {
+    setItem(STORAGE_KEYS.app.lastVersion, versionLabel);
+  }, [versionLabel]);
+
   const handleSupportPress = useCallback(() => {
     router.push('/support');
   }, [router]);
+
+  const handleVersionPress = useCallback(async () => {
+    if (isCheckingUpdate) {
+      return;
+    }
+
+    setIsCheckingUpdate(true);
+
+    try {
+      const update = await Updates.checkForUpdateAsync();
+
+      if (!update.isAvailable) {
+        appAlert.alert(
+          t('profileScreen.versionNoUpdateTitle'),
+          t('profileScreen.versionNoUpdateMessage')
+        );
+        return;
+      }
+
+      await Updates.fetchUpdateAsync();
+      await Updates.reloadAsync();
+    } catch (error) {
+      appAlert.alert(
+        t('profileScreen.versionUpdateErrorTitle'),
+        error instanceof Error ? error.message : t('profileScreen.versionUpdateErrorMessage')
+      );
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  }, [appAlert, isCheckingUpdate, t]);
 
   const handleLogout = useCallback(async () => {
     if (isLoggingOut) {
@@ -267,6 +312,14 @@ export default function ProfileTab() {
               iconKey="contact"
               onPress={() => {
                 router.push('/contact');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.version')}
+              iconKey="about"
+              rightLabel={versionLabel}
+              onPress={() => {
+                void handleVersionPress();
               }}
             />
           </SettingsGroup>

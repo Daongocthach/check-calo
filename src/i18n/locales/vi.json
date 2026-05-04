@@ -903,6 +903,12 @@
       "resetAnonymousSessionAction": "Đặt lại phiên ẩn danh",
       "resetAnonymousSessionSuccess": "Đã đặt lại phiên ẩn danh. App sẽ tạo tài khoản anonymous mới khi cần."
     },
+    "versionNoUpdateTitle": "Đã mới nhất",
+    "versionNoUpdateMessage": "Hiện chưa có bản cập nhật nào.",
+    "versionUpdateReadyTitle": "Sẵn sàng cập nhật",
+    "versionUpdateReadyMessage": "App sẽ tải lại để áp dụng bản mới nhất.",
+    "versionUpdateErrorTitle": "Cập nhật thất bại",
+    "versionUpdateErrorMessage": "Không thể kiểm tra bản cập nhật. Vui lòng thử lại.",
     "metrics": {
       "bmi": "BMI",
       "gender": "Giới tính",

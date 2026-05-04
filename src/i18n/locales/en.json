@@ -903,6 +903,10 @@
       "resetAnonymousSessionAction": "Reset anonymous session",
       "resetAnonymousSessionSuccess": "Anonymous session reset. The app will create a new anonymous account when needed."
     },
+    "versionNoUpdateTitle": "Up to date",
+    "versionNoUpdateMessage": "No update is available right now.",
+    "versionUpdateErrorTitle": "Update failed",
+    "versionUpdateErrorMessage": "Could not check for an update. Please try again.",
     "metrics": {
       "bmi": "BMI",
       "gender": "Gender",
@@ -950,7 +954,13 @@
     "theme": {
       "light": "Light",
       "dark": "Dark"
-    }
+    },
+    "versionNoUpdateTitle": "Up to date",
+    "versionNoUpdateMessage": "No update is available right now.",
+    "versionUpdateReadyTitle": "Update ready",
+    "versionUpdateReadyMessage": "The app will reload to apply the latest update.",
+    "versionUpdateErrorTitle": "Update failed",
+    "versionUpdateErrorMessage": "Could not check for an update. Please try again."
   },
   "goalTracking": {
     "activeTitle": "Current goal",
