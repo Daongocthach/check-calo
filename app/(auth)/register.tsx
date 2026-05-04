@@ -5,9 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Button, Input, ScreenContainer, Text } from '@/common/components';
-import { linkAnonymousAccountWithProvider, register } from '@/features/auth/services/authService';
+import { register } from '@/features/auth/services/authService';
 import { toast } from '@/utils/toast';
-import GoogleLogo from '../../assets/google-logo.png';
 import AppLogo from '../../assets/splash-icon-light.png';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -18,8 +17,6 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLinkingGoogle, setIsLinkingGoogle] = useState(false);
-  const [isLinkingApple, setIsLinkingApple] = useState(false);
 
   const handleSubmit = async () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -55,31 +52,6 @@ export default function RegisterScreen() {
       toast.error(message);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleLinkProvider = async (provider: 'google' | 'apple') => {
-    const setLoadingState = provider === 'google' ? setIsLinkingGoogle : setIsLinkingApple;
-    const successMessage =
-      provider === 'google'
-        ? t('profileScreen.account.linkGoogleSuccess')
-        : t('profileScreen.account.linkAppleSuccess');
-
-    setLoadingState(true);
-
-    try {
-      const result = await linkAnonymousAccountWithProvider(provider);
-
-      if (result.linked) {
-        toast.success(successMessage);
-        router.replace('/(main)/(tabs)/profile');
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : t('profileScreen.account.actionError');
-      toast.error(message);
-    } finally {
-      setLoadingState(false);
     }
   };
 
@@ -138,26 +110,9 @@ export default function RegisterScreen() {
           <Button
             title={t('auth.registerAction')}
             loading={isSubmitting}
-            disabled={isSubmitting || isLinkingGoogle}
+            disabled={isSubmitting}
             onPress={handleSubmit}
           />
-
-          <View style={styles.providerActions}>
-            <View style={styles.providerAction}>
-              <Button
-                title={t('auth.signInWithGoogle')}
-                variant="outline"
-                loading={isLinkingGoogle}
-                disabled={isSubmitting || isLinkingApple}
-                onPress={() => {
-                  void handleLinkProvider('google');
-                }}
-                leftIcon={
-                  <Image source={GoogleLogo} style={styles.googleLogo} contentFit="contain" />
-                }
-              />
-            </View>
-          </View>
         </View>
       </View>
     </ScreenContainer>

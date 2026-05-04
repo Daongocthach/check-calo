@@ -6,10 +6,9 @@ import { View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Input, ScreenContainer, Text } from '@/common/components';
-import { login, signInWithProvider } from '@/features/auth/services/authService';
+import { login } from '@/features/auth/services/authService';
 import { useResponsiveKeyboardLayout, useScreenDimensions } from '@/hooks';
 import { toast } from '@/utils/toast';
-import GoogleLogo from '../../assets/google-logo.png';
 import AppLogo from '../../assets/splash-icon-light.png';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -31,7 +30,6 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleSubmit = async () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -60,24 +58,6 @@ export default function LoginScreen() {
       toast.error(message);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-
-    try {
-      const result = await signInWithProvider('google');
-
-      if (result.signedIn) {
-        toast.success(t('auth.loginSuccess'));
-        router.replace('/(main)/(tabs)/profile');
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t('auth.loginFailed');
-      toast.error(message);
-    } finally {
-      setIsGoogleLoading(false);
     }
   };
 
@@ -145,30 +125,16 @@ export default function LoginScreen() {
               <Button
                 title={t('auth.signIn')}
                 loading={isSubmitting}
-                disabled={isSubmitting || isGoogleLoading}
+                disabled={isSubmitting}
                 onPress={handleSubmit}
                 style={styles.primaryButton}
-              />
-
-              <Button
-                title={t('auth.signInWithGoogle')}
-                variant="outline"
-                loading={isGoogleLoading}
-                disabled={isSubmitting || isGoogleLoading}
-                onPress={() => {
-                  void handleGoogleSignIn();
-                }}
-                style={styles.googleButton}
-                leftIcon={
-                  <Image source={GoogleLogo} style={styles.googleLogo} contentFit="contain" />
-                }
               />
 
               <View style={styles.linkRow}>
                 <Button
                   title={t('auth.forgotPassword')}
                   variant="ghost"
-                  disabled={isSubmitting || isGoogleLoading}
+                  disabled={isSubmitting}
                   onPress={() => {
                     router.push('/(auth)/forgot-password');
                   }}
@@ -177,7 +143,7 @@ export default function LoginScreen() {
                 <Button
                   title={t('auth.signUp')}
                   variant="ghost"
-                  disabled={isSubmitting || isGoogleLoading}
+                  disabled={isSubmitting}
                   onPress={() => {
                     router.push('/(auth)/register');
                   }}

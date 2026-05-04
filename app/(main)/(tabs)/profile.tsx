@@ -272,7 +272,7 @@ export default function ProfileTab() {
       await logout();
       setLogoutVisible(false);
       toast.success(t('profileScreen.logoutSuccess'));
-      router.replace('/welcome');
+      router.replace('/(auth)/login');
     } catch {
       toast.error(t('profileScreen.actionError'));
     } finally {

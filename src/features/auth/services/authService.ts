@@ -1,6 +1,7 @@
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { env } from '@/config/env';
+import { resetLocalNutritionData } from '@/features/nutrition/services/nutritionLocalReset';
 import { supabase } from '@/integrations/supabase';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { STORAGE_KEYS, removeItem, setItem } from '@/utils/storage';
@@ -281,6 +282,7 @@ export async function disconnectCurrentSyncAccount() {
     throw error;
   }
 
-  removeItem(STORAGE_KEYS.auth.lastEmail);
+  await resetLocalNutritionData();
+  await supabase.auth.signOut({ scope: 'local' });
   useAuthStore.getState().clearSession();
 }

@@ -893,10 +893,10 @@
       "linkAppleSuccess": "Apple account linked successfully.",
       "actionError": "Unable to link this account right now."
     },
-    "deleteSyncAccountAction": "Delete sync account",
-    "deleteSyncAccountConfirmTitle": "Delete linked sync account",
-    "deleteSyncAccountConfirmMessage": "This deletes the synced Supabase account for the current user and disconnects it from this device. Local data on this device will be kept.",
-    "deleteSyncAccountSuccess": "Synced Supabase account deleted.",
+    "deleteSyncAccountAction": "Delete account and data",
+    "deleteSyncAccountConfirmTitle": "Delete account and reset device",
+    "deleteSyncAccountConfirmMessage": "This will delete the synced Supabase account, wipe all local app data on this device, and start a fresh anonymous session after sign-out.",
+    "deleteSyncAccountSuccess": "Account and data deleted.",
     "debug": {
       "resetAnonymousSessionTitle": "Reset anonymous session",
       "resetAnonymousSessionMessage": "This clears the current Supabase session on this device so the app can create a new anonymous account again.",
