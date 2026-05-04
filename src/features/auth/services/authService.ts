@@ -54,21 +54,16 @@ export async function login(params: LoginParams) {
 }
 
 export async function register(params: RegisterParams) {
-  const { data, error } = await supabase.auth.signUp({
-    email: params.email.trim(),
-    password: params.password,
-    options: {
-      data: params.username ? { username: params.username } : undefined,
-      emailRedirectTo: getAuthRedirectUrl(),
-    },
-  });
-
-  if (error) {
-    throw error;
+  if (params.username) {
+    await supabase.auth.updateUser({ data: { username: params.username } });
   }
 
-  setItem(STORAGE_KEYS.auth.lastEmail, params.email.trim());
-  return data;
+  const result = await linkAnonymousAccountWithEmail({
+    email: params.email,
+    password: params.password,
+  });
+
+  return result;
 }
 
 export async function sendPasswordResetEmail(params: ResetPasswordParams) {
@@ -280,6 +275,12 @@ export async function deleteCurrentUserCloudNutritionData() {
 }
 
 export async function disconnectCurrentSyncAccount() {
-  await deleteCurrentUserCloudNutritionData();
-  await logout();
+  const { error } = await supabase.functions.invoke('delete-sync-account');
+
+  if (error) {
+    throw error;
+  }
+
+  removeItem(STORAGE_KEYS.auth.lastEmail);
+  useAuthStore.getState().clearSession();
 }

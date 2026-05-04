@@ -8,6 +8,7 @@ import { View, type ViewStyle } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import {
   Avatar,
+  Button,
   Card,
   Dialog,
   Icon,
@@ -17,8 +18,11 @@ import {
   Text,
 } from '@/common/components';
 import type { IconProps } from '@/common/components/Icon';
-import { logout } from '@/features/auth/services/authService';
-import { getLatestManualMealSyncAt } from '@/features/nutrition/services/manualMealsDatabase';
+import {
+  disconnectCurrentSyncAccount,
+  linkAnonymousAccountWithProvider,
+  logout,
+} from '@/features/auth/services/authService';
 import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
@@ -66,7 +70,6 @@ interface SettingsMenuRowProps {
   onPress?: () => void;
   rightLabel?: string;
   destructive?: boolean;
-  avatarInitials?: string;
   showChevron?: boolean;
 }
 
@@ -76,7 +79,6 @@ function SettingsMenuRow({
   onPress,
   rightLabel,
   destructive,
-  avatarInitials,
   showChevron = true,
 }: SettingsMenuRowProps) {
   const { theme } = useUnistyles();
@@ -89,16 +91,12 @@ function SettingsMenuRow({
         isLoginRow ? styles.rowIconInfo : undefined,
       ]}
     >
-      {iconKey === 'profile' ? (
-        <Avatar initials={avatarInitials ?? 'US'} size="sm" accessibilityLabel={title} />
-      ) : (
-        <Icon
-          name={getRowIconName(iconKey)}
-          size={20}
-          destructive={destructive}
-          color={isLoginRow ? theme.colors.state.info : undefined}
-        />
-      )}
+      <Icon
+        name={getRowIconName(iconKey)}
+        size={20}
+        destructive={destructive}
+        color={isLoginRow ? theme.colors.state.info : undefined}
+      />
     </View>
   );
 
@@ -130,48 +128,52 @@ export default function ProfileTab() {
   const router = useRouter();
   const appAlert = useAppAlert();
   const authUser = useAuthStore((state) => state.user);
-  const [profileInitials, setProfileInitials] = useState('US');
+  const [displayName, setDisplayName] = useState('');
   const [logoutVisible, setLogoutVisible] = useState(false);
+  const [unlinkVisible, setUnlinkVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isUnlinking, setIsUnlinking] = useState(false);
+  const [isLinkingGoogle, setIsLinkingGoogle] = useState(false);
   const [isSupportVisible, setIsSupportVisible] = useState(true);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
-  const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
-  const showLogoutAction = Boolean(authUser && !authUser.isAnonymous);
-  const showSignInPrompt = authUser?.isAnonymous ?? false;
   const appVersion = Application.nativeApplicationVersion ?? '1.0.0';
   const patchLabel = '1';
   const versionLabel = `v${appVersion} • ${patchLabel}`;
+  const isAnonymous = Boolean(authUser?.isAnonymous);
+  const resolvedDisplayName =
+    displayName.trim() || authUser?.email?.split('@')[0]?.trim() || t('profileScreen.title');
+  const profileInitials = resolvedDisplayName
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+  const cloudSyncLabel = authUser && !authUser.isAnonymous ? authUser.email.trim() || null : null;
+  let lastSignedInLabel: string | null = null;
+
+  if (authUser && !authUser.isAnonymous) {
+    lastSignedInLabel = authUser.lastSignInAt
+      ? translate('profileScreen.lastSignedInAt', {
+          value: new Intl.DateTimeFormat(i18n.language, {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          }).format(new Date(authUser.lastSignInAt)),
+        })
+      : translate('profileScreen.lastSignedInUnknown');
+  }
 
   useEffect(() => {
     let active = true;
 
     const loadProfile = async () => {
-      const [profile, latestSyncAt] = await Promise.all([
-        getUserProfile(),
-        authUser && !authUser.isAnonymous ? getLatestManualMealSyncAt() : Promise.resolve(null),
-      ]);
+      const profile = await getUserProfile();
 
       if (!active) {
         return;
       }
 
-      setLastSyncAt(latestSyncAt);
-
-      const displayName = profile?.displayName.trim() ?? '';
-      if (displayName.length > 0) {
-        const initials = displayName
-          .split(' ')
-          .filter(Boolean)
-          .map((part) => part[0])
-          .join('')
-          .slice(0, 2)
-          .toUpperCase();
-        setProfileInitials(initials || 'US');
-        return;
-      }
-
-      const emailPrefix = authUser?.email?.split('@')[0]?.trim() ?? '';
-      setProfileInitials(emailPrefix.slice(0, 2).toUpperCase() || 'US');
+      setDisplayName(profile?.displayName.trim() ?? '');
     };
 
     void loadProfile();
@@ -179,28 +181,51 @@ export default function ProfileTab() {
     return () => {
       active = false;
     };
-  }, [authUser]);
-
-  const cloudSyncLabel =
-    authUser && !authUser.isAnonymous ? translate('profileScreen.cloudLinked') : null;
-  let lastSyncLabel: string | null = null;
-
-  if (authUser && !authUser.isAnonymous) {
-    if (lastSyncAt) {
-      lastSyncLabel = translate('profileScreen.lastSyncAt', {
-        value: new Intl.DateTimeFormat(i18n.language, {
-          dateStyle: 'medium',
-          timeStyle: 'short',
-        }).format(new Date(lastSyncAt)),
-      });
-    } else {
-      lastSyncLabel = translate('profileScreen.lastSyncUnknown');
-    }
-  }
+  }, []);
 
   useEffect(() => {
     setItem(STORAGE_KEYS.app.lastVersion, versionLabel);
   }, [versionLabel]);
+
+  const handleLinkEmail = useCallback(() => {
+    router.push('/register');
+  }, [router]);
+
+  const handleLinkGoogle = useCallback(async () => {
+    if (isLinkingGoogle) {
+      return;
+    }
+
+    setIsLinkingGoogle(true);
+
+    try {
+      await linkAnonymousAccountWithProvider('google');
+      toast.success(t('profileScreen.account.linkGoogleSuccess'));
+    } catch {
+      toast.error(t('profileScreen.account.actionError'));
+    } finally {
+      setIsLinkingGoogle(false);
+    }
+  }, [isLinkingGoogle, t]);
+
+  const handleUnlinkAccount = useCallback(async () => {
+    if (isUnlinking) {
+      return;
+    }
+
+    setIsUnlinking(true);
+
+    try {
+      await disconnectCurrentSyncAccount();
+      setUnlinkVisible(false);
+      toast.success(t('profileScreen.deleteSyncAccountSuccess'));
+      router.replace('/welcome');
+    } catch {
+      toast.error(t('profileScreen.account.actionError'));
+    } finally {
+      setIsUnlinking(false);
+    }
+  }, [isUnlinking, router, t]);
 
   const handleSupportPress = useCallback(() => {
     router.push('/support');
@@ -259,26 +284,10 @@ export default function ProfileTab() {
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
         <View style={styles.content}>
-          {cloudSyncLabel || lastSyncLabel ? (
-            <View style={styles.profileSyncSummary}>
-              {cloudSyncLabel ? (
-                <Text variant="bodySmall" color="secondary">
-                  {cloudSyncLabel}
-                </Text>
-              ) : null}
-              {lastSyncLabel ? (
-                <Text variant="bodySmall" color="secondary">
-                  {lastSyncLabel}
-                </Text>
-              ) : null}
-            </View>
-          ) : null}
-
           <SettingsGroup>
             <SettingsMenuRow
               title={t('settings.menu.profile')}
               iconKey="profile"
-              avatarInitials={profileInitials}
               onPress={() => {
                 router.push('/welcome');
               }}
@@ -363,33 +372,96 @@ export default function ProfileTab() {
               }}
             />
           </SettingsGroup>
-
-          {showLogoutAction ? (
-            <SettingsGroup>
-              <SettingsMenuRow
-                title={t('profileScreen.logoutAction')}
-                iconKey="logout"
-                destructive
-                onPress={() => {
-                  setLogoutVisible(true);
-                }}
-              />
-            </SettingsGroup>
-          ) : null}
-
-          {showSignInPrompt ? (
-            <SettingsGroup>
-              <SettingsMenuRow
-                title={t('profileScreen.signInAction')}
-                iconKey="login"
-                onPress={() => {
-                  router.push('/(auth)/login');
-                }}
-              />
-            </SettingsGroup>
-          ) : null}
+          <Card variant="elevated" style={styles.profileCard}>
+            <View style={styles.profileRow}>
+              <View style={styles.avatarBubble}>
+                <Avatar
+                  initials={profileInitials || 'US'}
+                  size="sm"
+                  accessibilityLabel={resolvedDisplayName}
+                />
+              </View>
+              <View style={styles.textWrap}>
+                <Text variant="body" weight="bold">
+                  {cloudSyncLabel ?? resolvedDisplayName}
+                </Text>
+                <Text variant="bodySmall" color="secondary">
+                  {lastSignedInLabel ?? t('profileScreen.account.connectedSubtitle')}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.accountActions}>
+              {isAnonymous ? (
+                <>
+                  <Button
+                    title={t('profileScreen.account.linkEmailAction')}
+                    variant="primary"
+                    size="sm"
+                    fullWidth
+                    onPress={handleLinkEmail}
+                  />
+                  <Button
+                    title={t('profileScreen.account.linkGoogleAction')}
+                    variant="outline"
+                    size="sm"
+                    fullWidth
+                    loading={isLinkingGoogle}
+                    onPress={() => {
+                      void handleLinkGoogle();
+                    }}
+                  />
+                </>
+              ) : (
+                <View style={styles.accountActionRow}>
+                  <Button
+                    title={t('profileScreen.deleteSyncAccountAction')}
+                    variant="outline"
+                    size="sm"
+                    style={styles.accountActionButton}
+                    onPress={() => {
+                      setUnlinkVisible(true);
+                    }}
+                  />
+                  <Button
+                    title={t('profileScreen.logoutAction')}
+                    variant="outline"
+                    size="sm"
+                    style={styles.logoutButton}
+                    onPress={() => {
+                      setLogoutVisible(true);
+                    }}
+                  />
+                </View>
+              )}
+            </View>
+          </Card>
         </View>
       </View>
+
+      <Dialog
+        visible={unlinkVisible}
+        onDismiss={() => setUnlinkVisible(false)}
+        title={t('profileScreen.deleteSyncAccountConfirmTitle')}
+        size="md"
+        actions={[
+          {
+            label: t('common.cancel'),
+            variant: 'ghost',
+            onPress: () => setUnlinkVisible(false),
+          },
+          {
+            label: isUnlinking ? t('common.loading') : t('common.confirm'),
+            variant: 'primary',
+            onPress: () => {
+              void handleUnlinkAccount();
+            },
+          },
+        ]}
+      >
+        <Text variant="body" color="secondary">
+          {t('profileScreen.deleteSyncAccountConfirmMessage')}
+        </Text>
+      </Dialog>
 
       <Dialog
         visible={logoutVisible}
@@ -429,9 +501,48 @@ const styles = StyleSheet.create((theme) => ({
   content: {
     gap: theme.metrics.spacingV.p16,
   },
-  profileSyncSummary: {
+  accountCard: {
+    padding: theme.metrics.spacing.p16,
+    gap: theme.metrics.spacingV.p12,
+  },
+  accountHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  accountActions: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  accountActionRow: {
+    gap: theme.metrics.spacing.p8,
+  },
+  accountActionButton: {
+    flex: 1,
+  },
+  logoutButton: {
+    flex: 1,
+  },
+  profileCard: {
+    padding: theme.metrics.spacing.p16,
+    gap: theme.metrics.spacingV.p12,
+  },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
+  },
+  avatarBubble: {
+    width: theme.metrics.spacing.p36,
+    height: theme.metrics.spacing.p36,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.input,
+  },
+  textWrap: {
+    flex: 1,
     gap: theme.metrics.spacingV.p4,
-    paddingHorizontal: theme.metrics.spacing.p4,
   },
   groupCard: {
     padding: 0,
@@ -455,22 +566,5 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.metrics.spacing.p8,
-  },
-  signInCard: {
-    gap: theme.metrics.spacingV.p12,
-    backgroundColor: theme.colors.background.section,
-  },
-  signInCopy: {
-    gap: theme.metrics.spacingV.p4,
-  },
-  signInButton: {
-    borderColor: theme.colors.brand.primary,
-    backgroundColor:
-      theme.colors.mode === 'dark'
-        ? theme.colors.background.elevated
-        : theme.colors.background.surface,
-  },
-  signInButtonLabel: {
-    color: theme.colors.brand.primary,
   },
 }));

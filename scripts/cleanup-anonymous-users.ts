@@ -6,7 +6,7 @@ interface CleanupOptions {
   minAgeDays: number;
   onlyTest: boolean;
   pageSize: number;
-  bucket: string;
+  bucket: string | null;
 }
 
 interface AnonymousUserSummary {
@@ -17,7 +17,6 @@ interface AnonymousUserSummary {
   hasStorageObjects: boolean;
 }
 
-const DEFAULT_BUCKET = process.env.EXPO_PUBLIC_SUPABASE_FOOD_IMAGE_BUCKET ?? 'food-entry-images';
 const DEFAULT_MIN_AGE_DAYS = 7;
 const DEFAULT_PAGE_SIZE = 100;
 
@@ -47,7 +46,7 @@ function getOptions(): CleanupOptions {
     minAgeDays: parseNumberFlag('--min-age-days', DEFAULT_MIN_AGE_DAYS),
     onlyTest: parseBooleanFlag('--only-test'),
     pageSize: parseNumberFlag('--page-size', DEFAULT_PAGE_SIZE),
-    bucket: parseStringFlag('--bucket', DEFAULT_BUCKET),
+    bucket: parseStringFlag('--bucket', '').trim() || null,
   };
 }
 
@@ -127,16 +126,38 @@ async function hasFoodEntries(adminClient: SupabaseClient, userId: string) {
   return (count ?? 0) > 0;
 }
 
-async function hasStorageObjects(adminClient: SupabaseClient, bucket: string, userId: string) {
-  const { data, error } = await adminClient.storage
-    .from(bucket)
-    .list(`users/${userId}/food-entries`, { limit: 1 });
+async function listBuckets(adminClient: SupabaseClient) {
+  const { data, error } = await adminClient.storage.listBuckets();
 
   if (error) {
     throw error;
   }
 
-  return (data?.length ?? 0) > 0;
+  return data.map((bucket) => bucket.name).filter((bucketName) => bucketName.length > 0);
+}
+
+async function hasStorageObjects(
+  adminClient: SupabaseClient,
+  bucket: string | null,
+  userId: string
+) {
+  const bucketNames = bucket ? [bucket] : await listBuckets(adminClient);
+
+  for (const bucketName of bucketNames) {
+    const { data, error } = await adminClient.storage.from(bucketName).list(`users/${userId}`, {
+      limit: 1,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if ((data?.length ?? 0) > 0) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 async function listAnonymousUsers(adminClient: SupabaseClient, options: CleanupOptions) {

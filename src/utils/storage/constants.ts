@@ -26,5 +26,6 @@ export const STORAGE_KEYS = {
     homeAiReviewHistory: 'home_ai_review_history',
     menuAiReviewHistory: 'menu_ai_review_history',
     mealPlanSuggestionLast: 'meal_plan_suggestion_last',
+    nutritionDeltaFoodEntriesCursor: 'nutrition_delta_food_entries_cursor',
   },
 } as const;

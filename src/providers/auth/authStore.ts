@@ -10,6 +10,7 @@ interface AuthUser {
   id: string;
   email: string;
   isAnonymous: boolean;
+  lastSignInAt: string | null;
   [key: string]: unknown;
 }
 
@@ -57,6 +58,7 @@ function mapAuthUser(user: User | null): AuthUser | null {
     id: user.id,
     email: user.email ?? '',
     isAnonymous: Boolean(user.is_anonymous),
+    lastSignInAt: user.last_sign_in_at ?? null,
   };
 }
 

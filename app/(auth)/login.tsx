@@ -6,13 +6,8 @@ import { View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Input, ScreenContainer, Text } from '@/common/components';
-import {
-  linkAnonymousAccountWithProvider,
-  login,
-  signInWithProvider,
-} from '@/features/auth/services/authService';
+import { login, signInWithProvider } from '@/features/auth/services/authService';
 import { useResponsiveKeyboardLayout, useScreenDimensions } from '@/hooks';
-import { useAuthStore } from '@/providers/auth/authStore';
 import { toast } from '@/utils/toast';
 import GoogleLogo from '../../assets/google-logo.png';
 import AppLogo from '../../assets/splash-icon-light.png';
@@ -22,7 +17,6 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function LoginScreen() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
-  const authUser = useAuthStore((state) => state.user);
   const { height } = useScreenDimensions();
   const isCompactHeight = height < 700;
   const { keyboardBottomOffset, footerBottomPadding } = useResponsiveKeyboardLayout({
@@ -73,20 +67,11 @@ export default function LoginScreen() {
     setIsGoogleLoading(true);
 
     try {
-      if (authUser?.isAnonymous) {
-        const result = await linkAnonymousAccountWithProvider('google');
+      const result = await signInWithProvider('google');
 
-        if (result.linked) {
-          toast.success(t('profileScreen.account.linkGoogleSuccess'));
-          router.replace('/(main)/(tabs)/profile');
-        }
-      } else {
-        const result = await signInWithProvider('google');
-
-        if (result.signedIn) {
-          toast.success(t('auth.loginSuccess'));
-          router.replace('/(main)/(tabs)/profile');
-        }
+      if (result.signedIn) {
+        toast.success(t('auth.loginSuccess'));
+        router.replace('/(main)/(tabs)/profile');
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : t('auth.loginFailed');
@@ -180,27 +165,23 @@ export default function LoginScreen() {
               />
 
               <View style={styles.linkRow}>
-                <View style={styles.linkButton}>
-                  <Button
-                    title={t('auth.forgotPassword')}
-                    variant="ghost"
-                    disabled={isSubmitting || isGoogleLoading}
-                    onPress={() => {
-                      router.push('/(auth)/forgot-password');
-                    }}
-                  />
-                </View>
+                <Button
+                  title={t('auth.forgotPassword')}
+                  variant="ghost"
+                  disabled={isSubmitting || isGoogleLoading}
+                  onPress={() => {
+                    router.push('/(auth)/forgot-password');
+                  }}
+                />
 
-                <View style={styles.linkButton}>
-                  <Button
-                    title={t('auth.signUp')}
-                    variant="ghost"
-                    disabled={isSubmitting || isGoogleLoading}
-                    onPress={() => {
-                      router.push('/(auth)/register');
-                    }}
-                  />
-                </View>
+                <Button
+                  title={t('auth.signUp')}
+                  variant="ghost"
+                  disabled={isSubmitting || isGoogleLoading}
+                  onPress={() => {
+                    router.push('/(auth)/register');
+                  }}
+                />
               </View>
             </View>
           </View>
@@ -253,10 +234,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   linkRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: theme.metrics.spacing.p12,
-  },
-  linkButton: {
-    flex: 1,
   },
   formHeader: {
     gap: theme.metrics.spacingV.p8,

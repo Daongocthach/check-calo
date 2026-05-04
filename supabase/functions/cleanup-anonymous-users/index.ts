@@ -21,7 +21,6 @@ interface AdminUser {
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const cleanupSecret = Deno.env.get('ANONYMOUS_CLEANUP_SECRET');
-const defaultBucket = Deno.env.get('EXPO_PUBLIC_SUPABASE_FOOD_IMAGE_BUCKET') ?? 'food-entry-images';
 
 if (!supabaseUrl || !serviceRoleKey || !cleanupSecret) {
   throw new Error(
@@ -98,16 +97,34 @@ async function hasFoodEntries(userId: string) {
   return (count ?? 0) > 0;
 }
 
-async function hasStorageObjects(bucket: string, userId: string) {
-  const { data, error } = await adminClient.storage
-    .from(bucket)
-    .list(`users/${userId}/food-entries`, { limit: 1 });
+async function listBuckets() {
+  const { data, error } = await adminClient.storage.listBuckets();
 
   if (error) {
     throw error;
   }
 
-  return (data?.length ?? 0) > 0;
+  return data.map((bucket) => bucket.name).filter((bucketName) => bucketName.length > 0);
+}
+
+async function hasStorageObjects(bucket: string | null, userId: string) {
+  const bucketNames = bucket ? [bucket] : await listBuckets();
+
+  for (const bucketName of bucketNames) {
+    const { data, error } = await adminClient.storage.from(bucketName).list(`users/${userId}`, {
+      limit: 1,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if ((data?.length ?? 0) > 0) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 async function listAnonymousUsers(minAgeDays: number, onlyTest: boolean) {
@@ -174,7 +191,7 @@ Deno.serve(async (request) => {
   const dryRun = Boolean(payload.dryRun);
   const minAgeDays = payload.minAgeDays && payload.minAgeDays > 0 ? payload.minAgeDays : 7;
   const onlyTest = payload.onlyTest !== false;
-  const bucket = payload.bucket?.trim() || defaultBucket;
+  const bucket = payload.bucket?.trim() || null;
 
   const candidates = await listAnonymousUsers(minAgeDays, onlyTest);
   const skipped: string[] = [];

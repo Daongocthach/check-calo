@@ -895,8 +895,8 @@
     },
     "deleteSyncAccountAction": "Xóa tài khoản đồng bộ",
     "deleteSyncAccountConfirmTitle": "Xóa tài khoản đồng bộ đã liên kết",
-    "deleteSyncAccountConfirmMessage": "Thao tác này sẽ xóa dữ liệu đã đồng bộ trên Supabase của tài khoản hiện tại và ngắt liên kết khỏi thiết bị này. Dữ liệu local trên máy vẫn được giữ lại.",
-    "deleteSyncAccountSuccess": "Đã gỡ tài khoản đồng bộ khỏi thiết bị này.",
+    "deleteSyncAccountConfirmMessage": "Thao tác này sẽ xóa tài khoản Supabase đã đồng bộ của người dùng hiện tại và ngắt liên kết khỏi thiết bị này. Dữ liệu local trên máy vẫn được giữ lại.",
+    "deleteSyncAccountSuccess": "Đã xóa tài khoản Supabase đã đồng bộ.",
     "debug": {
       "resetAnonymousSessionTitle": "Đặt lại phiên ẩn danh",
       "resetAnonymousSessionMessage": "Thao tác này sẽ xóa phiên Supabase hiện tại trên thiết bị để app có thể tạo lại một tài khoản anonymous mới khi cần.",
@@ -1060,7 +1060,7 @@
     "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
     "signIn": "Đăng nhập",
     "signInWithGoogle": "Đăng nhập với Google",
-    "signUp": "Tạo tài khoản",
+    "signUp": "Đăng ký",
     "forgotPassword": "Quên mật khẩu?",
     "registerPageTitle": "Đăng ký",
     "registerAction": "Đăng ký",
@@ -1089,9 +1089,9 @@
     "resetPasswordFailed": "Không thể cập nhật mật khẩu lúc này.",
     "registerSuccess": "Tạo tài khoản thành công.",
     "registerFailed": "Không thể tạo hoặc bảo vệ tài khoản lúc này.",
-    "cloudLinked": "Đã liên kết cloud",
     "lastSyncAt": "Lần sync cuối: {{value}}",
-    "lastSyncUnknown": "Lần sync cuối: chưa có"
+    "lastSignedInAt": "Đăng nhập cuối: {{value}}",
+    "lastSignedInUnknown": "Đăng nhập cuối: chưa có"
   },
   "legal": {
     "updatedTitle": "Cập nhật lần cuối",

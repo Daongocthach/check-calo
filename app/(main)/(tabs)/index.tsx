@@ -667,14 +667,7 @@ export default function HomeTab() {
     setHomeAiReviewSheetMode('review');
     setIsHomeAiReviewSheetOpen(true);
     setHomeAiReviewState({ status: 'loading' });
-  }, [
-    applyHomeAiReviewRecord,
-    currentDate,
-    entries.length,
-    refreshHomeAiReviewHistory,
-    selectedDate,
-    t,
-  ]);
+  }, [applyHomeAiReviewRecord, entries.length, refreshHomeAiReviewHistory, selectedDate]);
 
   useEffect(() => {
     if (!isHomeAiReviewSheetOpen) {

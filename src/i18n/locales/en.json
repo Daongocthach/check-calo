@@ -865,10 +865,10 @@
     "resetConfirmMessage": "Are you sure you want to delete your local data and any synced nutrition data in Supabase?",
     "deleteSuccess": "Nutrition profile deleted.",
     "resetSuccess": "All nutrition data has been reset.",
-    "logoutAction": "Log out",
-    "logoutConfirmTitle": "Log out",
-    "logoutConfirmMessage": "Are you sure you want to log out of this linked account?",
-    "logoutSuccess": "Logged out successfully.",
+    "logoutAction": "Switch account",
+    "logoutConfirmTitle": "Switch account",
+    "logoutConfirmMessage": "Are you sure you want to switch to another account?",
+    "logoutSuccess": "Switched account successfully.",
     "actionError": "Unable to update data right now. Please try again.",
     "signInPromptTitle": "Already have an account?",
     "signInPromptSubtitle": "Log in to sync this device with an existing account.",
@@ -895,8 +895,8 @@
     },
     "deleteSyncAccountAction": "Delete sync account",
     "deleteSyncAccountConfirmTitle": "Delete linked sync account",
-    "deleteSyncAccountConfirmMessage": "This removes synced Supabase data for the current account and disconnects it from this device. Local data on this device will be kept.",
-    "deleteSyncAccountSuccess": "Linked sync account removed from this device.",
+    "deleteSyncAccountConfirmMessage": "This deletes the synced Supabase account for the current user and disconnects it from this device. Local data on this device will be kept.",
+    "deleteSyncAccountSuccess": "Synced Supabase account deleted.",
     "debug": {
       "resetAnonymousSessionTitle": "Reset anonymous session",
       "resetAnonymousSessionMessage": "This clears the current Supabase session on this device so the app can create a new anonymous account again.",
@@ -1093,9 +1093,9 @@
     "resetPasswordFailed": "Unable to update the password right now.",
     "registerSuccess": "Account created successfully.",
     "registerFailed": "Unable to create or protect this account right now.",
-    "cloudLinked": "Cloud linked",
     "lastSyncAt": "Last sync: {{value}}",
-    "lastSyncUnknown": "Last sync: not available"
+    "lastSignedInAt": "Last signed in: {{value}}",
+    "lastSignedInUnknown": "Last signed in: not available"
   },
   "legal": {
     "updatedTitle": "Last updated",

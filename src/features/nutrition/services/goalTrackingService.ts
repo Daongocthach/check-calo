@@ -320,26 +320,18 @@ async function listAchievementUnlockRows() {
 
 async function unlockAchievement(achievementKey: AchievementKey): Promise<boolean> {
   const database = await getDatabase();
-  const existing = await database.getFirstAsync<{ id: string }>(
-    'SELECT id FROM achievement_unlocks WHERE achievement_key = ? LIMIT 1;',
-    [achievementKey]
-  );
-
-  if (existing) {
-    return false;
-  }
-
   const now = nowIsoString();
 
-  await database.runAsync(
+  const result = await database.runAsync(
     `
       INSERT INTO achievement_unlocks (id, achievement_key, unlocked_at, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(achievement_key) DO NOTHING;
     `,
     [createEntityId('achievement'), achievementKey, now, now, now]
   );
 
-  return true;
+  return result.changes > 0;
 }
 
 async function markGoalCompleted(goal: WeightGoalProgress) {

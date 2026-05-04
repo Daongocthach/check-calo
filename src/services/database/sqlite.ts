@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 10;
+const DATABASE_VERSION = 11;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -62,6 +62,7 @@ async function runVersion1Migration(database: SQLite.SQLiteDatabase) {
 
     CREATE TABLE IF NOT EXISTS food_entries (
       id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT,
       entry_date TEXT NOT NULL,
       consumed_at TEXT NOT NULL,
       meal_name TEXT NOT NULL,
@@ -93,6 +94,9 @@ async function runVersion1Migration(database: SQLite.SQLiteDatabase) {
 
     CREATE INDEX IF NOT EXISTS idx_food_entries_entry_date
       ON food_entries(entry_date);
+
+    CREATE INDEX IF NOT EXISTS idx_food_entries_user_id
+      ON food_entries(user_id);
 
     CREATE INDEX IF NOT EXISTS idx_food_entries_consumed_at
       ON food_entries(consumed_at);
@@ -412,6 +416,15 @@ async function runVersion10Migration(database: SQLite.SQLiteDatabase) {
   );
 }
 
+async function runVersion11Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(database, 'food_entries', 'user_id', 'user_id TEXT');
+
+  await database.execAsync(`
+    CREATE INDEX IF NOT EXISTS idx_food_entries_user_id
+      ON food_entries(user_id);
+  `);
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -419,6 +432,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 1) {
     await runVersion1Migration(database);
+  }
+
+  if (currentVersion < 11) {
+    await runVersion11Migration(database);
   }
 
   if (currentVersion < 2) {

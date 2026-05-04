@@ -110,6 +110,7 @@ export function AppHeader() {
     if (pathname === '/welcome') return t('welcomeScreen.title');
     if (pathname === '/login') return t('auth.signIn');
     if (pathname === '/register') return t('auth.registerPageTitle');
+    if (pathname === '/forgot-password') return t('auth.forgotPasswordTitle');
     if (pathname === '/' || pathname === '/index') return t('tabs.home');
     if (pathname === '/stats') return t('tabs.stats');
     if (pathname === '/add') return t('tabs.add');

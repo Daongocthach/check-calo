@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +7,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import { Button, Input, ScreenContainer, Text } from '@/common/components';
 import { sendPasswordResetEmail } from '@/features/auth/services/authService';
 import { toast } from '@/utils/toast';
+import AppLogo from '../../assets/splash-icon-light.png';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -39,11 +41,16 @@ export default function ForgotPasswordScreen() {
   return (
     <ScreenContainer scrollable padded edges={['bottom']}>
       <View style={styles.screen}>
-        <View style={styles.header}>
-          <Text variant="h2">{t('auth.forgotPasswordTitle')}</Text>
-          <Text variant="bodySmall" color="secondary">
-            {t('auth.forgotPasswordSubtitle')}
-          </Text>
+        <View style={styles.heroSection}>
+          <Image source={AppLogo} style={styles.heroLogo} contentFit="contain" />
+          <View style={styles.heroCopy}>
+            <Text variant="body" weight="bold" align="center">
+              {t('auth.forgotPasswordTitle')}
+            </Text>
+            <Text variant="body" color="secondary" align="center">
+              {t('auth.forgotPasswordSubtitle')}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.form}>
@@ -65,15 +72,6 @@ export default function ForgotPasswordScreen() {
             disabled={isSubmitting}
             onPress={handleSubmit}
           />
-
-          <Button
-            title={t('auth.goToLogin')}
-            variant="ghost"
-            disabled={isSubmitting}
-            onPress={() => {
-              router.replace('/(auth)/login');
-            }}
-          />
         </View>
       </View>
     </ScreenContainer>
@@ -84,7 +82,16 @@ const styles = StyleSheet.create((theme) => ({
   screen: {
     gap: theme.metrics.spacingV.p20,
   },
-  header: {
+  heroSection: {
+    gap: theme.metrics.spacingV.p16,
+    alignItems: 'center',
+  },
+  heroLogo: {
+    width: theme.metrics.spacing.p120,
+    height: theme.metrics.spacing.p120,
+    transform: [{ scale: 1.2 }],
+  },
+  heroCopy: {
     gap: theme.metrics.spacingV.p8,
   },
   form: {

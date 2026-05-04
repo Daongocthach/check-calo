@@ -1,10 +1,12 @@
+import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Button, Input, ScreenContainer, Text } from '@/common/components';
 import { updatePassword } from '@/features/auth/services/authService';
+import { supabase } from '@/integrations/supabase';
 import { toast } from '@/utils/toast';
 
 const PASSWORD_MIN_LENGTH = 8;
@@ -14,6 +16,60 @@ export default function ResetPasswordScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPreparingRecovery, setIsPreparingRecovery] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    const resolveRecoverySession = async (url?: string | null) => {
+      try {
+        const { data } = await supabase.auth.getSession();
+
+        if (data.session) {
+          return;
+        }
+
+        const callbackUrl = url ?? (await Linking.getInitialURL());
+
+        if (!callbackUrl) {
+          return;
+        }
+
+        const parsedUrl = Linking.parse(callbackUrl);
+        const rawCode = parsedUrl.queryParams?.code;
+
+        if (typeof rawCode !== 'string' || rawCode.length === 0) {
+          return;
+        }
+
+        const exchangeResult = await supabase.auth.exchangeCodeForSession(rawCode);
+
+        if (exchangeResult.error) {
+          throw exchangeResult.error;
+        }
+      } catch (error) {
+        if (active) {
+          const message = error instanceof Error ? error.message : t('auth.resetPasswordFailed');
+          toast.error(message);
+        }
+      } finally {
+        if (active) {
+          setIsPreparingRecovery(false);
+        }
+      }
+    };
+
+    void resolveRecoverySession();
+
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      void resolveRecoverySession(url);
+    });
+
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, [t]);
 
   const handleSubmit = async () => {
     if (password.length < PASSWORD_MIN_LENGTH) {
@@ -78,14 +134,14 @@ export default function ResetPasswordScreen() {
           <Button
             title={t('auth.resetPasswordAction')}
             loading={isSubmitting}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isPreparingRecovery}
             onPress={handleSubmit}
           />
 
           <Button
             title={t('auth.goToLogin')}
             variant="ghost"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isPreparingRecovery}
             onPress={() => {
               router.replace('/(auth)/login');
             }}
