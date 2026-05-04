@@ -1,30 +1,25 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Button, Input, ScreenContainer, Text } from '@/common/components';
-import {
-  linkAnonymousAccountWithEmail,
-  linkAnonymousAccountWithProvider,
-  register,
-} from '@/features/auth/services/authService';
-import { useAuthStore } from '@/providers/auth/authStore';
+import { linkAnonymousAccountWithProvider, register } from '@/features/auth/services/authService';
 import { toast } from '@/utils/toast';
+import GoogleLogo from '../../assets/google-logo.png';
+import AppLogo from '../../assets/splash-icon-light.png';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
-  const authUser = useAuthStore((state) => state.user);
-  const [email, setEmail] = useState(authUser?.email ?? '');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLinkingGoogle, setIsLinkingGoogle] = useState(false);
   const [isLinkingApple, setIsLinkingApple] = useState(false);
-
-  const isAnonymous = authUser?.isAnonymous ?? false;
 
   const handleSubmit = async () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -47,19 +42,12 @@ export default function RegisterScreen() {
     setIsSubmitting(true);
 
     try {
-      if (isAnonymous) {
-        await linkAnonymousAccountWithEmail({
-          email: normalizedEmail,
-          password,
-        });
-        toast.success(t('profileScreen.account.linkEmailSuccess'));
-      } else {
-        await register({
-          email: normalizedEmail,
-          password,
-        });
-        toast.success(t('auth.registerSuccess'));
-      }
+      await register({
+        email: normalizedEmail,
+        password,
+      });
+
+      toast.success(t('auth.registerSuccess'));
 
       router.replace('/(main)/(tabs)/profile');
     } catch (error) {
@@ -98,13 +86,16 @@ export default function RegisterScreen() {
   return (
     <ScreenContainer scrollable padded edges={['bottom']}>
       <View style={styles.screen}>
-        <View style={styles.header}>
-          <Text variant="h2">
-            {isAnonymous ? t('auth.registerUpgradeTitle') : t('auth.registerTitle')}
-          </Text>
-          <Text variant="bodySmall" color="secondary">
-            {isAnonymous ? t('auth.registerUpgradeSubtitle') : t('auth.registerSubtitle')}
-          </Text>
+        <View style={styles.heroSection}>
+          <Image source={AppLogo} style={styles.heroLogo} contentFit="contain" />
+          <View style={styles.heroCopy}>
+            <Text variant="body" weight="bold" align="center">
+              {t('auth.registerTitle')}
+            </Text>
+            <Text variant="body" color="secondary" align="center">
+              {t('auth.registerSubtitle')}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.form}>
@@ -145,44 +136,28 @@ export default function RegisterScreen() {
           />
 
           <Button
-            title={isAnonymous ? t('auth.upgradeAccount') : t('auth.signUp')}
+            title={t('auth.registerAction')}
             loading={isSubmitting}
-            disabled={isSubmitting || isLinkingGoogle || isLinkingApple}
+            disabled={isSubmitting || isLinkingGoogle}
             onPress={handleSubmit}
           />
 
           <View style={styles.providerActions}>
             <View style={styles.providerAction}>
               <Button
-                title={t('profileScreen.account.linkGoogleAction')}
+                title={t('auth.signInWithGoogle')}
                 variant="outline"
                 loading={isLinkingGoogle}
                 disabled={isSubmitting || isLinkingApple}
                 onPress={() => {
                   void handleLinkProvider('google');
                 }}
-              />
-            </View>
-
-            <View style={styles.providerAction}>
-              <Button
-                title={t('profileScreen.account.linkAppleAction')}
-                variant="outline"
-                loading={isLinkingApple}
-                disabled={isSubmitting || isLinkingGoogle}
-                onPress={() => {
-                  void handleLinkProvider('apple');
-                }}
+                leftIcon={
+                  <Image source={GoogleLogo} style={styles.googleLogo} contentFit="contain" />
+                }
               />
             </View>
           </View>
-
-          <Button
-            title={t('auth.goToLogin')}
-            variant="ghost"
-            disabled={isSubmitting || isLinkingGoogle || isLinkingApple}
-            onPress={() => router.push('/(auth)/login')}
-          />
         </View>
       </View>
     </ScreenContainer>
@@ -193,7 +168,16 @@ const styles = StyleSheet.create((theme) => ({
   screen: {
     gap: theme.metrics.spacingV.p20,
   },
-  header: {
+  heroSection: {
+    gap: theme.metrics.spacingV.p16,
+    alignItems: 'center',
+  },
+  heroLogo: {
+    width: theme.metrics.spacing.p120,
+    height: theme.metrics.spacing.p120,
+    transform: [{ scale: 1.2 }],
+  },
+  heroCopy: {
     gap: theme.metrics.spacingV.p8,
   },
   form: {
@@ -205,5 +189,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   providerAction: {
     flex: 1,
+  },
+  googleLogo: {
+    width: theme.metrics.spacing.p24,
+    height: theme.metrics.spacing.p24,
   },
 }));

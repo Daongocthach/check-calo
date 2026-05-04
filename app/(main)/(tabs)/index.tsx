@@ -650,11 +650,6 @@ export default function HomeTab() {
   ]);
 
   const handleOpenHomeAiReview = useCallback(() => {
-    if (!isSameCalendarDate(selectedDate, currentDate)) {
-      toast.info(t('homeScreen.aiReview.todayOnly'));
-      return;
-    }
-
     if (entries.length === 0) {
       return;
     }
@@ -1119,8 +1114,7 @@ export default function HomeTab() {
       theme.colors.state.warningBg,
     ]
   );
-  const isTodaySelected = isSameCalendarDate(selectedDate, currentDate);
-  const canOpenHomeAiReview = isTodaySelected && entries.length > 0;
+  const canOpenHomeAiReview = entries.length > 0;
 
   return (
     <ScreenContainer padded={false} edges={['bottom']}>

@@ -18,10 +18,18 @@ interface RegisterParams {
   username?: string;
 }
 
+interface ResetPasswordParams {
+  email: string;
+}
+
 type SupportedIdentityProvider = 'google' | 'apple';
 
 function getAuthRedirectUrl() {
   return Linking.createURL('/');
+}
+
+function getPasswordResetRedirectUrl() {
+  return Linking.createURL('/reset-password');
 }
 
 function extractAuthCode(callbackUrl: string) {
@@ -60,6 +68,26 @@ export async function register(params: RegisterParams) {
   }
 
   setItem(STORAGE_KEYS.auth.lastEmail, params.email.trim());
+  return data;
+}
+
+export async function sendPasswordResetEmail(params: ResetPasswordParams) {
+  const { error } = await supabase.auth.resetPasswordForEmail(params.email.trim(), {
+    redirectTo: getPasswordResetRedirectUrl(),
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updatePassword(password: string) {
+  const { data, error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    throw error;
+  }
+
   return data;
 }
 

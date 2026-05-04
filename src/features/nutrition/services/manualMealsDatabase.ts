@@ -601,6 +601,21 @@ export async function listManualMeals() {
   return result.items;
 }
 
+export async function getLatestManualMealSyncAt() {
+  const database = await getDatabase();
+  const row = await database.getFirstAsync<{ last_synced_at: string | null }>(
+    `
+      SELECT MAX(last_synced_at) AS last_synced_at
+      FROM meals
+      WHERE deleted_at IS NULL
+        AND sync_status = 'synced'
+        AND last_synced_at IS NOT NULL;
+    `
+  );
+
+  return row?.last_synced_at ?? null;
+}
+
 export async function createManualMeal(name: string) {
   const database = await getDatabase();
   const ownerScope = await getMealOwnerScope();

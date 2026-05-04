@@ -18,6 +18,7 @@ import {
 } from '@/common/components';
 import type { IconProps } from '@/common/components/Icon';
 import { logout } from '@/features/auth/services/authService';
+import { getLatestManualMealSyncAt } from '@/features/nutrition/services/manualMealsDatabase';
 import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
@@ -124,7 +125,8 @@ function SettingsGroup({ children, style }: { children: ReactNode; style?: ViewS
 }
 
 export default function ProfileTab() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const translate = i18n.t as unknown as (key: string, options?: { value?: string }) => string;
   const router = useRouter();
   const appAlert = useAppAlert();
   const authUser = useAuthStore((state) => state.user);
@@ -133,6 +135,7 @@ export default function ProfileTab() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSupportVisible, setIsSupportVisible] = useState(true);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
   const showLogoutAction = Boolean(authUser && !authUser.isAnonymous);
   const showSignInPrompt = authUser?.isAnonymous ?? false;
   const appVersion = Application.nativeApplicationVersion ?? '1.0.0';
@@ -143,11 +146,16 @@ export default function ProfileTab() {
     let active = true;
 
     const loadProfile = async () => {
-      const profile = await getUserProfile();
+      const [profile, latestSyncAt] = await Promise.all([
+        getUserProfile(),
+        authUser && !authUser.isAnonymous ? getLatestManualMealSyncAt() : Promise.resolve(null),
+      ]);
 
       if (!active) {
         return;
       }
+
+      setLastSyncAt(latestSyncAt);
 
       const displayName = profile?.displayName.trim() ?? '';
       if (displayName.length > 0) {
@@ -171,7 +179,24 @@ export default function ProfileTab() {
     return () => {
       active = false;
     };
-  }, [authUser?.email]);
+  }, [authUser]);
+
+  const cloudSyncLabel =
+    authUser && !authUser.isAnonymous ? translate('profileScreen.cloudLinked') : null;
+  let lastSyncLabel: string | null = null;
+
+  if (authUser && !authUser.isAnonymous) {
+    if (lastSyncAt) {
+      lastSyncLabel = translate('profileScreen.lastSyncAt', {
+        value: new Intl.DateTimeFormat(i18n.language, {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }).format(new Date(lastSyncAt)),
+      });
+    } else {
+      lastSyncLabel = translate('profileScreen.lastSyncUnknown');
+    }
+  }
 
   useEffect(() => {
     setItem(STORAGE_KEYS.app.lastVersion, versionLabel);
@@ -234,6 +259,21 @@ export default function ProfileTab() {
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
         <View style={styles.content}>
+          {cloudSyncLabel || lastSyncLabel ? (
+            <View style={styles.profileSyncSummary}>
+              {cloudSyncLabel ? (
+                <Text variant="bodySmall" color="secondary">
+                  {cloudSyncLabel}
+                </Text>
+              ) : null}
+              {lastSyncLabel ? (
+                <Text variant="bodySmall" color="secondary">
+                  {lastSyncLabel}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
+
           <SettingsGroup>
             <SettingsMenuRow
               title={t('settings.menu.profile')}
@@ -388,6 +428,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   content: {
     gap: theme.metrics.spacingV.p16,
+  },
+  profileSyncSummary: {
+    gap: theme.metrics.spacingV.p4,
+    paddingHorizontal: theme.metrics.spacing.p4,
   },
   groupCard: {
     padding: 0,

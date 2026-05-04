@@ -178,6 +178,30 @@ export default function LoginScreen() {
                   <Image source={GoogleLogo} style={styles.googleLogo} contentFit="contain" />
                 }
               />
+
+              <View style={styles.linkRow}>
+                <View style={styles.linkButton}>
+                  <Button
+                    title={t('auth.forgotPassword')}
+                    variant="ghost"
+                    disabled={isSubmitting || isGoogleLoading}
+                    onPress={() => {
+                      router.push('/(auth)/forgot-password');
+                    }}
+                  />
+                </View>
+
+                <View style={styles.linkButton}>
+                  <Button
+                    title={t('auth.signUp')}
+                    variant="ghost"
+                    disabled={isSubmitting || isGoogleLoading}
+                    onPress={() => {
+                      router.push('/(auth)/register');
+                    }}
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </KeyboardAwareScrollView>
@@ -226,6 +250,13 @@ const styles = StyleSheet.create((theme) => ({
   },
   actionsCard: {
     gap: theme.metrics.spacingV.p12,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p12,
+  },
+  linkButton: {
+    flex: 1,
   },
   formHeader: {
     gap: theme.metrics.spacingV.p8,
