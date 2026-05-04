@@ -7,10 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { View, type ViewStyle } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import {
-  Avatar,
-  Button,
   Card,
-  Dialog,
   Icon,
   ListItem,
   ScreenContainer,
@@ -18,16 +15,8 @@ import {
   Text,
 } from '@/common/components';
 import type { IconProps } from '@/common/components/Icon';
-import {
-  disconnectCurrentSyncAccount,
-  linkAnonymousAccountWithProvider,
-  logout,
-} from '@/features/auth/services/authService';
-import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import { useAppAlert } from '@/providers/app-alert';
-import { useAuthStore } from '@/providers/auth/authStore';
 import { setItem, STORAGE_KEYS } from '@/utils/storage';
-import { toast } from '@/utils/toast';
 
 function getRowIconName(key: string): IconProps['name'] {
   switch (key) {
@@ -123,109 +112,18 @@ function SettingsGroup({ children, style }: { children: ReactNode; style?: ViewS
 }
 
 export default function ProfileTab() {
-  const { t, i18n } = useTranslation();
-  const translate = i18n.t as unknown as (key: string, options?: { value?: string }) => string;
+  const { t } = useTranslation();
   const router = useRouter();
   const appAlert = useAppAlert();
-  const authUser = useAuthStore((state) => state.user);
-  const [displayName, setDisplayName] = useState('');
-  const [logoutVisible, setLogoutVisible] = useState(false);
-  const [unlinkVisible, setUnlinkVisible] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isUnlinking, setIsUnlinking] = useState(false);
-  const [isLinkingGoogle, setIsLinkingGoogle] = useState(false);
   const [isSupportVisible, setIsSupportVisible] = useState(true);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
   const appVersion = Application.nativeApplicationVersion ?? '1.0.0';
   const patchLabel = '1';
   const versionLabel = `v${appVersion} • ${patchLabel}`;
-  const isAnonymous = Boolean(authUser?.isAnonymous);
-  const resolvedDisplayName =
-    displayName.trim() || authUser?.email?.split('@')[0]?.trim() || t('profileScreen.title');
-  const profileInitials = resolvedDisplayName
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-  const cloudSyncLabel = authUser && !authUser.isAnonymous ? authUser.email.trim() || null : null;
-  let lastSignedInLabel: string | null = null;
-
-  if (authUser && !authUser.isAnonymous) {
-    lastSignedInLabel = authUser.lastSignInAt
-      ? translate('profileScreen.lastSignedInAt', {
-          value: new Intl.DateTimeFormat(i18n.language, {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-          }).format(new Date(authUser.lastSignInAt)),
-        })
-      : translate('profileScreen.lastSignedInUnknown');
-  }
-
-  useEffect(() => {
-    let active = true;
-
-    const loadProfile = async () => {
-      const profile = await getUserProfile();
-
-      if (!active) {
-        return;
-      }
-
-      setDisplayName(profile?.displayName.trim() ?? '');
-    };
-
-    void loadProfile();
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     setItem(STORAGE_KEYS.app.lastVersion, versionLabel);
   }, [versionLabel]);
-
-  const handleLinkEmail = useCallback(() => {
-    router.push('/register');
-  }, [router]);
-
-  const handleLinkGoogle = useCallback(async () => {
-    if (isLinkingGoogle) {
-      return;
-    }
-
-    setIsLinkingGoogle(true);
-
-    try {
-      await linkAnonymousAccountWithProvider('google');
-      toast.success(t('profileScreen.account.linkGoogleSuccess'));
-    } catch {
-      toast.error(t('profileScreen.account.actionError'));
-    } finally {
-      setIsLinkingGoogle(false);
-    }
-  }, [isLinkingGoogle, t]);
-
-  const handleUnlinkAccount = useCallback(async () => {
-    if (isUnlinking) {
-      return;
-    }
-
-    setIsUnlinking(true);
-
-    try {
-      await disconnectCurrentSyncAccount();
-      setUnlinkVisible(false);
-      toast.success(t('profileScreen.deleteSyncAccountSuccess'));
-      router.replace('/welcome');
-    } catch {
-      toast.error(t('profileScreen.account.actionError'));
-    } finally {
-      setIsUnlinking(false);
-    }
-  }, [isUnlinking, router, t]);
 
   const handleSupportPress = useCallback(() => {
     router.push('/support');
@@ -260,25 +158,6 @@ export default function ProfileTab() {
       setIsCheckingUpdate(false);
     }
   }, [appAlert, isCheckingUpdate, t]);
-
-  const handleLogout = useCallback(async () => {
-    if (isLoggingOut) {
-      return;
-    }
-
-    setIsLoggingOut(true);
-
-    try {
-      await logout();
-      setLogoutVisible(false);
-      toast.success(t('profileScreen.logoutSuccess'));
-      router.replace('/(auth)/login');
-    } catch {
-      toast.error(t('profileScreen.actionError'));
-    } finally {
-      setIsLoggingOut(false);
-    }
-  }, [isLoggingOut, router, t]);
 
   return (
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
@@ -372,121 +251,8 @@ export default function ProfileTab() {
               }}
             />
           </SettingsGroup>
-          <Card variant="elevated" style={styles.profileCard}>
-            <View style={styles.profileRow}>
-              <View style={styles.avatarBubble}>
-                <Avatar
-                  initials={profileInitials || 'US'}
-                  size="sm"
-                  accessibilityLabel={resolvedDisplayName}
-                />
-              </View>
-              <View style={styles.textWrap}>
-                <Text variant="body" weight="bold">
-                  {cloudSyncLabel ?? resolvedDisplayName}
-                </Text>
-                <Text variant="bodySmall" color="secondary">
-                  {lastSignedInLabel ?? t('profileScreen.account.connectedSubtitle')}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.accountActions}>
-              {isAnonymous ? (
-                <>
-                  <Button
-                    title={t('profileScreen.account.linkEmailAction')}
-                    variant="primary"
-                    size="sm"
-                    fullWidth
-                    onPress={handleLinkEmail}
-                  />
-                  <Button
-                    title={t('profileScreen.account.linkGoogleAction')}
-                    variant="outline"
-                    size="sm"
-                    fullWidth
-                    loading={isLinkingGoogle}
-                    onPress={() => {
-                      void handleLinkGoogle();
-                    }}
-                  />
-                </>
-              ) : (
-                <View style={styles.accountActionRow}>
-                  <Button
-                    title={t('profileScreen.deleteSyncAccountAction')}
-                    variant="outline"
-                    size="sm"
-                    style={styles.accountActionButton}
-                    onPress={() => {
-                      setUnlinkVisible(true);
-                    }}
-                  />
-                  <Button
-                    title={t('profileScreen.logoutAction')}
-                    variant="outline"
-                    size="sm"
-                    style={styles.logoutButton}
-                    onPress={() => {
-                      setLogoutVisible(true);
-                    }}
-                  />
-                </View>
-              )}
-            </View>
-          </Card>
         </View>
       </View>
-
-      <Dialog
-        visible={unlinkVisible}
-        onDismiss={() => setUnlinkVisible(false)}
-        title={t('profileScreen.deleteSyncAccountConfirmTitle')}
-        size="md"
-        actions={[
-          {
-            label: t('common.cancel'),
-            variant: 'ghost',
-            onPress: () => setUnlinkVisible(false),
-          },
-          {
-            label: isUnlinking ? t('common.loading') : t('common.confirm'),
-            variant: 'primary',
-            onPress: () => {
-              void handleUnlinkAccount();
-            },
-          },
-        ]}
-      >
-        <Text variant="body" color="secondary">
-          {t('profileScreen.deleteSyncAccountConfirmMessage')}
-        </Text>
-      </Dialog>
-
-      <Dialog
-        visible={logoutVisible}
-        onDismiss={() => setLogoutVisible(false)}
-        title={t('profileScreen.logoutConfirmTitle')}
-        size="md"
-        actions={[
-          {
-            label: t('common.cancel'),
-            variant: 'ghost',
-            onPress: () => setLogoutVisible(false),
-          },
-          {
-            label: isLoggingOut ? t('common.loading') : t('common.confirm'),
-            variant: 'primary',
-            onPress: () => {
-              void handleLogout();
-            },
-          },
-        ]}
-      >
-        <Text variant="body" color="secondary">
-          {t('profileScreen.logoutConfirmMessage')}
-        </Text>
-      </Dialog>
     </ScreenContainer>
   );
 }
@@ -500,49 +266,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   content: {
     gap: theme.metrics.spacingV.p16,
-  },
-  accountCard: {
-    padding: theme.metrics.spacing.p16,
-    gap: theme.metrics.spacingV.p12,
-  },
-  accountHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p12,
-  },
-  accountActions: {
-    gap: theme.metrics.spacingV.p8,
-  },
-  accountActionRow: {
-    gap: theme.metrics.spacing.p8,
-  },
-  accountActionButton: {
-    flex: 1,
-  },
-  logoutButton: {
-    flex: 1,
-  },
-  profileCard: {
-    padding: theme.metrics.spacing.p16,
-    gap: theme.metrics.spacingV.p12,
-  },
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p12,
-  },
-  avatarBubble: {
-    width: theme.metrics.spacing.p36,
-    height: theme.metrics.spacing.p36,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.input,
-  },
-  textWrap: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
   },
   groupCard: {
     padding: 0,
