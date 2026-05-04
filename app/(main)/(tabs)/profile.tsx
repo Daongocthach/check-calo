@@ -136,7 +136,7 @@ export default function ProfileTab() {
   const showLogoutAction = Boolean(authUser && !authUser.isAnonymous);
   const showSignInPrompt = authUser?.isAnonymous ?? false;
   const appVersion = Application.nativeApplicationVersion ?? '1.0.0';
-  const patchLabel = '2';
+  const patchLabel = '1';
   const versionLabel = `v${appVersion} • ${patchLabel}`;
 
   useEffect(() => {
