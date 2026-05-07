@@ -93,6 +93,8 @@ const FOOD_ENTRIES_SYNC_PAGE_SIZE = 500;
 
 let isFoodEntriesDeltaSyncRunning = false;
 let isRecentFoodsDeltaSyncRunning = false;
+let isMealsDeltaSyncRunning = false;
+let isMealItemsDeltaSyncRunning = false;
 
 function hasSupabaseConfiguration() {
   return Boolean(env.supabaseUrl && env.supabaseAnonKey);
@@ -405,7 +407,7 @@ export async function syncFoodEntriesDeltaFromSupabase(
     const cursor = cursorMap[userId] ?? null;
 
     if (__DEV__) {
-      console.log('[DeltaSync] Query params:', {
+      console.warn('[DeltaSync] Query params:', {
         userId,
         cursor,
         cursorFallback: cursor ?? '1970-01-01T00:00:00.000Z',
@@ -423,7 +425,7 @@ export async function syncFoodEntriesDeltaFromSupabase(
       .limit(FOOD_ENTRIES_SYNC_PAGE_SIZE);
 
     if (__DEV__) {
-      console.log('[DeltaSync] Result:', {
+      console.warn('[DeltaSync] Result:', {
         error: error?.message ?? null,
         rowCount: data?.length ?? 0,
         firstRow: data?.[0]
@@ -574,7 +576,7 @@ export async function syncUserProfileFromCloud() {
 
   if (error || !data) {
     if (__DEV__) {
-      console.log('[ProfileSync] Failed to fetch profile from cloud:', error?.message);
+      console.warn('[ProfileSync] Failed to fetch profile from cloud:', error?.message);
     }
     return false;
   }
@@ -628,7 +630,7 @@ export async function syncUserProfileToCloud(profile: UserProfileInput) {
 
   if (error) {
     if (__DEV__) {
-      console.log('[ProfileSync] Failed to push profile to cloud:', error.message);
+      console.warn('[ProfileSync] Failed to push profile to cloud:', error.message);
     }
     return false;
   }
@@ -639,12 +641,12 @@ export async function syncUserProfileToCloud(profile: UserProfileInput) {
 export async function syncMealsDeltaFromSupabase(
   isRecursive = false
 ): Promise<NutritionDeltaSyncResult> {
-  if (!isRecursive && isFoodEntriesDeltaSyncRunning) {
+  if (!isRecursive && isMealsDeltaSyncRunning) {
     return { syncedCount: 0, lastCursor: null };
   }
 
   if (!isRecursive) {
-    isFoodEntriesDeltaSyncRunning = true;
+    isMealsDeltaSyncRunning = true;
   }
 
   try {
@@ -694,19 +696,19 @@ export async function syncMealsDeltaFromSupabase(
 
     return { syncedCount: data.length, lastCursor };
   } finally {
-    if (!isRecursive) isFoodEntriesDeltaSyncRunning = false;
+    if (!isRecursive) isMealsDeltaSyncRunning = false;
   }
 }
 
 export async function syncMealItemsDeltaFromSupabase(
   isRecursive = false
 ): Promise<NutritionDeltaSyncResult> {
-  if (!isRecursive && isFoodEntriesDeltaSyncRunning) {
+  if (!isRecursive && isMealItemsDeltaSyncRunning) {
     return { syncedCount: 0, lastCursor: null };
   }
 
   if (!isRecursive) {
-    isFoodEntriesDeltaSyncRunning = true;
+    isMealItemsDeltaSyncRunning = true;
   }
 
   try {
@@ -756,6 +758,6 @@ export async function syncMealItemsDeltaFromSupabase(
 
     return { syncedCount: data.length, lastCursor };
   } finally {
-    if (!isRecursive) isFoodEntriesDeltaSyncRunning = false;
+    if (!isRecursive) isMealItemsDeltaSyncRunning = false;
   }
 }

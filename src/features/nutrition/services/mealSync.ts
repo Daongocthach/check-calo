@@ -42,7 +42,7 @@ export async function syncMealToCloud(mealLocalId: string) {
   });
 
   if (error && __DEV__) {
-    console.log('[MealSync] Failed to push meal:', error.message);
+    console.warn('[MealSync] Failed to push meal:', error.message);
   }
 
   return !error;
@@ -76,6 +76,12 @@ export async function syncMealItemToCloud(itemLocalId: string) {
 
   if (!row) return false;
 
+  const isMealSynced = await syncMealToCloud(row.meal_local_id);
+
+  if (!isMealSynced) {
+    return false;
+  }
+
   const remoteImageUri = await ensureRemoteImage(row.image_uri, row.local_id, 'meal-items');
   const remoteThumbnailUri =
     row.thumbnail_uri === row.image_uri
@@ -104,7 +110,7 @@ export async function syncMealItemToCloud(itemLocalId: string) {
   });
 
   if (error && __DEV__) {
-    console.log('[MealSync] Failed to push meal item:', error.message);
+    console.warn('[MealSync] Failed to push meal item:', error.message);
   }
 
   return !error;

@@ -47,7 +47,7 @@ export async function syncFoodEntryToCloud(entryId: string) {
   });
 
   if (error && __DEV__) {
-    console.log('[FoodEntrySync] Failed to push food entry:', error.message);
+    console.warn('[FoodEntrySync] Failed to push food entry:', error.message);
   }
 
   return !error;

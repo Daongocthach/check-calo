@@ -328,6 +328,15 @@ export async function deleteCurrentUserCloudNutritionData() {
     throw deleteEntriesError;
   }
 
+  // Clear meals and items
+  await supabase.from('meal_items').delete().eq('user_id', userId);
+  await supabase.from('meals').delete().eq('user_id', userId);
+  await supabase.from('recent_foods').delete().eq('user_id', userId);
+
+  if (__DEV__) {
+    console.warn('[AuthService] Cleared all cloud nutrition data for user:', userId);
+  }
+
   const { error: deleteProfileError } = await supabase
     .from('profiles')
     .delete()

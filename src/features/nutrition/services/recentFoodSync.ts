@@ -53,7 +53,7 @@ export async function syncRecentFoodToCloud(recentId: string) {
   });
 
   if (error && __DEV__) {
-    console.log('[RecentSync] Failed to push recent food:', error.message);
+    console.warn('[RecentSync] Failed to push recent food:', error.message);
   }
 
   return !error;
