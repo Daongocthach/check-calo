@@ -16,16 +16,25 @@ function isLocalFileUri(uri: string | null): uri is string {
   return typeof uri === 'string' && uri.startsWith('file://');
 }
 
+async function safeQuery<T>(database: Awaited<ReturnType<typeof getDatabase>>, sql: string) {
+  try {
+    return await database.getAllAsync<T>(sql);
+  } catch {
+    return [];
+  }
+}
+
 async function collectLocalUris() {
   const database = await getDatabase();
   const uris = new Set<string>();
 
   const rows = await Promise.all([
-    database.getAllAsync<LocalImageUriRow>('SELECT image_uri, thumbnail_uri FROM food_entries;'),
-    database.getAllAsync<LocalImageUriRow>('SELECT image_uri, thumbnail_uri FROM favorite_foods;'),
-    database.getAllAsync<LocalImageUriRow>('SELECT image_uri, thumbnail_uri FROM meal_items;'),
-    database.getAllAsync<MealImageUriRow>('SELECT local_uri, thumbnail_uri FROM meal_images;'),
-    database.getAllAsync<LocalImageUriRow>(
+    safeQuery<LocalImageUriRow>(database, 'SELECT image_uri, thumbnail_uri FROM food_entries;'),
+    safeQuery<LocalImageUriRow>(database, 'SELECT image_uri, thumbnail_uri FROM recent_foods;'),
+    safeQuery<LocalImageUriRow>(database, 'SELECT image_uri, thumbnail_uri FROM meal_items;'),
+    safeQuery<MealImageUriRow>(database, 'SELECT local_uri, thumbnail_uri FROM meal_images;'),
+    safeQuery<LocalImageUriRow>(
+      database,
       'SELECT image_uri, NULL AS thumbnail_uri FROM food_products;'
     ),
   ]);
@@ -55,25 +64,48 @@ async function deleteLocalFiles(uris: string[]) {
   await Promise.all(uris.map((uri) => deleteLocalFoodEntryImage(uri)));
 }
 
-async function clearLocalNutritionTables() {
+const NUTRITION_TABLES = [
+  'sync_queue',
+  'meal_images',
+  'meal_items',
+  'meals',
+  'recent_foods',
+  'food_entries',
+  'daily_calorie_targets',
+  'user_profile',
+  'weight_goals',
+  'achievement_unlocks',
+  'food_products',
+  'app_device',
+] as const;
+
+const SYNCED_NUTRITION_TABLES = [
+  'sync_queue',
+  'meal_images',
+  'meal_items',
+  'meals',
+  'recent_foods',
+  'food_entries',
+] as const;
+
+async function clearLocalNutritionTables(tables: readonly string[] = NUTRITION_TABLES) {
   const database = await getDatabase();
 
   await database.withTransactionAsync(async () => {
-    await database.runAsync('DELETE FROM sync_queue;');
-    await database.runAsync('DELETE FROM meal_images;');
-    await database.runAsync('DELETE FROM meal_items;');
-    await database.runAsync('DELETE FROM meals;');
-    await database.runAsync('DELETE FROM favorite_foods;');
-    await database.runAsync('DELETE FROM food_entries;');
-    await database.runAsync('DELETE FROM daily_calorie_targets;');
-    await database.runAsync('DELETE FROM user_profile;');
-    await database.runAsync('DELETE FROM weight_goals;');
-    await database.runAsync('DELETE FROM achievement_unlocks;');
-    await database.runAsync('DELETE FROM food_products;');
-    await database.runAsync('DELETE FROM app_device;');
+    for (const table of tables) {
+      try {
+        await database.runAsync(`DELETE FROM ${table};`);
+      } catch {
+        // Table may not exist yet — safe to skip
+      }
+    }
   });
 }
 
+/**
+ * Full reset: wipes SQLite tables, local images, and MMKV storage.
+ * Used for account deletion or full data reset from the profile screen.
+ */
 export async function resetLocalNutritionData() {
   const localUris = await collectLocalUris();
   await deleteLocalFiles(localUris);
@@ -84,4 +116,15 @@ export async function resetLocalNutritionData() {
   if (!clearResult.success) {
     throw clearResult.error ?? new Error('Failed to clear local app storage.');
   }
+}
+
+/**
+ * Login-safe reset: wipes only SQLite tables and local images.
+ * Does NOT clear MMKV storage so the newly acquired session token is preserved.
+ */
+export async function resetLocalNutritionDataForLogin() {
+  const localUris = await collectLocalUris();
+  await deleteLocalFiles(localUris);
+  await clearManagedFoodEntryImageCache();
+  await clearLocalNutritionTables(SYNCED_NUTRITION_TABLES);
 }

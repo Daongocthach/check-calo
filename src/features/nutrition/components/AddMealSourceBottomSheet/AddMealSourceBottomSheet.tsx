@@ -14,11 +14,11 @@ import {
 } from '@/features/nutrition/services/manualMealsDatabase';
 import {
   createFoodEntry,
-  listFavoriteFoodsPage,
+  listRecentFoodsPage,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
-import type { FavoriteFood, MealType } from '@/features/nutrition/types';
+import type { RecentFood, MealType } from '@/features/nutrition/types';
 import { formatMealWeight } from '@/features/nutrition/utils/quantity';
 import { useAppBottomSheet } from '@/providers/bottom-sheet';
 import { toast } from '@/utils/toast';
@@ -133,7 +133,11 @@ export function AddMealSourceBottomSheet({
   const payload = useAddMealSourceSheetStore((state) => state.payload);
   const setSheetState = useAddMealSourceSheetStore((state) => state.setSheetState);
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
-  const [recentFoods, setRecentFoods] = useState<FavoriteFood[]>([]);
+  const recentFoodsRefreshRevision = useFoodEntryRefreshStore(
+    (state) => state.recentFoodsRefreshRevision
+  );
+  const menuRefreshRevision = useFoodEntryRefreshStore((state) => state.menuRefreshRevision);
+  const [recentFoods, setRecentFoods] = useState<RecentFood[]>([]);
   const [recentPage, setRecentPage] = useState(1);
   const [hasNextRecentPage, setHasNextRecentPage] = useState(false);
   const [isLoadingRecentFoods, setIsLoadingRecentFoods] = useState(false);
@@ -179,7 +183,7 @@ export function AddMealSourceBottomSheet({
     }
 
     try {
-      const result = await listFavoriteFoodsPage({
+      const result = await listRecentFoodsPage({
         page,
         pageSize: RECENT_FOOD_LIMIT,
       });
@@ -232,6 +236,18 @@ export function AddMealSourceBottomSheet({
     void loadRecentFoods(1, false);
     void loadTodayMeals();
   }, [loadRecentFoods, loadTodayMeals, sheetState]);
+
+  useEffect(() => {
+    if (recentFoodsRefreshRevision > 0 && sheetState === 'opening') {
+      void loadRecentFoods(1, false);
+    }
+  }, [recentFoodsRefreshRevision, loadRecentFoods, sheetState]);
+
+  useEffect(() => {
+    if (menuRefreshRevision > 0 && sheetState === 'opening') {
+      void loadTodayMeals();
+    }
+  }, [menuRefreshRevision, loadTodayMeals, sheetState]);
 
   useEffect(() => {
     if (sheetState === 'closed') {

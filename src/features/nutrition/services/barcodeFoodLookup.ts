@@ -224,7 +224,7 @@ function toCatalogInputFromLookup(
 
 async function getLocalFoodProductByBarcode(barcode: string) {
   const database = await getDatabase();
-  const favoriteRow = await database.getFirstAsync<FoodProductRow>(
+  const recentRow = await database.getFirstAsync<FoodProductRow>(
     `
       SELECT
         id,
@@ -243,15 +243,15 @@ async function getLocalFoodProductByBarcode(barcode: string) {
         NULL AS verified_at,
         created_at,
         updated_at
-      FROM favorite_foods
+      FROM recent_foods
       WHERE barcode = ?
       LIMIT 1;
     `,
     [barcode]
   );
 
-  if (favoriteRow) {
-    return mapFoodProductRow(favoriteRow, 'local');
+  if (recentRow) {
+    return mapFoodProductRow(recentRow, 'local');
   }
 
   const productRow = await database.getFirstAsync<FoodProductRow>(

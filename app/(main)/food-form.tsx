@@ -35,10 +35,10 @@ import {
 } from '@/features/nutrition/services/manualMealsDatabase';
 import {
   createFoodEntry,
-  getFavoriteFoodById,
+  getRecentFoodById,
   getFoodEntryById,
-  upsertFavoriteFoodFromInput,
-  updateFavoriteFood,
+  upsertRecentFoodFromInput,
+  updateRecentFood,
   updateFoodEntry,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealStore } from '@/features/nutrition/stores/useAddMealStore';
@@ -119,7 +119,7 @@ export default function FoodFormScreen() {
   const { theme } = useUnistyles();
   const params = useLocalSearchParams<{
     entryId?: string;
-    favoriteId?: string;
+    recentId?: string;
     draftItemId?: string;
     context?: string;
     submitMode?: string;
@@ -163,11 +163,11 @@ export default function FoodFormScreen() {
     () => typeof params.entryId === 'string' && params.entryId.length > 0,
     [params.entryId]
   );
-  const isEditingFavorite = useMemo(
-    () => typeof params.favoriteId === 'string' && params.favoriteId.length > 0,
-    [params.favoriteId]
+  const isEditingRecent = useMemo(
+    () => typeof params.recentId === 'string' && params.recentId.length > 0,
+    [params.recentId]
   );
-  const isAIDraftFlow = params.context === 'aiDraft' && !isEditingEntry && !isEditingFavorite;
+  const isAIDraftFlow = params.context === 'aiDraft' && !isEditingEntry && !isEditingRecent;
   const isDraftEditing =
     isAIDraftFlow && typeof params.draftItemId === 'string' && params.draftItemId.length > 0;
   const isEditingMenuMealItem =
@@ -176,7 +176,7 @@ export default function FoodFormScreen() {
     params.mealLocalId.length > 0 &&
     typeof params.itemLocalId === 'string' &&
     params.itemLocalId.length > 0;
-  const isEditing = isEditingEntry || isEditingFavorite || isDraftEditing || isEditingMenuMealItem;
+  const isEditing = isEditingEntry || isEditingRecent || isDraftEditing || isEditingMenuMealItem;
   const isAddMealFlow = params.context === 'addMeal' && !isEditing;
   const isMenuMealFlow = params.context === 'menuMeal' && !isEditingMenuMealItem;
   const isRecentFoodFlow = params.context === 'recentFood' && !isEditing;
@@ -208,26 +208,26 @@ export default function FoodFormScreen() {
         });
         setImageUri(entry.imageUri ?? null);
       }
-    } else if (isEditingFavorite && typeof params.favoriteId === 'string') {
-      const favorite = await getFavoriteFoodById(params.favoriteId);
+    } else if (isEditingRecent && typeof params.recentId === 'string') {
+      const recent = await getRecentFoodById(params.recentId);
 
-      if (favorite) {
+      if (recent) {
         setMenuMealItem(null);
         setServings(1);
         reset({
-          foodName: favorite.name,
+          foodName: recent.name,
           quantityLabel:
-            favorite.quantityGrams !== null && favorite.quantityGrams !== undefined
-              ? toRoundedString(favorite.quantityGrams)
-              : favorite.quantityLabel,
+            recent.quantityGrams !== null && recent.quantityGrams !== undefined
+              ? toRoundedString(recent.quantityGrams)
+              : recent.quantityLabel,
           consumedAt: formatDateTimeInputValue(new Date()),
-          calories: toRoundedString(favorite.totalCalories),
-          protein: toRoundedString(favorite.proteinGrams),
-          carbs: toRoundedString(favorite.carbsGrams),
-          fat: toRoundedString(favorite.fatGrams),
-          notes: favorite.notes ?? '',
+          calories: toRoundedString(recent.totalCalories),
+          protein: toRoundedString(recent.proteinGrams),
+          carbs: toRoundedString(recent.carbsGrams),
+          fat: toRoundedString(recent.fatGrams),
+          notes: recent.notes ?? '',
         });
-        setImageUri(favorite.imageUri ?? null);
+        setImageUri(recent.imageUri ?? null);
       }
     } else if (isEditingMenuMealItem && params.mealLocalId && params.itemLocalId) {
       const result = await getManualMealByItemIds(params.mealLocalId, params.itemLocalId);
@@ -278,13 +278,13 @@ export default function FoodFormScreen() {
   }, [
     isEditingMenuMealItem,
     isEditingEntry,
-    isEditingFavorite,
+    isEditingRecent,
     params.calories,
     params.carbs,
     params.consumedAt,
     params.entryId,
     params.fat,
-    params.favoriteId,
+    params.recentId,
     params.foodName,
     params.imageUri,
     params.itemLocalId,
@@ -357,9 +357,9 @@ export default function FoodFormScreen() {
         isEditingEntry && typeof params.entryId === 'string'
           ? await getFoodEntryById(params.entryId)
           : null;
-      const previousFavorite =
-        isEditingFavorite && typeof params.favoriteId === 'string'
-          ? await getFavoriteFoodById(params.favoriteId)
+      const previousRecent =
+        isEditingRecent && typeof params.recentId === 'string'
+          ? await getRecentFoodById(params.recentId)
           : null;
 
       const servingsMultiplier = isAddMealFlow ? servings : 1;
@@ -425,7 +425,7 @@ export default function FoodFormScreen() {
       }
 
       if (isRecentFoodFlow) {
-        const syncedRecentFavorite = await upsertFavoriteFoodFromInput({
+        const syncedRecentRecent = await upsertRecentFoodFromInput({
           name: basePayload.mealName,
           barcode: basePayload.barcode,
           quantityLabel: basePayload.quantityLabel,
@@ -439,18 +439,18 @@ export default function FoodFormScreen() {
           thumbnailUri: basePayload.thumbnailUri,
         });
 
-        if (basePayload.barcode && syncedRecentFavorite) {
+        if (basePayload.barcode && syncedRecentRecent) {
           await upsertFoodProductCatalog({
             barcode: basePayload.barcode,
-            name: syncedRecentFavorite.name,
-            quantityLabel: syncedRecentFavorite.quantityLabel,
-            quantityGrams: syncedRecentFavorite.quantityGrams,
-            totalCalories: syncedRecentFavorite.totalCalories,
-            proteinGrams: syncedRecentFavorite.proteinGrams,
-            carbsGrams: syncedRecentFavorite.carbsGrams,
-            fatGrams: syncedRecentFavorite.fatGrams,
-            notes: syncedRecentFavorite.notes,
-            imageUri: syncedRecentFavorite.imageUri,
+            name: syncedRecentRecent.name,
+            quantityLabel: syncedRecentRecent.quantityLabel,
+            quantityGrams: syncedRecentRecent.quantityGrams,
+            totalCalories: syncedRecentRecent.totalCalories,
+            proteinGrams: syncedRecentRecent.proteinGrams,
+            carbsGrams: syncedRecentRecent.carbsGrams,
+            fatGrams: syncedRecentRecent.fatGrams,
+            notes: syncedRecentRecent.notes,
+            imageUri: syncedRecentRecent.imageUri,
             source: 'user',
           });
         }
@@ -459,8 +459,8 @@ export default function FoodFormScreen() {
         return;
       }
 
-      const syncedFavorite = !isEditingFavorite
-        ? await upsertFavoriteFoodFromInput({
+      const syncedRecent = !isEditingRecent
+        ? await upsertRecentFoodFromInput({
             name: basePayload.mealName,
             barcode: basePayload.barcode,
             quantityLabel: basePayload.quantityLabel,
@@ -475,7 +475,7 @@ export default function FoodFormScreen() {
           })
         : null;
 
-      if (basePayload.barcode && syncedFavorite) {
+      if (basePayload.barcode && syncedRecent) {
         await upsertFoodProductCatalog({
           barcode: basePayload.barcode,
           name: basePayload.mealName,
@@ -514,8 +514,8 @@ export default function FoodFormScreen() {
 
         if (basePayload.barcode) {
           draftSourceKey = `barcode:${basePayload.barcode}`;
-        } else if (syncedFavorite) {
-          draftSourceKey = `favorite:${syncedFavorite.id}`;
+        } else if (syncedRecent) {
+          draftSourceKey = `recent:${syncedRecent.id}`;
         }
 
         const nextDraftItem = {
@@ -552,8 +552,8 @@ export default function FoodFormScreen() {
 
         if (payload.barcode) {
           menuSourceKey = `barcode:${payload.barcode}`;
-        } else if (syncedFavorite) {
-          menuSourceKey = `favorite:${syncedFavorite.id}`;
+        } else if (syncedRecent) {
+          menuSourceKey = `recent:${syncedRecent.id}`;
         }
 
         await createManualMealItem(params.mealLocalId, {
@@ -612,10 +612,10 @@ export default function FoodFormScreen() {
         return;
       }
 
-      if (isEditingFavorite && typeof params.favoriteId === 'string') {
-        const updatedFavorite = await updateFavoriteFood(params.favoriteId, {
+      if (isEditingRecent && typeof params.recentId === 'string') {
+        const updatedRecent = await updateRecentFood(params.recentId, {
           name: payload.mealName,
-          barcode: payload.barcode ?? previousFavorite?.barcode ?? null,
+          barcode: payload.barcode ?? previousRecent?.barcode ?? null,
           quantityLabel: payload.quantityLabel,
           quantityGrams: payload.quantityGrams ?? null,
           totalCalories: payload.totalCalories,
@@ -627,26 +627,23 @@ export default function FoodFormScreen() {
           thumbnailUri: payload.thumbnailUri,
         });
 
-        if (updatedFavorite?.barcode) {
+        if (updatedRecent?.barcode) {
           await upsertFoodProductCatalog({
-            barcode: updatedFavorite.barcode,
-            name: updatedFavorite.name,
-            quantityLabel: updatedFavorite.quantityLabel,
-            quantityGrams: updatedFavorite.quantityGrams,
-            totalCalories: updatedFavorite.totalCalories,
-            proteinGrams: updatedFavorite.proteinGrams,
-            carbsGrams: updatedFavorite.carbsGrams,
-            fatGrams: updatedFavorite.fatGrams,
-            notes: updatedFavorite.notes,
-            imageUri: updatedFavorite.imageUri,
+            barcode: updatedRecent.barcode,
+            name: updatedRecent.name,
+            quantityLabel: updatedRecent.quantityLabel,
+            quantityGrams: updatedRecent.quantityGrams,
+            totalCalories: updatedRecent.totalCalories,
+            proteinGrams: updatedRecent.proteinGrams,
+            carbsGrams: updatedRecent.carbsGrams,
+            fatGrams: updatedRecent.fatGrams,
+            notes: updatedRecent.notes,
+            imageUri: updatedRecent.imageUri,
             source: 'user',
           });
         }
 
-        await deleteOrphanedFoodEntryAssets(
-          previousFavorite?.imageUri,
-          previousFavorite?.thumbnailUri
-        );
+        await deleteOrphanedFoodEntryAssets(previousRecent?.imageUri, previousRecent?.thumbnailUri);
         router.replace('/recently-food');
         return;
       }
@@ -895,7 +892,7 @@ export default function FoodFormScreen() {
                 )}
               />
 
-              {!isEditingFavorite ? (
+              {!isEditingRecent ? (
                 <Controller
                   control={control}
                   name="consumedAt"

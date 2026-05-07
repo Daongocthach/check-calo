@@ -3,11 +3,19 @@ import { useEffect } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { processPendingFoodEntryImageSyncQueue } from '../services/foodEntrySyncQueue';
-import { syncFoodEntriesDeltaFromSupabase } from '../services/nutritionDeltaSync';
+import {
+  syncFoodEntriesDeltaFromSupabase,
+  syncRecentFoodsDeltaFromSupabase,
+  syncMealsDeltaFromSupabase,
+  syncMealItemsDeltaFromSupabase,
+} from '../services/nutritionDeltaSync';
 
 function runNutritionSync() {
   void processPendingFoodEntryImageSyncQueue();
   void syncFoodEntriesDeltaFromSupabase();
+  void syncRecentFoodsDeltaFromSupabase();
+  void syncMealsDeltaFromSupabase();
+  void syncMealItemsDeltaFromSupabase();
 }
 
 export function useFoodEntrySyncQueue() {

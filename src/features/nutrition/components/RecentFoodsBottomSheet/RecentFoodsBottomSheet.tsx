@@ -7,20 +7,20 @@ import {
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Card, Icon, Loading, SearchBar, Text } from '@/common/components';
-import type { FavoriteFood } from '@/features/nutrition/types';
-import { styles } from './FavoriteFoodsBottomSheet.styles';
-import type { FavoriteFoodsBottomSheetProps } from './FavoriteFoodsBottomSheet.types';
+import type { RecentFood } from '@/features/nutrition/types';
+import { styles } from './RecentFoodsBottomSheet.styles';
+import type { RecentFoodsBottomSheetProps } from './RecentFoodsBottomSheet.types';
 
-export function FavoriteFoodsBottomSheet({
+export function RecentFoodsBottomSheet({
   bottomSheetRef,
-  favoriteFoods,
+  recentFoods,
   title,
   subtitle,
   searchPlaceholder,
   emptyTitle,
   emptySubtitle,
   closeAccessibilityLabel,
-  renderFavoriteItem,
+  renderRecentItem,
   rightActions,
   topInset,
   onDismiss,
@@ -28,20 +28,18 @@ export function FavoriteFoodsBottomSheet({
   hasNextPage = false,
   isLoadingMore = false,
   onLoadMore,
-}: FavoriteFoodsBottomSheetProps) {
+}: RecentFoodsBottomSheetProps) {
   const [searchValue, setSearchValue] = useState('');
 
-  const filteredFavorites = useMemo(() => {
+  const filteredRecents = useMemo(() => {
     const normalizedQuery = searchValue.trim().toLowerCase();
 
     if (!normalizedQuery) {
-      return favoriteFoods;
+      return recentFoods;
     }
 
-    return favoriteFoods.filter((favorite) =>
-      favorite.name.toLowerCase().includes(normalizedQuery)
-    );
-  }, [favoriteFoods, searchValue]);
+    return recentFoods.filter((recent) => recent.name.toLowerCase().includes(normalizedQuery));
+  }, [recentFoods, searchValue]);
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -107,9 +105,9 @@ export function FavoriteFoodsBottomSheet({
           placeholder={searchPlaceholder}
         />
 
-        <BottomSheetFlatList<FavoriteFood>
-          data={filteredFavorites}
-          keyExtractor={(item: FavoriteFood) => item.id}
+        <BottomSheetFlatList<RecentFood>
+          data={filteredRecents}
+          keyExtractor={(item: RecentFood) => item.id}
           contentContainerStyle={styles.sheetList}
           keyboardShouldPersistTaps="handled"
           onEndReached={handleEndReached}
@@ -131,7 +129,7 @@ export function FavoriteFoodsBottomSheet({
               </View>
             ) : null
           }
-          renderItem={({ item }: { item: FavoriteFood }) => renderFavoriteItem(item)}
+          renderItem={({ item }: { item: RecentFood }) => renderRecentItem(item)}
         />
       </View>
     </BottomSheetModal>

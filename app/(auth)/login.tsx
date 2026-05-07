@@ -2,16 +2,19 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { ActivityIndicator, Modal, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Button, Input, ScreenContainer, Text } from '@/common/components';
-import { login } from '@/features/auth/services/authService';
+import { Button, Icon, Input, ScreenContainer, Text } from '@/common/components';
+import { loginAuthenticate, loginSyncCloudData } from '@/features/auth/services/authService';
 import { useResponsiveKeyboardLayout, useScreenDimensions } from '@/hooks';
+import { useAppAlert } from '@/providers/app-alert/AppAlertProvider';
 import { toast } from '@/utils/toast';
 import AppLogo from '../../assets/splash-icon-light.png';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type SyncPhase = 'idle' | 'authenticating' | 'syncing' | 'done' | 'failed';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -30,8 +33,54 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [syncPhase, setSyncPhase] = useState<SyncPhase>('idle');
+  const alert = useAppAlert();
 
-  const handleSubmit = async () => {
+  const performSync = async () => {
+    setSyncPhase('syncing');
+    try {
+      await loginSyncCloudData();
+      setSyncPhase('done');
+      toast.success(t('auth.loginSuccess'));
+      router.replace('/(main)/(tabs)/profile');
+    } catch {
+      setSyncPhase('failed');
+    }
+  };
+
+  const performLogin = async () => {
+    setIsSubmitting(true);
+    setSyncPhase('authenticating');
+
+    try {
+      await loginAuthenticate({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('auth.loginFailed');
+      toast.error(message);
+      setSyncPhase('idle');
+      setIsSubmitting(false);
+      return;
+    }
+
+    await performSync();
+    setIsSubmitting(false);
+  };
+
+  const handleRetrySync = () => {
+    void performSync();
+  };
+
+  const handleSkipSync = () => {
+    setSyncPhase('idle');
+    setIsSubmitting(false);
+    toast.success(t('auth.loginSuccess'));
+    router.replace('/(main)/(tabs)/profile');
+  };
+
+  const handleSubmit = () => {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!EMAIL_REGEX.test(normalizedEmail)) {
@@ -44,22 +93,22 @@ export default function LoginScreen() {
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      await login({
-        email: normalizedEmail,
-        password,
-      });
-      toast.success(t('auth.loginSuccess'));
-      router.replace('/(main)/(tabs)/profile');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t('auth.loginFailed');
-      toast.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    alert.alert(
+      t('auth.loginConfirmTitle'),
+      t('auth.loginConfirmMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('auth.loginConfirmAction'),
+          style: 'destructive',
+          onPress: () => void performLogin(),
+        },
+      ],
+      { dismissOnBackdropPress: false }
+    );
   };
+
+  const showOverlay = syncPhase !== 'idle';
 
   return (
     <ScreenContainer padded={false} edges={[]}>
@@ -153,6 +202,58 @@ export default function LoginScreen() {
           </View>
         </KeyboardAwareScrollView>
       </View>
+
+      <Modal
+        visible={showOverlay}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => {
+          // Prevent hardware back during sync
+        }}
+      >
+        <View style={styles.overlayBackdrop}>
+          <View style={styles.overlayCard}>
+            {syncPhase === 'failed' ? (
+              <>
+                <Icon name="cloud-offline-outline" variant="muted" size={40} />
+                <Text variant="body" weight="semibold" align="center">
+                  {t('auth.syncFailedTitle')}
+                </Text>
+                <Text variant="bodySmall" color="secondary" align="center">
+                  {t('auth.syncFailedMessage')}
+                </Text>
+                <View style={styles.overlayActions}>
+                  <Button
+                    title={t('auth.syncRetry')}
+                    variant="primary"
+                    size="sm"
+                    onPress={handleRetrySync}
+                  />
+                  <Button
+                    title={t('auth.syncSkip')}
+                    variant="ghost"
+                    size="sm"
+                    onPress={handleSkipSync}
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <ActivityIndicator size="large" color={theme.colors.brand.primary} />
+                <Text variant="body" weight="semibold" align="center">
+                  {syncPhase === 'authenticating'
+                    ? t('auth.syncPhaseAuth')
+                    : t('auth.syncPhaseData')}
+                </Text>
+                <Text variant="caption" color="secondary" align="center">
+                  {t('auth.syncPleaseWait')}
+                </Text>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -217,5 +318,26 @@ const styles = StyleSheet.create((theme) => ({
   googleLogo: {
     width: theme.metrics.spacing.p24,
     height: theme.metrics.spacing.p24,
+  },
+  overlayBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: theme.metrics.spacing.p32,
+  },
+  overlayCard: {
+    width: '100%',
+    backgroundColor: theme.colors.background.surface,
+    borderRadius: theme.metrics.borderRadius.xl,
+    paddingHorizontal: theme.metrics.spacing.p24,
+    paddingVertical: theme.metrics.spacingV.p32,
+    alignItems: 'center',
+    gap: theme.metrics.spacingV.p16,
+  },
+  overlayActions: {
+    gap: theme.metrics.spacingV.p8,
+    width: '100%',
+    marginTop: theme.metrics.spacingV.p8,
   },
 }));

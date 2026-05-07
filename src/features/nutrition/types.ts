@@ -141,10 +141,10 @@ export interface FoodEntry extends FoodEntryInput {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
-  isFavorite: boolean;
+  isRecent: boolean;
 }
 
-export interface FavoriteFood {
+export interface RecentFood {
   id: string;
   sourceEntryId: string | null;
   barcode: string | null;

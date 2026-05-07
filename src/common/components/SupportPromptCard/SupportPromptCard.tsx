@@ -17,10 +17,16 @@ export function SupportPromptCard({
   onClosePress,
   closeAccessibilityLabel,
   dismissible = true,
+  isHidden = false,
   style,
 }: SupportPromptCardProps) {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
+
+  if (isHidden) {
+    return null;
+  }
+
   let gradientColors: readonly [ColorValue, ColorValue, ...ColorValue[]];
 
   if (theme.colors.mode === 'dark') {

@@ -31,6 +31,7 @@ import {
 } from '@/features/nutrition/services/manualMealsDatabase';
 import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
+import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
 import { useMealPlanSuggestionSheetStore } from '@/features/nutrition/stores/useMealPlanSuggestionSheetStore';
 import type { MealType, UserProfile } from '@/features/nutrition/types';
 import { useBottomPadding, useCurrentDate } from '@/hooks';
@@ -256,6 +257,8 @@ export default function MenuTab() {
   const mealPlanSuggestionRevision = useMealPlanSuggestionSheetStore(
     (state) => state.generationRevision
   );
+  const menuRefreshRevision = useFoodEntryRefreshStore((state) => state.menuRefreshRevision);
+
   const loadGenerationRef = useRef(0);
   const didMountRef = useRef(false);
   const [selectedDate, setSelectedDate] = useState(() => currentDate);
@@ -351,6 +354,12 @@ export default function MenuTab() {
       refreshMenu();
     }
   }, [mealPlanSuggestionRevision, refreshMenu]);
+
+  useEffect(() => {
+    if (menuRefreshRevision > 0) {
+      refreshMenu();
+    }
+  }, [menuRefreshRevision, refreshMenu]);
 
   const orderedMeals = useMemo(() => {
     const mealMap = new Map<MealType, ManualMeal>();

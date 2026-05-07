@@ -66,12 +66,12 @@ export default function MainLayout() {
   }, [closeAddMealSheet, router]);
 
   const handleRecentFoodPress = useCallback(
-    (favoriteId: string) => {
+    (recentId: string) => {
       closeAddMealSheet();
       router.push({
         pathname: '/food-detail',
         params: {
-          favoriteId,
+          recentId,
           ...getFoodFormParams(),
         },
       });

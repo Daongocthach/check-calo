@@ -44,7 +44,7 @@
     "stats": "Stats",
     "add": "Add",
     "menu": "Menu",
-    "favorites": "Recently Food",
+    "recents": "Recently Food",
     "profile": "Profile",
     "showcase": "Showcase",
     "settings": "Settings"
@@ -263,7 +263,7 @@
     "searchLabel": "Search library",
     "searchPlaceholder": "Type food name",
     "emptyLibrary": "No foods found in your library.",
-    "favoriteMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}"
+    "recentMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}"
   },
   "language": {
     "label": "Language",
@@ -298,7 +298,7 @@
       "card2Title": "Analytics",
       "card2Subtitle": "Track performance metrics",
       "card3Title": "Integrations",
-      "card3Subtitle": "Connect your favorite tools"
+      "card3Subtitle": "Connect your recent tools"
     },
     "stats": {
       "projects": "Projects",
@@ -352,7 +352,7 @@
       "ai": "AI",
       "barcode": "Barcode",
       "entry": "Saved",
-      "favorite": "Saved",
+      "recent": "Saved",
       "manual": "Manual"
     },
     "saveAction": "+ Add to log",
@@ -444,8 +444,8 @@
       "addFood": "+ Add food",
       "review": "Review",
       "detailComposition": "Detail composition",
-      "addFavorite": "Add to food library",
-      "removeFavorite": "Remove from food library",
+      "addRecent": "Add to food library",
+      "removeRecent": "Remove from food library",
       "deleteTitle": "Delete food",
       "deleteMessage": "Delete \"{{name}}\" from today's meals?",
       "emptyTitle": "No meals logged yet",
@@ -572,9 +572,9 @@
     "emptyTitle": "No items in this meal yet",
     "emptySubtitle": "Add food manually, from a photo, or by scanning a barcode.",
     "addFoodTitle": "Add food",
-    "favoriteFoodsTitle": "Food library",
-    "favoriteFoodsSubtitle": "Quickly pick from your saved foods and add them into the current meal.",
-    "favoriteFoodsAction": "From library",
+    "recentFoodsTitle": "Food library",
+    "recentFoodsSubtitle": "Quickly pick from your saved foods and add them into the current meal.",
+    "recentFoodsAction": "From library",
     "manageLibraryAction": "Manage food library",
     "menuToday": {
       "title": "Today’s menu",
@@ -588,9 +588,9 @@
       "loggedSuccess": "Saved {{mealName}}.",
       "saveFailed": "Could not save the meal. Please try again."
     },
-    "favoriteSearchPlaceholder": "Search your food library...",
-    "favoriteEmptyTitle": "No matching foods found",
-    "favoriteEmptySubtitle": "Try another keyword or create a new food in your library.",
+    "recentSearchPlaceholder": "Search your food library...",
+    "recentEmptyTitle": "No matching foods found",
+    "recentEmptySubtitle": "Try another keyword or create a new food in your library.",
     "saveMeal": "Save meal",
     "saveSuccess": "Meal saved to today's log.",
     "saveError": "Could not save the meal. Please try again.",
@@ -725,8 +725,8 @@
     "photoHint": "Tap the photo area to capture or replace the current food image.",
     "openImageViewer": "Open full screen food image",
     "closeImageViewer": "Close full screen food image",
-    "favoriteSectionTitle": "Quick pick from favorites",
-    "favoriteSectionHint": "Tap to load values into the form, or long press to save it straight to today.",
+    "recentSectionTitle": "Quick pick from recents",
+    "recentSectionHint": "Tap to load values into the form, or long press to save it straight to today.",
     "fields": {
       "foodName": "Food name",
       "quantity": "Meal weight (g)",
@@ -747,13 +747,13 @@
       "notes": "Example: extra greens, less sauce"
     }
   },
-  "favoritesScreen": {
+  "recentsScreen": {
     "title": "Recently Food",
     "subtitle": "Foods you created so they are ready for quick meal logging.",
     "heroTitle": "Recently Food",
     "heroTitleWithCount": "Recently Food ({{count}})",
     "heroSubtitle": "Your personal food collection",
-    "addFavoriteAction": "Add a new food to the library",
+    "addRecentAction": "Add a new food to the library",
     "addNewFoodAction": "Add new food",
     "searchPlaceholder": "Search your food library",
     "savedItem": "Library item",
@@ -838,6 +838,25 @@
       "positive": "Value must be greater than 0"
     }
   },
+  "accountScreen": {
+    "switchAccount": "Switch account",
+    "dangerZone": "Danger zone",
+    "deleteAction": "Delete account",
+    "deleteDescription": "This will permanently delete your cloud account and all data on this device. A new anonymous session will be created.",
+    "deleteTitle": "Delete account?",
+    "deleteMessage": "All your cloud data and local data will be permanently deleted. This cannot be undone.",
+    "deleteConfirm": "Delete everything",
+    "deleteSuccess": "Account and data deleted.",
+    "deleteError": "Unable to delete account right now. Please try again.",
+    "logoutAction": "Sign out",
+    "logoutTitle": "Sign out?",
+    "logoutMessage": "You will be signed out and a new anonymous session will be created. Your cloud data is safe.",
+    "logoutConfirm": "Sign out",
+    "logoutSuccess": "Signed out successfully.",
+    "logoutError": "Unable to sign out right now.",
+    "joinedAt": "Joined {{value}}",
+    "joinedAtUnknown": "Join date unknown"
+  },
   "profileScreen": {
     "title": "Personal profile",
     "subtitle": "Used to calculate the calories and macro targets that fit you best",
@@ -870,6 +889,7 @@
     "logoutConfirmMessage": "Are you sure you want to switch to another account?",
     "logoutSuccess": "Switched account successfully.",
     "actionError": "Unable to update data right now. Please try again.",
+    "offlineAiMessage": "Connect to the internet to use AI features.",
     "signInPromptTitle": "Already have an account?",
     "signInPromptSubtitle": "Log in to sync this device with an existing account.",
     "signInAction": "Log in",
@@ -1081,6 +1101,16 @@
     "registerUpgradeSubtitle": "Link this anonymous session to email, Google, or Apple so you can recover your data later.",
     "loginSuccess": "Logged in successfully.",
     "loginFailed": "Unable to log in right now.",
+    "loginConfirmTitle": "Replace local data?",
+    "loginConfirmMessage": "Logging in will replace all data on this device with data from your cloud account. This cannot be undone.",
+    "loginConfirmAction": "Log in",
+    "syncPhaseAuth": "Signing in…",
+    "syncPhaseData": "Syncing your data…",
+    "syncPleaseWait": "Please wait, this may take a moment.",
+    "syncFailedTitle": "Sync failed",
+    "syncFailedMessage": "Your data could not be synced from the cloud. You can retry or skip for now.",
+    "syncRetry": "Retry",
+    "syncSkip": "Skip for now",
     "forgotPasswordTitle": "Reset your password",
     "forgotPasswordSubtitle": "Enter your email address and we will send you a reset link.",
     "forgotPasswordAction": "Send reset link",

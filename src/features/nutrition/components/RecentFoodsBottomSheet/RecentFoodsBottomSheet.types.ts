@@ -1,17 +1,17 @@
 import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import type { ReactNode, RefObject } from 'react';
-import type { FavoriteFood } from '@/features/nutrition/types';
+import type { RecentFood } from '@/features/nutrition/types';
 
-export interface FavoriteFoodsBottomSheetProps {
+export interface RecentFoodsBottomSheetProps {
   bottomSheetRef: RefObject<BottomSheetModal | null>;
-  favoriteFoods: FavoriteFood[];
+  recentFoods: RecentFood[];
   title: string;
   subtitle: string;
   searchPlaceholder: string;
   emptyTitle: string;
   emptySubtitle: string;
   closeAccessibilityLabel: string;
-  renderFavoriteItem: (favorite: FavoriteFood) => ReactNode;
+  renderRecentItem: (recent: RecentFood) => ReactNode;
   rightActions?: ReactNode;
   topInset?: number;
   onDismiss?: () => void;

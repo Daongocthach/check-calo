@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Icon, Text } from '@/common/components';
 import { FoodImagePreview } from '@/features/nutrition/components/FoodImagePreview';
-import type { FavoriteFood, FoodEntry } from '@/features/nutrition/types';
+import type { RecentFood, FoodEntry } from '@/features/nutrition/types';
 import { formatMealWeight } from '@/features/nutrition/utils/quantity';
 
 export interface HomeMealCardItem {
@@ -18,7 +18,7 @@ export interface HomeMealCardItem {
   imageUri?: string | null;
   thumbnailUri?: string | null;
   devSyncBadgeLabel?: string | null;
-  isFavorite: boolean;
+  isRecent: boolean;
 }
 
 interface HomeMealCardContextValue {
@@ -103,14 +103,14 @@ function Header({ children }: { children?: ReactNode }) {
   );
 }
 
-function FavoriteAction({ onPress }: { onPress: () => void | Promise<void> }) {
+function RecentAction({ onPress }: { onPress: () => void | Promise<void> }) {
   const { t } = useTranslation();
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t('common.edit')}
-      style={styles.favoriteButton}
+      style={styles.recentButton}
       onPress={(event) => {
         event.stopPropagation();
         void onPress();
@@ -243,7 +243,7 @@ function ActionButton({ icon, label, onPress, tone = 'default', iconColor }: Act
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={[styles.favoriteButton, tone === 'danger' && styles.actionButtonDanger]}
+      style={[styles.recentButton, tone === 'danger' && styles.actionButtonDanger]}
       onPress={(event) => {
         event.stopPropagation();
         onPress();
@@ -259,7 +259,7 @@ export const HomeMealCard = {
   Preview,
   Content,
   Header,
-  FavoriteAction,
+  RecentAction,
   Macros,
   Actions,
   ActionButton,
@@ -301,7 +301,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     gap: theme.metrics.spacing.p8,
   },
-  favoriteButton: {
+  recentButton: {
     width: theme.metrics.spacing.p36,
     height: theme.metrics.spacing.p36,
     borderRadius: theme.metrics.borderRadius.full,
@@ -384,16 +384,16 @@ const styles = StyleSheet.create((theme) => ({
 export function toHomeMealCardItem(item: {
   mealName?: string;
   name?: string;
-  quantityLabel: FoodEntry['quantityLabel'] | FavoriteFood['quantityLabel'];
-  quantityGrams?: FoodEntry['quantityGrams'] | FavoriteFood['quantityGrams'];
-  totalCalories: FoodEntry['totalCalories'] | FavoriteFood['totalCalories'];
-  proteinGrams: FoodEntry['proteinGrams'] | FavoriteFood['proteinGrams'];
-  carbsGrams: FoodEntry['carbsGrams'] | FavoriteFood['carbsGrams'];
-  fatGrams: FoodEntry['fatGrams'] | FavoriteFood['fatGrams'];
-  imageUri?: FoodEntry['imageUri'] | FavoriteFood['imageUri'];
-  thumbnailUri?: FoodEntry['thumbnailUri'] | FavoriteFood['thumbnailUri'];
+  quantityLabel: FoodEntry['quantityLabel'] | RecentFood['quantityLabel'];
+  quantityGrams?: FoodEntry['quantityGrams'] | RecentFood['quantityGrams'];
+  totalCalories: FoodEntry['totalCalories'] | RecentFood['totalCalories'];
+  proteinGrams: FoodEntry['proteinGrams'] | RecentFood['proteinGrams'];
+  carbsGrams: FoodEntry['carbsGrams'] | RecentFood['carbsGrams'];
+  fatGrams: FoodEntry['fatGrams'] | RecentFood['fatGrams'];
+  imageUri?: FoodEntry['imageUri'] | RecentFood['imageUri'];
+  thumbnailUri?: FoodEntry['thumbnailUri'] | RecentFood['thumbnailUri'];
   devSyncBadgeLabel?: string | null;
-  isFavorite: boolean;
+  isRecent: boolean;
 }): HomeMealCardItem {
   return {
     title:
@@ -407,6 +407,6 @@ export function toHomeMealCardItem(item: {
     imageUri: item.imageUri,
     thumbnailUri: item.thumbnailUri,
     devSyncBadgeLabel: item.devSyncBadgeLabel ?? null,
-    isFavorite: item.isFavorite,
+    isRecent: item.isRecent,
   };
 }

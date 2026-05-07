@@ -4,6 +4,12 @@ import { getDatabase } from '@/services/database/sqlite';
 import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
 import type { MealItemRecord, MealRecord } from '../types';
 import { createEntityId, nowIsoString } from '../utils/calorie';
+import {
+  syncMealToCloud,
+  deleteMealFromCloud,
+  syncMealItemToCloud,
+  deleteMealItemFromCloud,
+} from './mealSync';
 import type { PageRequest, PaginatedResult } from './pagination';
 
 interface MealRow {
@@ -649,6 +655,8 @@ export async function createManualMeal(name: string) {
     [mealId, ownerScope.ownerType, ownerScope.deviceLocalId, ownerScope.userId, name, now, now, now]
   );
 
+  void syncMealToCloud(mealId);
+
   return mealId;
 }
 
@@ -664,6 +672,8 @@ export async function renameManualMeal(mealLocalId: string, name: string) {
     `,
     [name, now, mealLocalId]
   );
+
+  void syncMealToCloud(mealLocalId);
 }
 
 export async function deleteManualMeal(mealLocalId: string) {
@@ -673,12 +683,16 @@ export async function deleteManualMeal(mealLocalId: string) {
     await database.runAsync('DELETE FROM meal_items WHERE meal_local_id = ?;', [mealLocalId]);
     await database.runAsync('DELETE FROM meals WHERE local_id = ?;', [mealLocalId]);
   });
+
+  void deleteMealFromCloud(mealLocalId);
 }
 
 export async function createManualMealItem(mealLocalId: string, input: ManualMealItemInput) {
   const database = await getDatabase();
   const ownerScope = await getMealOwnerScope();
   const now = nowIsoString();
+
+  const itemLocalId = createEntityId('meal-item');
 
   await database.runAsync(
     `
@@ -709,7 +723,7 @@ export async function createManualMealItem(mealLocalId: string, input: ManualMea
       VALUES (?, NULL, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL);
     `,
     [
-      createEntityId('meal-item'),
+      itemLocalId,
       mealLocalId,
       ownerScope.ownerType,
       ownerScope.deviceLocalId,
@@ -732,6 +746,8 @@ export async function createManualMealItem(mealLocalId: string, input: ManualMea
   );
 
   await updateMealTotals(mealLocalId);
+
+  void syncMealItemToCloud(itemLocalId);
 }
 
 export async function updateManualMealItem(itemLocalId: string, input: ManualMealItemInput) {
@@ -789,6 +805,8 @@ export async function updateManualMealItem(itemLocalId: string, input: ManualMea
   );
 
   await updateMealTotals(existing.meal_local_id);
+
+  void syncMealItemToCloud(itemLocalId);
 }
 
 export async function deleteManualMealItem(itemLocalId: string) {
@@ -804,4 +822,6 @@ export async function deleteManualMealItem(itemLocalId: string) {
 
   await database.runAsync('DELETE FROM meal_items WHERE local_id = ?;', [itemLocalId]);
   await updateMealTotals(existing.meal_local_id);
+
+  void deleteMealItemFromCloud(itemLocalId);
 }

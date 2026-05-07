@@ -11,6 +11,7 @@ interface AuthUser {
   email: string;
   isAnonymous: boolean;
   lastSignInAt: string | null;
+  createdAt: string | null;
   [key: string]: unknown;
 }
 
@@ -34,7 +35,6 @@ interface AuthState {
 }
 
 let authSubscription: { unsubscribe: () => void } | null = null;
-let networkSubscription: (() => void) | null = null;
 let anonymousSignInPromise: Promise<void> | null = null;
 let isAnonymousAuthUnavailable = false;
 
@@ -59,6 +59,7 @@ function mapAuthUser(user: User | null): AuthUser | null {
     email: user.email ?? '',
     isAnonymous: Boolean(user.is_anonymous),
     lastSignInAt: user.last_sign_in_at ?? null,
+    createdAt: user.created_at ?? null,
   };
 }
 
@@ -173,7 +174,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   clearSession: () => {
     set({ user: null, session: null, isAuthenticated: false });
-    void ensureAnonymousSession(set, get);
   },
 
   initialize: async () => {
@@ -183,7 +183,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     authSubscription?.unsubscribe();
-    networkSubscription?.();
 
     const {
       data: { session },
@@ -199,19 +198,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       applyAuthState(set, session);
     }
 
-    authSubscription = supabase.auth.onAuthStateChange((event, nextSession) => {
+    authSubscription = supabase.auth.onAuthStateChange((_event, nextSession) => {
       applyAuthState(set, nextSession);
-
-      if (!nextSession) {
-        void ensureAnonymousSession(set, get);
-      }
     }).data.subscription;
-
-    networkSubscription = NetInfo.addEventListener((state) => {
-      if (state.isConnected && state.isInternetReachable !== false && !get().session) {
-        void ensureAnonymousSession(set, get);
-      }
-    });
 
     if (!session) {
       await ensureAnonymousSession(set, get);
@@ -223,8 +212,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   cleanup: () => {
     authSubscription?.unsubscribe();
     authSubscription = null;
-    networkSubscription?.();
-    networkSubscription = null;
   },
 }));
 

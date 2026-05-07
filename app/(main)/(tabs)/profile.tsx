@@ -1,12 +1,15 @@
+import { useNetInfo } from '@react-native-community/netinfo';
 import * as Application from 'expo-application';
 import { useRouter } from 'expo-router';
 import * as Updates from 'expo-updates';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, type ViewStyle } from 'react-native';
+import { Pressable, View, type ViewStyle } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import {
+  Avatar,
+  Button,
   Card,
   Icon,
   ListItem,
@@ -15,7 +18,9 @@ import {
   Text,
 } from '@/common/components';
 import type { IconProps } from '@/common/components/Icon';
+import { useSupportPromptVisibility } from '@/features/support/hooks/useSupportPromptVisibility';
 import { useAppAlert } from '@/providers/app-alert';
+import { useAuthStore } from '@/providers/auth/authStore';
 import { setItem, STORAGE_KEYS } from '@/utils/storage';
 
 function getRowIconName(key: string): IconProps['name'] {
@@ -44,13 +49,39 @@ function getRowIconName(key: string): IconProps['name'] {
       return 'shield-checkmark-outline';
     case 'contact':
       return 'mail-outline';
-    case 'logout':
-      return 'log-out-outline';
+    case 'switchAccount':
+      return 'swap-horizontal-outline';
     case 'login':
       return 'log-in-outline';
     default:
       return 'chevron-forward-outline';
   }
+}
+
+function extractInitials(email: string): string {
+  const localPart = email.split('@')[0] ?? '';
+  const cleaned = localPart.replace(/[^a-zA-Z]/g, '');
+  if (cleaned.length === 0) return '??';
+  if (cleaned.length === 1) return cleaned.toUpperCase();
+  return cleaned.slice(0, 2).toUpperCase();
+}
+
+function formatLastSignIn(
+  isoDate: string | null,
+  fallbackLabel: string,
+  templateLabel: string
+): string {
+  if (!isoDate) return fallbackLabel;
+  const date = new Date(isoDate);
+  if (isNaN(date.getTime())) return fallbackLabel;
+  const formatted = date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return templateLabel.replace('{{value}}', formatted);
 }
 
 interface SettingsMenuRowProps {
@@ -115,11 +146,30 @@ export default function ProfileTab() {
   const { t } = useTranslation();
   const router = useRouter();
   const appAlert = useAppAlert();
+  const networkInfo = useNetInfo();
+  const isOffline = !(networkInfo.isConnected && networkInfo.isInternetReachable !== false);
+  const isSupportPromptHidden = useSupportPromptVisibility();
   const [isSupportVisible, setIsSupportVisible] = useState(true);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
   const appVersion = Application.nativeApplicationVersion ?? '1.0.0';
   const patchLabel = '1';
   const versionLabel = `v${appVersion} • ${patchLabel}`;
+
+  const user = useAuthStore((s) => s.user);
+  const isAnonymous = !user || user.isAnonymous;
+
+  const initials = useMemo(() => {
+    if (!user?.email) return '??';
+    return extractInitials(user.email);
+  }, [user?.email]);
+
+  const lastSignInLabel = useMemo(() => {
+    return formatLastSignIn(
+      user?.lastSignInAt ?? null,
+      t('auth.lastSignedInUnknown'),
+      t('auth.lastSignedInAt', { value: '{{value}}' })
+    );
+  }, [user?.lastSignInAt, t]);
 
   useEffect(() => {
     setItem(STORAGE_KEYS.app.lastVersion, versionLabel);
@@ -159,10 +209,75 @@ export default function ProfileTab() {
     }
   }, [appAlert, isCheckingUpdate, t]);
 
+  const handleLogin = useCallback(() => {
+    router.push('/(auth)/login');
+  }, [router]);
+
   return (
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
         <View style={styles.content}>
+          {isOffline ? (
+            <Card variant="elevated" style={styles.offlineBanner}>
+              <View style={styles.offlineBannerContent}>
+                <Icon name="cloud-offline-outline" variant="muted" size={20} />
+                <Text variant="bodySmall" color="secondary" style={styles.offlineBannerText}>
+                  {t('profileScreen.offlineAiMessage')}
+                </Text>
+              </View>
+            </Card>
+          ) : null}
+
+          {isAnonymous ? (
+            <Card variant="elevated" style={styles.accountCard}>
+              <View style={styles.accountCardInner}>
+                <Avatar
+                  size="lg"
+                  icon={<Icon name="person" variant="onBrand" size={28} />}
+                  accessibilityLabel={t('profileScreen.signInPromptTitle')}
+                />
+                <View style={styles.accountCardInfo}>
+                  <Text variant="body" weight="semibold">
+                    {t('profileScreen.signInPromptTitle')}
+                  </Text>
+                  <Text variant="caption" color="secondary">
+                    {t('profileScreen.signInPromptSubtitle')}
+                  </Text>
+                </View>
+              </View>
+              <Button
+                title={t('profileScreen.signInAction')}
+                variant="primary"
+                size="sm"
+                onPress={handleLogin}
+                leftIcon={<Icon name="log-in-outline" variant="onBrand" size={16} />}
+              />
+            </Card>
+          ) : (
+            <Pressable
+              onPress={() => {
+                router.push('/account');
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('profileScreen.account.title')}
+            >
+              <Card variant="elevated" style={styles.accountCard}>
+                <View style={styles.accountCardInner}>
+                  <Avatar size="lg" initials={initials} accessibilityLabel={user?.email ?? ''} />
+                  <View style={styles.accountCardInfo}>
+                    <Text variant="body" weight="semibold" numberOfLines={1}>
+                      {user?.email ?? ''}
+                    </Text>
+                    <Text variant="caption" color="secondary" numberOfLines={1}>
+                      {lastSignInLabel}
+                    </Text>
+                  </View>
+                  <Icon name="chevron-forward-outline" size={18} variant="muted" />
+                </View>
+              </Card>
+            </Pressable>
+          )}
+
           <SettingsGroup>
             <SettingsMenuRow
               title={t('settings.menu.profile')}
@@ -201,17 +316,16 @@ export default function ProfileTab() {
             />
           </SettingsGroup>
 
-          {isSupportVisible ? (
-            <SupportPromptCard
-              message={t('foodDetail.supportMessage')}
-              actionLabel={t('foodDetail.supportAction')}
-              onActionPress={handleSupportPress}
-              dismissible
-              onClosePress={() => {
-                setIsSupportVisible(false);
-              }}
-            />
-          ) : null}
+          <SupportPromptCard
+            message={t('foodDetail.supportMessage')}
+            actionLabel={t('foodDetail.supportAction')}
+            onActionPress={handleSupportPress}
+            dismissible
+            isHidden={isSupportPromptHidden || !isSupportVisible}
+            onClosePress={() => {
+              setIsSupportVisible(false);
+            }}
+          />
 
           <SettingsGroup>
             <SettingsMenuRow
@@ -266,6 +380,33 @@ const styles = StyleSheet.create((theme) => ({
   },
   content: {
     gap: theme.metrics.spacingV.p16,
+  },
+  offlineBanner: {
+    backgroundColor: theme.colors.background.input,
+    paddingVertical: theme.metrics.spacingV.p12,
+    paddingHorizontal: theme.metrics.spacing.p16,
+  },
+  offlineBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
+  },
+  offlineBannerText: {
+    flex: 1,
+  },
+  accountCard: {
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingVertical: theme.metrics.spacingV.p16,
+    gap: theme.metrics.spacingV.p16,
+  },
+  accountCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p16,
+  },
+  accountCardInfo: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
   },
   groupCard: {
     padding: 0,

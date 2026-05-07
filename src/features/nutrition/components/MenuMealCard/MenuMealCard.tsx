@@ -37,7 +37,7 @@ function toHomeMenuItem(item: ManualMealItem) {
     imageUri: item.imageUri,
     thumbnailUri: item.thumbnailUri,
     devSyncBadgeLabel: null,
-    isFavorite: false,
+    isRecent: false,
   };
 }
 

@@ -452,6 +452,7 @@ export default function HomeTab() {
       listFoodEntriesByDate(date),
       syncGoalTracking(),
     ]);
+
     const syncStateMap = await getFoodEntryImageSyncStateMap(nextEntries.map((entry) => entry.id));
     const entriesWithSyncDebug = nextEntries.map((entry) => ({
       ...entry,

@@ -11,6 +11,7 @@ import { syncCurrentUserLeaderboardProfile } from '@/features/leaderboard/servic
 import { GENDER_KEYS, MONTHLY_WEIGHT_GOAL_OPTIONS } from '@/features/nutrition/constants';
 import { syncActiveGoalToProfile } from '@/features/nutrition/services/goalTrackingService';
 import { getUserProfile, upsertUserProfile } from '@/features/nutrition/services/nutritionDatabase';
+import { syncUserProfileToCloud } from '@/features/nutrition/services/nutritionDeltaSync';
 import type { ActivityLevel, Gender } from '@/features/nutrition/types';
 import {
   calculateBmi,
@@ -265,6 +266,15 @@ export default function WelcomeScreen() {
     if (profile) {
       await syncActiveGoalToProfile(profile);
       await syncCurrentUserLeaderboardProfile(profile, 0, 0);
+      void syncUserProfileToCloud({
+        displayName: form.displayName.trim() || 'Guest',
+        gender: form.gender,
+        age: parseProfileNumber(form.age) ?? 0,
+        heightCm: parseProfileNumber(form.height) ?? 0,
+        weightKg: parseProfileNumber(form.weight) ?? 0,
+        monthlyWeightGoalKg: form.monthlyWeightGoalKg,
+        activityLevel: form.activityLevel,
+      });
     }
 
     setIsSaving(false);

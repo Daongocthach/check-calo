@@ -30,22 +30,23 @@ import {
 } from '@/features/nutrition/services/manualMealsDatabase';
 import {
   createFoodEntry,
-  getFavoriteFoodById,
+  getRecentFoodById,
   getFoodEntryById,
-  upsertFavoriteFoodFromInput,
-  updateFavoriteFood,
+  upsertRecentFoodFromInput,
+  updateRecentFood,
   updateFoodEntry,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
 import { formatMealWeight } from '@/features/nutrition/utils/quantity';
+import { useSupportPromptVisibility } from '@/features/support/hooks/useSupportPromptVisibility';
 import { toast } from '@/utils/toast';
 
-type FoodDetailSource = 'ai' | 'barcode' | 'entry' | 'favorite' | 'manual';
+type FoodDetailSource = 'ai' | 'barcode' | 'entry' | 'recent' | 'manual';
 
 interface FoodDetailSearchParams {
   source?: FoodDetailSource;
   entryId?: string;
-  favoriteId?: string;
+  recentId?: string;
   mealLocalId?: string;
   itemLocalId?: string;
   foodName?: string;
@@ -225,8 +226,8 @@ function resolveSource(params: FoodDetailSearchParams): FoodDetailSource {
     return 'entry';
   }
 
-  if (typeof params.favoriteId === 'string' && params.favoriteId.length > 0) {
-    return 'favorite';
+  if (typeof params.recentId === 'string' && params.recentId.length > 0) {
+    return 'recent';
   }
 
   if (
@@ -276,8 +277,8 @@ function getSourceLabel(source: FoodDetailSource, t: TFunction) {
       return t('foodDetail.sourceLabels.barcode');
     case 'entry':
       return t('foodDetail.sourceLabels.entry');
-    case 'favorite':
-      return t('foodDetail.sourceLabels.favorite');
+    case 'recent':
+      return t('foodDetail.sourceLabels.recent');
     case 'manual':
       return t('foodDetail.sourceLabels.manual');
   }
@@ -325,6 +326,7 @@ function toEditState(detail: FoodDetailData): FoodDetailEditState {
 
 export default function FoodDetailScreen() {
   const { t, i18n } = useTranslation();
+  const isSupportPromptHidden = useSupportPromptVisibility();
   const { theme } = useUnistyles();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
@@ -360,21 +362,21 @@ export default function FoodDetailScreen() {
       typedParams.source === 'ai' ||
       typedParams.source === 'barcode' ||
       typedParams.source === 'entry' ||
-      typedParams.source === 'favorite' ||
+      typedParams.source === 'recent' ||
       typedParams.source === 'manual'
         ? typedParams.source
         : undefined,
     entryId: typedParams.entryId,
-    favoriteId: typedParams.favoriteId,
+    recentId: typedParams.recentId,
     mealLocalId: typedParams.mealLocalId,
     itemLocalId: typedParams.itemLocalId,
   });
   const entryId = typedParams.entryId ?? '';
-  const favoriteId = typedParams.favoriteId ?? '';
+  const recentId = typedParams.recentId ?? '';
   const mealLocalId = typedParams.mealLocalId ?? '';
   const itemLocalId = typedParams.itemLocalId ?? '';
   const isRecentFoodFlow = typedParams.context === 'recentFood';
-  const shouldReuseFavorite = isRecentFoodFlow && favoriteId.length > 0;
+  const shouldReuseRecent = isRecentFoodFlow && recentId.length > 0;
 
   useEffect(() => {
     let active = true;
@@ -408,27 +410,27 @@ export default function FoodDetailScreen() {
             });
             return;
           }
-        } else if (favoriteId) {
-          const favorite = await getFavoriteFoodById(favoriteId);
+        } else if (recentId) {
+          const recent = await getRecentFoodById(recentId);
 
-          if (favorite && active) {
+          if (recent && active) {
             setDetail({
-              source: 'favorite',
-              barcode: favorite.barcode ?? null,
-              title: favorite.name,
+              source: 'recent',
+              barcode: recent.barcode ?? null,
+              title: recent.name,
               quantityLabel: formatMealWeight(
-                favorite.quantityGrams,
-                favorite.quantityLabel,
+                recent.quantityGrams,
+                recent.quantityLabel,
                 t('common.units.gram')
               ),
-              quantityGrams: favorite.quantityGrams ?? null,
-              calories: Math.round(favorite.totalCalories),
-              proteinGrams: Math.round(favorite.proteinGrams),
-              carbsGrams: Math.round(favorite.carbsGrams),
-              fatGrams: Math.round(favorite.fatGrams),
-              notes: favorite.notes,
-              imageUri: favorite.imageUri ?? null,
-              thumbnailUri: favorite.thumbnailUri ?? null,
+              quantityGrams: recent.quantityGrams ?? null,
+              calories: Math.round(recent.totalCalories),
+              proteinGrams: Math.round(recent.proteinGrams),
+              carbsGrams: Math.round(recent.carbsGrams),
+              fatGrams: Math.round(recent.fatGrams),
+              notes: recent.notes,
+              imageUri: recent.imageUri ?? null,
+              thumbnailUri: recent.thumbnailUri ?? null,
               consumedAt: new Date().toISOString(),
             });
             return;
@@ -505,7 +507,7 @@ export default function FoodDetailScreen() {
     };
   }, [
     entryId,
-    favoriteId,
+    recentId,
     itemLocalId,
     mealLocalId,
     typedParams.calories,
@@ -527,10 +529,10 @@ export default function FoodDetailScreen() {
   const sourceLabel = detail ? getSourceLabel(detail.source, t) : '';
   const canPreviewQuantity = detail
     ? !isRecentFoodFlow &&
-      (detail.source === 'ai' || detail.source === 'barcode' || detail.source === 'favorite')
+      (detail.source === 'ai' || detail.source === 'barcode' || detail.source === 'recent')
     : false;
   const showSaveAction = detail
-    ? detail.source === 'ai' || detail.source === 'barcode' || detail.source === 'favorite'
+    ? detail.source === 'ai' || detail.source === 'barcode' || detail.source === 'recent'
     : false;
   const showEditAction = detail ? detail.source !== 'barcode' : false;
   const quantityMultiplier = canPreviewQuantity ? servings : 1;
@@ -713,8 +715,8 @@ export default function FoodDetailScreen() {
       return;
     }
 
-    if (detail.source === 'favorite' && typeof params.favoriteId === 'string') {
-      const updatedFavorite = await updateFavoriteFood(params.favoriteId, {
+    if (detail.source === 'recent' && typeof params.recentId === 'string') {
+      const updatedRecent = await updateRecentFood(params.recentId, {
         name: title,
         barcode: detail.barcode,
         quantityLabel,
@@ -728,36 +730,36 @@ export default function FoodDetailScreen() {
         thumbnailUri: detail.thumbnailUri,
       });
 
-      if (updatedFavorite) {
-        if (updatedFavorite.barcode) {
+      if (updatedRecent) {
+        if (updatedRecent.barcode) {
           await upsertFoodProductCatalog({
-            barcode: updatedFavorite.barcode,
-            name: updatedFavorite.name,
-            quantityLabel: updatedFavorite.quantityLabel,
-            quantityGrams: updatedFavorite.quantityGrams,
-            totalCalories: updatedFavorite.totalCalories,
-            proteinGrams: updatedFavorite.proteinGrams,
-            carbsGrams: updatedFavorite.carbsGrams,
-            fatGrams: updatedFavorite.fatGrams,
-            notes: updatedFavorite.notes,
-            imageUri: updatedFavorite.imageUri,
+            barcode: updatedRecent.barcode,
+            name: updatedRecent.name,
+            quantityLabel: updatedRecent.quantityLabel,
+            quantityGrams: updatedRecent.quantityGrams,
+            totalCalories: updatedRecent.totalCalories,
+            proteinGrams: updatedRecent.proteinGrams,
+            carbsGrams: updatedRecent.carbsGrams,
+            fatGrams: updatedRecent.fatGrams,
+            notes: updatedRecent.notes,
+            imageUri: updatedRecent.imageUri,
             source: 'user',
           });
         }
 
         setDetail({
-          source: 'favorite',
-          barcode: updatedFavorite.barcode ?? null,
-          title: updatedFavorite.name,
-          quantityLabel: updatedFavorite.quantityLabel,
-          quantityGrams: updatedFavorite.quantityGrams,
-          calories: Math.round(updatedFavorite.totalCalories),
-          proteinGrams: Math.round(updatedFavorite.proteinGrams),
-          carbsGrams: Math.round(updatedFavorite.carbsGrams),
-          fatGrams: Math.round(updatedFavorite.fatGrams),
-          notes: updatedFavorite.notes,
-          imageUri: updatedFavorite.imageUri ?? null,
-          thumbnailUri: updatedFavorite.thumbnailUri ?? null,
+          source: 'recent',
+          barcode: updatedRecent.barcode ?? null,
+          title: updatedRecent.name,
+          quantityLabel: updatedRecent.quantityLabel,
+          quantityGrams: updatedRecent.quantityGrams,
+          calories: Math.round(updatedRecent.totalCalories),
+          proteinGrams: Math.round(updatedRecent.proteinGrams),
+          carbsGrams: Math.round(updatedRecent.carbsGrams),
+          fatGrams: Math.round(updatedRecent.fatGrams),
+          notes: updatedRecent.notes,
+          imageUri: updatedRecent.imageUri ?? null,
+          thumbnailUri: updatedRecent.thumbnailUri ?? null,
           consumedAt: consumedAt.toISOString(),
         });
       }
@@ -782,7 +784,7 @@ export default function FoodDetailScreen() {
         : previous
     );
     closeEditDialog();
-  }, [closeEditDialog, detail, editDialog, params.entryId, params.favoriteId, t]);
+  }, [closeEditDialog, detail, editDialog, params.entryId, params.recentId, t]);
 
   const handleSavePress = useCallback(async () => {
     if (!detail || isSaving) {
@@ -810,9 +812,9 @@ export default function FoodDetailScreen() {
         consumedAt: detail.consumedAt ?? new Date().toISOString(),
       };
 
-      const syncedFavorite = shouldReuseFavorite
-        ? await getFavoriteFoodById(favoriteId)
-        : await upsertFavoriteFoodFromInput({
+      const syncedRecent = shouldReuseRecent
+        ? await getRecentFoodById(recentId)
+        : await upsertRecentFoodFromInput({
             name: savedFood.mealName,
             barcode: savedFood.barcode,
             quantityLabel: savedFood.quantityLabel,
@@ -826,18 +828,18 @@ export default function FoodDetailScreen() {
             thumbnailUri: savedFood.thumbnailUri,
           });
 
-      if (!shouldReuseFavorite && savedFood.barcode && syncedFavorite) {
+      if (!shouldReuseRecent && savedFood.barcode && syncedRecent) {
         await upsertFoodProductCatalog({
           barcode: savedFood.barcode,
-          name: syncedFavorite.name,
-          quantityLabel: syncedFavorite.quantityLabel,
-          quantityGrams: syncedFavorite.quantityGrams,
-          totalCalories: syncedFavorite.totalCalories,
-          proteinGrams: syncedFavorite.proteinGrams,
-          carbsGrams: syncedFavorite.carbsGrams,
-          fatGrams: syncedFavorite.fatGrams,
-          notes: syncedFavorite.notes,
-          imageUri: syncedFavorite.imageUri,
+          name: syncedRecent.name,
+          quantityLabel: syncedRecent.quantityLabel,
+          quantityGrams: syncedRecent.quantityGrams,
+          totalCalories: syncedRecent.totalCalories,
+          proteinGrams: syncedRecent.proteinGrams,
+          carbsGrams: syncedRecent.carbsGrams,
+          fatGrams: syncedRecent.fatGrams,
+          notes: syncedRecent.notes,
+          imageUri: syncedRecent.imageUri,
           source: 'user',
         });
       }
@@ -849,12 +851,12 @@ export default function FoodDetailScreen() {
       }
 
       if (mealLocalId && !itemLocalId) {
-        let sourceKey: string | null = shouldReuseFavorite ? `favorite:${favoriteId}` : null;
+        let sourceKey: string | null = shouldReuseRecent ? `recent:${recentId}` : null;
 
         if (!sourceKey && savedFood.barcode) {
           sourceKey = `barcode:${savedFood.barcode}`;
-        } else if (!sourceKey && syncedFavorite) {
-          sourceKey = `favorite:${syncedFavorite.id}`;
+        } else if (!sourceKey && syncedRecent) {
+          sourceKey = `recent:${syncedRecent.id}`;
         }
 
         await createManualMealItem(mealLocalId, {
@@ -897,12 +899,12 @@ export default function FoodDetailScreen() {
     displayFatGrams,
     displayProteinGrams,
     displayQuantityGrams,
-    favoriteId,
+    recentId,
     isSaving,
     isRecentFoodFlow,
     itemLocalId,
     mealLocalId,
-    shouldReuseFavorite,
+    shouldReuseRecent,
     markFoodEntriesChanged,
     t,
   ]);
@@ -1086,6 +1088,7 @@ export default function FoodDetailScreen() {
             message={t('foodDetail.supportMessage')}
             actionLabel={t('foodDetail.supportAction')}
             onActionPress={handleSupportPress}
+            isHidden={isSupportPromptHidden}
           />
         </ScrollView>
 

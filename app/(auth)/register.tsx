@@ -3,9 +3,11 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Input, ScreenContainer, Text } from '@/common/components';
 import { register } from '@/features/auth/services/authService';
+import { useResponsiveKeyboardLayout, useScreenDimensions } from '@/hooks';
 import { toast } from '@/utils/toast';
 import AppLogo from '../../assets/splash-icon-light.png';
 
@@ -13,6 +15,19 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
+  const { height } = useScreenDimensions();
+  const { theme } = useUnistyles();
+  const isCompactHeight = height < 700;
+  const { keyboardBottomOffset, footerBottomPadding: _footerBottomPadding } =
+    useResponsiveKeyboardLayout({
+      compactHeightThreshold: 700,
+      compactKeyboardBottomOffset: theme.metrics.spacingV.p32,
+      regularKeyboardBottomOffset: theme.metrics.spacingV.p24,
+      compactKeyboardOpenedOffset: theme.metrics.spacingV.p20,
+      regularKeyboardOpenedOffset: theme.metrics.spacingV.p32,
+      compactFooterPadding: theme.metrics.spacingV.p12,
+      regularFooterPadding: theme.metrics.spacingV.p16,
+    });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -56,72 +71,97 @@ export default function RegisterScreen() {
   };
 
   return (
-    <ScreenContainer scrollable padded edges={['bottom']}>
-      <View style={styles.screen}>
-        <View style={styles.heroSection}>
-          <Image source={AppLogo} style={styles.heroLogo} contentFit="contain" />
-          <View style={styles.heroCopy}>
-            <Text variant="body" weight="bold" align="center">
-              {t('auth.registerTitle')}
-            </Text>
-            <Text variant="body" color="secondary" align="center">
-              {t('auth.registerSubtitle')}
-            </Text>
+    <ScreenContainer padded={false} edges={[]}>
+      <View style={styles.layout}>
+        <KeyboardAwareScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            isCompactHeight && styles.scrollContentCompact,
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bottomOffset={keyboardBottomOffset}
+        >
+          <View style={[styles.screen, isCompactHeight && styles.screenCompact]}>
+            <View style={styles.heroSection}>
+              <Image source={AppLogo} style={styles.heroLogo} contentFit="contain" />
+              <View style={styles.heroCopy}>
+                <Text variant="body" weight="bold" align="center">
+                  {t('auth.registerTitle')}
+                </Text>
+                <Text variant="body" color="secondary" align="center">
+                  {t('auth.registerSubtitle')}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.form}>
+              <Input
+                label={t('auth.email')}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                accessibilityLabel={t('auth.email')}
+                placeholder={t('auth.emailPlaceholder')}
+              />
+
+              <Input
+                label={t('auth.password')}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="newPassword"
+                accessibilityLabel={t('auth.password')}
+                placeholder={t('auth.passwordPlaceholder')}
+              />
+
+              <Input
+                label={t('auth.confirmPassword')}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="newPassword"
+                accessibilityLabel={t('auth.confirmPassword')}
+                placeholder={t('auth.confirmPasswordPlaceholder')}
+              />
+
+              <Button
+                title={t('auth.registerAction')}
+                loading={isSubmitting}
+                disabled={isSubmitting}
+                onPress={handleSubmit}
+              />
+            </View>
           </View>
-        </View>
-
-        <View style={styles.form}>
-          <Input
-            label={t('auth.email')}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            accessibilityLabel={t('auth.email')}
-            placeholder={t('auth.emailPlaceholder')}
-          />
-
-          <Input
-            label={t('auth.password')}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-            textContentType="newPassword"
-            accessibilityLabel={t('auth.password')}
-            placeholder={t('auth.passwordPlaceholder')}
-          />
-
-          <Input
-            label={t('auth.confirmPassword')}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-            textContentType="newPassword"
-            accessibilityLabel={t('auth.confirmPassword')}
-            placeholder={t('auth.confirmPasswordPlaceholder')}
-          />
-
-          <Button
-            title={t('auth.registerAction')}
-            loading={isSubmitting}
-            disabled={isSubmitting}
-            onPress={handleSubmit}
-          />
-        </View>
+        </KeyboardAwareScrollView>
       </View>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
+  layout: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingBottom: theme.metrics.spacingV.p120,
+  },
+  scrollContentCompact: {
+    paddingBottom: theme.metrics.spacingV.p88,
+  },
   screen: {
     gap: theme.metrics.spacingV.p20,
+  },
+  screenCompact: {
+    gap: theme.metrics.spacingV.p12,
   },
   heroSection: {
     gap: theme.metrics.spacingV.p16,

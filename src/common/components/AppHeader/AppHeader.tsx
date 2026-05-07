@@ -115,7 +115,7 @@ export function AppHeader() {
     if (pathname === '/stats') return t('tabs.stats');
     if (pathname === '/add') return t('tabs.add');
     if (pathname === '/menu') return t('tabs.menu');
-    if (pathname === '/recently-food') return t('tabs.favorites');
+    if (pathname === '/recently-food') return t('tabs.recents');
     if (pathname === '/profile') return t('tabs.profile');
     if (pathname === '/support') return t('supportScreen.title');
     if (pathname === '/goal-history') return t('goalTracking.history.title');

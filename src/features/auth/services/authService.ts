@@ -1,7 +1,18 @@
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { env } from '@/config/env';
-import { resetLocalNutritionData } from '@/features/nutrition/services/nutritionLocalReset';
+import {
+  syncFoodEntriesDeltaFromSupabase,
+  syncUserProfileFromCloud,
+  syncRecentFoodsDeltaFromSupabase,
+  syncMealsDeltaFromSupabase,
+  syncMealItemsDeltaFromSupabase,
+} from '@/features/nutrition/services/nutritionDeltaSync';
+import {
+  resetLocalNutritionData,
+  resetLocalNutritionDataForLogin,
+} from '@/features/nutrition/services/nutritionLocalReset';
+import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
 import { supabase } from '@/integrations/supabase';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { STORAGE_KEYS, removeItem, setItem } from '@/utils/storage';
@@ -40,7 +51,7 @@ function extractAuthCode(callbackUrl: string) {
   return typeof rawCode === 'string' ? rawCode : null;
 }
 
-export async function login(params: LoginParams) {
+export async function loginAuthenticate(params: LoginParams) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: params.email.trim(),
     password: params.password,
@@ -54,17 +65,64 @@ export async function login(params: LoginParams) {
   return data;
 }
 
+export async function loginSyncCloudData() {
+  // Cloud is source of truth: wipe local nutrition data, then pull from cloud.
+  // Uses login-safe reset that preserves the session token in MMKV.
+  await resetLocalNutritionDataForLogin();
+
+  removeItem(STORAGE_KEYS.app.nutritionDeltaFoodEntriesCursor);
+  removeItem(STORAGE_KEYS.app.nutritionDeltaRecentFoodsCursor);
+  removeItem(STORAGE_KEYS.app.nutritionDeltaMealsCursor);
+  removeItem(STORAGE_KEYS.app.nutritionDeltaMealItemsCursor);
+
+  await syncUserProfileFromCloud();
+  await syncFoodEntriesDeltaFromSupabase();
+  await syncRecentFoodsDeltaFromSupabase();
+  await syncMealsDeltaFromSupabase();
+  await syncMealItemsDeltaFromSupabase();
+  useFoodEntryRefreshStore.getState().markFoodEntriesChanged();
+  useFoodEntryRefreshStore.getState().markMenuMealsChanged();
+  useFoodEntryRefreshStore.getState().markRecentFoodsChanged();
+}
+
+export async function login(params: LoginParams) {
+  const data = await loginAuthenticate(params);
+  await loginSyncCloudData();
+  return data;
+}
+
 export async function register(params: RegisterParams) {
-  if (params.username) {
-    await supabase.auth.updateUser({ data: { username: params.username } });
+  const user = useAuthStore.getState().user;
+
+  // If already in an anonymous session, upgrade it in place (preserves user_id)
+  if (user?.isAnonymous) {
+    const result = await linkAnonymousAccountWithEmail({
+      email: params.email,
+      password: params.password,
+    });
+
+    if (params.username) {
+      await supabase.auth.updateUser({ data: { username: params.username } });
+    }
+
+    return result;
   }
 
-  const result = await linkAnonymousAccountWithEmail({
-    email: params.email,
+  // No session or non-anonymous: create a brand-new account
+  const { data, error } = await supabase.auth.signUp({
+    email: params.email.trim().toLowerCase(),
     password: params.password,
+    options: {
+      data: params.username ? { username: params.username } : undefined,
+    },
   });
 
-  return result;
+  if (error) {
+    throw error;
+  }
+
+  setItem(STORAGE_KEYS.auth.lastEmail, params.email.trim().toLowerCase());
+  return data;
 }
 
 export async function sendPasswordResetEmail(params: ResetPasswordParams) {
@@ -93,6 +151,11 @@ export async function logout() {
   if (error) {
     throw error;
   }
+
+  // Clear session and anonymous flag, then create a fresh anonymous session
+  useAuthStore.getState().clearSession();
+  removeItem(STORAGE_KEYS.auth.anonymousSessionAttempted);
+  await useAuthStore.getState().initialize();
 }
 
 export async function getSession() {

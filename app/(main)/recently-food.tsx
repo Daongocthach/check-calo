@@ -8,11 +8,12 @@ import { EmptyState, Icon, Loading, ScreenContainer, SearchBar, Text } from '@/c
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
 import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import {
-  deleteFavoriteFood,
-  listFavoriteFoodsPage,
+  deleteRecentFood,
+  listRecentFoodsPage,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
-import type { FavoriteFood } from '@/features/nutrition/types';
+import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
+import type { RecentFood } from '@/features/nutrition/types';
 import { useAppAlert } from '@/providers/app-alert';
 
 const RECENTLY_FOOD_PAGE_SIZE = 20;
@@ -33,15 +34,15 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
   return debouncedValue;
 }
 
-export default function FavoritesTab() {
+export default function RecentsTab() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
-  const addNewFoodLabel = t('favoritesScreen.addNewFoodAction');
+  const addNewFoodLabel = t('recentsScreen.addNewFoodAction');
   const appAlert = useAppAlert();
   const loadGenerationRef = useRef(0);
   const didMountRef = useRef(false);
   const previousSearchRef = useRef('');
-  const [items, setItems] = useState<FavoriteFood[]>([]);
+  const [items, setItems] = useState<RecentFood[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -49,11 +50,14 @@ export default function FavoritesTab() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const requestAddMealSourceSheet = useAddMealSourceSheetStore((state) => state.requestOpen);
+  const recentFoodsRefreshRevision = useFoodEntryRefreshStore(
+    (state) => state.recentFoodsRefreshRevision
+  );
 
   const debouncedSearchValue = useDebouncedValue(searchValue, 250);
   const normalizedSearchValue = debouncedSearchValue.trim();
 
-  const loadFavorites = useCallback(
+  const loadRecents = useCallback(
     async (requestedPage: number, append: boolean) => {
       const generation = ++loadGenerationRef.current;
 
@@ -70,17 +74,17 @@ export default function FavoritesTab() {
           searchQuery: normalizedSearchValue.length > 0 ? normalizedSearchValue : undefined,
         };
 
-        const nextFavorites = await listFavoriteFoodsPage(queryRequest);
+        const nextRecents = await listRecentFoodsPage(queryRequest);
 
         if (generation !== loadGenerationRef.current) {
           return;
         }
 
         setItems((currentItems) =>
-          append ? [...currentItems, ...nextFavorites.items] : nextFavorites.items
+          append ? [...currentItems, ...nextRecents.items] : nextRecents.items
         );
         setPage(requestedPage);
-        setHasNextPage(nextFavorites.hasNextPage);
+        setHasNextPage(nextRecents.hasNextPage);
       } finally {
         if (generation === loadGenerationRef.current) {
           setIsLoading(false);
@@ -91,27 +95,33 @@ export default function FavoritesTab() {
     [normalizedSearchValue]
   );
 
-  const refreshFavorites = useCallback(() => {
+  const refreshRecents = useCallback(() => {
     setItems([]);
     setPage(1);
     setHasNextPage(false);
-    void loadFavorites(1, false);
-  }, [loadFavorites]);
+    void loadRecents(1, false);
+  }, [loadRecents]);
 
   useEffect(() => {
     if (didMountRef.current) {
-      refreshFavorites();
+      refreshRecents();
       return;
     }
 
     didMountRef.current = true;
-  }, [refreshFavorites]);
+  }, [refreshRecents]);
 
   useFocusEffect(
     useCallback(() => {
-      refreshFavorites();
-    }, [refreshFavorites])
+      refreshRecents();
+    }, [refreshRecents])
   );
+
+  useEffect(() => {
+    if (recentFoodsRefreshRevision > 0) {
+      refreshRecents();
+    }
+  }, [recentFoodsRefreshRevision, refreshRecents]);
 
   useEffect(() => {
     if (previousSearchRef.current === normalizedSearchValue) {
@@ -119,13 +129,13 @@ export default function FavoritesTab() {
     }
 
     previousSearchRef.current = normalizedSearchValue;
-    refreshFavorites();
-  }, [normalizedSearchValue, refreshFavorites]);
+    refreshRecents();
+  }, [normalizedSearchValue, refreshRecents]);
 
-  const handleRemoveFavorite = (favorite: FavoriteFood) => {
+  const handleRemoveRecent = (recent: RecentFood) => {
     appAlert.alert(
-      t('favoritesScreen.removeTitle'),
-      t('favoritesScreen.removeMessage', { mealName: favorite.name }),
+      t('recentsScreen.removeTitle'),
+      t('recentsScreen.removeMessage', { mealName: recent.name }),
       [
         {
           text: t('common.cancel'),
@@ -135,9 +145,9 @@ export default function FavoritesTab() {
           text: t('common.confirm'),
           style: 'destructive',
           onPress: () => {
-            void deleteFavoriteFood(favorite.id).then(async () => {
-              await deleteOrphanedFoodEntryAssets(favorite.imageUri, favorite.thumbnailUri);
-              refreshFavorites();
+            void deleteRecentFood(recent.id).then(async () => {
+              await deleteOrphanedFoodEntryAssets(recent.imageUri, recent.thumbnailUri);
+              refreshRecents();
             });
           },
         },
@@ -145,13 +155,13 @@ export default function FavoritesTab() {
     );
   };
 
-  const loadMoreFavorites = useCallback(() => {
+  const loadMoreRecents = useCallback(() => {
     if (isLoading || isLoadingMore || !hasNextPage) {
       return;
     }
 
-    void loadFavorites(page + 1, true);
-  }, [hasNextPage, isLoading, isLoadingMore, loadFavorites, page]);
+    void loadRecents(page + 1, true);
+  }, [hasNextPage, isLoading, isLoadingMore, loadRecents, page]);
 
   const isFilteredEmpty = !isLoading && items.length === 0 && normalizedSearchValue.length > 0;
   let emptyStateContent: ReactElement | null = null;
@@ -161,15 +171,15 @@ export default function FavoritesTab() {
   } else if (isFilteredEmpty) {
     emptyStateContent = (
       <EmptyState
-        title={t('favoritesScreen.filteredEmptyTitle')}
-        message={t('favoritesScreen.filteredEmptySubtitle')}
+        title={t('recentsScreen.filteredEmptyTitle')}
+        message={t('recentsScreen.filteredEmptySubtitle')}
       />
     );
   } else {
     emptyStateContent = (
       <EmptyState
-        title={t('favoritesScreen.emptyTitle')}
-        message={t('favoritesScreen.emptySubtitle')}
+        title={t('recentsScreen.emptyTitle')}
+        message={t('recentsScreen.emptySubtitle')}
       />
     );
   }
@@ -192,13 +202,13 @@ export default function FavoritesTab() {
             <HomeMealCard.Root
               item={toHomeMealCardItem({
                 ...item,
-                isFavorite: true,
+                isRecent: true,
               })}
               onPress={() =>
                 router.push({
                   pathname: '/food-detail',
                   params: {
-                    favoriteId: item.id,
+                    recentId: item.id,
                   },
                 })
               }
@@ -213,7 +223,7 @@ export default function FavoritesTab() {
                       router.push({
                         pathname: '/food-form',
                         params: {
-                          favoriteId: item.id,
+                          recentId: item.id,
                         },
                       })
                     }
@@ -223,7 +233,7 @@ export default function FavoritesTab() {
                     label={t('common.delete')}
                     tone="danger"
                     onPress={() => {
-                      handleRemoveFavorite(item);
+                      handleRemoveRecent(item);
                     }}
                   />
                 </HomeMealCard.Header>
@@ -237,7 +247,7 @@ export default function FavoritesTab() {
                 <SearchBar
                   value={searchValue}
                   onChangeText={setSearchValue}
-                  placeholder={t('favoritesScreen.searchPlaceholder')}
+                  placeholder={t('recentsScreen.searchPlaceholder')}
                   autoFocus
                 />
               ) : (
@@ -256,7 +266,7 @@ export default function FavoritesTab() {
             </View>
           }
           ListEmptyComponent={emptyStateContent}
-          onEndReached={loadMoreFavorites}
+          onEndReached={loadMoreRecents}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             isLoadingMore ? (

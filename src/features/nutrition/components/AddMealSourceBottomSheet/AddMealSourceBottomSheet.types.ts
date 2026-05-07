@@ -3,6 +3,6 @@ export interface AddMealSourceBottomSheetProps {
   onPhotoPress: () => void;
   onLibraryPress: () => void;
   onBarcodePress: () => void;
-  onRecentFoodPress: (favoriteId: string) => void;
+  onRecentFoodPress: (recentId: string) => void;
   onViewAllRecentPress: () => void;
 }

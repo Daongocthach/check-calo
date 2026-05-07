@@ -44,7 +44,7 @@
     "stats": "Thống kê",
     "add": "Thêm",
     "menu": "Thực đơn",
-    "favorites": "Món gần đây",
+    "recents": "Món gần đây",
     "profile": "Hồ sơ",
     "showcase": "Trình diễn",
     "settings": "Cài đặt"
@@ -263,7 +263,7 @@
     "searchLabel": "Tìm trong thư viện",
     "searchPlaceholder": "Nhập tên món",
     "emptyLibrary": "Không tìm thấy món nào trong thư viện.",
-    "favoriteMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}"
+    "recentMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}"
   },
   "language": {
     "label": "Ngôn ngữ",
@@ -352,7 +352,7 @@
       "ai": "AI",
       "barcode": "Mã vạch",
       "entry": "Đã lưu",
-      "favorite": "Đã lưu",
+      "recent": "Đã lưu",
       "manual": "Thủ công"
     },
     "saveAction": "Thêm vào nhật ký",
@@ -444,8 +444,8 @@
       "addFood": "Thêm món",
       "review": "Nhận xét",
       "detailComposition": "Xem thành phần",
-      "addFavorite": "Thêm vào thư viện món",
-      "removeFavorite": "Xóa khỏi thư viện món",
+      "addRecent": "Thêm vào thư viện món",
+      "removeRecent": "Xóa khỏi thư viện món",
       "deleteTitle": "Xóa món ăn",
       "deleteMessage": "Xóa \"{{name}}\" khỏi bữa ăn hôm nay?",
       "emptyTitle": "Chưa có món ăn nào",
@@ -572,9 +572,9 @@
     "emptyTitle": "Chưa có món nào trong bữa này",
     "emptySubtitle": "Nhập tay, chụp ảnh hoặc quét barcode để thêm món nhanh hơn.",
     "addFoodTitle": "Thêm món ăn",
-    "favoriteFoodsTitle": "Thư viện món",
-    "favoriteFoodsSubtitle": "Chọn nhanh món đã tạo và thêm thẳng vào bữa hiện tại.",
-    "favoriteFoodsAction": "Chọn từ thư viện món",
+    "recentFoodsTitle": "Thư viện món",
+    "recentFoodsSubtitle": "Chọn nhanh món đã tạo và thêm thẳng vào bữa hiện tại.",
+    "recentFoodsAction": "Chọn từ thư viện món",
     "manageLibraryAction": "Quản lý thư viện món ăn",
     "menuToday": {
       "title": "Theo thực đơn hôm nay",
@@ -588,9 +588,9 @@
       "loggedSuccess": "Đã lưu {{mealName}}.",
       "saveFailed": "Không thể lưu bữa ăn. Vui lòng thử lại."
     },
-    "favoriteSearchPlaceholder": "Tìm món trong thư viện...",
-    "favoriteEmptyTitle": "Không tìm thấy món phù hợp",
-    "favoriteEmptySubtitle": "Thử từ khóa khác hoặc tạo thêm món mới trong thư viện.",
+    "recentSearchPlaceholder": "Tìm món trong thư viện...",
+    "recentEmptyTitle": "Không tìm thấy món phù hợp",
+    "recentEmptySubtitle": "Thử từ khóa khác hoặc tạo thêm món mới trong thư viện.",
     "saveMeal": "Lưu bữa ăn",
     "saveSuccess": "Đã lưu bữa ăn vào nhật ký hôm nay.",
     "saveError": "Không thể lưu bữa ăn. Vui lòng thử lại.",
@@ -725,8 +725,8 @@
     "photoHint": "Chạm vào khung ảnh để chụp hoặc thay đổi ảnh món ăn.",
     "openImageViewer": "Mở ảnh món ăn toàn màn hình",
     "closeImageViewer": "Đóng ảnh món ăn toàn màn hình",
-    "favoriteSectionTitle": "Chọn nhanh từ yêu thích",
-    "favoriteSectionHint": "Chạm để nạp dữ liệu lên form, giữ lâu để lưu thẳng vào hôm nay.",
+    "recentSectionTitle": "Chọn nhanh từ yêu thích",
+    "recentSectionHint": "Chạm để nạp dữ liệu lên form, giữ lâu để lưu thẳng vào hôm nay.",
     "fields": {
       "foodName": "Tên món ăn",
       "quantity": "Khối lượng món ăn (g)",
@@ -747,13 +747,13 @@
       "notes": "Ví dụ: ít sốt, thêm rau"
     }
   },
-  "favoritesScreen": {
+  "recentsScreen": {
     "title": "Món gần đây",
     "subtitle": "Những món bạn đã tạo để dùng lại nhanh khi nhập bữa ăn.",
     "heroTitle": "Món gần đây",
     "heroTitleWithCount": "Món gần đây ({{count}})",
     "heroSubtitle": "Kho món ăn cá nhân của bạn",
-    "addFavoriteAction": "Thêm món mới vào thư viện",
+    "addRecentAction": "Thêm món mới vào thư viện",
     "addNewFoodAction": "Thêm món mới",
     "searchPlaceholder": "Tìm món trong thư viện",
     "savedItem": "Món trong thư viện",
@@ -838,6 +838,25 @@
       "positive": "Giá trị phải lớn hơn 0"
     }
   },
+  "accountScreen": {
+    "switchAccount": "Chuyển đổi tài khoản",
+    "dangerZone": "Vùng nguy hiểm",
+    "deleteAction": "Xoá tài khoản",
+    "deleteDescription": "Thao tác này sẽ xoá vĩnh viễn tài khoản cloud và toàn bộ dữ liệu trên thiết bị. Một phiên ẩn danh mới sẽ được tạo.",
+    "deleteTitle": "Xoá tài khoản?",
+    "deleteMessage": "Toàn bộ dữ liệu cloud và dữ liệu trên thiết bị sẽ bị xoá vĩnh viễn. Không thể hoàn tác.",
+    "deleteConfirm": "Xoá tất cả",
+    "deleteSuccess": "Đã xoá tài khoản và dữ liệu.",
+    "deleteError": "Không thể xoá tài khoản lúc này. Vui lòng thử lại.",
+    "logoutAction": "Đăng xuất",
+    "logoutTitle": "Đăng xuất?",
+    "logoutMessage": "Bạn sẽ được đăng xuất và tạo phiên ẩn danh mới. Dữ liệu cloud vẫn an toàn.",
+    "logoutConfirm": "Đăng xuất",
+    "logoutSuccess": "Đã đăng xuất thành công.",
+    "logoutError": "Không thể đăng xuất lúc này.",
+    "joinedAt": "Tham gia {{value}}",
+    "joinedAtUnknown": "Không rõ ngày tham gia"
+  },
   "profileScreen": {
     "title": "Hồ sơ cá nhân",
     "subtitle": "Dùng để tính calories và dinh dưỡng phù hợp",
@@ -870,6 +889,7 @@
     "logoutConfirmMessage": "Bạn có chắc muốn đăng xuất khỏi tài khoản đã liên kết này không?",
     "logoutSuccess": "Đã đăng xuất thành công.",
     "actionError": "Không thể cập nhật dữ liệu lúc này. Vui lòng thử lại.",
+    "offlineAiMessage": "Kết nối mạng để sử dụng tính năng AI.",
     "signInPromptTitle": "Đã có tài khoản?",
     "signInPromptSubtitle": "Đăng nhập để đồng bộ thiết bị này với một tài khoản có sẵn.",
     "signInAction": "Đăng nhập",
@@ -1077,6 +1097,16 @@
     "registerUpgradeSubtitle": "Liên kết phiên ẩn danh này với email, Google hoặc Apple để có thể khôi phục dữ liệu sau này.",
     "loginSuccess": "Đăng nhập thành công.",
     "loginFailed": "Không thể đăng nhập lúc này.",
+    "loginConfirmTitle": "Thay thế dữ liệu?",
+    "loginConfirmMessage": "Đăng nhập sẽ thay thế toàn bộ dữ liệu trên thiết bị này bằng dữ liệu từ tài khoản cloud. Không thể hoàn tác.",
+    "loginConfirmAction": "Đăng nhập",
+    "syncPhaseAuth": "Đang đăng nhập…",
+    "syncPhaseData": "Đang đồng bộ dữ liệu…",
+    "syncPleaseWait": "Vui lòng đợi trong giây lát.",
+    "syncFailedTitle": "Đồng bộ thất bại",
+    "syncFailedMessage": "Không thể đồng bộ dữ liệu từ cloud. Bạn có thể thử lại hoặc bỏ qua.",
+    "syncRetry": "Thử lại",
+    "syncSkip": "Bỏ qua",
     "forgotPasswordTitle": "Đặt lại mật khẩu",
     "forgotPasswordSubtitle": "Nhập email của bạn và mình sẽ gửi link đặt lại mật khẩu.",
     "forgotPasswordAction": "Gửi link đặt lại",
