@@ -839,6 +839,7 @@
     }
   },
   "accountScreen": {
+    "title": "Tài khoản",
     "switchAccount": "Chuyển đổi tài khoản",
     "dangerZone": "Vùng nguy hiểm",
     "deleteAction": "Xoá tài khoản",
@@ -848,6 +849,12 @@
     "deleteConfirm": "Xoá tất cả",
     "deleteSuccess": "Đã xoá tài khoản và dữ liệu.",
     "deleteError": "Không thể xoá tài khoản lúc này. Vui lòng thử lại.",
+    "deleteDataAction": "Xoá toàn bộ dữ liệu",
+    "deleteDataTitle": "Xoá toàn bộ dữ liệu?",
+    "deleteDataMessage": "Thao tác này sẽ xoá vĩnh viễn toàn bộ dữ liệu dinh dưỡng trên thiết bị và cloud. Không thể hoàn tác.",
+    "deleteDataConfirm": "Xoá tất cả",
+    "deleteDataSuccess": "Đã xoá toàn bộ dữ liệu dinh dưỡng.",
+    "deleteDataError": "Không thể xoá dữ liệu lúc này. Vui lòng thử lại.",
     "logoutAction": "Đăng xuất",
     "logoutTitle": "Đăng xuất?",
     "logoutMessage": "Bạn sẽ được đăng xuất và tạo phiên ẩn danh mới. Dữ liệu cloud vẫn an toàn.",

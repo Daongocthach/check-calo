@@ -7,7 +7,7 @@ import {
   countImageAssetReferences,
   getFoodEntryById,
   replaceImageUriReferences,
-} from './nutritionDatabase';
+} from './nutritionDatabaseCore';
 
 const FOOD_ENTRY_IMAGE_DIRECTORY = `${FileSystem.documentDirectory ?? ''}food-entry-images/`;
 const FOOD_ENTRY_THUMBNAIL_DIRECTORY = `${FileSystem.documentDirectory ?? ''}food-entry-thumbnails/`;

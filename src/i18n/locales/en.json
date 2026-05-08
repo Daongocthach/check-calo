@@ -839,6 +839,7 @@
     }
   },
   "accountScreen": {
+    "title": "Account",
     "switchAccount": "Switch account",
     "dangerZone": "Danger zone",
     "deleteAction": "Delete account",
@@ -848,6 +849,12 @@
     "deleteConfirm": "Delete everything",
     "deleteSuccess": "Account and data deleted.",
     "deleteError": "Unable to delete account right now. Please try again.",
+    "deleteDataAction": "Delete all data",
+    "deleteDataTitle": "Delete all data?",
+    "deleteDataMessage": "This will permanently delete all your local and cloud nutrition data. This action cannot be undone.",
+    "deleteDataConfirm": "Delete everything",
+    "deleteDataSuccess": "All nutrition data deleted.",
+    "deleteDataError": "Could not delete data. Please try again.",
     "logoutAction": "Sign out",
     "logoutTitle": "Sign out?",
     "logoutMessage": "You will be signed out and a new anonymous session will be created. Your cloud data is safe.",

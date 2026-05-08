@@ -1,3 +1,4 @@
+import { supabase } from '@/integrations/supabase';
 import { getDatabase } from '@/services/database/sqlite';
 import { clear as clearAppStorage } from '@/utils/storage';
 import { clearManagedFoodEntryImageCache, deleteLocalFoodEntryImage } from './foodEntryImageSync';
@@ -118,6 +119,45 @@ export async function resetLocalNutritionData() {
   }
 }
 
+/**
+ * Cloud reset: deletes nutrition data from Supabase for the current user.
+ */
+export async function resetCloudNutritionData() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return;
+  }
+
+  const tables = [
+    'food_entries',
+    'recent_foods',
+    'meals',
+    'meal_items',
+    'meal_images',
+    'profiles',
+  ] as const;
+
+  for (const table of tables) {
+    try {
+      await supabase.from(table).delete().eq('user_id', user.id);
+    } catch (error) {
+      if (__DEV__) {
+        console.error(`[CloudReset] Failed to delete from ${table}:`, error);
+      }
+    }
+  }
+}
+
+/**
+ * Global reset: wipes local database, images, MMKV, and cloud nutrition data.
+ */
+export async function resetAllNutritionData() {
+  await resetLocalNutritionData();
+  await resetCloudNutritionData();
+}
 /**
  * Login-safe reset: wipes only SQLite tables and local images.
  * Does NOT clear MMKV storage so the newly acquired session token is preserved.

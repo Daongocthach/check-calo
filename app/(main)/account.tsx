@@ -9,6 +9,7 @@ import {
   disconnectCurrentSyncAccount,
   logout,
 } from '@/features/auth/services/authService';
+import { resetLocalNutritionData } from '@/features/nutrition/services/nutritionLocalReset';
 import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { removeItem, STORAGE_KEYS } from '@/utils/storage';
@@ -48,6 +49,7 @@ export default function AccountScreen() {
   const user = useAuthStore((s) => s.user);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDeletingData, setIsDeletingData] = useState(false);
 
   const initials = useMemo(() => {
     if (!user?.email) return '??';
@@ -97,6 +99,43 @@ export default function AccountScreen() {
                 toast.error(message);
               } finally {
                 setIsLoggingOut(false);
+              }
+            })();
+          },
+        },
+      ],
+      { dismissOnBackdropPress: true }
+    );
+  }, [appAlert, t, router]);
+
+  const handleDeleteData = useCallback(() => {
+    appAlert.alert(
+      t('accountScreen.deleteDataTitle'),
+      t('accountScreen.deleteDataMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('accountScreen.deleteDataConfirm'),
+          style: 'destructive',
+          onPress: () => {
+            setIsDeletingData(true);
+
+            void (async () => {
+              try {
+                // 1. Delete cloud data
+                await deleteCurrentUserCloudNutritionData();
+
+                // 2. Clear local data
+                await resetLocalNutritionData();
+
+                toast.success(t('accountScreen.deleteDataSuccess'));
+                router.replace('/(main)/(tabs)/profile');
+              } catch (error) {
+                const message =
+                  error instanceof Error ? error.message : t('accountScreen.deleteDataError');
+                toast.error(message);
+              } finally {
+                setIsDeletingData(false);
               }
             })();
           },
@@ -185,10 +224,9 @@ export default function AccountScreen() {
                 title={t('accountScreen.logoutAction')}
                 variant="outline"
                 loading={isLoggingOut}
-                disabled={isDeleting || isLoggingOut}
-                leftIcon={
-                  <Icon name="log-out-outline" size={18} color={theme.colors.text.primary} />
-                }
+                disabled={isDeleting || isLoggingOut || isDeletingData}
+                leftIcon={<Icon name="log-out-outline" size={18} destructive />}
+                labelStyle={styles.dangerLabel}
                 onPress={handleLogout}
               />
             </View>
@@ -206,15 +244,28 @@ export default function AccountScreen() {
             <Text variant="caption" color="secondary">
               {t('accountScreen.deleteDescription')}
             </Text>
-            <Button
-              title={t('accountScreen.deleteAction')}
-              variant="outline"
-              loading={isDeleting}
-              disabled={isDeleting}
-              leftIcon={<Icon name="trash-outline" size={18} destructive />}
-              labelStyle={styles.dangerLabel}
-              onPress={handleDeleteAccount}
-            />
+            <View style={styles.actionCardBody}>
+              <Button
+                title={t('accountScreen.deleteDataAction')}
+                variant="outline"
+                loading={isDeletingData}
+                disabled={isDeleting || isLoggingOut || isDeletingData}
+                leftIcon={<Icon name="refresh-outline" size={18} destructive />}
+                labelStyle={styles.dangerLabel}
+                onPress={handleDeleteData}
+              />
+              <Button
+                title={t('accountScreen.deleteAction')}
+                variant="primary"
+                loading={isDeleting}
+                disabled={isDeleting || isLoggingOut || isDeletingData}
+                leftIcon={
+                  <Icon name="trash-outline" size={18} color={theme.colors.brand.onBrand} />
+                }
+                style={{ backgroundColor: theme.colors.state.error }}
+                onPress={handleDeleteAccount}
+              />
+            </View>
           </Card>
         </View>
       </View>
