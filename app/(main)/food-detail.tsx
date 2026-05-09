@@ -326,7 +326,7 @@ function toEditState(detail: FoodDetailData): FoodDetailEditState {
 
 export default function FoodDetailScreen() {
   const { t, i18n } = useTranslation();
-  const isSupportPromptHidden = useSupportPromptVisibility();
+  const { isHidden: isSupportPromptHidden } = useSupportPromptVisibility();
   const { theme } = useUnistyles();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();

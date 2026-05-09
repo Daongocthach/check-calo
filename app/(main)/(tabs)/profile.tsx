@@ -21,7 +21,7 @@ import type { IconProps } from '@/common/components/Icon';
 import { useSupportPromptVisibility } from '@/features/support/hooks/useSupportPromptVisibility';
 import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
-import { setItem, STORAGE_KEYS } from '@/utils/storage';
+import { STORAGE_KEYS, setItem } from '@/utils/storage';
 
 function getRowIconName(key: string): IconProps['name'] {
   switch (key) {
@@ -148,8 +148,8 @@ export default function ProfileTab() {
   const appAlert = useAppAlert();
   const networkInfo = useNetInfo();
   const isOffline = !(networkInfo.isConnected && networkInfo.isInternetReachable !== false);
-  const isSupportPromptHidden = useSupportPromptVisibility();
-  const [isSupportVisible, setIsSupportVisible] = useState(true);
+  const { isHidden: isSupportPromptHidden, dismiss: dismissSupportPrompt } =
+    useSupportPromptVisibility();
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
   const appVersion = Application.nativeApplicationVersion ?? '1.0.0';
   const patchLabel = '1';
@@ -320,10 +320,9 @@ export default function ProfileTab() {
             message={t('foodDetail.supportMessage')}
             actionLabel={t('foodDetail.supportAction')}
             onActionPress={handleSupportPress}
-            dismissible
-            isHidden={isSupportPromptHidden || !isSupportVisible}
+            isHidden={isSupportPromptHidden}
             onClosePress={() => {
-              setIsSupportVisible(false);
+              dismissSupportPrompt();
             }}
           />
 

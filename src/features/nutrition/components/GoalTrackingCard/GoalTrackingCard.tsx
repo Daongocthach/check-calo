@@ -120,6 +120,33 @@ export function GoalTrackingCard({ goalTracking, todaySummary }: GoalTrackingCar
     planMode === 'lose' ? -remainingCalorieDelta : remainingCalorieDelta;
   const balanceStatusKey = getCalorieBalanceStatusKey(achievedCalorieDelta);
 
+  const startedAtDate = activeGoal?.goal.startedAt ? new Date(activeGoal.goal.startedAt) : null;
+  const startedAtDay = startedAtDate
+    ? new Date(startedAtDate.getFullYear(), startedAtDate.getMonth(), startedAtDate.getDate())
+    : null;
+
+  const endedAtDay = startedAtDay
+    ? new Date(
+        startedAtDay.getFullYear(),
+        startedAtDay.getMonth(),
+        startedAtDay.getDate() + planProgressTarget
+      )
+    : null;
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return '';
+    return new Intl.DateTimeFormat(i18n.language, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(date);
+  };
+
+  const startLabel = startedAtDay
+    ? t('goalTracking.startDate', { value: formatDate(startedAtDay) })
+    : '';
+  const endLabel = endedAtDay ? t('goalTracking.endDate', { value: formatDate(endedAtDay) }) : '';
+
   return (
     <Card variant="elevated" style={styles.card}>
       <View style={styles.header}>
@@ -213,6 +240,17 @@ export function GoalTrackingCard({ goalTracking, todaySummary }: GoalTrackingCar
           />
         )}
       </View>
+
+      {startLabel || endLabel ? (
+        <View style={styles.footer}>
+          <Text variant="caption" color="secondary">
+            {startLabel}
+          </Text>
+          <Text variant="caption" color="secondary">
+            {endLabel}
+          </Text>
+        </View>
+      ) : null}
     </Card>
   );
 }
@@ -274,5 +312,11 @@ const styles = StyleSheet.create((theme) => ({
   divider: {
     width: 1,
     backgroundColor: theme.colors.border.default,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.metrics.spacing.p4,
+    marginTop: -theme.metrics.spacingV.p8,
   },
 }));

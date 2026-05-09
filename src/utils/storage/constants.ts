@@ -30,5 +30,6 @@ export const STORAGE_KEYS = {
     nutritionDeltaRecentFoodsCursor: 'nutrition_delta_food_entries_cursor_recent',
     nutritionDeltaMealsCursor: 'nutrition_delta_food_entries_cursor_meals',
     nutritionDeltaMealItemsCursor: 'nutrition_delta_food_entries_cursor_meal_items',
+    supportPromptDismissed: 'support_prompt_dismissed',
   },
 } as const;
