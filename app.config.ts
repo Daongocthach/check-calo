@@ -35,6 +35,8 @@ const config: ExpoConfig = {
       CFBundleAllowMixedLocalizations: true,
       CFBundleLocalizations: ['en', 'vi'],
       ITSAppUsesNonExemptEncryption: false,
+      NSPhotoLibraryAddUsageDescription:
+        'CheckCalo requires permission to save images to your photo library.',
     },
     buildNumber: '2',
   },

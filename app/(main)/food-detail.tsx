@@ -1,4 +1,6 @@
+import * as FileSystem from 'expo-file-system/legacy';
 import { Image } from 'expo-image';
+import * as MediaLibrary from 'expo-media-library';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -11,6 +13,7 @@ import {
   Card,
   Dialog,
   Icon,
+  IconButton,
   DateTimeField,
   Input,
   QuantityStepper,
@@ -100,6 +103,12 @@ interface FoodDetailPeopleCountState {
 }
 
 const NOTE_CHAR_LIMIT = 200;
+const FOOD_IMAGE_DOWNLOAD_DIRECTORY = `${FileSystem.cacheDirectory ?? FileSystem.documentDirectory ?? ''}food-image-downloads/`;
+
+interface SavedFoodImage {
+  uri: string;
+  isTemporary: boolean;
+}
 
 function parseNumber(value: string | undefined) {
   if (typeof value !== 'string' || value.trim().length === 0) {
@@ -188,6 +197,45 @@ function parseDateTimeInputValue(value: string) {
   }
 
   return new Date(year, month - 1, day, hour, minute);
+}
+
+function getFoodImageFileName(sourceUri: string) {
+  const cleanedUri = sourceUri.split('?')[0];
+  const fileName = cleanedUri.split('/').pop();
+
+  if (!fileName) {
+    return `food-image-${Date.now()}.jpg`;
+  }
+
+  if (fileName.includes('.')) {
+    return fileName;
+  }
+
+  return `${fileName}.jpg`;
+}
+
+async function saveFoodImageToTemporaryFile(sourceUri: string): Promise<SavedFoodImage> {
+  if (sourceUri.startsWith('file://')) {
+    return { uri: sourceUri, isTemporary: false };
+  }
+
+  if (!FOOD_IMAGE_DOWNLOAD_DIRECTORY) {
+    throw new Error('File system directory unavailable');
+  }
+
+  const fileName = getFoodImageFileName(sourceUri);
+  const targetUri = `${FOOD_IMAGE_DOWNLOAD_DIRECTORY}${fileName}`;
+
+  await FileSystem.makeDirectoryAsync(FOOD_IMAGE_DOWNLOAD_DIRECTORY, {
+    intermediates: true,
+  });
+
+  const result = await FileSystem.downloadAsync(sourceUri, targetUri);
+
+  return {
+    uri: result.uri,
+    isTemporary: true,
+  };
 }
 
 function formatDateTimeInputDisplay(value: string, locale: string) {
@@ -333,6 +381,7 @@ export default function FoodDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [detail, setDetail] = useState<FoodDetailData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingImage, setIsSavingImage] = useState(false);
   const [servings, setServings] = useState(1);
   const [peopleCount, setPeopleCount] = useState(1);
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
@@ -538,6 +587,7 @@ export default function FoodDetailScreen() {
   const quantityMultiplier = canPreviewQuantity ? servings : 1;
   const previewShareDivider = canPreviewQuantity ? peopleCount : 1;
   const displayMultiplier = canPreviewQuantity ? quantityMultiplier / previewShareDivider : 1;
+  const imageSourceUri = detail?.imageUri ?? detail?.thumbnailUri ?? null;
   const displayQuantityGrams =
     detail && detail.quantityGrams !== null ? detail.quantityGrams * displayMultiplier : null;
   const quantityDisplay = detail
@@ -913,6 +963,43 @@ export default function FoodDetailScreen() {
     router.push('/support');
   }, []);
 
+  const handleDownloadImagePress = useCallback(async () => {
+    if (!imageSourceUri || isSavingImage) {
+      return;
+    }
+
+    setIsSavingImage(true);
+
+    try {
+      const permission = await MediaLibrary.getPermissionsAsync();
+      let hasPermission = permission.status === 'granted';
+
+      if (!hasPermission) {
+        const nextPermission = await MediaLibrary.requestPermissionsAsync();
+        hasPermission = nextPermission.status === 'granted';
+      }
+
+      if (!hasPermission) {
+        toast.error(t('foodDetail.downloadImagePermissionDenied'));
+        return;
+      }
+
+      const savedImage = await saveFoodImageToTemporaryFile(imageSourceUri);
+
+      await MediaLibrary.saveToLibraryAsync(savedImage.uri);
+
+      if (savedImage.isTemporary) {
+        await FileSystem.deleteAsync(savedImage.uri, { idempotent: true });
+      }
+
+      toast.success(t('foodDetail.downloadImageSuccess'));
+    } catch {
+      toast.error(t('foodDetail.downloadImageFailed'));
+    } finally {
+      setIsSavingImage(false);
+    }
+  }, [imageSourceUri, isSavingImage, t]);
+
   if (isLoading || !detail) {
     return (
       <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
@@ -939,13 +1026,28 @@ export default function FoodDetailScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Card variant="elevated" style={styles.imageCard}>
-            {detail.imageUri ? (
-              <Image
-                source={{ uri: detail.thumbnailUri ?? detail.imageUri }}
-                style={styles.image}
-                contentFit="cover"
-                accessibilityLabel={t('foodDetail.foodImageAlt')}
-              />
+            {imageSourceUri ? (
+              <View style={styles.imageFrame}>
+                <Image
+                  source={{ uri: detail.thumbnailUri ?? detail.imageUri ?? imageSourceUri }}
+                  style={styles.image}
+                  contentFit="cover"
+                  accessibilityLabel={t('foodDetail.foodImageAlt')}
+                />
+                <View style={styles.imageActionWrap}>
+                  <IconButton
+                    icon="download-outline"
+                    variant="secondary"
+                    size="md"
+                    color={theme.colors.brand.primary}
+                    loading={isSavingImage}
+                    accessibilityLabel={t('foodDetail.downloadImageAction')}
+                    onPress={() => {
+                      void handleDownloadImagePress();
+                    }}
+                  />
+                </View>
+              </View>
             ) : (
               <View style={styles.placeholder}>
                 <Icon name="image-outline" size={42} variant="secondary" />
@@ -1320,9 +1422,17 @@ const styles = StyleSheet.create((theme) => ({
     overflow: 'hidden',
     borderRadius: theme.metrics.borderRadius.xl,
   },
+  imageFrame: {
+    position: 'relative',
+  },
   image: {
     width: '100%',
     height: 220,
+  },
+  imageActionWrap: {
+    position: 'absolute',
+    top: theme.metrics.spacing.p12,
+    right: theme.metrics.spacing.p12,
   },
   placeholder: {
     width: '100%',
