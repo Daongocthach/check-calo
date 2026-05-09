@@ -904,6 +904,7 @@
     "signInPromptTitle": "Đã có tài khoản?",
     "signInPromptSubtitle": "Đăng nhập để đồng bộ thiết bị này với một tài khoản có sẵn.",
     "signInAction": "Đăng nhập",
+    "anonymousName": "Khách",
     "account": {
       "title": "Tài khoản đồng bộ",
       "anonymousSubtitle": "Liên kết phiên ẩn danh này với tài khoản thật để bảo vệ dữ liệu món ăn và ảnh đã đồng bộ.",

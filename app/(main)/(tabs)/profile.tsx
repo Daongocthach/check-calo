@@ -18,6 +18,9 @@ import {
   Text,
 } from '@/common/components';
 import type { IconProps } from '@/common/components/Icon';
+import { deleteCurrentUserCloudNutritionData, logout } from '@/features/auth/services/authService';
+import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
+import { resetLocalNutritionData } from '@/features/nutrition/services/nutritionLocalReset';
 import { useSupportPromptVisibility } from '@/features/support/hooks/useSupportPromptVisibility';
 import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
@@ -47,6 +50,8 @@ function getRowIconName(key: string): IconProps['name'] {
       return 'document-text-outline';
     case 'privacy':
       return 'shield-checkmark-outline';
+    case 'delete':
+      return 'trash-outline';
     case 'contact':
       return 'mail-outline';
     case 'switchAccount':
@@ -151,6 +156,7 @@ export default function ProfileTab() {
   const { isHidden: isSupportPromptHidden, dismiss: dismissSupportPrompt } =
     useSupportPromptVisibility();
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [localDisplayName, setLocalDisplayName] = useState<string | null>(null);
   const appVersion = Application.nativeApplicationVersion ?? '1.0.0';
   const patchLabel = '1';
   const versionLabel = `v${appVersion} • ${patchLabel}`;
@@ -158,10 +164,42 @@ export default function ProfileTab() {
   const user = useAuthStore((s) => s.user);
   const isAnonymous = !user || user.isAnonymous;
 
+  useEffect(() => {
+    let active = true;
+
+    const loadLocalDisplayName = async () => {
+      if (!isAnonymous) {
+        setLocalDisplayName(null);
+        return;
+      }
+
+      const profile = await getUserProfile();
+
+      if (!active) {
+        return;
+      }
+
+      const nextDisplayName = profile?.displayName.trim() ?? '';
+      setLocalDisplayName(nextDisplayName.length > 0 ? nextDisplayName : null);
+    };
+
+    void loadLocalDisplayName();
+
+    return () => {
+      active = false;
+    };
+  }, [isAnonymous]);
+
+  const anonymousDisplayName = localDisplayName ?? t('profileScreen.anonymousName');
+
   const initials = useMemo(() => {
+    if (isAnonymous) {
+      return extractInitials(anonymousDisplayName);
+    }
+
     if (!user?.email) return '??';
     return extractInitials(user.email);
-  }, [user?.email]);
+  }, [anonymousDisplayName, isAnonymous, user?.email]);
 
   const lastSignInLabel = useMemo(() => {
     return formatLastSignIn(
@@ -213,6 +251,30 @@ export default function ProfileTab() {
     router.push('/(auth)/login');
   }, [router]);
 
+  const handleLogout = useCallback(() => {
+    void logout();
+  }, []);
+
+  const handleDeleteLocalData = useCallback(() => {
+    appAlert.alert(t('accountScreen.deleteDataTitle'), t('accountScreen.deleteDataMessage'), [
+      {
+        text: t('common.cancel'),
+        style: 'cancel',
+      },
+      {
+        text: t('accountScreen.deleteDataAction'),
+        style: 'destructive',
+        onPress: () => {
+          setLocalDisplayName(null);
+          void (async () => {
+            await deleteCurrentUserCloudNutritionData();
+            await resetLocalNutritionData();
+          })();
+        },
+      },
+    ]);
+  }, [appAlert, t]);
+
   return (
     <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
@@ -234,11 +296,11 @@ export default function ProfileTab() {
                 <Avatar
                   size="lg"
                   icon={<Icon name="person" variant="onBrand" size={28} />}
-                  accessibilityLabel={t('profileScreen.signInPromptTitle')}
+                  accessibilityLabel={anonymousDisplayName}
                 />
                 <View style={styles.accountCardInfo}>
                   <Text variant="body" weight="semibold">
-                    {t('profileScreen.signInPromptTitle')}
+                    {anonymousDisplayName}
                   </Text>
                   <Text variant="caption" color="secondary">
                     {t('profileScreen.signInPromptSubtitle')}
@@ -362,6 +424,23 @@ export default function ProfileTab() {
               onPress={() => {
                 void handleVersionPress();
               }}
+            />
+          </SettingsGroup>
+
+          <SettingsGroup>
+            {!isAnonymous ? (
+              <SettingsMenuRow
+                title={t('profileScreen.logoutAction', 'Sign out')}
+                iconKey="login"
+                onPress={handleLogout}
+              />
+            ) : null}
+            <SettingsMenuRow
+              title={t('accountScreen.deleteDataAction')}
+              iconKey="delete"
+              destructive
+              showChevron={false}
+              onPress={handleDeleteLocalData}
             />
           </SettingsGroup>
         </View>

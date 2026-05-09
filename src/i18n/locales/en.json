@@ -895,7 +895,7 @@
     "resetConfirmMessage": "Are you sure you want to delete your local data and any synced nutrition data in Supabase?",
     "deleteSuccess": "Nutrition profile deleted.",
     "resetSuccess": "All nutrition data has been reset.",
-    "logoutAction": "Switch account",
+    "logoutAction": "Sign out",
     "logoutConfirmTitle": "Switch account",
     "logoutConfirmMessage": "Are you sure you want to switch to another account?",
     "logoutSuccess": "Switched account successfully.",
@@ -904,6 +904,7 @@
     "signInPromptTitle": "Already have an account?",
     "signInPromptSubtitle": "Log in to sync this device with an existing account.",
     "signInAction": "Log in",
+    "anonymousName": "Guest",
     "account": {
       "title": "Sync account",
       "anonymousSubtitle": "Protect your synced meals and photos by linking this anonymous session to a real account.",
