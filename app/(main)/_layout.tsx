@@ -255,6 +255,7 @@ export default function MainLayout() {
         <Stack.Screen name="achievements" />
         <Stack.Screen name="leaderboard" />
         <Stack.Screen name="notification-settings" />
+        <Stack.Screen name="health-information-sources" />
         <Stack.Screen name="about" />
         <Stack.Screen name="contact" />
         <Stack.Screen name="terms" />

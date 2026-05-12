@@ -123,6 +123,9 @@ export function AppHeader() {
     if (pathname === '/achievements') return t('achievementsScreen.title');
     if (pathname === '/leaderboard') return t('leaderboardScreen.title');
     if (pathname === '/notification-settings') return t('profileScreen.reminders.title');
+    if (pathname === '/health-information-sources') {
+      return t('healthInformationSourcesScreen.title');
+    }
     if (pathname === '/about') return t('settings.about');
     if (pathname === '/contact') return t('contactScreen.title');
     if (pathname === '/terms') return t('settings.terms');

@@ -38,6 +38,8 @@ function getRowIconName(key: string): IconProps['name'] {
       return 'podium-outline';
     case 'reminders':
       return 'notifications-outline';
+    case 'healthSources':
+      return 'medical-outline';
     case 'language':
       return 'language-outline';
     case 'units':
@@ -190,7 +192,7 @@ export default function ProfileTab() {
     };
   }, [isAnonymous]);
 
-  const anonymousDisplayName = localDisplayName ?? t('profileScreen.anonymousName');
+  const anonymousDisplayName = localDisplayName ?? 'Guest';
 
   const initials = useMemo(() => {
     if (isAnonymous) {
@@ -256,23 +258,30 @@ export default function ProfileTab() {
   }, []);
 
   const handleDeleteLocalData = useCallback(() => {
-    appAlert.alert(t('accountScreen.deleteDataTitle'), t('accountScreen.deleteDataMessage'), [
-      {
-        text: t('common.cancel'),
-        style: 'cancel',
-      },
-      {
-        text: t('accountScreen.deleteDataAction'),
-        style: 'destructive',
-        onPress: () => {
-          setLocalDisplayName(null);
-          void (async () => {
-            await deleteCurrentUserCloudNutritionData();
-            await resetLocalNutritionData();
-          })();
+    appAlert.alert(
+      t('accountScreen.deleteDataTitle'),
+      t(
+        'accountScreen.deleteDataMessage',
+        'This will permanently delete all local and cloud nutrition data. This action cannot be undone.'
+      ),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
         },
-      },
-    ]);
+        {
+          text: t('accountScreen.deleteDataAction'),
+          style: 'destructive',
+          onPress: () => {
+            setLocalDisplayName(null);
+            void (async () => {
+              await deleteCurrentUserCloudNutritionData();
+              await resetLocalNutritionData();
+            })();
+          },
+        },
+      ]
+    );
   }, [appAlert, t]);
 
   return (
@@ -296,7 +305,7 @@ export default function ProfileTab() {
                 <Avatar
                   size="lg"
                   icon={<Icon name="person" variant="onBrand" size={28} />}
-                  accessibilityLabel={anonymousDisplayName}
+                  accessibilityLabel="Guest"
                 />
                 <View style={styles.accountCardInfo}>
                   <Text variant="body" weight="semibold">
@@ -374,6 +383,13 @@ export default function ProfileTab() {
               iconKey="reminders"
               onPress={() => {
                 router.push('/notification-settings');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.menu.healthInformationSources')}
+              iconKey="healthSources"
+              onPress={() => {
+                router.push('/health-information-sources');
               }}
             />
           </SettingsGroup>

@@ -795,6 +795,11 @@
     "formSubtitle": "We use age, gender, height, current weight, your monthly weight plan, and activity to estimate daily calories and macro targets.",
     "summaryTitle": "Your current profile",
     "summaryBody": "BMI {{bmi}}, maintenance at {{maintenanceCalories}} kcal/day, and target at {{calorieTarget}} kcal/day.",
+    "healthSources": {
+      "title": "Health information sources",
+      "subtitle": "View references for BMI, BMR, calories, and nutrition.",
+      "action": "Open health information sources"
+    },
     "saveAction": "Save and start",
     "continueAction": "Continue to dashboard",
     "status": {
@@ -840,6 +845,79 @@
     "validation": {
       "number": "Please enter a valid number",
       "positive": "Value must be greater than 0"
+    }
+  },
+  "healthInformationSourcesScreen": {
+    "title": "Health information sources",
+    "intro": "This app provides health and nutrition information based on established scientific research. The following sources are used for calculations and recommendations:",
+    "disclaimer": "This app is for informational purposes only and cannot replace professional medical advice. Always consult healthcare professionals for personalized medical guidance.",
+    "sections": {
+      "bmi": {
+        "title": "BMI Calculation (Body Mass Index)",
+        "description": "BMI is calculated from weight and height to estimate weight status. This index is a screening tool only and does not replace a personalized medical assessment.",
+        "references": {
+          "cdc": {
+            "title": "Centers for Disease Control and Prevention.",
+            "citation": "Calculating BMI using the English system and metric system. CDC Growth Chart Training."
+          }
+        }
+      },
+      "bmr": {
+        "title": "BMR Calculation (Basal Metabolic Rate)",
+        "description": "We use the Mifflin-St Jeor equation to calculate basal metabolic rate, considered the most accurate method for healthy individuals.",
+        "references": {
+          "mifflin": {
+            "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
+            "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
+          },
+          "roza": {
+            "title": "Roza AM, Shizgal HM.",
+            "citation": "The Harris Benedict equation reevaluated: resting energy requirements and the body cell mass. Am J Clin Nutr. 1984;40(1):168-82."
+          }
+        }
+      },
+      "activity": {
+        "title": "Activity Level Factors",
+        "description": "Physical activity factors are applied to BMR to estimate total daily energy expenditure based on established research.",
+        "references": {
+          "brooks": {
+            "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
+            "citation": "Chronicle of the Institute of Medicine physical activity recommendation: how a physical activity recommendation came to be among dietary recommendations. Am J Clin Nutr. 2004;79(5):921S-930S."
+          },
+          "iom": {
+            "title": "Institute of Medicine (US) Panel on Macronutrients.",
+            "citation": "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. Washington (DC): National Academies Press (US); 2005."
+          }
+        }
+      },
+      "macros": {
+        "title": "Macronutrient Distribution",
+        "description": "Recommended macronutrient ratios are based on nutrition guidance from health organizations.",
+        "references": {
+          "dietaryGuidelines": {
+            "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
+            "citation": "2020-2025 Dietary Guidelines for Americans. 9th Edition."
+          },
+          "who": {
+            "title": "World Health Organization.",
+            "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          }
+        }
+      },
+      "weightManagement": {
+        "title": "Weight Management",
+        "description": "Weight loss and weight gain recommendations are based on evidence-based methods for sustainable weight management.",
+        "references": {
+          "wadden": {
+            "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
+            "citation": "Lifestyle modification for obesity: new developments in diet, physical activity, and behavior therapy. Circulation. 2012;125(9):1157-70."
+          },
+          "hall": {
+            "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
+            "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          }
+        }
+      }
     }
   },
   "accountScreen": {
@@ -895,7 +973,7 @@
     "resetConfirmMessage": "Are you sure you want to delete your local data and any synced nutrition data in Supabase?",
     "deleteSuccess": "Nutrition profile deleted.",
     "resetSuccess": "All nutrition data has been reset.",
-    "logoutAction": "Sign out",
+    "logoutAction": "Switch account",
     "logoutConfirmTitle": "Switch account",
     "logoutConfirmMessage": "Are you sure you want to switch to another account?",
     "logoutSuccess": "Switched account successfully.",
@@ -904,7 +982,6 @@
     "signInPromptTitle": "Already have an account?",
     "signInPromptSubtitle": "Log in to sync this device with an existing account.",
     "signInAction": "Log in",
-    "anonymousName": "Guest",
     "account": {
       "title": "Sync account",
       "anonymousSubtitle": "Protect your synced meals and photos by linking this anonymous session to a real account.",
@@ -1284,6 +1361,7 @@
       "achievements": "Achievements",
       "leaderboard": "Leaderboard",
       "reminders": "Reminders",
+      "healthInformationSources": "Health information sources",
       "language": "Language",
       "units": "Units",
       "theme": "Theme",

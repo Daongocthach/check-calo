@@ -313,6 +313,28 @@ export default function WelcomeScreen() {
                 </Text>
               </View>
 
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('welcomeScreen.healthSources.action')}
+                style={styles.healthSourcesLink}
+                onPress={() => {
+                  router.push('/health-information-sources');
+                }}
+              >
+                <View style={styles.healthSourcesIcon}>
+                  <Icon name="medical-outline" size={18} variant="primary" />
+                </View>
+                <View style={styles.healthSourcesCopy}>
+                  <Text variant="bodySmall" weight="semibold">
+                    {t('welcomeScreen.healthSources.title')}
+                  </Text>
+                  <Text variant="caption" color="secondary">
+                    {t('welcomeScreen.healthSources.subtitle')}
+                  </Text>
+                </View>
+                <Icon name="chevron-forward-outline" size={18} variant="muted" />
+              </Pressable>
+
               <Controller
                 control={control}
                 name="displayName"
@@ -665,6 +687,27 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacingV.p4,
   },
   formHeaderCompact: {
+    gap: theme.metrics.spacingV.p4,
+  },
+  healthSourcesLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p12,
+    borderRadius: theme.metrics.borderRadius.lg,
+    backgroundColor: theme.colors.state.infoBg,
+  },
+  healthSourcesIcon: {
+    width: theme.metrics.spacing.p36,
+    height: theme.metrics.spacing.p36,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.surface,
+  },
+  healthSourcesCopy: {
+    flex: 1,
     gap: theme.metrics.spacingV.p4,
   },
   optionGroup: {

@@ -795,6 +795,11 @@
     "formSubtitle": "Tuổi, giới tính, chiều cao, cân nặng hiện tại, kế hoạch thay đổi cân nặng theo tháng và mức vận động sẽ giúp app tính mục tiêu calories và dinh dưỡng phù hợp.",
     "summaryTitle": "Hồ sơ hiện tại",
     "summaryBody": "BMI {{bmi}}, mục tiêu {{calorieTarget}} kcal/ngày.",
+    "healthSources": {
+      "title": "Nguồn thông tin y tế",
+      "subtitle": "Xem nguồn tham khảo cho BMI, BMR, calories và dinh dưỡng.",
+      "action": "Mở nguồn thông tin y tế"
+    },
     "saveAction": "Lưu và bắt đầu",
     "continueAction": "Vào trang chính",
     "status": {
@@ -840,6 +845,79 @@
     "validation": {
       "number": "Vui lòng nhập số hợp lệ",
       "positive": "Giá trị phải lớn hơn 0"
+    }
+  },
+  "healthInformationSourcesScreen": {
+    "title": "Nguồn thông tin y tế",
+    "intro": "Ứng dụng này cung cấp thông tin sức khỏe và dinh dưỡng dựa trên các nghiên cứu khoa học đã được thiết lập. Các nguồn sau được sử dụng cho tính toán và khuyến nghị:",
+    "disclaimer": "Ứng dụng này chỉ mang tính chất thông tin và không thể thay thế lời khuyên y tế chuyên nghiệp. Luôn tham khảo ý kiến của các chuyên gia y tế để được hướng dẫn y tế cá nhân hóa.",
+    "sections": {
+      "bmi": {
+        "title": "Tính Toán BMI (Chỉ Số Khối Cơ Thể)",
+        "description": "BMI được tính từ cân nặng và chiều cao để ước tính tình trạng cân nặng. Chỉ số này chỉ mang tính sàng lọc và không thay thế đánh giá y tế cá nhân.",
+        "references": {
+          "cdc": {
+            "title": "Centers for Disease Control and Prevention.",
+            "citation": "Calculating BMI using the English system and metric system. CDC Growth Chart Training."
+          }
+        }
+      },
+      "bmr": {
+        "title": "Tính Toán BMR (Tỷ Lệ Trao Đổi Chất Cơ Bản)",
+        "description": "Chúng tôi sử dụng phương trình Mifflin-St Jeor để tính tỷ lệ trao đổi chất cơ bản, được coi là phương pháp chính xác nhất cho người khỏe mạnh.",
+        "references": {
+          "mifflin": {
+            "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
+            "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
+          },
+          "roza": {
+            "title": "Roza AM, Shizgal HM.",
+            "citation": "The Harris Benedict equation reevaluated: resting energy requirements and the body cell mass. Am J Clin Nutr. 1984;40(1):168-82."
+          }
+        }
+      },
+      "activity": {
+        "title": "Hệ Số Mức Độ Hoạt Động",
+        "description": "Hệ số hoạt động thể chất được áp dụng vào BMR để ước tính tổng lượng năng lượng tiêu thụ hằng ngày dựa trên nghiên cứu đã được thiết lập.",
+        "references": {
+          "brooks": {
+            "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
+            "citation": "Chronicle of the Institute of Medicine physical activity recommendation: how a physical activity recommendation came to be among dietary recommendations. Am J Clin Nutr. 2004;79(5):921S-930S."
+          },
+          "iom": {
+            "title": "Institute of Medicine (US) Panel on Macronutrients.",
+            "citation": "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. Washington (DC): National Academies Press (US); 2005."
+          }
+        }
+      },
+      "macros": {
+        "title": "Phân Bổ Chất Dinh Dưỡng Đa Lượng",
+        "description": "Tỷ lệ chất dinh dưỡng đa lượng được khuyến nghị dựa trên hướng dẫn dinh dưỡng từ các tổ chức y tế.",
+        "references": {
+          "dietaryGuidelines": {
+            "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
+            "citation": "2020-2025 Dietary Guidelines for Americans. 9th Edition."
+          },
+          "who": {
+            "title": "World Health Organization.",
+            "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          }
+        }
+      },
+      "weightManagement": {
+        "title": "Quản Lý Cân Nặng",
+        "description": "Khuyến nghị giảm cân và tăng cân dựa trên các phương pháp có bằng chứng khoa học để quản lý cân nặng bền vững.",
+        "references": {
+          "wadden": {
+            "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
+            "citation": "Lifestyle modification for obesity: new developments in diet, physical activity, and behavior therapy. Circulation. 2012;125(9):1157-70."
+          },
+          "hall": {
+            "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
+            "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          }
+        }
+      }
     }
   },
   "accountScreen": {
@@ -904,7 +982,6 @@
     "signInPromptTitle": "Đã có tài khoản?",
     "signInPromptSubtitle": "Đăng nhập để đồng bộ thiết bị này với một tài khoản có sẵn.",
     "signInAction": "Đăng nhập",
-    "anonymousName": "Khách",
     "account": {
       "title": "Tài khoản đồng bộ",
       "anonymousSubtitle": "Liên kết phiên ẩn danh này với tài khoản thật để bảo vệ dữ liệu món ăn và ảnh đã đồng bộ.",
@@ -1280,6 +1357,7 @@
       "achievements": "Danh hiệu",
       "leaderboard": "Bảng xếp hạng",
       "reminders": "Nhắc nhở",
+      "healthInformationSources": "Nguồn thông tin y tế",
       "language": "Ngôn ngữ",
       "units": "Đơn vị",
       "theme": "Chủ đề",
