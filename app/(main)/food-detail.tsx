@@ -1,9 +1,10 @@
+import { useFocusEffect } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Image } from 'expo-image';
 import * as MediaLibrary from 'expo-media-library';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { TFunction } from 'i18next';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,14 +15,12 @@ import {
   Dialog,
   Icon,
   IconButton,
-  DateTimeField,
   Input,
   QuantityStepper,
   ScreenContainer,
   SupportPromptCard,
   Text,
 } from '@/common/components';
-import type { DateTimeFieldHandle } from '@/common/components';
 import { upsertFoodProductCatalog } from '@/features/nutrition/services/barcodeFoodLookup';
 import {
   enqueueFoodEntryImageSync,
@@ -36,8 +35,6 @@ import {
   getRecentFoodById,
   getFoodEntryById,
   upsertRecentFoodFromInput,
-  updateRecentFood,
-  updateFoodEntry,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
 import { formatMealWeight } from '@/features/nutrition/utils/quantity';
@@ -82,20 +79,6 @@ interface FoodDetailData {
   consumedAt: string | null;
 }
 
-interface FoodDetailEditState {
-  visible: boolean;
-  title: string;
-  quantityLabel: string;
-  quantityGrams: string;
-  consumedAt: string;
-  calories: string;
-  proteinGrams: string;
-  carbsGrams: string;
-  fatGrams: string;
-  notes: string;
-  error: string | null;
-}
-
 interface FoodDetailPeopleCountState {
   visible: boolean;
   value: string;
@@ -128,28 +111,6 @@ function parseQuantityGrams(value: string | undefined) {
   return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
 }
 
-function parseRequiredNumericInput(value: string) {
-  const trimmed = value.trim();
-
-  if (trimmed.length === 0) {
-    return null;
-  }
-
-  const parsedValue = Number(trimmed);
-  return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : null;
-}
-
-function parseOptionalNumericInput(value: string) {
-  const trimmed = value.trim();
-
-  if (trimmed.length === 0) {
-    return null;
-  }
-
-  const parsedValue = Number(trimmed);
-  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
-}
-
 function parsePeopleCountInput(value: string) {
   const trimmed = value.trim();
 
@@ -163,40 +124,6 @@ function parsePeopleCountInput(value: string) {
   }
 
   return parsedValue >= 1 && parsedValue <= 100 ? parsedValue : null;
-}
-
-function pad(value: number) {
-  return `${value}`.padStart(2, '0');
-}
-
-function formatDateTimeInputValue(value: string | Date) {
-  const date = value instanceof Date ? value : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return formatDateTimeInputValue(new Date());
-  }
-
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
-    date.getHours()
-  )}:${pad(date.getMinutes())}`;
-}
-
-function parseDateTimeInputValue(value: string) {
-  const [datePart = '', timePart = ''] = value.trim().split(' ');
-  const [year, month, day] = datePart.split('-').map(Number);
-  const [hour, minute] = timePart.split(':').map(Number);
-
-  if (
-    Number.isNaN(year) ||
-    Number.isNaN(month) ||
-    Number.isNaN(day) ||
-    Number.isNaN(hour) ||
-    Number.isNaN(minute)
-  ) {
-    return new Date();
-  }
-
-  return new Date(year, month - 1, day, hour, minute);
 }
 
 function getFoodImageFileName(sourceUri: string) {
@@ -236,16 +163,6 @@ async function saveFoodImageToTemporaryFile(sourceUri: string): Promise<SavedFoo
     uri: result.uri,
     isTemporary: true,
   };
-}
-
-function formatDateTimeInputDisplay(value: string, locale: string) {
-  const date = parseDateTimeInputValue(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  return toDisplayDate(date.toISOString(), locale);
 }
 
 function toDisplayDate(value: string | null, locale: string) {
@@ -356,22 +273,6 @@ function getSourcePillStyle(source: FoodDetailSource) {
   }
 }
 
-function toEditState(detail: FoodDetailData): FoodDetailEditState {
-  return {
-    visible: true,
-    title: detail.title,
-    quantityLabel: detail.quantityLabel,
-    quantityGrams: detail.quantityGrams !== null ? String(detail.quantityGrams) : '',
-    consumedAt: formatDateTimeInputValue(detail.consumedAt ?? new Date()),
-    calories: String(detail.calories),
-    proteinGrams: String(detail.proteinGrams),
-    carbsGrams: String(detail.carbsGrams),
-    fatGrams: String(detail.fatGrams),
-    notes: detail.notes ?? '',
-    error: null,
-  };
-}
-
 export default function FoodDetailScreen() {
   const { t, i18n } = useTranslation();
   const { isHidden: isSupportPromptHidden } = useSupportPromptVisibility();
@@ -385,20 +286,6 @@ export default function FoodDetailScreen() {
   const [servings, setServings] = useState(1);
   const [peopleCount, setPeopleCount] = useState(1);
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
-  const dateTimeFieldRef = useRef<DateTimeFieldHandle>(null);
-  const [editDialog, setEditDialog] = useState<FoodDetailEditState>({
-    visible: false,
-    title: '',
-    quantityLabel: '',
-    quantityGrams: '',
-    consumedAt: '',
-    calories: '',
-    proteinGrams: '',
-    carbsGrams: '',
-    fatGrams: '',
-    notes: '',
-    error: null,
-  });
   const [peopleCountDialog, setPeopleCountDialog] = useState<FoodDetailPeopleCountState>({
     visible: false,
     value: '',
@@ -427,153 +314,155 @@ export default function FoodDetailScreen() {
   const isRecentFoodFlow = typedParams.context === 'recentFood';
   const shouldReuseRecent = isRecentFoodFlow && recentId.length > 0;
 
-  useEffect(() => {
-    let active = true;
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
 
-    async function load() {
-      setIsLoading(true);
+      async function load() {
+        setIsLoading(true);
 
-      try {
-        if (entryId) {
-          const entry = await getFoodEntryById(entryId);
+        try {
+          if (entryId) {
+            const entry = await getFoodEntryById(entryId);
 
-          if (entry && active) {
-            setDetail({
-              source: 'entry',
-              barcode: entry.barcode ?? null,
-              title: entry.mealName,
-              quantityLabel: formatMealWeight(
-                entry.quantityGrams,
-                entry.quantityLabel,
-                t('common.units.gram')
-              ),
-              quantityGrams: entry.quantityGrams ?? null,
-              calories: Math.round(entry.totalCalories),
-              proteinGrams: Math.round(entry.proteinGrams),
-              carbsGrams: Math.round(entry.carbsGrams),
-              fatGrams: Math.round(entry.fatGrams),
-              notes: entry.notes,
-              imageUri: entry.imageUri ?? null,
-              thumbnailUri: entry.thumbnailUri ?? null,
-              consumedAt: entry.consumedAt,
-            });
-            return;
-          }
-        } else if (recentId) {
-          const recent = await getRecentFoodById(recentId);
+            if (entry && active) {
+              setDetail({
+                source: 'entry',
+                barcode: entry.barcode ?? null,
+                title: entry.mealName,
+                quantityLabel: formatMealWeight(
+                  entry.quantityGrams,
+                  entry.quantityLabel,
+                  t('common.units.gram')
+                ),
+                quantityGrams: entry.quantityGrams ?? null,
+                calories: Math.round(entry.totalCalories),
+                proteinGrams: Math.round(entry.proteinGrams),
+                carbsGrams: Math.round(entry.carbsGrams),
+                fatGrams: Math.round(entry.fatGrams),
+                notes: entry.notes,
+                imageUri: entry.imageUri ?? null,
+                thumbnailUri: entry.thumbnailUri ?? null,
+                consumedAt: entry.consumedAt,
+              });
+              return;
+            }
+          } else if (recentId) {
+            const recent = await getRecentFoodById(recentId);
 
-          if (recent && active) {
-            setDetail({
-              source: 'recent',
-              barcode: recent.barcode ?? null,
-              title: recent.name,
-              quantityLabel: formatMealWeight(
-                recent.quantityGrams,
-                recent.quantityLabel,
-                t('common.units.gram')
-              ),
-              quantityGrams: recent.quantityGrams ?? null,
-              calories: Math.round(recent.totalCalories),
-              proteinGrams: Math.round(recent.proteinGrams),
-              carbsGrams: Math.round(recent.carbsGrams),
-              fatGrams: Math.round(recent.fatGrams),
-              notes: recent.notes,
-              imageUri: recent.imageUri ?? null,
-              thumbnailUri: recent.thumbnailUri ?? null,
-              consumedAt: new Date().toISOString(),
-            });
-            return;
-          }
-        } else if (mealLocalId && itemLocalId) {
-          const mealResult = await getManualMealByItemIds(mealLocalId, itemLocalId);
+            if (recent && active) {
+              setDetail({
+                source: 'recent',
+                barcode: recent.barcode ?? null,
+                title: recent.name,
+                quantityLabel: formatMealWeight(
+                  recent.quantityGrams,
+                  recent.quantityLabel,
+                  t('common.units.gram')
+                ),
+                quantityGrams: recent.quantityGrams ?? null,
+                calories: Math.round(recent.totalCalories),
+                proteinGrams: Math.round(recent.proteinGrams),
+                carbsGrams: Math.round(recent.carbsGrams),
+                fatGrams: Math.round(recent.fatGrams),
+                notes: recent.notes,
+                imageUri: recent.imageUri ?? null,
+                thumbnailUri: recent.thumbnailUri ?? null,
+                consumedAt: new Date().toISOString(),
+              });
+              return;
+            }
+          } else if (mealLocalId && itemLocalId) {
+            const mealResult = await getManualMealByItemIds(mealLocalId, itemLocalId);
 
-          if (mealResult && active) {
-            const { meal, item } = mealResult;
-            const quantityGrams =
-              item.quantityGrams !== null && item.quantityGrams !== undefined
-                ? item.quantityGrams * item.servings
-                : null;
+            if (mealResult && active) {
+              const { meal, item } = mealResult;
+              const quantityGrams =
+                item.quantityGrams !== null && item.quantityGrams !== undefined
+                  ? item.quantityGrams * item.servings
+                  : null;
 
-            setDetail({
-              source: 'manual',
-              barcode: item.sourceKey?.startsWith('barcode:')
-                ? item.sourceKey.replace('barcode:', '')
-                : null,
-              title: item.title,
-              quantityLabel: formatMealWeight(
+              setDetail({
+                source: 'manual',
+                barcode: item.sourceKey?.startsWith('barcode:')
+                  ? item.sourceKey.replace('barcode:', '')
+                  : null,
+                title: item.title,
+                quantityLabel: formatMealWeight(
+                  quantityGrams,
+                  item.quantityLabel,
+                  t('common.units.gram')
+                ),
                 quantityGrams,
-                item.quantityLabel,
-                t('common.units.gram')
-              ),
-              quantityGrams,
-              calories: Math.round(item.totalCalories * item.servings),
-              proteinGrams: Math.round(item.proteinGrams * item.servings),
-              carbsGrams: Math.round(item.carbsGrams * item.servings),
-              fatGrams: Math.round(item.fatGrams * item.servings),
-              notes: item.notes ?? meal.note,
-              imageUri: item.imageUri ?? null,
-              thumbnailUri: item.thumbnailUri ?? null,
-              consumedAt: meal.eatenAt ?? new Date().toISOString(),
-            });
-            return;
+                calories: Math.round(item.totalCalories * item.servings),
+                proteinGrams: Math.round(item.proteinGrams * item.servings),
+                carbsGrams: Math.round(item.carbsGrams * item.servings),
+                fatGrams: Math.round(item.fatGrams * item.servings),
+                notes: item.notes ?? meal.note,
+                imageUri: item.imageUri ?? null,
+                thumbnailUri: item.thumbnailUri ?? null,
+                consumedAt: meal.eatenAt ?? new Date().toISOString(),
+              });
+              return;
+            }
           }
-        }
 
-        if (active) {
-          setDetail(
-            toFoodDetailDataFromParams(
-              {
-                source: source === 'barcode' ? 'barcode' : source,
-                foodName: typedParams.foodName,
-                quantityLabel: typedParams.quantityLabel,
-                quantityGrams: typedParams.quantityGrams,
-                calories: typedParams.calories,
-                protein: typedParams.protein,
-                carbs: typedParams.carbs,
-                fat: typedParams.fat,
-                notes: typedParams.notes,
-                imageUri: typedParams.imageUri,
-                thumbnailUri: typedParams.thumbnailUri,
-                barcode: typedParams.barcode,
-                consumedAt: typedParams.consumedAt,
-              },
-              source,
-              t
-            )
-          );
-        }
-      } finally {
-        if (active) {
-          setIsLoading(false);
+          if (active) {
+            setDetail(
+              toFoodDetailDataFromParams(
+                {
+                  source: source === 'barcode' ? 'barcode' : source,
+                  foodName: typedParams.foodName,
+                  quantityLabel: typedParams.quantityLabel,
+                  quantityGrams: typedParams.quantityGrams,
+                  calories: typedParams.calories,
+                  protein: typedParams.protein,
+                  carbs: typedParams.carbs,
+                  fat: typedParams.fat,
+                  notes: typedParams.notes,
+                  imageUri: typedParams.imageUri,
+                  thumbnailUri: typedParams.thumbnailUri,
+                  barcode: typedParams.barcode,
+                  consumedAt: typedParams.consumedAt,
+                },
+                source,
+                t
+              )
+            );
+          }
+        } finally {
+          if (active) {
+            setIsLoading(false);
+          }
         }
       }
-    }
 
-    void load();
+      void load();
 
-    return () => {
-      active = false;
-    };
-  }, [
-    entryId,
-    recentId,
-    itemLocalId,
-    mealLocalId,
-    typedParams.calories,
-    typedParams.barcode,
-    typedParams.carbs,
-    typedParams.consumedAt,
-    typedParams.fat,
-    typedParams.foodName,
-    typedParams.imageUri,
-    typedParams.notes,
-    typedParams.protein,
-    typedParams.quantityGrams,
-    typedParams.quantityLabel,
-    typedParams.thumbnailUri,
-    source,
-    t,
-  ]);
+      return () => {
+        active = false;
+      };
+    }, [
+      entryId,
+      recentId,
+      itemLocalId,
+      mealLocalId,
+      typedParams.calories,
+      typedParams.barcode,
+      typedParams.carbs,
+      typedParams.consumedAt,
+      typedParams.fat,
+      typedParams.foodName,
+      typedParams.imageUri,
+      typedParams.notes,
+      typedParams.protein,
+      typedParams.quantityGrams,
+      typedParams.quantityLabel,
+      typedParams.thumbnailUri,
+      source,
+      t,
+    ])
+  );
 
   const sourceLabel = detail ? getSourceLabel(detail.source, t) : '';
   const canPreviewQuantity = detail
@@ -583,7 +472,7 @@ export default function FoodDetailScreen() {
   const showSaveAction = detail
     ? detail.source === 'ai' || detail.source === 'barcode' || detail.source === 'recent'
     : false;
-  const showEditAction = detail ? detail.source !== 'barcode' : false;
+  const showEditAction = Boolean(detail);
   const quantityMultiplier = canPreviewQuantity ? servings : 1;
   const previewShareDivider = canPreviewQuantity ? peopleCount : 1;
   const displayMultiplier = canPreviewQuantity ? quantityMultiplier / previewShareDivider : 1;
@@ -649,17 +538,71 @@ export default function FoodDetailScreen() {
     }
   }, [canPreviewQuantity]);
 
-  const openEditDialog = useCallback(() => {
+  const handleEditPress = useCallback(() => {
     if (!detail) {
       return;
     }
 
-    setEditDialog(toEditState(detail));
-  }, [detail]);
+    if (entryId) {
+      router.push({
+        pathname: '/food-form',
+        params: {
+          entryId,
+        },
+      });
+      return;
+    }
 
-  const closeEditDialog = useCallback(() => {
-    setEditDialog((previous) => ({ ...previous, visible: false, error: null }));
-  }, []);
+    if (recentId) {
+      router.push({
+        pathname: '/food-form',
+        params: {
+          recentId,
+        },
+      });
+      return;
+    }
+
+    if (mealLocalId && itemLocalId) {
+      router.push({
+        pathname: '/food-form',
+        params: {
+          context: 'menuMeal',
+          mealLocalId,
+          itemLocalId,
+        },
+      });
+      return;
+    }
+
+    router.push({
+      pathname: '/food-form',
+      params: {
+        ...(typedParams.context ? { context: typedParams.context } : { context: 'addMeal' }),
+        ...(typedParams.submitMode ? { submitMode: typedParams.submitMode } : {}),
+        ...(mealLocalId ? { mealLocalId } : {}),
+        ...(detail.barcode ? { barcode: detail.barcode } : {}),
+        foodName: detail.title,
+        quantityLabel:
+          detail.quantityGrams !== null ? String(detail.quantityGrams) : detail.quantityLabel,
+        calories: String(detail.calories),
+        protein: String(detail.proteinGrams),
+        carbs: String(detail.carbsGrams),
+        fat: String(detail.fatGrams),
+        notes: detail.notes ?? '',
+        imageUri: detail.imageUri ?? '',
+        consumedAt: detail.consumedAt ?? new Date().toISOString(),
+      },
+    });
+  }, [
+    detail,
+    entryId,
+    itemLocalId,
+    mealLocalId,
+    recentId,
+    typedParams.context,
+    typedParams.submitMode,
+  ]);
 
   const openPeopleCountDialog = useCallback(() => {
     setPeopleCountDialog({
@@ -687,154 +630,6 @@ export default function FoodDetailScreen() {
     setPeopleCount(nextPeopleCount);
     closePeopleCountDialog();
   }, [closePeopleCountDialog, peopleCountDialog.value, t]);
-
-  const saveEditDialog = useCallback(async () => {
-    if (!detail) {
-      return;
-    }
-
-    const title = editDialog.title.trim();
-    const quantityLabel = editDialog.quantityLabel.trim();
-    const consumedAt = parseDateTimeInputValue(editDialog.consumedAt);
-    const calories = parseRequiredNumericInput(editDialog.calories);
-    const proteinGrams = parseRequiredNumericInput(editDialog.proteinGrams);
-    const carbsGrams = parseRequiredNumericInput(editDialog.carbsGrams);
-    const fatGrams = parseRequiredNumericInput(editDialog.fatGrams);
-
-    if (
-      !title ||
-      !quantityLabel ||
-      calories === null ||
-      proteinGrams === null ||
-      carbsGrams === null ||
-      fatGrams === null
-    ) {
-      setEditDialog((previous) => ({
-        ...previous,
-        error: t('validation.required'),
-      }));
-      return;
-    }
-
-    const quantityGrams = parseOptionalNumericInput(editDialog.quantityGrams);
-
-    if (editDialog.quantityGrams.trim().length > 0 && quantityGrams === null) {
-      setEditDialog((previous) => ({
-        ...previous,
-        error: t('validation.numberInvalid'),
-      }));
-      return;
-    }
-
-    const nextNotes = editDialog.notes.trim().length > 0 ? editDialog.notes.trim() : null;
-
-    if (detail.source === 'entry' && typeof params.entryId === 'string') {
-      const updatedEntry = await updateFoodEntry(params.entryId, {
-        mealName: title,
-        quantityLabel,
-        quantityGrams,
-        totalCalories: Math.round(calories),
-        proteinGrams: Math.round(proteinGrams),
-        carbsGrams: Math.round(carbsGrams),
-        fatGrams: Math.round(fatGrams),
-        notes: nextNotes,
-        imageUri: detail.imageUri,
-        thumbnailUri: detail.thumbnailUri,
-        consumedAt: consumedAt.toISOString(),
-        entryDate: consumedAt.toISOString(),
-      });
-
-      if (updatedEntry) {
-        setDetail({
-          source: 'entry',
-          barcode: updatedEntry.barcode ?? null,
-          title: updatedEntry.mealName,
-          quantityLabel: updatedEntry.quantityLabel,
-          quantityGrams: updatedEntry.quantityGrams ?? null,
-          calories: Math.round(updatedEntry.totalCalories),
-          proteinGrams: Math.round(updatedEntry.proteinGrams),
-          carbsGrams: Math.round(updatedEntry.carbsGrams),
-          fatGrams: Math.round(updatedEntry.fatGrams),
-          notes: updatedEntry.notes,
-          imageUri: updatedEntry.imageUri ?? null,
-          thumbnailUri: updatedEntry.thumbnailUri ?? null,
-          consumedAt: updatedEntry.consumedAt,
-        });
-      }
-      closeEditDialog();
-      return;
-    }
-
-    if (detail.source === 'recent' && typeof params.recentId === 'string') {
-      const updatedRecent = await updateRecentFood(params.recentId, {
-        name: title,
-        barcode: detail.barcode,
-        quantityLabel,
-        quantityGrams,
-        totalCalories: Math.round(calories),
-        proteinGrams: Math.round(proteinGrams),
-        carbsGrams: Math.round(carbsGrams),
-        fatGrams: Math.round(fatGrams),
-        notes: nextNotes,
-        imageUri: detail.imageUri,
-        thumbnailUri: detail.thumbnailUri,
-      });
-
-      if (updatedRecent) {
-        if (updatedRecent.barcode) {
-          await upsertFoodProductCatalog({
-            barcode: updatedRecent.barcode,
-            name: updatedRecent.name,
-            quantityLabel: updatedRecent.quantityLabel,
-            quantityGrams: updatedRecent.quantityGrams,
-            totalCalories: updatedRecent.totalCalories,
-            proteinGrams: updatedRecent.proteinGrams,
-            carbsGrams: updatedRecent.carbsGrams,
-            fatGrams: updatedRecent.fatGrams,
-            notes: updatedRecent.notes,
-            imageUri: updatedRecent.imageUri,
-            source: 'user',
-          });
-        }
-
-        setDetail({
-          source: 'recent',
-          barcode: updatedRecent.barcode ?? null,
-          title: updatedRecent.name,
-          quantityLabel: updatedRecent.quantityLabel,
-          quantityGrams: updatedRecent.quantityGrams,
-          calories: Math.round(updatedRecent.totalCalories),
-          proteinGrams: Math.round(updatedRecent.proteinGrams),
-          carbsGrams: Math.round(updatedRecent.carbsGrams),
-          fatGrams: Math.round(updatedRecent.fatGrams),
-          notes: updatedRecent.notes,
-          imageUri: updatedRecent.imageUri ?? null,
-          thumbnailUri: updatedRecent.thumbnailUri ?? null,
-          consumedAt: consumedAt.toISOString(),
-        });
-      }
-      closeEditDialog();
-      return;
-    }
-
-    setDetail((previous) =>
-      previous
-        ? {
-            ...previous,
-            title,
-            quantityLabel,
-            quantityGrams,
-            consumedAt: consumedAt.toISOString(),
-            calories: Math.round(calories),
-            proteinGrams: Math.round(proteinGrams),
-            carbsGrams: Math.round(carbsGrams),
-            fatGrams: Math.round(fatGrams),
-            notes: nextNotes,
-          }
-        : previous
-    );
-    closeEditDialog();
-  }, [closeEditDialog, detail, editDialog, params.entryId, params.recentId, t]);
 
   const handleSavePress = useCallback(async () => {
     if (!detail || isSaving) {
@@ -1084,7 +879,7 @@ export default function FoodDetailScreen() {
                   variant="outline"
                   size="sm"
                   leftIcon={<Icon name="create-outline" size={16} variant="primary" />}
-                  onPress={openEditDialog}
+                  onPress={handleEditPress}
                   style={styles.editButton}
                 />
                 {canPreviewQuantity ? (
@@ -1230,126 +1025,6 @@ export default function FoodDetailScreen() {
       </View>
 
       <Dialog
-        visible={editDialog.visible}
-        onDismiss={closeEditDialog}
-        title={t('foodDetail.editTitle')}
-        size="lg"
-        keyboardAware
-        keyboardOffset={-30}
-        actions={[
-          {
-            label: t('common.cancel'),
-            variant: 'ghost',
-            onPress: closeEditDialog,
-          },
-          {
-            label: t('common.save'),
-            variant: 'primary',
-            onPress: saveEditDialog,
-          },
-        ]}
-      >
-        <View style={styles.editDialogContent}>
-          <Input
-            label={t('foodDetail.editFields.title')}
-            value={editDialog.title}
-            onChangeText={(value) => {
-              setEditDialog((previous) => ({ ...previous, title: value, error: null }));
-            }}
-          />
-          <Input
-            label={t('foodDetail.editFields.quantityGrams')}
-            value={editDialog.quantityGrams}
-            keyboardType="decimal-pad"
-            onChangeText={(value) => {
-              setEditDialog((previous) => ({ ...previous, quantityGrams: value, error: null }));
-            }}
-          />
-          <View style={styles.timeFieldBlock}>
-            <Text variant="label" style={styles.timeFieldLabel}>
-              {t('foodDetail.editFields.consumedAt')}
-            </Text>
-            <Button
-              title={
-                formatDateTimeInputDisplay(editDialog.consumedAt, i18n.language) ||
-                t('foodDetail.editFields.consumedAt')
-              }
-              variant="outline"
-              size="sm"
-              onPress={() => {
-                dateTimeFieldRef.current?.present();
-              }}
-              style={styles.timeFieldButton}
-            />
-          </View>
-          <Input
-            label={t('foodDetail.editFields.calories')}
-            value={editDialog.calories}
-            keyboardType="decimal-pad"
-            onChangeText={(value) => {
-              setEditDialog((previous) => ({ ...previous, calories: value, error: null }));
-            }}
-          />
-          <View style={styles.editMacroRow}>
-            <View style={styles.editMacroItem}>
-              <Input
-                label={t('statsScreen.macros.protein')}
-                value={editDialog.proteinGrams}
-                keyboardType="decimal-pad"
-                onChangeText={(value) => {
-                  setEditDialog((previous) => ({
-                    ...previous,
-                    proteinGrams: value,
-                    error: null,
-                  }));
-                }}
-              />
-            </View>
-            <View style={styles.editMacroItem}>
-              <Input
-                label={t('statsScreen.macros.carbs')}
-                value={editDialog.carbsGrams}
-                keyboardType="decimal-pad"
-                onChangeText={(value) => {
-                  setEditDialog((previous) => ({
-                    ...previous,
-                    carbsGrams: value,
-                    error: null,
-                  }));
-                }}
-              />
-            </View>
-            <View style={styles.editMacroItem}>
-              <Input
-                label={t('statsScreen.macros.fat')}
-                value={editDialog.fatGrams}
-                keyboardType="decimal-pad"
-                onChangeText={(value) => {
-                  setEditDialog((previous) => ({
-                    ...previous,
-                    fatGrams: value,
-                    error: null,
-                  }));
-                }}
-              />
-            </View>
-          </View>
-          <Input
-            label={t('foodDetail.notesLabel')}
-            value={editDialog.notes}
-            onChangeText={(value) => {
-              setEditDialog((previous) => ({ ...previous, notes: value, error: null }));
-            }}
-          />
-          {editDialog.error ? (
-            <Text variant="caption" style={styles.editErrorText}>
-              {editDialog.error}
-            </Text>
-          ) : null}
-        </View>
-      </Dialog>
-
-      <Dialog
         visible={peopleCountDialog.visible}
         onDismiss={closePeopleCountDialog}
         title={t('foodDetail.peopleCountDialogTitle')}
@@ -1382,19 +1057,6 @@ export default function FoodDetailScreen() {
           />
         </View>
       </Dialog>
-
-      <View style={styles.hiddenDateTimeField}>
-        <DateTimeField
-          ref={dateTimeFieldRef}
-          title={t('foodDetail.editFields.consumedAt')}
-          mode="datetime"
-          value={editDialog.consumedAt}
-          onChange={(value) => {
-            setEditDialog((previous) => ({ ...previous, consumedAt: value, error: null }));
-          }}
-          hideTrigger
-        />
-      </View>
     </ScreenContainer>
   );
 }
@@ -1452,15 +1114,6 @@ const styles = StyleSheet.create((theme) => ({
   editButton: {
     alignSelf: 'flex-start',
     marginTop: theme.metrics.spacingV.p4,
-  },
-  timeFieldBlock: {
-    gap: theme.metrics.spacingV.p4,
-  },
-  timeFieldLabel: {
-    marginLeft: theme.metrics.spacing.p4,
-  },
-  timeFieldButton: {
-    alignSelf: 'flex-start',
   },
   titleRow: {
     flexDirection: 'row',
@@ -1590,22 +1243,5 @@ const styles = StyleSheet.create((theme) => ({
   },
   editDialogContent: {
     gap: theme.metrics.spacingV.p8,
-  },
-  editMacroRow: {
-    flexDirection: 'row',
-    gap: theme.metrics.spacing.p8,
-  },
-  editMacroItem: {
-    flex: 1,
-  },
-  editErrorText: {
-    color: theme.colors.state.error,
-  },
-  hiddenDateTimeField: {
-    position: 'absolute',
-    width: 0,
-    height: 0,
-    opacity: 0,
-    overflow: 'hidden',
   },
 }));
