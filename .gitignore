@@ -49,6 +49,7 @@ jest-results/
 
 # EAS
 .eas/
+*.ipa
 
 # logs
 *.log

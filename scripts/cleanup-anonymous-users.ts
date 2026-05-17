@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 interface CleanupOptions {
   dryRun: boolean;
@@ -17,8 +19,36 @@ interface AnonymousUserSummary {
   hasStorageObjects: boolean;
 }
 
-const DEFAULT_MIN_AGE_DAYS = 7;
+const DEFAULT_MIN_AGE_DAYS = 1;
 const DEFAULT_PAGE_SIZE = 100;
+
+function loadEnvFile(filePath: string) {
+  if (!existsSync(filePath)) {
+    return;
+  }
+
+  const lines = readFileSync(filePath, 'utf-8').split('\n');
+
+  for (const line of lines) {
+    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+    if (!match) {
+      continue;
+    }
+
+    const [, key, rawValue = ''] = match;
+    if (process.env[key] !== undefined) {
+      continue;
+    }
+
+    const value = rawValue.trim().replace(/^['"]|['"]$/g, '');
+    process.env[key] = value;
+  }
+}
+
+function loadEnvFiles() {
+  loadEnvFile(resolve(process.cwd(), '.env.local'));
+  loadEnvFile(resolve(process.cwd(), '.env'));
+}
 
 function parseBooleanFlag(flag: string) {
   return process.argv.includes(flag);
@@ -50,13 +80,15 @@ function getOptions(): CleanupOptions {
   };
 }
 
-function requireEnv(name: string) {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`${name} is required`);
+function requireOneEnv(names: string[]) {
+  for (const name of names) {
+    const value = process.env[name];
+    if (value) {
+      return value;
+    }
   }
 
-  return value;
+  throw new Error(`${names.join(' or ')} is required`);
 }
 
 function isAnonymousUser(user: {
@@ -213,9 +245,15 @@ async function listAnonymousUsers(adminClient: SupabaseClient, options: CleanupO
 }
 
 async function main() {
+  loadEnvFiles();
+
   const options = getOptions();
-  const supabaseUrl = requireEnv('EXPO_PUBLIC_SUPABASE_URL');
-  const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseUrl = requireOneEnv(['EXPO_PUBLIC_SUPABASE_URL', 'SUPABASE_URL']);
+  const serviceRoleKey = requireOneEnv([
+    'CHECK_CALO_SUPABASE_SECRET_KEY',
+    'SUPABASE_SECRET_KEY',
+    'SUPABASE_SERVICE_ROLE_KEY',
+  ]);
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,

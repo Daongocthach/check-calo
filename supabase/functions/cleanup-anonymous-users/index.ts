@@ -18,22 +18,44 @@ interface AdminUser {
   identities?: Array<{ provider?: string }>;
 }
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL');
-const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-const cleanupSecret = Deno.env.get('ANONYMOUS_CLEANUP_SECRET');
+let adminClient: ReturnType<typeof createClient> | null = null;
 
-if (!supabaseUrl || !serviceRoleKey || !cleanupSecret) {
-  throw new Error(
-    'SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and ANONYMOUS_CLEANUP_SECRET are required.'
-  );
+function requireEnv(name: string) {
+  const value = Deno.env.get(name);
+  if (!value) {
+    throw new Error(`${name} is required.`);
+  }
+
+  return value;
 }
 
-const adminClient = createClient(supabaseUrl, serviceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+function requireOneEnv(names: string[]) {
+  for (const name of names) {
+    const value = Deno.env.get(name);
+    if (value) {
+      return value;
+    }
+  }
+
+  throw new Error(`${names.join(' or ')} is required.`);
+}
+
+function getAdminClient() {
+  if (!adminClient) {
+    adminClient = createClient(
+      requireEnv('SUPABASE_URL'),
+      requireOneEnv(['CHECK_CALO_SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY']),
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+  }
+
+  return adminClient;
+}
 
 function json(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
@@ -85,7 +107,7 @@ function matchesTestFilter(user: AdminUser) {
 }
 
 async function hasFoodEntries(userId: string) {
-  const { count, error } = await adminClient
+  const { count, error } = await getAdminClient()
     .from('food_entries')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId);
@@ -98,7 +120,7 @@ async function hasFoodEntries(userId: string) {
 }
 
 async function listBuckets() {
-  const { data, error } = await adminClient.storage.listBuckets();
+  const { data, error } = await getAdminClient().storage.listBuckets();
 
   if (error) {
     throw error;
@@ -111,9 +133,11 @@ async function hasStorageObjects(bucket: string | null, userId: string) {
   const bucketNames = bucket ? [bucket] : await listBuckets();
 
   for (const bucketName of bucketNames) {
-    const { data, error } = await adminClient.storage.from(bucketName).list(`users/${userId}`, {
-      limit: 1,
-    });
+    const { data, error } = await getAdminClient()
+      .storage.from(bucketName)
+      .list(`users/${userId}`, {
+        limit: 1,
+      });
 
     if (error) {
       throw error;
@@ -133,7 +157,7 @@ async function listAnonymousUsers(minAgeDays: number, onlyTest: boolean) {
   const perPage = 100;
 
   while (true) {
-    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
+    const { data, error } = await getAdminClient().auth.admin.listUsers({ page, perPage });
 
     if (error) {
       throw error;
@@ -170,64 +194,70 @@ async function listAnonymousUsers(minAgeDays: number, onlyTest: boolean) {
 }
 
 Deno.serve(async (request) => {
-  if (request.method !== 'POST') {
-    return json(405, { error: 'Method not allowed' });
-  }
-
-  const authHeader = request.headers.get('Authorization') ?? '';
-  const bearer = authHeader.replace(/^Bearer\s+/i, '').trim();
-
-  if (bearer !== cleanupSecret) {
-    return json(401, { error: 'Unauthorized' });
-  }
-
-  let payload: CleanupRequest = {};
   try {
-    payload = (await request.json()) as CleanupRequest;
-  } catch {
-    payload = {};
-  }
-
-  const dryRun = Boolean(payload.dryRun);
-  const minAgeDays = payload.minAgeDays && payload.minAgeDays > 0 ? payload.minAgeDays : 7;
-  const onlyTest = payload.onlyTest !== false;
-  const bucket = payload.bucket?.trim() || null;
-
-  const candidates = await listAnonymousUsers(minAgeDays, onlyTest);
-  const skipped: string[] = [];
-  const deletable: string[] = [];
-
-  for (const user of candidates) {
-    const [foodEntries, storageObjects] = await Promise.all([
-      hasFoodEntries(user.id),
-      hasStorageObjects(bucket, user.id),
-    ]);
-
-    if (foodEntries || storageObjects) {
-      skipped.push(user.id);
-      continue;
+    if (request.method !== 'POST') {
+      return json(405, { error: 'Method not allowed' });
     }
 
-    deletable.push(user.id);
-  }
+    const cleanupSecret = requireEnv('ANONYMOUS_CLEANUP_SECRET');
+    const authHeader = request.headers.get('Authorization') ?? '';
+    const bearer = authHeader.replace(/^Bearer\s+/i, '').trim();
 
-  if (!dryRun) {
-    for (const userId of deletable) {
-      const { error } = await adminClient.auth.admin.deleteUser(userId);
-      if (error) {
-        throw error;
+    if (bearer !== cleanupSecret) {
+      return json(401, { error: 'Unauthorized' });
+    }
+
+    let payload: CleanupRequest = {};
+    try {
+      payload = (await request.json()) as CleanupRequest;
+    } catch {
+      payload = {};
+    }
+
+    const dryRun = Boolean(payload.dryRun);
+    const minAgeDays = payload.minAgeDays && payload.minAgeDays > 0 ? payload.minAgeDays : 7;
+    const onlyTest = payload.onlyTest !== false;
+    const bucket = payload.bucket?.trim() || null;
+
+    const candidates = await listAnonymousUsers(minAgeDays, onlyTest);
+    const skipped: string[] = [];
+    const deletable: string[] = [];
+
+    for (const user of candidates) {
+      const [foodEntries, storageObjects] = await Promise.all([
+        hasFoodEntries(user.id),
+        hasStorageObjects(bucket, user.id),
+      ]);
+
+      if (foodEntries || storageObjects) {
+        skipped.push(user.id);
+        continue;
+      }
+
+      deletable.push(user.id);
+    }
+
+    if (!dryRun) {
+      for (const userId of deletable) {
+        const { error } = await getAdminClient().auth.admin.deleteUser(userId);
+        if (error) {
+          throw error;
+        }
       }
     }
-  }
 
-  return json(200, {
-    dryRun,
-    minAgeDays,
-    onlyTest,
-    bucket,
-    matchedUsers: candidates.length,
-    skippedUsers: skipped.length,
-    deletedUsers: dryRun ? 0 : deletable.length,
-    deletableUsers: dryRun ? deletable.length : undefined,
-  });
+    return json(200, {
+      dryRun,
+      minAgeDays,
+      onlyTest,
+      bucket,
+      matchedUsers: candidates.length,
+      skippedUsers: skipped.length,
+      deletedUsers: dryRun ? 0 : deletable.length,
+      deletableUsers: dryRun ? deletable.length : undefined,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Cleanup failed.';
+    return json(500, { error: message });
+  }
 });

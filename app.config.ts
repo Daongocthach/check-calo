@@ -13,7 +13,7 @@ const config: ExpoConfig = {
   name: 'Check Calo',
   slug: 'check-calo',
   owner: 'thachdaongoc75',
-  version: '1.0.0',
+  version: '1.0.1',
   orientation: 'portrait',
   scheme: 'check-calo',
   userInterfaceStyle: 'automatic',
