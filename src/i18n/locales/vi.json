@@ -423,7 +423,7 @@
     "greetings": {
       "morning": "Sẵn sàng bắt đầu",
       "afternoon": "Giữ nhịp thật tốt",
-      "evening": "Kết thúc thật đẹp"
+      "evening": "Chào buổi tối"
     },
     "week": {
       "sun": "CN",
@@ -1073,7 +1073,9 @@
     "activeTitle": "Kế hoạch",
     "completedTitle": "Đã hoàn thành kế hoạch",
     "profileTitle": "Tiến độ kế hoạch",
+    "planTitle": "Kế hoạch: {{goal}}",
     "progressLabel": "Tiến độ",
+    "currentProgress": "Tiến độ hiện tại: {{current}}/{{target}} ngày",
     "emptyTitle": "Chọn kế hoạch tiếp theo",
     "emptySubtitle": "Tiếp tục đi bằng kế hoạch calories hoặc chuỗi ngày giữ cân.",
     "choosePrompt": "Chọn kế hoạch bạn muốn bắt đầu tiếp theo.",

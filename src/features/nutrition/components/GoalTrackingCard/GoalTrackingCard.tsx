@@ -106,6 +106,11 @@ export function GoalTrackingCard({ goalTracking, todaySummary }: GoalTrackingCar
   const planTitle = activeGoal
     ? formatWeightGoalTitle(t, activeGoal.goal)
     : t('goalTracking.goalNames.maintainWithOneMonth');
+  const planTitleLabel = t('goalTracking.planTitle', { goal: planTitle });
+  const planProgressLabel = t('goalTracking.currentProgress', {
+    current: formatNumber(planProgressCurrent, i18n.language),
+    target: formatNumber(planProgressTarget, i18n.language),
+  });
   const planMode = activeGoal?.goal.mode ?? 'maintain';
   const achievedCalorieDelta =
     activeGoal?.unit === 'kcal'
@@ -153,10 +158,10 @@ export function GoalTrackingCard({ goalTracking, todaySummary }: GoalTrackingCar
         <Image source={GoalArrowImage} style={styles.image} contentFit="contain" />
         <View style={styles.copy}>
           <Text variant="body" weight="bold" numberOfLines={1} adjustsFontSizeToFit>
-            {t('goalTracking.profileTitle')}
+            {planTitleLabel}
           </Text>
           <Text variant="caption" color="secondary" numberOfLines={2}>
-            {t('statsScreen.todayProgress.subtitle')}
+            {planProgressLabel}
           </Text>
         </View>
         <View style={styles.circleWrap}>
@@ -177,16 +182,6 @@ export function GoalTrackingCard({ goalTracking, todaySummary }: GoalTrackingCar
       </View>
 
       <View style={styles.metrics}>
-        <GoalMetric label={t('goalTracking.activeTitle')} value={planTitle} compact emphasis />
-        <View style={styles.divider} />
-        <GoalMetric
-          label={t('goalTracking.progressLabel')}
-          value={`${formatNumber(planProgressCurrent, i18n.language)} / ${formatNumber(
-            planProgressTarget,
-            i18n.language
-          )}\n${t('common.units.day')}`}
-          compact
-        />
         <View style={styles.divider} />
         {planMode === 'maintain' ? (
           <GoalMetric
@@ -257,7 +252,7 @@ export function GoalTrackingCard({ goalTracking, todaySummary }: GoalTrackingCar
 
 const styles = StyleSheet.create((theme) => ({
   card: {
-    gap: theme.metrics.spacingV.p16,
+    gap: theme.metrics.spacingV.p8,
   },
   header: {
     flexDirection: 'row',
@@ -291,6 +286,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   metric: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: theme.metrics.spacing.p8,
     paddingVertical: theme.metrics.spacingV.p8,
     gap: theme.metrics.spacingV.p4,
@@ -301,13 +298,16 @@ const styles = StyleSheet.create((theme) => ({
   metricLabel: {
     minHeight: theme.metrics.spacing.p16,
     lineHeight: theme.fonts.size.sm,
+    textAlign: 'center',
   },
   metricValue: {
     lineHeight: 18,
+    textAlign: 'center',
   },
   metricValueEmphasis: {},
   metricMeta: {
     lineHeight: 16,
+    textAlign: 'center',
   },
   divider: {
     width: 1,
@@ -317,6 +317,6 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: theme.metrics.spacing.p4,
-    marginTop: -theme.metrics.spacingV.p8,
+    marginTop: theme.metrics.spacingV.p8,
   },
 }));
