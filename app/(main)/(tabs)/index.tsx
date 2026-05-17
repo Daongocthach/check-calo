@@ -12,7 +12,6 @@ import {
   Icon,
   Loading,
   MonthSelector,
-  ProgressBar,
   ScreenContainer,
   Text,
 } from '@/common/components';
@@ -1068,28 +1067,22 @@ export default function HomeTab() {
   const macroRows = useMemo(
     () => [
       {
-        label: t('statsScreen.macros.protein'),
-        current: summary.proteinGrams,
-        target: profile?.proteinTargetGrams ?? 0,
-        color: theme.colors.state.info,
-        trackColor: theme.colors.state.infoBg,
-        icon: 'fish' as const,
-      },
-      {
         label: t('statsScreen.macros.carbs'),
         current: summary.carbsGrams,
         target: profile?.carbsTargetGrams ?? 0,
-        color: theme.colors.state.warning,
-        trackColor: theme.colors.state.warningBg,
-        icon: 'nutrition' as const,
+        progressColor: theme.colors.state.warning,
+      },
+      {
+        label: t('statsScreen.macros.protein'),
+        current: summary.proteinGrams,
+        target: profile?.proteinTargetGrams ?? 0,
+        progressColor: theme.colors.state.info,
       },
       {
         label: t('statsScreen.macros.fat'),
         current: summary.fatGrams,
         target: profile?.fatTargetGrams ?? 0,
-        color: theme.colors.state.success,
-        trackColor: theme.colors.state.successBg,
-        icon: 'water' as const,
+        progressColor: theme.colors.state.success,
       },
     ],
     [
@@ -1101,11 +1094,8 @@ export default function HomeTab() {
       summary.proteinGrams,
       t,
       theme.colors.state.info,
-      theme.colors.state.infoBg,
       theme.colors.state.success,
-      theme.colors.state.successBg,
       theme.colors.state.warning,
-      theme.colors.state.warningBg,
     ]
   );
   const canOpenHomeAiReview = entries.length > 0;
@@ -1178,74 +1168,42 @@ export default function HomeTab() {
 
             {profileCardContent}
 
-            <Card variant="elevated" style={styles.macroCard}>
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.cardHeaderCopy}>
-                  <Text variant="body" weight="bold">
-                    {t('homeScreen.macroToday')}
-                  </Text>
-                  <Text variant="bodySmall" color="secondary">
-                    {t('statsScreen.macros.title')}
-                  </Text>
-                </View>
-                <Button
-                  title={t('homeScreen.details')}
-                  variant="ghost"
-                  size="sm"
-                  rightIcon={
-                    <Icon
-                      name="chevron-forward"
-                      size={16}
-                      color={theme.colors.brand.primary}
-                      variant="primary"
-                    />
-                  }
-                  onPress={() => router.push('/stats')}
-                />
-              </View>
-
+            <View style={styles.macroCard}>
               <View style={styles.macroList}>
                 {macroRows.map((row) => {
                   const progress = getMacroProgress(row.current, row.target);
-                  let progressScheme: 'info' | 'warning' | 'success' = 'success';
-
-                  if (row.icon === 'fish') {
-                    progressScheme = 'info';
-                  } else if (row.icon === 'nutrition') {
-                    progressScheme = 'warning';
-                  }
 
                   return (
-                    <View key={row.label} style={styles.macroRow}>
-                      <View style={styles.macroRowTop}>
-                        <View style={styles.macroLabelRow}>
-                          <View style={[styles.macroIconWrap, { backgroundColor: row.trackColor }]}>
-                            <Icon name={row.icon} size={16} color={row.color} />
-                          </View>
-                          <View style={styles.macroLabelCopy}>
-                            <Text variant="bodySmall" weight="medium">
-                              {row.label}
-                            </Text>
-                            <Text variant="caption" color="secondary">
-                              {`${formatNumber(Math.round(row.current), i18n.language)} / ${formatNumber(Math.round(row.target), i18n.language)}g`}
-                            </Text>
-                          </View>
-                        </View>
-                        <Text variant="bodySmall" weight="semibold">
-                          {`${progress}%`}
+                    <Card key={row.label} variant="elevated" style={styles.macroRow}>
+                      <Text variant="caption" weight="semibold" color="secondary" numberOfLines={1}>
+                        {row.label}
+                      </Text>
+                      <View style={styles.macroValueRow}>
+                        <Text variant="h3" weight="bold" color="primary" style={styles.macroValue}>
+                          {formatNumber(Math.round(row.current), i18n.language)}
+                        </Text>
+                        <Text variant="caption" color="secondary" style={styles.macroTarget}>
+                          {`/${formatNumber(Math.round(row.target), i18n.language)} g`}
                         </Text>
                       </View>
-                      <ProgressBar
-                        value={progress}
-                        size="md"
-                        colorScheme={progressScheme}
+                      <View
+                        style={styles.macroProgressTrack}
+                        accessibilityRole="progressbar"
                         accessibilityLabel={row.label}
-                      />
-                    </View>
+                        accessibilityValue={{ min: 0, max: 100, now: progress }}
+                      >
+                        <View
+                          style={[
+                            styles.macroProgressFill,
+                            { width: `${progress}%`, backgroundColor: row.progressColor },
+                          ]}
+                        />
+                      </View>
+                    </Card>
                   );
                 })}
               </View>
-            </Card>
+            </View>
 
             <GoalTrackingCard goalTracking={goalTracking} todaySummary={summary} />
 
@@ -1364,36 +1322,43 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: '800',
   },
   macroCard: {
-    gap: theme.metrics.spacingV.p16,
+    marginTop: -theme.metrics.spacingV.p4,
   },
   macroList: {
-    gap: theme.metrics.spacingV.p16,
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
   },
   macroRow: {
-    gap: theme.metrics.spacingV.p8,
-  },
-  macroRowTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flex: 1,
+    minHeight: vs(78),
     justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p12,
+    gap: theme.metrics.spacingV.p8,
+    borderRadius: theme.metrics.borderRadius.lg,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
   },
-  macroLabelRow: {
-    flex: 1,
+  macroValueRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p12,
+    alignItems: 'baseline',
+    minWidth: 0,
   },
-  macroIconWrap: {
-    width: theme.metrics.spacing.p32,
-    height: theme.metrics.spacing.p32,
+  macroValue: {
+    lineHeight: 30,
+    fontWeight: '800',
+  },
+  macroTarget: {
+    flexShrink: 1,
+  },
+  macroProgressTrack: {
+    height: vs(5),
     borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
+    backgroundColor: theme.colors.border.default,
   },
-  macroLabelCopy: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
+  macroProgressFill: {
+    height: '100%',
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.text.secondary,
   },
   mealsHeaderRow: {
     flexDirection: 'row',

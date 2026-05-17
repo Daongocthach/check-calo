@@ -8,6 +8,8 @@
     "back": "Back",
     "next": "Next",
     "done": "Done",
+    "date": "Date",
+    "time": "Time",
     "retry": "Retry",
     "search": "Search",
     "settings": "Settings",
