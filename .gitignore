@@ -49,6 +49,9 @@ jest-results/
 
 # EAS
 .eas/
+*.ipa
+*.apk
+*.aab
 
 # logs
 *.log

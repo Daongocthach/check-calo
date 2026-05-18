@@ -1,6 +1,18 @@
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { env } from '@/config/env';
+import {
+  syncFoodEntriesDeltaFromSupabase,
+  syncUserProfileFromCloud,
+  syncRecentFoodsDeltaFromSupabase,
+  syncMealsDeltaFromSupabase,
+  syncMealItemsDeltaFromSupabase,
+} from '@/features/nutrition/services/nutritionDeltaSync';
+import {
+  resetLocalNutritionData,
+  resetLocalNutritionDataForLogin,
+} from '@/features/nutrition/services/nutritionLocalReset';
+import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
 import { supabase } from '@/integrations/supabase';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { STORAGE_KEYS, removeItem, setItem } from '@/utils/storage';
@@ -18,10 +30,18 @@ interface RegisterParams {
   username?: string;
 }
 
+interface ResetPasswordParams {
+  email: string;
+}
+
 type SupportedIdentityProvider = 'google' | 'apple';
 
 function getAuthRedirectUrl() {
   return Linking.createURL('/');
+}
+
+function getPasswordResetRedirectUrl() {
+  return Linking.createURL('/reset-password');
 }
 
 function extractAuthCode(callbackUrl: string) {
@@ -31,7 +51,7 @@ function extractAuthCode(callbackUrl: string) {
   return typeof rawCode === 'string' ? rawCode : null;
 }
 
-export async function login(params: LoginParams) {
+export async function loginAuthenticate(params: LoginParams) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: params.email.trim(),
     password: params.password,
@@ -45,13 +65,55 @@ export async function login(params: LoginParams) {
   return data;
 }
 
+export async function loginSyncCloudData() {
+  // Cloud is source of truth: wipe local nutrition data, then pull from cloud.
+  // Uses login-safe reset that preserves the session token in MMKV.
+  await resetLocalNutritionDataForLogin();
+
+  removeItem(STORAGE_KEYS.app.nutritionDeltaFoodEntriesCursor);
+  removeItem(STORAGE_KEYS.app.nutritionDeltaRecentFoodsCursor);
+  removeItem(STORAGE_KEYS.app.nutritionDeltaMealsCursor);
+  removeItem(STORAGE_KEYS.app.nutritionDeltaMealItemsCursor);
+
+  await syncUserProfileFromCloud();
+  await syncFoodEntriesDeltaFromSupabase();
+  await syncRecentFoodsDeltaFromSupabase();
+  await syncMealsDeltaFromSupabase();
+  await syncMealItemsDeltaFromSupabase();
+  useFoodEntryRefreshStore.getState().markFoodEntriesChanged();
+  useFoodEntryRefreshStore.getState().markMenuMealsChanged();
+  useFoodEntryRefreshStore.getState().markRecentFoodsChanged();
+}
+
+export async function login(params: LoginParams) {
+  const data = await loginAuthenticate(params);
+  await loginSyncCloudData();
+  return data;
+}
+
 export async function register(params: RegisterParams) {
+  const user = useAuthStore.getState().user;
+
+  // If already in an anonymous session, upgrade it in place (preserves user_id)
+  if (user?.isAnonymous) {
+    const result = await linkAnonymousAccountWithEmail({
+      email: params.email,
+      password: params.password,
+    });
+
+    if (params.username) {
+      await supabase.auth.updateUser({ data: { username: params.username } });
+    }
+
+    return result;
+  }
+
+  // No session or non-anonymous: create a brand-new account
   const { data, error } = await supabase.auth.signUp({
-    email: params.email.trim(),
+    email: params.email.trim().toLowerCase(),
     password: params.password,
     options: {
       data: params.username ? { username: params.username } : undefined,
-      emailRedirectTo: getAuthRedirectUrl(),
     },
   });
 
@@ -59,7 +121,27 @@ export async function register(params: RegisterParams) {
     throw error;
   }
 
-  setItem(STORAGE_KEYS.auth.lastEmail, params.email.trim());
+  setItem(STORAGE_KEYS.auth.lastEmail, params.email.trim().toLowerCase());
+  return data;
+}
+
+export async function sendPasswordResetEmail(params: ResetPasswordParams) {
+  const { error } = await supabase.auth.resetPasswordForEmail(params.email.trim(), {
+    redirectTo: getPasswordResetRedirectUrl(),
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updatePassword(password: string) {
+  const { data, error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    throw error;
+  }
+
   return data;
 }
 
@@ -69,6 +151,11 @@ export async function logout() {
   if (error) {
     throw error;
   }
+
+  // Clear session and anonymous flag, then create a fresh anonymous session
+  useAuthStore.getState().clearSession();
+  removeItem(STORAGE_KEYS.auth.anonymousSessionAttempted);
+  await useAuthStore.getState().initialize();
 }
 
 export async function getSession() {
@@ -240,9 +327,34 @@ export async function deleteCurrentUserCloudNutritionData() {
   if (deleteEntriesError) {
     throw deleteEntriesError;
   }
+
+  // Clear meals and items
+  await supabase.from('meal_items').delete().eq('user_id', userId);
+  await supabase.from('meals').delete().eq('user_id', userId);
+  await supabase.from('recent_foods').delete().eq('user_id', userId);
+
+  if (__DEV__) {
+    console.warn('[AuthService] Cleared all cloud nutrition data for user:', userId);
+  }
+
+  const { error: deleteProfileError } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('user_id', userId);
+
+  if (deleteProfileError && __DEV__) {
+    console.warn('Failed to delete leaderboard profile during disconnect', deleteProfileError);
+  }
 }
 
 export async function disconnectCurrentSyncAccount() {
-  await deleteCurrentUserCloudNutritionData();
-  await logout();
+  const { error } = await supabase.functions.invoke('delete-sync-account');
+
+  if (error) {
+    throw error;
+  }
+
+  await resetLocalNutritionData();
+  await supabase.auth.signOut({ scope: 'local' });
+  useAuthStore.getState().clearSession();
 }

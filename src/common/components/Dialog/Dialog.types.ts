@@ -30,4 +30,8 @@ export interface DialogProps {
   size?: ComponentSize;
   /** Whether pressing the backdrop dismisses the dialog. Defaults to `true`. */
   dismissOnBackdropPress?: boolean;
+  /** Whether the dialog content should adapt to the keyboard. Defaults to `false`. */
+  keyboardAware?: boolean;
+  /** Extra offset used when the keyboard-aware mode is enabled. Defaults to `0`. */
+  keyboardOffset?: number;
 }

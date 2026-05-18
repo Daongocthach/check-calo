@@ -38,7 +38,7 @@ export function TabsHeader({
       >
         <Icon name="chevron-back" variant="secondary" size={20} />
       </Pressable>
-      <Text variant="h3" style={styles.title} numberOfLines={1}>
+      <Text variant="body" weight="bold" style={styles.title} numberOfLines={1}>
         {title}
       </Text>
       {showSync ? (

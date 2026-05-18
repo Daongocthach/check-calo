@@ -12,6 +12,7 @@ import {
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Icon, Text } from '@/common/components';
+import FALLBACK_MEAL_IMAGE from '../../../../../assets/fallback-meal.png';
 
 export interface FoodImagePreviewProps {
   imageUri?: string | null;
@@ -19,7 +20,6 @@ export interface FoodImagePreviewProps {
   devSyncBadgeLabel?: string | null;
   style?: StyleProp<ViewStyle>;
   imageStyle?: StyleProp<ImageStyle>;
-  iconSize?: number;
   children?: ReactNode;
 }
 
@@ -45,7 +45,6 @@ export function FoodImagePreview({
   devSyncBadgeLabel,
   style,
   imageStyle,
-  iconSize = 24,
   children,
 }: FoodImagePreviewProps) {
   const { t } = useTranslation();
@@ -71,17 +70,11 @@ export function FoodImagePreview({
         }}
       >
         <View style={[styles.container, style]}>
-          {hasImage ? (
-            <Image
-              source={{ uri: resolvedImageUri }}
-              style={[styles.image, imageStyle]}
-              contentFit="cover"
-            />
-          ) : (
-            <View style={styles.placeholder}>
-              <Icon name="image-outline" variant="primary" size={iconSize} />
-            </View>
-          )}
+          <Image
+            source={hasImage ? { uri: resolvedImageUri } : FALLBACK_MEAL_IMAGE}
+            style={[styles.image, imageStyle]}
+            contentFit="cover"
+          />
           {resolvedDevSyncBadgeLabel ? (
             <View style={styles.devBadge}>
               <Text variant="caption" weight="bold" color="onShadow" numberOfLines={1}>
@@ -154,12 +147,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   image: {
     ...StyleSheet.absoluteFillObject,
-  },
-  placeholder: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.section,
   },
   devBadge: {
     position: 'absolute',

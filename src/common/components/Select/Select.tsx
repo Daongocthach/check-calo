@@ -1,14 +1,13 @@
-import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet';
-import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
 import { Image } from 'expo-image';
 import { useCallback, useMemo, useRef } from 'react';
-import { Keyboard, Pressable, View } from 'react-native';
+import { FlatList, Keyboard, Pressable, View } from 'react-native';
 import type { ListRenderItem } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/common/components/Icon';
 import { SearchBar } from '@/common/components/SearchBar';
 import { Text } from '@/common/components/Text';
 import { UniActivityIndicator } from '@/common/components/uni';
+import { useAppBottomSheet } from '@/providers/bottom-sheet';
 import { styles } from './Select.styles';
 import type { SelectOption, SelectProps } from './Select.types';
 
@@ -51,7 +50,8 @@ export function Select({
   children,
   triggerVariant,
 }: SelectProps) {
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const { openSheet, closeSheet } = useAppBottomSheet();
+  const pendingValueRef = useRef<string | null>(null);
   const resolvedSnapPoints = useMemo(() => snapPoints ?? ['50%', '70%'], [snapPoints]);
   const insets = useSafeAreaInsets();
   const isInteractionDisabled = disabled || readOnly;
@@ -62,36 +62,42 @@ export function Select({
   const displayText = selectedOption?.label ?? placeholder ?? '';
   const shouldShowSearch = typeof onSearchChangeText === 'function';
 
-  const handleOpen = useCallback(() => {
-    if (!isInteractionDisabled) {
-      Keyboard.dismiss();
-      bottomSheetRef.current?.present();
-    }
-  }, [isInteractionDisabled]);
-
   const handleSelect = useCallback(
     (optionValue: string) => {
-      onChange(optionValue);
-      bottomSheetRef.current?.dismiss();
+      pendingValueRef.current = optionValue;
+      closeSheet();
     },
-    [onChange]
+    [closeSheet]
   );
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        pressBehavior="close"
-      />
-    ),
-    []
-  );
+  const handleDismiss = useCallback(() => {
+    const optionValue = pendingValueRef.current;
+    pendingValueRef.current = null;
+
+    if (optionValue) {
+      onChange(optionValue);
+    }
+  }, [onChange]);
 
   const renderItem: ListRenderItem<SelectOption> = useCallback(
     ({ item }) => {
       const isSelected = item.value === value;
+      let leadingIcon = null;
+
+      if (item.iconSource) {
+        leadingIcon = (
+          <Image source={item.iconSource} style={styles.optionIcon} contentFit="contain" />
+        );
+      } else if (item.iconName) {
+        leadingIcon = (
+          <Icon
+            name={item.iconName}
+            size={20}
+            destructive={item.destructive}
+            variant={item.destructive ? 'secondary' : 'primary'}
+          />
+        );
+      }
 
       return (
         <Pressable
@@ -105,17 +111,26 @@ export function Select({
           }}
         >
           <View style={styles.optionContent}>
-            {item.iconSource ? (
-              <Image source={item.iconSource} style={styles.optionIcon} contentFit="contain" />
-            ) : null}
+            {leadingIcon}
             <Text
               variant="body"
-              style={[styles.optionText, isSelected && styles.optionTextSelected]}
+              style={[
+                styles.optionText,
+                isSelected && styles.optionTextSelected,
+                item.destructive && styles.optionTextDestructive,
+              ]}
             >
               {item.label}
             </Text>
           </View>
-          {isSelected ? <Icon name="checkmark" sizeVariant="lg" variant="primary" /> : null}
+          {isSelected ? (
+            <Icon
+              name="checkmark"
+              sizeVariant="lg"
+              destructive={item.destructive}
+              variant={item.destructive ? 'secondary' : 'primary'}
+            />
+          ) : null}
         </Pressable>
       );
     },
@@ -127,6 +142,23 @@ export function Select({
       onEndReached?.();
     }
   }, [hasMore, isLoadingMore, onEndReached]);
+
+  let triggerIcon = null;
+
+  if (selectedOption?.iconSource) {
+    triggerIcon = (
+      <Image source={selectedOption.iconSource} style={styles.optionIcon} contentFit="contain" />
+    );
+  } else if (selectedOption?.iconName) {
+    triggerIcon = (
+      <Icon
+        name={selectedOption.iconName}
+        size={20}
+        destructive={selectedOption.destructive}
+        variant={selectedOption.destructive ? 'secondary' : 'primary'}
+      />
+    );
+  }
 
   const renderFooter = useCallback(() => {
     return (
@@ -160,6 +192,61 @@ export function Select({
     );
   }, [emptyText, isSearching]);
 
+  const sheetContent = useMemo(
+    () => (
+      <View style={styles.providerContent}>
+        {shouldShowSearch ? (
+          <View style={styles.searchContainer}>
+            <SearchBar
+              value={searchValue ?? ''}
+              onChangeText={onSearchChangeText}
+              placeholder={searchPlaceholder}
+              loading={isSearching}
+            />
+          </View>
+        ) : null}
+        <FlatList
+          data={options}
+          keyExtractor={(item: SelectOption) => item.value}
+          renderItem={renderItem}
+          contentContainerStyle={[
+            styles.listContent,
+            shouldShowSearch && styles.listContentWithSearch,
+          ]}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={renderEmpty}
+          keyboardShouldPersistTaps="handled"
+        />
+      </View>
+    ),
+    [
+      handleEndReached,
+      isSearching,
+      onSearchChangeText,
+      options,
+      renderEmpty,
+      renderFooter,
+      renderItem,
+      searchPlaceholder,
+      searchValue,
+      shouldShowSearch,
+    ]
+  );
+
+  const handleOpen = useCallback(() => {
+    if (!isInteractionDisabled) {
+      Keyboard.dismiss();
+      openSheet(sheetContent, {
+        snapPoints: resolvedSnapPoints,
+        containerVariant: 'none',
+        enablePanDownToClose: true,
+        onDismiss: handleDismiss,
+      });
+    }
+  }, [handleDismiss, isInteractionDisabled, openSheet, resolvedSnapPoints, sheetContent]);
+
   return (
     <View style={styles.wrapper}>
       {label && (
@@ -177,13 +264,7 @@ export function Select({
         {children ?? (
           <>
             <View style={styles.triggerContent}>
-              {selectedOption?.iconSource ? (
-                <Image
-                  source={selectedOption.iconSource}
-                  style={styles.optionIcon}
-                  contentFit="contain"
-                />
-              ) : null}
+              {triggerIcon}
               <Text
                 variant="body"
                 numberOfLines={1}
@@ -202,41 +283,6 @@ export function Select({
           {error}
         </Text>
       )}
-      <BottomSheetModal
-        ref={bottomSheetRef}
-        snapPoints={resolvedSnapPoints}
-        enableDynamicSizing={false}
-        enablePanDownToClose
-        topInset={insets.top}
-        backdropComponent={renderBackdrop}
-        backgroundStyle={styles.sheetBackground}
-        handleIndicatorStyle={styles.sheetHandle}
-      >
-        {shouldShowSearch ? (
-          <View style={styles.searchContainer}>
-            <SearchBar
-              value={searchValue ?? ''}
-              onChangeText={onSearchChangeText}
-              placeholder={searchPlaceholder}
-              loading={isSearching}
-            />
-          </View>
-        ) : null}
-        <BottomSheetFlatList
-          data={options}
-          keyExtractor={(item: SelectOption) => item.value}
-          renderItem={renderItem}
-          contentContainerStyle={[
-            styles.listContent,
-            shouldShowSearch && styles.listContentWithSearch,
-          ]}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.4}
-          ListFooterComponent={renderFooter}
-          ListEmptyComponent={renderEmpty}
-          keyboardShouldPersistTaps="handled"
-        />
-      </BottomSheetModal>
     </View>
   );
 }

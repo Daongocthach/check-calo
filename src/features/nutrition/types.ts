@@ -23,6 +23,7 @@ export type SyncQueueOperation = 'create' | 'update' | 'delete' | 'upload';
 export type SyncQueueStatus = 'pending' | 'processing' | 'done' | 'failed';
 
 export interface UserProfileInput {
+  displayName: string;
   gender: Gender;
   age: number;
   heightCm: number;
@@ -118,6 +119,7 @@ export interface GoalTrackingSnapshot {
 }
 
 export interface FoodEntryInput {
+  barcode?: string | null;
   mealName: string;
   quantityLabel: string;
   quantityGrams?: number | null;
@@ -139,12 +141,13 @@ export interface FoodEntry extends FoodEntryInput {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
-  isFavorite: boolean;
+  isRecent: boolean;
 }
 
-export interface FavoriteFood {
+export interface RecentFood {
   id: string;
   sourceEntryId: string | null;
+  barcode: string | null;
   name: string;
   quantityLabel: string;
   quantityGrams: number | null;

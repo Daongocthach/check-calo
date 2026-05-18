@@ -1,3 +1,4 @@
+import { syncCurrentUserLeaderboardProfile } from '@/features/leaderboard/services/leaderboardService';
 import { getDatabase } from '@/services/database/sqlite';
 import type {
   AchievementKey,
@@ -109,7 +110,7 @@ function calculateGoalProgress(
     summaries.reduce((total, summary) => total + Math.max(0, summary.consumedCalories), 0)
   );
   const targetCalories = Math.round(
-    Math.max(0, profile.maintenanceCalorieTarget) * goal.targetDays
+    summaries.reduce((total, summary) => total + Math.max(0, summary.calorieTarget), 0)
   );
 
   if (goal.mode === 'maintain') {
@@ -319,26 +320,18 @@ async function listAchievementUnlockRows() {
 
 async function unlockAchievement(achievementKey: AchievementKey): Promise<boolean> {
   const database = await getDatabase();
-  const existing = await database.getFirstAsync<{ id: string }>(
-    'SELECT id FROM achievement_unlocks WHERE achievement_key = ? LIMIT 1;',
-    [achievementKey]
-  );
-
-  if (existing) {
-    return false;
-  }
-
   const now = nowIsoString();
 
-  await database.runAsync(
+  const result = await database.runAsync(
     `
       INSERT INTO achievement_unlocks (id, achievement_key, unlocked_at, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(achievement_key) DO NOTHING;
     `,
     [createEntityId('achievement'), achievementKey, now, now, now]
   );
 
-  return true;
+  return result.changes > 0;
 }
 
 async function markGoalCompleted(goal: WeightGoalProgress) {
@@ -611,6 +604,9 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
       return calculateGoalProgress(goal, summaries, profile);
     })
   );
+  const completedGoals = goalHistory.filter((goal) => goal.completed).length;
+
+  await syncCurrentUserLeaderboardProfile(profile, currentStreak, completedGoals);
 
   return {
     activeGoal: activeGoalSnapshot,

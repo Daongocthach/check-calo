@@ -1,12 +1,13 @@
 import { Image } from 'expo-image';
-import { usePathname, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Icon } from '@/common/components/Icon';
 import { Select } from '@/common/components/Select';
 import { Text } from '@/common/components/Text';
+import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
 import { useScreenDimensions } from '@/hooks/useScreenDimensions';
 import i18n from '@/i18n/config';
 import { useAuthStore } from '@/providers/auth/authStore';
@@ -36,7 +37,7 @@ function getDisplayName(user: ReturnType<typeof useAuthStore.getState>['user']) 
   }
 
   if (user.isAnonymous) {
-    return 'Anonymous';
+    return 'Guest';
   }
 
   if (user.email) {
@@ -64,27 +65,74 @@ export function AppHeader() {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
+  const params = useLocalSearchParams<{ source?: string }>();
   const { isTablet } = useScreenDimensions();
   const authUser = useAuthStore((state) => state.user);
+  const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null);
   const [currentMode, setCurrentMode] = useState<ThemeModePreference>(() => getThemePreference());
 
+  useEffect(() => {
+    let active = true;
+
+    const loadProfileDisplayName = async () => {
+      const profile = await getUserProfile();
+      if (!active) {
+        return;
+      }
+
+      const nextDisplayName = profile?.displayName.trim() ?? '';
+      setProfileDisplayName(nextDisplayName.length > 0 ? nextDisplayName : null);
+    };
+
+    void loadProfileDisplayName();
+
+    return () => {
+      active = false;
+    };
+  }, [authUser?.id, pathname]);
+
   const isIndexRoute = pathname === '/' || pathname === '/index';
-  const isTabRoute = ['/', '/index', '/stats', '/add', '/menu', '/favorites', '/profile'].includes(
-    pathname
-  );
+  const isTabRoute = [
+    '/',
+    '/index',
+    '/stats',
+    '/add',
+    '/menu',
+    '/recently-food',
+    '/profile',
+  ].includes(pathname);
   const greeting = getGreetingKey(new Date().getHours());
-  const displayName = getDisplayName(authUser);
+  const authDisplayName = getDisplayName(authUser);
+  const displayName = profileDisplayName ?? authDisplayName;
   const avatarLabel = getInitials(displayName);
 
   const pageTitle = useMemo(() => {
     if (pathname === '/welcome') return t('welcomeScreen.title');
+    if (pathname === '/login') return t('auth.signIn');
+    if (pathname === '/register') return t('auth.registerPageTitle');
+    if (pathname === '/forgot-password') return t('auth.forgotPasswordTitle');
     if (pathname === '/' || pathname === '/index') return t('tabs.home');
     if (pathname === '/stats') return t('tabs.stats');
     if (pathname === '/add') return t('tabs.add');
     if (pathname === '/menu') return t('tabs.menu');
-    if (pathname === '/favorites') return t('tabs.favorites');
+    if (pathname === '/recently-food') return t('tabs.recents');
     if (pathname === '/profile') return t('tabs.profile');
+    if (pathname === '/account') return t('accountScreen.title');
+    if (pathname === '/support') return t('supportScreen.title');
+    if (pathname === '/goal-history') return t('goalTracking.history.title');
+    if (pathname === '/achievements') return t('achievementsScreen.title');
+    if (pathname === '/leaderboard') return t('leaderboardScreen.title');
     if (pathname === '/notification-settings') return t('profileScreen.reminders.title');
+    if (pathname === '/health-information-sources') {
+      return t('healthInformationSourcesScreen.title');
+    }
+    if (pathname === '/about') return t('settings.about');
+    if (pathname === '/contact') return t('contactScreen.title');
+    if (pathname === '/terms') return t('settings.terms');
+    if (pathname === '/privacy') return t('settings.privacy');
+    if (pathname === '/food-detail') {
+      return params.source === 'ai' ? t('foodDetail.analysisTitle') : t('foodDetail.title');
+    }
     if (pathname === '/food-form') return t('manualFoodEntry.title');
     if (pathname === '/application-form') return t('application.applyTitle');
     if (pathname === '/application-form-success') {
@@ -92,7 +140,7 @@ export function AppHeader() {
     }
 
     return '';
-  }, [pathname, t]);
+  }, [params.source, pathname, t]);
 
   const languageOptions = useMemo(
     () => [
@@ -117,11 +165,6 @@ export function AppHeader() {
   );
   const selectedThemeOption = themeOptions.find((option) => option.value === currentMode);
   const handleBackPress = () => {
-    if (pathname === '/welcome') {
-      router.replace('/');
-      return;
-    }
-
     if (isTabRoute && !isIndexRoute) {
       router.replace('/');
       return;
@@ -141,8 +184,8 @@ export function AppHeader() {
         <Icon name="chevron-back" variant="primary" size={18} />
       </Pressable>
       <Text
-        variant="h3"
-        weight="semibold"
+        variant="body"
+        weight="bold"
         numberOfLines={1}
         ellipsizeMode="tail"
         style={styles.title}
@@ -161,7 +204,9 @@ export function AppHeader() {
           </Text>
         </View>
         <View style={styles.textWrap}>
-          <Text variant="h3">{t('homeScreen.greetingTitle', { name: displayName })}</Text>
+          <Text variant="body" weight="bold">
+            {t('homeScreen.greetingTitle', { name: displayName })}
+          </Text>
           <Text variant="bodySmall" color="secondary">
             {t(`homeScreen.greetings.${greeting}`)}
           </Text>

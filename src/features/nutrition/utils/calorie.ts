@@ -105,6 +105,10 @@ export function getDailyCalorieGoalState(
 }
 
 export function formatDateKey(value: string | Date) {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
   const date = value instanceof Date ? value : new Date(value);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');

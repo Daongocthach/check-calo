@@ -5,19 +5,28 @@ const publicEnv = {
   EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
   EXPO_PUBLIC_SUPABASE_PUBLISHED_KEY: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHED_KEY,
   EXPO_PUBLIC_SUPABASE_FOOD_IMAGE_BUCKET: process.env.EXPO_PUBLIC_SUPABASE_FOOD_IMAGE_BUCKET,
+  EXPO_PUBLIC_WEB_APP_URL: process.env.EXPO_PUBLIC_WEB_APP_URL,
   EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV,
 };
 
 const config: ExpoConfig = {
   name: 'Check Calo',
   slug: 'check-calo',
-  version: '1.0.0',
+  owner: 'thachdaongoc75',
+  version: '1.0.1',
   orientation: 'portrait',
   scheme: 'check-calo',
   userInterfaceStyle: 'automatic',
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
+  updates: {
+    enabled: true,
+    url: 'https://u.expo.dev/70cde4e9-73b0-40ca-aa21-c4cbe8d72591',
+  },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.gempixel.checkcalo',
+    bundleIdentifier: 'com.ngocthach.checkcalo',
     icon: {
       light: './assets/ios-light.png',
     },
@@ -26,25 +35,28 @@ const config: ExpoConfig = {
       CFBundleAllowMixedLocalizations: true,
       CFBundleLocalizations: ['en', 'vi'],
       ITSAppUsesNonExemptEncryption: false,
+      NSPhotoLibraryAddUsageDescription:
+        'CheckCalo requires permission to save images to your photo library.',
     },
     buildNumber: '2',
   },
   android: {
-    versionCode: 2,
+    versionCode: 1,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
-    package: 'com.gempixel.checkcalo',
+    package: 'com.ngocthach.checkcalo',
   },
   extra: {
     router: {},
     eas: {
-      projectId: '',
+      projectId: '70cde4e9-73b0-40ca-aa21-c4cbe8d72591',
     },
     ...publicEnv,
   },
   plugins: [
+    'expo-updates',
     [
       'expo-localization',
       {
@@ -89,8 +101,22 @@ const config: ExpoConfig = {
         recordAudioPermission: false,
       },
     ],
+    [
+      'expo-image-picker',
+      {
+        photosPermission:
+          'CheckCalo requires photo library access to select food photos for calorie estimation and meal tracking.',
+      },
+    ],
     'expo-sqlite',
-    'expo-build-properties',
+    [
+      'expo-build-properties',
+      {
+        android: {
+          enableMinifyInReleaseBuilds: true,
+        },
+      },
+    ],
     'expo-web-browser',
     ['./plugins/with-android-splits'],
   ],

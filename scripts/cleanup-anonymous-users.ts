@@ -1,12 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 interface CleanupOptions {
   dryRun: boolean;
   minAgeDays: number;
   onlyTest: boolean;
   pageSize: number;
-  bucket: string;
+  bucket: string | null;
 }
 
 interface AnonymousUserSummary {
@@ -17,9 +19,36 @@ interface AnonymousUserSummary {
   hasStorageObjects: boolean;
 }
 
-const DEFAULT_BUCKET = process.env.EXPO_PUBLIC_SUPABASE_FOOD_IMAGE_BUCKET ?? 'food-entry-images';
-const DEFAULT_MIN_AGE_DAYS = 7;
+const DEFAULT_MIN_AGE_DAYS = 1;
 const DEFAULT_PAGE_SIZE = 100;
+
+function loadEnvFile(filePath: string) {
+  if (!existsSync(filePath)) {
+    return;
+  }
+
+  const lines = readFileSync(filePath, 'utf-8').split('\n');
+
+  for (const line of lines) {
+    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+    if (!match) {
+      continue;
+    }
+
+    const [, key, rawValue = ''] = match;
+    if (process.env[key] !== undefined) {
+      continue;
+    }
+
+    const value = rawValue.trim().replace(/^['"]|['"]$/g, '');
+    process.env[key] = value;
+  }
+}
+
+function loadEnvFiles() {
+  loadEnvFile(resolve(process.cwd(), '.env.local'));
+  loadEnvFile(resolve(process.cwd(), '.env'));
+}
 
 function parseBooleanFlag(flag: string) {
   return process.argv.includes(flag);
@@ -47,17 +76,19 @@ function getOptions(): CleanupOptions {
     minAgeDays: parseNumberFlag('--min-age-days', DEFAULT_MIN_AGE_DAYS),
     onlyTest: parseBooleanFlag('--only-test'),
     pageSize: parseNumberFlag('--page-size', DEFAULT_PAGE_SIZE),
-    bucket: parseStringFlag('--bucket', DEFAULT_BUCKET),
+    bucket: parseStringFlag('--bucket', '').trim() || null,
   };
 }
 
-function requireEnv(name: string) {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`${name} is required`);
+function requireOneEnv(names: string[]) {
+  for (const name of names) {
+    const value = process.env[name];
+    if (value) {
+      return value;
+    }
   }
 
-  return value;
+  throw new Error(`${names.join(' or ')} is required`);
 }
 
 function isAnonymousUser(user: {
@@ -127,16 +158,38 @@ async function hasFoodEntries(adminClient: SupabaseClient, userId: string) {
   return (count ?? 0) > 0;
 }
 
-async function hasStorageObjects(adminClient: SupabaseClient, bucket: string, userId: string) {
-  const { data, error } = await adminClient.storage
-    .from(bucket)
-    .list(`users/${userId}/food-entries`, { limit: 1 });
+async function listBuckets(adminClient: SupabaseClient) {
+  const { data, error } = await adminClient.storage.listBuckets();
 
   if (error) {
     throw error;
   }
 
-  return (data?.length ?? 0) > 0;
+  return data.map((bucket) => bucket.name).filter((bucketName) => bucketName.length > 0);
+}
+
+async function hasStorageObjects(
+  adminClient: SupabaseClient,
+  bucket: string | null,
+  userId: string
+) {
+  const bucketNames = bucket ? [bucket] : await listBuckets(adminClient);
+
+  for (const bucketName of bucketNames) {
+    const { data, error } = await adminClient.storage.from(bucketName).list(`users/${userId}`, {
+      limit: 1,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if ((data?.length ?? 0) > 0) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 async function listAnonymousUsers(adminClient: SupabaseClient, options: CleanupOptions) {
@@ -192,9 +245,15 @@ async function listAnonymousUsers(adminClient: SupabaseClient, options: CleanupO
 }
 
 async function main() {
+  loadEnvFiles();
+
   const options = getOptions();
-  const supabaseUrl = requireEnv('EXPO_PUBLIC_SUPABASE_URL');
-  const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseUrl = requireOneEnv(['EXPO_PUBLIC_SUPABASE_URL', 'SUPABASE_URL']);
+  const serviceRoleKey = requireOneEnv([
+    'CHECK_CALO_SUPABASE_SECRET_KEY',
+    'SUPABASE_SECRET_KEY',
+    'SUPABASE_SERVICE_ROLE_KEY',
+  ]);
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,

@@ -18,7 +18,6 @@ export const styles = StyleSheet.create((theme) => ({
   },
   message: {
     marginTop: theme.metrics.spacingV.p12,
-    color: theme.colors.text.secondary,
   },
 }));
 

@@ -50,10 +50,15 @@ export function LineTrendChart({ data, scrollEnabled = false }: LineTrendChartPr
       <LineChart
         data={lineData}
         areaChart
+        curved
+        curvature={0.22}
         height={vs(220)}
         overflowBottom={vs(12)}
         width={lineChartWidth}
         color={theme.colors.brand.secondary}
+        lineGradient
+        lineGradientStartColor={theme.colors.brand.primary}
+        lineGradientEndColor={theme.colors.brand.secondary}
         startFillColor={theme.colors.brand.primary}
         endFillColor={theme.colors.brand.primary}
         startOpacity={0.28}

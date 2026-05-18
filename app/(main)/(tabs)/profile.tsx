@@ -1,576 +1,465 @@
-import { useFocusEffect } from '@react-navigation/native';
+import { useNetInfo } from '@react-native-community/netinfo';
+import * as Application from 'expo-application';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import * as Updates from 'expo-updates';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Pressable, View, type ViewStyle } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Button, Card, Chip, Icon, ScreenContainer, Switch, Text } from '@/common/components';
 import {
-  deleteCurrentUserCloudNutritionData,
-  disconnectCurrentSyncAccount,
-  logout,
-} from '@/features/auth/services/authService';
-import {
-  getDefaultCalorieReminderSettings,
-  requestCalorieReminderPermissions,
-  syncCalorieReminderSchedule,
-} from '@/features/notifications/services/calorieReminderService';
-import { clearManagedFoodEntryImageCache } from '@/features/nutrition/services/foodEntryImageSync';
-import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
-import {
-  deleteUserProfile,
-  getUserProfile,
-  resetNutritionData,
-} from '@/features/nutrition/services/nutritionDatabase';
-import type { AchievementKey, GoalTrackingSnapshot } from '@/features/nutrition/types';
+  Avatar,
+  Button,
+  Card,
+  Icon,
+  ListItem,
+  ScreenContainer,
+  SupportPromptCard,
+  Text,
+} from '@/common/components';
+import type { IconProps } from '@/common/components/Icon';
+import { deleteCurrentUserCloudNutritionData, logout } from '@/features/auth/services/authService';
+import { getUserProfile } from '@/features/nutrition/services/nutritionDatabase';
+import { resetLocalNutritionData } from '@/features/nutrition/services/nutritionLocalReset';
+import { useSupportPromptVisibility } from '@/features/support/hooks/useSupportPromptVisibility';
 import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
-import { STORAGE_KEYS, useStorage, useStorageBoolean } from '@/utils/storage';
-import { toast } from '@/utils/toast';
+import { STORAGE_KEYS, setItem } from '@/utils/storage';
 
-function getMonthlyWeightGoalPlanKey(value: number) {
-  switch (value) {
-    case -2:
-      return 'welcomeScreen.monthlyWeightPlans.gain_2' as const;
-    case -1:
-      return 'welcomeScreen.monthlyWeightPlans.gain_1' as const;
-    case -0.5:
-      return 'welcomeScreen.monthlyWeightPlans.gain_0_5' as const;
-    case 0:
-      return 'welcomeScreen.monthlyWeightPlans.0' as const;
-    case 0.5:
-      return 'welcomeScreen.monthlyWeightPlans.lose_0_5' as const;
-    case 1:
-      return 'welcomeScreen.monthlyWeightPlans.lose_1' as const;
-    case 2:
-      return 'welcomeScreen.monthlyWeightPlans.lose_2' as const;
+function getRowIconName(key: string): IconProps['name'] {
+  switch (key) {
+    case 'profile':
+      return 'person-outline';
+    case 'goal':
+      return 'trophy-outline';
+    case 'achievements':
+      return 'medal-outline';
+    case 'leaderboard':
+      return 'podium-outline';
+    case 'reminders':
+      return 'notifications-outline';
+    case 'healthSources':
+      return 'medical-outline';
+    case 'language':
+      return 'language-outline';
+    case 'units':
+      return 'scale-outline';
+    case 'theme':
+      return 'sunny-outline';
+    case 'about':
+      return 'information-circle-outline';
+    case 'terms':
+      return 'document-text-outline';
+    case 'privacy':
+      return 'shield-checkmark-outline';
+    case 'delete':
+      return 'trash-outline';
+    case 'contact':
+      return 'mail-outline';
+    case 'switchAccount':
+      return 'swap-horizontal-outline';
+    case 'login':
+      return 'log-in-outline';
     default:
-      return 'welcomeScreen.monthlyWeightPlans.0' as const;
+      return 'chevron-forward-outline';
   }
 }
 
-function getAchievementTitleKey(achievementKey: AchievementKey) {
-  switch (achievementKey) {
-    case 'fire_keeper_7':
-      return 'achievements.items.fire_keeper_7.title' as const;
-    case 'fire_keeper_14':
-      return 'achievements.items.fire_keeper_14.title' as const;
-    case 'first_maintain_goal':
-      return 'achievements.items.first_maintain_goal.title' as const;
-    default:
-      return 'achievements.items.goal_crusher.title' as const;
-  }
+function extractInitials(email: string): string {
+  const localPart = email.split('@')[0] ?? '';
+  const cleaned = localPart.replace(/[^a-zA-Z]/g, '');
+  if (cleaned.length === 0) return '??';
+  if (cleaned.length === 1) return cleaned.toUpperCase();
+  return cleaned.slice(0, 2).toUpperCase();
+}
+
+function formatLastSignIn(
+  isoDate: string | null,
+  fallbackLabel: string,
+  templateLabel: string
+): string {
+  if (!isoDate) return fallbackLabel;
+  const date = new Date(isoDate);
+  if (isNaN(date.getTime())) return fallbackLabel;
+  const formatted = date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return templateLabel.replace('{{value}}', formatted);
+}
+
+interface SettingsMenuRowProps {
+  title: string;
+  iconKey: string;
+  onPress?: () => void;
+  rightLabel?: string;
+  destructive?: boolean;
+  showChevron?: boolean;
+}
+
+function SettingsMenuRow({
+  title,
+  iconKey,
+  onPress,
+  rightLabel,
+  destructive,
+  showChevron = true,
+}: SettingsMenuRowProps) {
+  const { theme } = useUnistyles();
+  const isLoginRow = iconKey === 'login';
+  const left = (
+    <View
+      style={[
+        styles.rowIcon,
+        destructive ? styles.rowIconDanger : undefined,
+        isLoginRow ? styles.rowIconInfo : undefined,
+      ]}
+    >
+      <Icon
+        name={getRowIconName(iconKey)}
+        size={20}
+        destructive={destructive}
+        color={isLoginRow ? theme.colors.state.info : undefined}
+      />
+    </View>
+  );
+
+  const right = (
+    <View style={styles.rowMeta}>
+      {rightLabel ? (
+        <Text variant="caption" color="secondary" align="right">
+          {rightLabel}
+        </Text>
+      ) : null}
+      {showChevron ? <Icon name="chevron-forward-outline" size={18} variant="muted" /> : null}
+    </View>
+  );
+
+  return <ListItem title={title} left={left} right={right} onPress={onPress} size="md" />;
+}
+
+function SettingsGroup({ children, style }: { children: ReactNode; style?: ViewStyle }) {
+  return (
+    <Card variant="elevated" style={[styles.groupCard, style]}>
+      {children}
+    </Card>
+  );
 }
 
 export default function ProfileTab() {
   const { t } = useTranslation();
-  const { theme } = useUnistyles();
   const router = useRouter();
   const appAlert = useAppAlert();
-  const authUser = useAuthStore((state) => state.user);
-  const [isDeletingProfile, setIsDeletingProfile] = useState(false);
-  const [isResettingData, setIsResettingData] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [isDeletingSyncAccount, setIsDeletingSyncAccount] = useState(false);
-  const [isUpdatingReminders, setIsUpdatingReminders] = useState(false);
-  const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
-  const [profileSummary, setProfileSummary] = useState<{
-    bmi: string;
-    maintenanceCalorieTarget: string;
-    calorieTarget: string;
-    monthlyWeightPlan: string;
-    proteinTarget: string;
-    carbsTarget: string;
-    fatTarget: string;
-    age: string;
-    height: string;
-    weight: string;
-    activityLevel: string;
-    gender: string;
-  } | null>(null);
-  const defaultReminderSettings = getDefaultCalorieReminderSettings();
-  const calorieRemindersEnabledStorage = useStorageBoolean(
-    STORAGE_KEYS.preferences.calorieRemindersEnabled,
-    {
-      defaultValue: defaultReminderSettings.enabled,
-      initializeWithDefault: true,
+  const networkInfo = useNetInfo();
+  const isOffline = !(networkInfo.isConnected && networkInfo.isInternetReachable !== false);
+  const { isHidden: isSupportPromptHidden, dismiss: dismissSupportPrompt } =
+    useSupportPromptVisibility();
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [localDisplayName, setLocalDisplayName] = useState<string | null>(null);
+  const appVersion = Application.nativeApplicationVersion ?? '1.0.0';
+  const patchLabel = '1';
+  const versionLabel = `v${appVersion} • ${patchLabel}`;
+
+  const user = useAuthStore((s) => s.user);
+  const isAnonymous = !user || user.isAnonymous;
+
+  useEffect(() => {
+    let active = true;
+
+    const loadLocalDisplayName = async () => {
+      if (!isAnonymous) {
+        setLocalDisplayName(null);
+        return;
+      }
+
+      const profile = await getUserProfile();
+
+      if (!active) {
+        return;
+      }
+
+      const nextDisplayName = profile?.displayName.trim() ?? '';
+      setLocalDisplayName(nextDisplayName.length > 0 ? nextDisplayName : null);
+    };
+
+    void loadLocalDisplayName();
+
+    return () => {
+      active = false;
+    };
+  }, [isAnonymous]);
+
+  const anonymousDisplayName = localDisplayName ?? 'Guest';
+
+  const initials = useMemo(() => {
+    if (isAnonymous) {
+      return extractInitials(anonymousDisplayName);
     }
-  );
-  const breakfastReminderStorage = useStorage<string>(
-    STORAGE_KEYS.preferences.calorieReminderBreakfastTime,
-    {
-      defaultValue: defaultReminderSettings.breakfastTime,
-      initializeWithDefault: true,
+
+    if (!user?.email) return '??';
+    return extractInitials(user.email);
+  }, [anonymousDisplayName, isAnonymous, user?.email]);
+
+  const lastSignInLabel = useMemo(() => {
+    return formatLastSignIn(
+      user?.lastSignInAt ?? null,
+      t('auth.lastSignedInUnknown'),
+      t('auth.lastSignedInAt', { value: '{{value}}' })
+    );
+  }, [user?.lastSignInAt, t]);
+
+  useEffect(() => {
+    setItem(STORAGE_KEYS.app.lastVersion, versionLabel);
+  }, [versionLabel]);
+
+  const handleSupportPress = useCallback(() => {
+    router.push('/support');
+  }, [router]);
+
+  const handleVersionPress = useCallback(async () => {
+    if (isCheckingUpdate) {
+      return;
     }
-  );
-  const lunchReminderStorage = useStorage<string>(
-    STORAGE_KEYS.preferences.calorieReminderLunchTime,
-    {
-      defaultValue: defaultReminderSettings.lunchTime,
-      initializeWithDefault: true,
-    }
-  );
-  const dinnerReminderStorage = useStorage<string>(
-    STORAGE_KEYS.preferences.calorieReminderDinnerTime,
-    {
-      defaultValue: defaultReminderSettings.dinnerTime,
-      initializeWithDefault: true,
-    }
-  );
 
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
+    setIsCheckingUpdate(true);
 
-      void getUserProfile().then((profile) => {
-        if (!active) {
-          return;
-        }
+    try {
+      const update = await Updates.checkForUpdateAsync();
 
-        if (!profile) {
-          setProfileSummary(null);
-          return;
-        }
-
-        setProfileSummary({
-          bmi: profile.bmi.toFixed(1),
-          maintenanceCalorieTarget: String(profile.maintenanceCalorieTarget),
-          calorieTarget: String(profile.dailyCalorieTarget),
-          monthlyWeightPlan: t(getMonthlyWeightGoalPlanKey(profile.monthlyWeightGoalKg)),
-          proteinTarget: String(profile.proteinTargetGrams),
-          carbsTarget: String(profile.carbsTargetGrams),
-          fatTarget: String(profile.fatTargetGrams),
-          age: String(profile.age),
-          height: String(profile.heightCm),
-          weight: String(profile.weightKg),
-          activityLevel: t(`welcomeScreen.activityLevels.${profile.activityLevel}`),
-          gender: t(`welcomeScreen.genderOptions.${profile.gender}`),
-        });
-      });
-      void syncGoalTracking().then((snapshot) => {
-        if (!active) {
-          return;
-        }
-
-        setGoalTracking(snapshot);
-      });
-      return () => {
-        active = false;
-      };
-    }, [t])
-  );
-
-  const handleReminderToggle = useCallback(
-    (nextEnabled: boolean) => {
-      setIsUpdatingReminders(true);
-
-      void (async () => {
-        if (nextEnabled) {
-          const permissions = await requestCalorieReminderPermissions();
-
-          if (!permissions.granted) {
-            toast.error(t('profileScreen.reminders.permissionDenied'));
-            return;
-          }
-        }
-
-        calorieRemindersEnabledStorage.setValue(nextEnabled);
-
-        await syncCalorieReminderSchedule({
-          enabled: nextEnabled,
-          breakfastTime: breakfastReminderStorage.value ?? defaultReminderSettings.breakfastTime,
-          lunchTime: lunchReminderStorage.value ?? defaultReminderSettings.lunchTime,
-          dinnerTime: dinnerReminderStorage.value ?? defaultReminderSettings.dinnerTime,
-        });
-
-        toast.success(
-          nextEnabled
-            ? t('profileScreen.reminders.enabledSuccess')
-            : t('profileScreen.reminders.disabledSuccess')
+      if (!update.isAvailable) {
+        appAlert.alert(
+          t('profileScreen.versionNoUpdateTitle'),
+          t('profileScreen.versionNoUpdateMessage')
         );
-      })()
-        .catch(() => {
-          toast.error(t('profileScreen.actionError'));
-        })
-        .finally(() => {
-          setIsUpdatingReminders(false);
-        });
-    },
-    [
-      breakfastReminderStorage.value,
-      calorieRemindersEnabledStorage,
-      defaultReminderSettings.breakfastTime,
-      defaultReminderSettings.dinnerTime,
-      defaultReminderSettings.lunchTime,
-      dinnerReminderStorage.value,
-      lunchReminderStorage.value,
-      t,
-    ]
-  );
+        return;
+      }
 
-  const handleDeleteProfile = useCallback(() => {
-    appAlert.alert(t('profileScreen.deleteConfirmTitle'), t('profileScreen.deleteConfirmMessage'), [
-      {
-        text: t('common.cancel'),
-        style: 'cancel',
-      },
-      {
-        text: t('common.delete'),
-        style: 'destructive',
-        onPress: () => {
-          setIsDeletingProfile(true);
+      await Updates.fetchUpdateAsync();
+      await Updates.reloadAsync();
+    } catch (error) {
+      appAlert.alert(
+        t('profileScreen.versionUpdateErrorTitle'),
+        error instanceof Error ? error.message : t('profileScreen.versionUpdateErrorMessage')
+      );
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  }, [appAlert, isCheckingUpdate, t]);
 
-          void deleteUserProfile()
-            .then(() => {
-              setProfileSummary(null);
-              toast.success(t('profileScreen.deleteSuccess'));
-            })
-            .catch(() => {
-              toast.error(t('profileScreen.actionError'));
-            })
-            .finally(() => {
-              setIsDeletingProfile(false);
-            });
-        },
-      },
-    ]);
-  }, [appAlert, t]);
+  const handleLogin = useCallback(() => {
+    router.push('/(auth)/login');
+  }, [router]);
 
-  const handleResetData = useCallback(() => {
-    appAlert.alert(t('profileScreen.resetConfirmTitle'), t('profileScreen.resetConfirmMessage'), [
-      {
-        text: t('common.cancel'),
-        style: 'cancel',
-      },
-      {
-        text: t('common.confirm'),
-        style: 'destructive',
-        onPress: () => {
-          setIsResettingData(true);
+  const handleLogout = useCallback(() => {
+    void logout();
+  }, []);
 
-          void (async () => {
-            if (!authUser?.isAnonymous) {
-              await deleteCurrentUserCloudNutritionData();
-            }
-
-            await resetNutritionData();
-            await clearManagedFoodEntryImageCache();
-          })()
-            .then(() => {
-              setProfileSummary(null);
-              toast.success(t('profileScreen.resetSuccess'));
-            })
-            .catch((error: unknown) => {
-              const message =
-                error instanceof Error ? error.message : t('profileScreen.actionError');
-              toast.error(message);
-            })
-            .finally(() => {
-              setIsResettingData(false);
-            });
-        },
-      },
-    ]);
-  }, [appAlert, authUser?.isAnonymous, t]);
-
-  const handleDeleteSyncAccount = useCallback(() => {
+  const handleDeleteLocalData = useCallback(() => {
     appAlert.alert(
-      t('profileScreen.deleteSyncAccountConfirmTitle'),
-      t('profileScreen.deleteSyncAccountConfirmMessage'),
+      t('accountScreen.deleteDataTitle'),
+      t(
+        'accountScreen.deleteDataMessage',
+        'This will permanently delete all local and cloud nutrition data. This action cannot be undone.'
+      ),
       [
         {
           text: t('common.cancel'),
           style: 'cancel',
         },
         {
-          text: t('profileScreen.deleteSyncAccountAction'),
+          text: t('accountScreen.deleteDataAction'),
           style: 'destructive',
           onPress: () => {
-            setIsDeletingSyncAccount(true);
-
-            void disconnectCurrentSyncAccount()
-              .then(() => {
-                toast.success(t('profileScreen.deleteSyncAccountSuccess'));
-              })
-              .catch((error: unknown) => {
-                const message =
-                  error instanceof Error ? error.message : t('profileScreen.actionError');
-                toast.error(message);
-              })
-              .finally(() => {
-                setIsDeletingSyncAccount(false);
-              });
+            setLocalDisplayName(null);
+            void (async () => {
+              await deleteCurrentUserCloudNutritionData();
+              await resetLocalNutritionData();
+            })();
           },
         },
       ]
     );
   }, [appAlert, t]);
 
-  const handleSignOut = useCallback(() => {
-    appAlert.alert(t('profileScreen.logoutConfirmTitle'), t('profileScreen.logoutConfirmMessage'), [
-      {
-        text: t('common.cancel'),
-        style: 'cancel',
-      },
-      {
-        text: t('profileScreen.logoutAction'),
-        style: 'destructive',
-        onPress: () => {
-          setIsSigningOut(true);
-
-          void logout()
-            .then(() => {
-              toast.success(t('profileScreen.logoutSuccess'));
-            })
-            .catch((error: unknown) => {
-              const message =
-                error instanceof Error ? error.message : t('profileScreen.actionError');
-              toast.error(message);
-            })
-            .finally(() => {
-              setIsSigningOut(false);
-            });
-        },
-      },
-    ]);
-  }, [appAlert, t]);
-
   return (
-    <ScreenContainer scrollable padded edges={['bottom']} tabBarAware>
+    <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
       <View style={styles.screen}>
-        <Card variant="elevated" style={styles.heroCard}>
-          <View style={styles.heroIcon}>
-            <Icon name="body-outline" variant="inverse" size={22} />
-          </View>
-          <View style={styles.heroCopy}>
-            <Text variant="h2">{t('profileScreen.title')}</Text>
-            <Text variant="bodySmall" color="secondary">
-              {t('profileScreen.subtitle')}
-            </Text>
-          </View>
-          <Button
-            title={t('profileScreen.editAction')}
-            variant="secondary"
-            size="sm"
-            onPress={() => router.push('/welcome')}
-          />
-        </Card>
-
-        {profileSummary ? (
-          <>
-            <Card variant="filled" style={styles.goalCard}>
-              <View style={styles.goalHeader}>
-                <Text variant="h3">{t('profileScreen.goalTitle')}</Text>
-                <Chip
-                  label={`${profileSummary.calorieTarget} kcal`}
-                  variant="outline"
-                  icon={<Icon name="flash-outline" variant="accent" size={16} />}
-                />
-              </View>
-              <View style={styles.goalGrid}>
-                <View style={styles.goalMetric}>
-                  <Text variant="caption" color="secondary">
-                    {t('profileScreen.metrics.bmi')}
-                  </Text>
-                  <Text variant="h2">{profileSummary.bmi}</Text>
-                </View>
-                <View style={styles.goalMetric}>
-                  <Text variant="caption" color="secondary">
-                    {t('profileScreen.metrics.maintenanceCalories')}
-                  </Text>
-                  <Text variant="body" weight="semibold">
-                    {`${profileSummary.maintenanceCalorieTarget} ${t('common.units.kcal')}`}
-                  </Text>
-                </View>
-                <View style={styles.goalMetric}>
-                  <Text variant="caption" color="secondary">
-                    {t('profileScreen.metrics.monthlyWeightPlan')}
-                  </Text>
-                  <Text variant="body" weight="semibold">
-                    {profileSummary.monthlyWeightPlan}
-                  </Text>
-                </View>
-                <View style={styles.goalMetric}>
-                  <Text variant="caption" color="secondary">
-                    {t('profileScreen.metrics.activity')}
-                  </Text>
-                  <Text variant="body" weight="semibold">
-                    {profileSummary.activityLevel}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.goalChipRow}>
-                <Chip
-                  text={`${t('profileScreen.metrics.proteinTarget')} ${profileSummary.proteinTarget}${t('common.units.gram')}`}
-                  size="sm"
-                  variant="solid"
-                  icon={<Icon name="fish-outline" size={14} color={theme.colors.state.info} />}
-                />
-                <Chip
-                  text={`${t('profileScreen.metrics.carbsTarget')} ${profileSummary.carbsTarget}${t('common.units.gram')}`}
-                  size="sm"
-                  variant="solid"
-                  icon={
-                    <Icon name="nutrition-outline" size={14} color={theme.colors.state.warning} />
-                  }
-                />
-                <Chip
-                  text={`${t('profileScreen.metrics.fatTarget')} ${profileSummary.fatTarget}${t('common.units.gram')}`}
-                  size="sm"
-                  variant="solid"
-                  icon={<Icon name="water" size={14} color={theme.colors.state.success} />}
-                />
+        <View style={styles.content}>
+          {isOffline ? (
+            <Card variant="elevated" style={styles.offlineBanner}>
+              <View style={styles.offlineBannerContent}>
+                <Icon name="cloud-offline-outline" variant="muted" size={20} />
+                <Text variant="bodySmall" color="secondary" style={styles.offlineBannerText}>
+                  {t('profileScreen.offlineAiMessage')}
+                </Text>
               </View>
             </Card>
+          ) : null}
 
-            <Card variant="filled" style={styles.detailCard}>
-              <Text variant="h3">{t('profileScreen.bodyMetricsTitle')}</Text>
-              <View style={styles.detailRow}>
-                <Text variant="bodySmall" color="secondary">
-                  {t('welcomeScreen.fields.age')}
-                </Text>
-                <Text variant="body" weight="semibold">
-                  {profileSummary.age}
-                </Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text variant="bodySmall" color="secondary">
-                  {t('profileScreen.metrics.gender')}
-                </Text>
-                <Text variant="body" weight="semibold">
-                  {profileSummary.gender}
-                </Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text variant="bodySmall" color="secondary">
-                  {t('welcomeScreen.fields.height')}
-                </Text>
-                <Text variant="body" weight="semibold">
-                  {`${profileSummary.height} ${t('common.units.cm')}`}
-                </Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text variant="bodySmall" color="secondary">
-                  {t('welcomeScreen.fields.weight')}
-                </Text>
-                <Text variant="body" weight="semibold">
-                  {`${profileSummary.weight} ${t('common.units.kg')}`}
-                </Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text variant="bodySmall" color="secondary">
-                  {t('profileScreen.metrics.maintenanceCalories')}
-                </Text>
-                <Text variant="body" weight="semibold">
-                  {`${profileSummary.maintenanceCalorieTarget} ${t('common.units.kcal')}`}
-                </Text>
+          {isAnonymous ? (
+            <Card variant="elevated" style={styles.accountCard}>
+              <View style={styles.accountCardInner}>
+                <Avatar
+                  size="lg"
+                  icon={<Icon name="person" variant="onBrand" size={28} />}
+                  accessibilityLabel="Guest"
+                />
+                <View style={styles.accountCardInfo}>
+                  <Text variant="body" weight="semibold">
+                    {anonymousDisplayName}
+                  </Text>
+                  <Text variant="caption" color="secondary">
+                    {t('profileScreen.signInPromptSubtitle')}
+                  </Text>
+                </View>
               </View>
               <Button
-                title={t('profileScreen.deleteAction')}
-                variant="outline"
-                loading={isDeletingProfile}
-                disabled={isResettingData || isDeletingSyncAccount || isSigningOut}
-                onPress={handleDeleteProfile}
+                title={t('profileScreen.signInAction')}
+                variant="primary"
+                size="sm"
+                onPress={handleLogin}
+                leftIcon={<Icon name="log-in-outline" variant="onBrand" size={16} />}
               />
             </Card>
-
-            <Card variant="filled" style={styles.detailCard}>
-              <View style={styles.notificationsRow}>
-                <Text variant="h3">{t('profileScreen.reminders.title')}</Text>
-                <Switch
-                  value={calorieRemindersEnabledStorage.value ?? defaultReminderSettings.enabled}
-                  onValueChange={handleReminderToggle}
-                  disabled={isUpdatingReminders}
-                />
-              </View>
-              <Text variant="bodySmall" color="secondary">
-                {t('profileScreen.reminders.subtitle')}
-              </Text>
-              <Button
-                title={t('profileScreen.reminders.manageAction')}
-                variant="outline"
-                disabled={isUpdatingReminders}
-                onPress={() => router.push('/notification-settings')}
-              />
-            </Card>
-
-            {goalTracking ? (
-              <Card variant="filled" style={styles.detailCard}>
-                <Text variant="h3">{t('achievements.title')}</Text>
-                <View style={styles.detailRow}>
-                  <Text variant="bodySmall" color="secondary">
-                    {t('achievements.currentStreak')}
-                  </Text>
-                  <Text variant="body" weight="semibold">
-                    {t('achievements.currentStreakValue', {
-                      count: goalTracking.currentStreak,
-                    })}
-                  </Text>
+          ) : (
+            <Pressable
+              onPress={() => {
+                router.push('/account');
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('profileScreen.account.title')}
+            >
+              <Card variant="elevated" style={styles.accountCard}>
+                <View style={styles.accountCardInner}>
+                  <Avatar size="lg" initials={initials} accessibilityLabel={user?.email ?? ''} />
+                  <View style={styles.accountCardInfo}>
+                    <Text variant="body" weight="semibold" numberOfLines={1}>
+                      {user?.email ?? ''}
+                    </Text>
+                    <Text variant="caption" color="secondary" numberOfLines={1}>
+                      {lastSignInLabel}
+                    </Text>
+                  </View>
+                  <Icon name="chevron-forward-outline" size={18} variant="muted" />
                 </View>
-                {goalTracking.unlockedAchievements.length === 0 ? (
-                  <Text variant="bodySmall" color="secondary">
-                    {t('achievements.empty')}
-                  </Text>
-                ) : (
-                  goalTracking.unlockedAchievements.map((achievement) => (
-                    <View key={achievement.id} style={styles.detailRow}>
-                      <Text variant="bodySmall">
-                        {t(getAchievementTitleKey(achievement.achievementKey))}
-                      </Text>
-                      <Icon name="flame-outline" variant="accent" size={16} />
-                    </View>
-                  ))
-                )}
               </Card>
-            ) : null}
-          </>
-        ) : (
-          <Card variant="filled" style={styles.emptyCard}>
-            <Text variant="h3">{t('profileScreen.emptyTitle')}</Text>
-            <Text variant="bodySmall" color="secondary">
-              {t('profileScreen.emptySubtitle')}
-            </Text>
-            <Button title={t('profileScreen.editAction')} onPress={() => router.push('/welcome')} />
-          </Card>
-        )}
+            </Pressable>
+          )}
 
-        <Card variant="filled" style={styles.authCard}>
-          <Text variant="h3">{t('profileScreen.account.dangerTitle')}</Text>
-
-          <Button
-            title={t('profileScreen.resetAction')}
-            variant="outline"
-            loading={isResettingData}
-            disabled={isDeletingProfile || isDeletingSyncAccount || isSigningOut}
-            onPress={handleResetData}
-          />
-
-          {!authUser?.isAnonymous ? (
-            <Button
-              title={t('profileScreen.deleteSyncAccountAction')}
-              variant="outline"
-              loading={isDeletingSyncAccount}
-              disabled={isDeletingProfile || isResettingData || isSigningOut}
-              onPress={handleDeleteSyncAccount}
+          <SettingsGroup>
+            <SettingsMenuRow
+              title={t('settings.menu.profile')}
+              iconKey="profile"
+              onPress={() => {
+                router.push('/welcome');
+              }}
             />
-          ) : null}
+            <SettingsMenuRow
+              title={t('settings.menu.goal')}
+              iconKey="goal"
+              onPress={() => {
+                router.push('/goal-history');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.menu.achievements')}
+              iconKey="achievements"
+              onPress={() => {
+                router.push('/achievements');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.menu.leaderboard')}
+              iconKey="leaderboard"
+              onPress={() => {
+                router.push('/leaderboard');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.menu.reminders')}
+              iconKey="reminders"
+              onPress={() => {
+                router.push('/notification-settings');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.menu.healthInformationSources')}
+              iconKey="healthSources"
+              onPress={() => {
+                router.push('/health-information-sources');
+              }}
+            />
+          </SettingsGroup>
 
-          {!authUser?.isAnonymous ? (
-            <View style={styles.authCopy}>
-              <Text variant="bodySmall" color="secondary">
-                {t('profileScreen.account.connectedSubtitle')}
-              </Text>
-            </View>
-          ) : null}
-
-          <Button
-            title={authUser?.isAnonymous ? t('auth.signIn') : t('profileScreen.logoutAction')}
-            variant="primary"
-            loading={isSigningOut}
-            disabled={isDeletingProfile || isResettingData || isDeletingSyncAccount}
-            onPress={authUser?.isAnonymous ? () => router.push('/(auth)/login') : handleSignOut}
+          <SupportPromptCard
+            message={t('foodDetail.supportMessage')}
+            actionLabel={t('foodDetail.supportAction')}
+            onActionPress={handleSupportPress}
+            isHidden={isSupportPromptHidden}
+            onClosePress={() => {
+              dismissSupportPrompt();
+            }}
           />
-        </Card>
+
+          <SettingsGroup>
+            <SettingsMenuRow
+              title={t('settings.about')}
+              iconKey="about"
+              onPress={() => {
+                router.push('/about');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.terms')}
+              iconKey="terms"
+              onPress={() => {
+                router.push('/terms');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.privacy')}
+              iconKey="privacy"
+              onPress={() => {
+                router.push('/privacy');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.contact')}
+              iconKey="contact"
+              onPress={() => {
+                router.push('/contact');
+              }}
+            />
+            <SettingsMenuRow
+              title={t('settings.version')}
+              iconKey="about"
+              rightLabel={versionLabel}
+              onPress={() => {
+                void handleVersionPress();
+              }}
+            />
+          </SettingsGroup>
+
+          <SettingsGroup>
+            {!isAnonymous ? (
+              <SettingsMenuRow
+                title={t('profileScreen.logoutAction', 'Sign out')}
+                iconKey="login"
+                onPress={handleLogout}
+              />
+            ) : null}
+            <SettingsMenuRow
+              title={t('accountScreen.deleteDataAction')}
+              iconKey="delete"
+              destructive
+              showChevron={false}
+              onPress={handleDeleteLocalData}
+            />
+          </SettingsGroup>
+        </View>
       </View>
     </ScreenContainer>
   );
@@ -578,126 +467,62 @@ export default function ProfileTab() {
 
 const styles = StyleSheet.create((theme) => ({
   screen: {
-    gap: theme.metrics.spacingV.p20,
+    flex: 1,
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingTop: theme.metrics.spacingV.p12,
+    paddingBottom: theme.metrics.spacingV.p20,
   },
-  heroCard: {
+  content: {
+    gap: theme.metrics.spacingV.p16,
+  },
+  offlineBanner: {
+    backgroundColor: theme.colors.background.input,
+    paddingVertical: theme.metrics.spacingV.p12,
+    paddingHorizontal: theme.metrics.spacing.p16,
+  },
+  offlineBannerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.metrics.spacing.p12,
-    backgroundColor:
-      theme.colors.mode === 'dark'
-        ? theme.colors.background.surfaceAlt
-        : theme.colors.background.elevated,
-    borderWidth: 1,
-    borderColor:
-      theme.colors.mode === 'dark' ? theme.colors.border.default : theme.colors.border.subtle,
   },
-  heroIcon: {
-    width: theme.metrics.spacing.p48,
-    height: theme.metrics.spacing.p48,
+  offlineBannerText: {
+    flex: 1,
+  },
+  accountCard: {
+    paddingHorizontal: theme.metrics.spacing.p16,
+    paddingVertical: theme.metrics.spacingV.p16,
+    gap: theme.metrics.spacingV.p16,
+  },
+  accountCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p16,
+  },
+  accountCardInfo: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  groupCard: {
+    padding: 0,
+    overflow: 'hidden',
+  },
+  rowIcon: {
+    width: theme.metrics.spacing.p36,
+    height: theme.metrics.spacing.p36,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor:
-      theme.colors.mode === 'dark' ? theme.colors.brand.primary : theme.colors.brand.secondary,
+    backgroundColor: theme.colors.background.input,
   },
-  heroCopy: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
+  rowIconDanger: {
+    backgroundColor: theme.colors.state.errorBg,
   },
-  goalCard: {
-    gap: theme.metrics.spacingV.p16,
-    backgroundColor:
-      theme.colors.mode === 'dark'
-        ? theme.colors.background.surfaceAlt
-        : theme.colors.background.surface,
-    borderWidth: 1,
-    borderColor:
-      theme.colors.mode === 'dark' ? theme.colors.border.default : theme.colors.border.subtle,
+  rowIconInfo: {
+    backgroundColor: theme.colors.state.infoBg,
   },
-  goalHeader: {
+  rowMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p12,
-  },
-  goalGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.metrics.spacing.p12,
-  },
-  goalChipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: theme.metrics.spacing.p8,
-  },
-  goalMetric: {
-    flex: 1,
-    minWidth: '30%',
-    gap: theme.metrics.spacingV.p4,
-    padding: theme.metrics.spacing.p12,
-    borderRadius: theme.metrics.borderRadius.lg,
-    backgroundColor:
-      theme.colors.mode === 'dark'
-        ? theme.colors.background.elevated
-        : theme.colors.background.section,
-    borderWidth: 1,
-    borderColor:
-      theme.colors.mode === 'dark' ? theme.colors.border.subtle : theme.colors.border.default,
-  },
-  detailCard: {
-    gap: theme.metrics.spacingV.p12,
-    backgroundColor:
-      theme.colors.mode === 'dark'
-        ? theme.colors.background.surface
-        : theme.colors.background.surface,
-    borderWidth: 1,
-    borderColor:
-      theme.colors.mode === 'dark' ? theme.colors.border.default : theme.colors.border.subtle,
-  },
-  notificationsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p12,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p8,
-    borderBottomWidth: 1,
-    borderBottomColor:
-      theme.colors.mode === 'dark' ? theme.colors.border.subtle : theme.colors.border.subtle,
-  },
-  emptyCard: {
-    gap: theme.metrics.spacingV.p12,
-    backgroundColor:
-      theme.colors.mode === 'dark'
-        ? theme.colors.background.surfaceAlt
-        : theme.colors.background.surface,
-    borderWidth: 1,
-    borderColor:
-      theme.colors.mode === 'dark' ? theme.colors.border.default : theme.colors.border.subtle,
-  },
-  loginCard: {
-    gap: theme.metrics.spacingV.p12,
-  },
-  authCard: {
-    gap: theme.metrics.spacingV.p12,
-    backgroundColor:
-      theme.colors.mode === 'dark'
-        ? theme.colors.background.surfaceAlt
-        : theme.colors.background.surface,
-    borderWidth: 1,
-    borderColor:
-      theme.colors.mode === 'dark' ? theme.colors.state.errorBg : theme.colors.border.subtle,
-  },
-  authCopy: {
-    gap: theme.metrics.spacingV.p4,
-  },
-  dangerCopy: {
-    gap: theme.metrics.spacingV.p4,
   },
 }));

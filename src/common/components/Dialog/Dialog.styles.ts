@@ -7,12 +7,17 @@ export const styles = StyleSheet.create((theme) => ({
     alignItems: 'center' as const,
     backgroundColor: theme.colors.overlay.modal,
     padding: theme.metrics.spacing.p16,
+    position: 'relative' as const,
+  },
+  backdropPressable: {
+    ...StyleSheet.absoluteFillObject,
   },
   card: {
     backgroundColor: theme.colors.background.modal,
     borderRadius: theme.metrics.borderRadius.xl,
     padding: theme.metrics.spacing.p24,
     gap: theme.metrics.spacingV.p12,
+    zIndex: 1,
     variants: {
       size: {
         sm: {
@@ -29,6 +34,32 @@ export const styles = StyleSheet.create((theme) => ({
         },
       },
     },
+  },
+  keyboardCard: {
+    maxHeight: '90%',
+    overflow: 'hidden',
+    padding: 0,
+    gap: 0,
+  },
+  keyboardWrapper: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  keyboardScroll: {
+    width: '100%',
+  },
+  keyboardScrollContent: {
+    padding: theme.metrics.spacing.p24,
+    paddingBottom: theme.metrics.spacing.p48,
+    gap: theme.metrics.spacingV.p12,
+  },
+  keyboardActions: {
+    paddingHorizontal: theme.metrics.spacing.p24,
+    paddingBottom: theme.metrics.spacing.p24,
+    paddingTop: theme.metrics.spacingV.p12,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border.subtle,
+    backgroundColor: theme.colors.background.modal,
   },
   title: {
     color: theme.colors.text.primary,

@@ -4,6 +4,7 @@ interface EnvConfig {
   supabaseUrl: string;
   supabaseAnonKey: string;
   supabaseFoodImageBucket: string;
+  webAppUrl: string;
   apiBaseUrl: string;
   sentryDsn: string;
   appEnv: 'development' | 'staging' | 'production';
@@ -27,6 +28,7 @@ export const env: EnvConfig = {
   supabaseUrl: getEnvVar('EXPO_PUBLIC_SUPABASE_URL'),
   supabaseAnonKey: getSupabaseAnonKey(),
   supabaseFoodImageBucket: getEnvVar('EXPO_PUBLIC_SUPABASE_FOOD_IMAGE_BUCKET', 'food-entry-images'),
+  webAppUrl: getEnvVar('EXPO_PUBLIC_WEB_APP_URL'),
   apiBaseUrl: getEnvVar('EXPO_PUBLIC_API_BASE_URL', 'https://api.example.com'),
   sentryDsn: getEnvVar('EXPO_PUBLIC_SENTRY_DSN'),
   appEnv: getEnvVar('EXPO_PUBLIC_APP_ENV', 'development') as EnvConfig['appEnv'],

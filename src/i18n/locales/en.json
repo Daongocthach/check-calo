@@ -8,11 +8,19 @@
     "back": "Back",
     "next": "Next",
     "done": "Done",
+    "date": "Date",
+    "time": "Time",
     "retry": "Retry",
     "search": "Search",
     "settings": "Settings",
     "close": "Close",
     "edit": "Edit",
+    "clear": "Clear",
+    "more": "More",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity",
+    "defaultMealName": "Meal",
+    "numberPlaceholder": "0",
     "submit": "Submit",
     "ok": "OK",
     "units": {
@@ -22,6 +30,8 @@
       "gram": "g",
       "day": "day"
     },
+    "aiQuotaExceeded": "You have reached today's AI limit. Please try again tomorrow.",
+    "signInRequired": "You need to sign in to use AI features.",
     "syncStatus": {
       "syncNow": "Sync now",
       "loginToSync": "Log in to sync",
@@ -36,7 +46,7 @@
     "stats": "Stats",
     "add": "Add",
     "menu": "Menu",
-    "favorites": "Library",
+    "recents": "Recently Food",
     "profile": "Profile",
     "showcase": "Showcase",
     "settings": "Settings"
@@ -52,8 +62,142 @@
   },
   "menuScreen": {
     "title": "Menu",
+    "headerSubtitle": "Track each meal every day",
+    "todayTotal": "Today total",
+    "planLabel": "Plan",
+    "planValue": "{{count}} meals",
+    "aiTitle": "AI suggestion",
+    "aiSubtitle": "You are about ~{{value}}g protein short of today's target.",
+    "viewSuggestion": "View ideas",
+    "aiPanel": {
+      "title": "Meal review",
+      "subtitle": "AI reviews the meals you have already logged and points out what is working and what to adjust.",
+      "dailyAction": "Meal review"
+    },
+    "review": {
+      "title": "Meal review",
+      "subtitle": "Your daily nutrition coach for the meals already logged today.",
+      "dailyAction": "Meal review",
+      "goalMode": {
+        "lose": "Weight loss mode",
+        "maintain": "Maintenance mode",
+        "gain": "Muscle gain mode"
+      },
+      "heroStatus": {
+        "good": "On track",
+        "warning": "Needs a tweak",
+        "attention": "Act now"
+      },
+      "caloriesTitle": "Calories",
+      "sections": {
+        "adjustments": "What to adjust"
+      },
+      "metricTarget": "{{current}} / {{target}}{{unit}}",
+      "metricNoTarget": "No target set",
+      "history": "History",
+      "backToReview": "Back to review",
+      "deleteHistoryTitle": "Delete review",
+      "deleteHistoryMessage": "Delete this review from history?",
+      "historyEmpty": "No review history yet",
+      "historyMealTitle": "Review: {{name}}",
+      "mealAction": "Review",
+      "loading": "AI is reviewing the menu...",
+      "reviewingMeal": "Reviewing the selected meal",
+      "emptyTitle": "No meals to review yet",
+      "emptySubtitle": "Add a few meals to the menu first, then ask AI to review it.",
+      "generateAction": "Review",
+      "regenerateAction": "Review again",
+      "generateNeedMoreInfo": "The AI needs a bit more data to review the menu.",
+      "generateFailed": "Could not review the menu. Please try again.",
+      "unsupportedTitle": "Cannot review",
+      "errorTitle": "Could not review",
+      "mealItemCount": "{{count}} items",
+      "breakfast": "Review breakfast",
+      "lunch": "Review lunch",
+      "dinner": "Review dinner",
+      "snack": "Review snack"
+    },
+    "aiForm": {
+      "title": "Full-day suggestion options",
+      "subtitle": "Share a few quick details so the suggestions match your habits and goal better.",
+      "noteLabel": "Suggestion notes",
+      "notePlaceholder": "Example: peanut allergy, no seafood, cook quickly, foods I often eat: chicken breast, eggs, milk, ...",
+      "noteLegacyRecent": "Prioritize recent foods",
+      "noteLegacyIngredients": "Possible ingredients",
+      "noteLegacyContraindications": "Contraindications",
+      "noteLegacyCriteria": "Priority criteria",
+      "criteria": {
+        "quick": "Quick",
+        "cheap": "Affordable",
+        "satiating": "Filling",
+        "protein": "High protein"
+      },
+      "suggestionListTitle": "Draft list from AI",
+      "suggestionListHint": "Add items one by one or apply the whole plan.",
+      "suggestionCount": "{{count}} items",
+      "draftEmpty": "No draft suggestions yet",
+      "draftEmptyHint": "Tap Create suggestions to preview AI meal ideas for the day.",
+      "resultsTitle": "Suggestion list",
+      "resultsSubtitle": "Review the AI results and go back to options anytime.",
+      "backToResults": "Back to results",
+      "macros": {
+        "calories": "Calories",
+        "protein": "Protein",
+        "carbs": "Carbs",
+        "fat": "Fat"
+      },
+      "generateAction": "Create suggestions",
+      "regenerateAction": "Regenerate",
+      "generating": "Creating...",
+      "addAllToMenu": "Add all to menu",
+      "addOne": "Add",
+      "addWholeMeal": "Add whole meal",
+      "added": "Added",
+      "addedOne": "Added the item to the menu.",
+      "addedAll": "Added {{count}} items to the menu.",
+      "addedWithSkipped": "Added {{count}} items, skipped {{skipped}}.",
+      "addFailed": "Could not add the item. Please try again.",
+      "submitted": "Suggestion preferences saved.",
+      "generated": "Created {{count}} AI suggestions.",
+      "generateNeedMoreInfo": "The AI needs a bit more detail to generate suggestions.",
+      "generateFailed": "Could not create suggestions. Please try again.",
+      "noMealFound": "No matching meal was found for these suggestions."
+    },
+    "mealSuggestions": {
+      "short": "Suggest",
+      "breakfast": "Suggest breakfast",
+      "lunch": "Suggest lunch",
+      "dinner": "Suggest dinner",
+      "snack": "Suggest snack"
+    },
+    "quickAdd": "Quick add",
+    "quickFoods": {
+      "chicken": "Chicken breast",
+      "egg": "Egg",
+      "banana": "Banana",
+      "oat": "Oatmeal"
+    },
+    "summary": {
+      "totalCalories": "Total calories",
+      "average": "Average",
+      "target": "Target"
+    },
     "totalCaloriesTitle": "Total calories",
-    "subtitle": "Temporary mock for the Menu tab. We can expand this into a day-by-day meal planner with suggestions from your food library.",
+    "energyTitle": "Total energy",
+    "todayLabel": "Today",
+    "calendarAction": "Select date",
+    "aiSuggestion": "AI meal suggestions",
+    "week": {
+      "title": "This week",
+      "subtitle": "Pick a day in the 7-day view",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week"
+    },
+    "addFoodAction": "+ Add food",
+    "filters": {
+      "all": "All"
+    },
+    "subtitle": "Meal planner for the day with AI suggestions and manual meal tracking.",
     "libraryAction": "Manage food library",
     "addMeal": "Add meal",
     "createMealTitle": "Create meal",
@@ -61,6 +205,7 @@
     "mealNameLabel": "Meal name",
     "mealNamePlaceholder": "Example: Lunch prep",
     "defaultMealName": "Meal {{index}}",
+    "createMealSuccess": "Created meal {{name}}.",
     "deleteMealTitle": "Delete meal",
     "deleteMealMessage": "Delete \"{{name}}\" and all foods inside it?",
     "renameMealAction": "Rename meal",
@@ -90,6 +235,7 @@
     "itemCount": "{{count}} items",
     "emptyTitle": "No meals yet",
     "emptySubtitle": "Create your first meal and add foods manually.",
+    "mealEmptySubtitle": "No food in this meal yet",
     "validation": {
       "mealNameRequired": "Meal name is required.",
       "itemFormInvalid": "Please fill all required food fields with valid numbers."
@@ -119,12 +265,12 @@
     "searchLabel": "Search library",
     "searchPlaceholder": "Type food name",
     "emptyLibrary": "No foods found in your library.",
-    "favoriteMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}"
+    "recentMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}"
   },
   "language": {
     "label": "Language",
     "english": "English",
-    "vietnamese": "Vietnamese"
+    "vietnamese": "Tiếng Việt"
   },
   "application": {
     "applyTitle": "Apply",
@@ -154,7 +300,7 @@
       "card2Title": "Analytics",
       "card2Subtitle": "Track performance metrics",
       "card3Title": "Integrations",
-      "card3Subtitle": "Connect your favorite tools"
+      "card3Subtitle": "Connect your recent tools"
     },
     "stats": {
       "projects": "Projects",
@@ -178,9 +324,86 @@
       "item4Time": "3h ago"
     }
   },
+  "foodDetail": {
+    "title": "Food detail",
+    "analysisTitle": "Analysis result",
+    "editAction": "Edit result",
+    "editTitle": "Edit AI result",
+    "editFields": {
+      "title": "Food name",
+      "quantityLabel": "Quantity label",
+      "quantityGrams": "Quantity in grams",
+      "consumedAt": "Meal date and time",
+      "calories": "Calories"
+    },
+    "unknownFoodName": "Unknown food",
+    "defaultQuantity": "1 serving",
+    "summaryTitle": "Total energy",
+    "accuracyLabel": "±10% accuracy",
+    "estimatedDisclaimer": "This is an estimate; results may vary by ±10%",
+    "quantityLabel": "Food quantity",
+    "quantityCountLabel": "Quantity",
+    "peopleCountAction": "People eating: {{count}}",
+    "peopleCountDialogTitle": "People eating",
+    "peopleCountInputLabel": "People eating",
+    "peopleCountHelper": "Enter a whole number from 1 to 100.",
+    "peopleCountError": "Enter a whole number from 1 to 100.",
+    "consumedAtLabel": "Consumed at",
+    "notesLabel": "Notes",
+    "sourceLabels": {
+      "ai": "AI",
+      "barcode": "Barcode",
+      "entry": "Saved",
+      "recent": "Saved",
+      "manual": "Manual"
+    },
+    "saveAction": "+ Add to log",
+    "saveSuccess": "Food added to your log.",
+    "downloadImageAction": "Download image",
+    "downloadImageSuccess": "Image saved to your photo library.",
+    "downloadImagePermissionDenied": "Photo library permission was denied.",
+    "downloadImageFailed": "Could not save the image. Please try again.",
+    "supportMessage": "If you find the app useful, you can buy us a coffee to keep it going ☕️",
+    "supportAction": "Support now",
+    "supportThanks": "Thanks for your support!",
+    "foodImageAlt": "Food image"
+  },
+  "supportScreen": {
+    "title": "Support the app",
+    "introTitle": "Thanks for supporting the app",
+    "introBody": "Every contribution helps keep the app running and improves the experience for everyone ❤️",
+    "subtitle": "Support via bank transfer",
+    "providerBrand": "VIETQR.IO",
+    "bankBrand": "Shinhan Bank",
+    "napasBrand": "napas",
+    "accountHolderLabel": "Account holder",
+    "accountHolder": "DAO NGOC THACH",
+    "accountNumberLabel": "Account number",
+    "accountNumber": "700-034-951978",
+    "bankLabel": "Bank",
+    "bankName": "Shinhan Bank Vietnam",
+    "copySectionTitle": "Quick copy",
+    "copyAccountNumberAction": "Copy account number",
+    "copyAccountHolderAction": "Copy account holder",
+    "copyBankAction": "Copy bank name",
+    "copySuccess": "Copied to clipboard.",
+    "saveImageAction": "Save image",
+    "saveImageModalTitle": "Image saved successfully!",
+    "saveImageModalBody": "You are an important part of making this app better every day ❤️",
+    "saveImagePermissionDenied": "Photo library permission was denied.",
+    "saveImageFailed": "Could not save the image. Please try again.",
+    "thanks": "Thank you very much! 🙏"
+  },
   "homeScreen": {
     "greetingTitle": "Hello {{name}}",
     "alerts": "Notifications",
+    "caloriesRemainingTitle": "Calories left",
+    "caloriesRemainingUnitLabel": "kcal left",
+    "caloriesRemainingLabel": "{{value}} kcal left",
+    "caloriesConsumed": "Consumed {{consumed}} / {{target}} kcal",
+    "goalPercent": "{{percent}}% of goal",
+    "macroToday": "Macro today",
+    "details": "Details",
     "dailyIntake": "Daily Intake",
     "dayCount": "4 Day",
     "target": "Target",
@@ -223,9 +446,14 @@
     "meals": {
       "title": "Meals for today",
       "subtitle": "Most recent first",
+      "totalEnergy": "Energy",
+      "addFood": "+ Add food",
+      "review": "Review",
       "detailComposition": "Detail composition",
-      "addFavorite": "Add to food library",
-      "removeFavorite": "Remove from food library",
+      "addRecent": "Add to food library",
+      "removeRecent": "Remove from food library",
+      "deleteTitle": "Delete food",
+      "deleteMessage": "Delete \"{{name}}\" from today's meals?",
       "emptyTitle": "No meals logged yet",
       "emptySubtitle": "Add your first meal to start tracking calories and macros today.",
       "comboLabel": "Combo {{first}} + {{second}}",
@@ -235,6 +463,8 @@
       "lunchTime": "12:00 - 13:30",
       "dinner": "Dinner",
       "dinnerTime": "18:30 - 20:00",
+      "snack": "Snack",
+      "snackTime": "15:00 - 16:30",
       "add": "Add",
       "addMeal": "Add {{meal}}",
       "metrics": {
@@ -248,11 +478,32 @@
         "greekYogurt": "Greek yogurt cup",
         "bananaSmoothie": "Banana oat smoothie"
       }
+    },
+    "aiReview": {
+      "title": "Nutrition review",
+      "subtitle": "AI reads this day’s log and summarizes what to keep and what to adjust.",
+      "history": "History",
+      "historyTitle": "Review history",
+      "historySubtitle": "Choose a day to revisit saved reviews.",
+      "historyEmpty": "No reviews have been saved yet.",
+      "backToReview": "Back",
+      "loading": "AI is reviewing today’s log...",
+      "calories": "Calories",
+      "progress": "Progress",
+      "improvements": "What to adjust",
+      "retry": "Review again",
+      "generateFailed": "Could not generate a review. Please try again.",
+      "noEnoughDataFallback": "Not enough data for a detailed review yet. Add a few foods first.",
+      "needMoreInfoTitle": "Need more info",
+      "unsupportedTitle": "Not supported",
+      "errorTitle": "Could not review",
+      "todayOnly": "You can only review today’s log."
     }
   },
   "statsScreen": {
-    "title": "My Activity",
-    "subtitle": "Quick view of calories, workouts, and weight changes.",
+    "title": "Stats",
+    "subtitle": "Track your progress and hit your goal every day.",
+    "calUnit": "kcal",
     "weekly": "Weekly",
     "peakDuration": "70 min",
     "modes": {
@@ -266,7 +517,7 @@
       "weightToLose": "kg to goal",
       "caloriesConsumed": "Calories today",
       "calorieTarget": "Today's target",
-      "remainingCalories": "Calories to target"
+      "remainingCalories": "Still to target"
     },
     "days": {
       "sat": "Sat",
@@ -302,9 +553,17 @@
       "title": "Calorie trends",
       "subtitle": "Total calorie intake grouped by day and month."
     },
+    "chartDistributionTitle": "Nutrition distribution",
+    "chartSummary": {
+      "totalCalories": "Total calories",
+      "dailyAverage": "Daily avg",
+      "target": "Target",
+      "thisMonth": "This month",
+      "perDay": "/ day"
+    },
     "macroDistribution": {
       "title": "Macro distribution by period",
-      "subtitle": "Stacked bars showing protein, carbs, and fat for each day or month."
+      "subtitle": "Stacked bars showing protein, carb, and fat for each day or month."
     }
   },
   "addScreen": {
@@ -317,30 +576,45 @@
     "addedItemsCount": "{{count}} items",
     "editItem": "Edit {{mealName}}",
     "emptyTitle": "No items in this meal yet",
-    "emptySubtitle": "Pick from favorites or add one manually, from a photo, or from barcode.",
-    "addFoodTitle": "Add more food",
-    "favoriteFoodsTitle": "Food library",
-    "favoriteFoodsSubtitle": "Quickly pick from your saved foods and add them into the current meal.",
-    "favoriteFoodsAction": "From library",
+    "emptySubtitle": "Add food manually, from a photo, or by scanning a barcode.",
+    "addFoodTitle": "Add food",
+    "recentFoodsTitle": "Food library",
+    "recentFoodsSubtitle": "Quickly pick from your saved foods and add them into the current meal.",
+    "recentFoodsAction": "From library",
     "manageLibraryAction": "Manage food library",
-    "favoriteSearchPlaceholder": "Search your food library...",
-    "favoriteEmptyTitle": "No matching foods found",
-    "favoriteEmptySubtitle": "Try another keyword or create a new food in your library.",
+    "menuToday": {
+      "title": "Today’s menu",
+      "viewMenu": "View menu",
+      "emptyTitle": "No meals in today’s menu yet",
+      "emptySubtitle": "Create or pick a meal in the menu tab before logging it.",
+      "alertTitle": "Save meal",
+      "alertMessage": "This will save the meal history from this menu. The items below will be logged to today's diary.",
+      "itemSummary": "{{count}} items will be saved",
+      "confirmAction": "Save",
+      "loggedSuccess": "Saved {{mealName}}.",
+      "saveFailed": "Could not save the meal. Please try again."
+    },
+    "recentSearchPlaceholder": "Search your food library...",
+    "recentEmptyTitle": "No matching foods found",
+    "recentEmptySubtitle": "Try another keyword or create a new food in your library.",
     "saveMeal": "Save meal",
     "saveSuccess": "Meal saved to today's log.",
     "saveError": "Could not save the meal. Please try again.",
     "aiAnalysisFallback": "AI is not fully confident about this meal yet. Please review it in the form.",
     "aiAnalysisError": "Unable to analyze the food photo right now.",
+    "barcodeNotFound": "Product not found. You can add it manually.",
     "clearMeal": "Clear current meal",
     "clearMealTitle": "Clear current meal",
     "clearMealMessage": "Are you sure you want to remove every item from this meal?",
     "increasePortion": "Increase portion",
     "decreasePortion": "Decrease portion",
-    "modalTitle": "Add your meal",
-    "modalSubtitle": "Pick how you want to capture this food entry.",
+    "modalTitle": "Add food",
+    "modalSubtitle": "Choose how you want to add food to this meal",
     "captureModes": {
       "scanFood": "Capture food",
       "scanFoodAnalyzing": "Analyzing...",
+      "scanFoodAnalyzingWithAi": "Analyzing the meal with AI...",
+      "library": "Choose photo",
       "barcode": "Barcode",
       "manual": "Manual"
     },
@@ -348,17 +622,54 @@
       "scanFood": {
         "title": "Scan your meal",
         "body": "Open the camera, snap the dish, and we will estimate calories and macros for you.",
+        "sheetBody": "Open the camera, snap the dish, and we will estimate calories",
         "button": "Open food camera"
+      },
+      "library": {
+        "title": "Choose from library",
+        "body": "Select an existing food photo and we will estimate calories and macros for you.",
+        "sheetBody": "Pick a food photo from your library for AI analysis",
+        "button": "Choose photo"
       },
       "barcode": {
         "title": "Scan packaged food",
         "body": "Use barcode mode for drinks, snacks, and labels to get product nutrition faster.",
+        "sheetBody": "Use barcode mode for drinks, snacks, and packaged products",
         "button": "Open barcode scanner"
       },
       "manual": {
         "title": "Enter food manually",
         "body": "Create a food entry yourself when the camera is not needed or the result needs a quick correction.",
+        "sheetBody": "Create a food entry quickly by hand",
         "button": "Create manual entry"
+      }
+    },
+    "recent": {
+      "title": "Recent",
+      "viewAll": "View all",
+      "emptyTitle": "No recent foods yet",
+      "emptySubtitle": "Add one food and it will appear here for quick reuse.",
+      "items": {
+        "chickenRice": {
+          "title": "Chicken rice",
+          "calories": "450 kcal",
+          "emoji": "🍛"
+        },
+        "milkTea": {
+          "title": "Milk tea",
+          "calories": "320 kcal",
+          "emoji": "🧋"
+        },
+        "banhMi": {
+          "title": "Banh mi",
+          "calories": "280 kcal",
+          "emoji": "🥖"
+        },
+        "banana": {
+          "title": "Banana",
+          "calories": "100 kcal",
+          "emoji": "🍌"
+        }
       }
     },
     "stats": {
@@ -412,14 +723,16 @@
     "saveAction": "Save meal",
     "saveActionWithCalories": "Save meal ({{calories}}{{kcal}})",
     "updateAction": "Update meal",
-    "portionCountLabel": "Portion count",
+    "updateSuccess": "Updated {{name}}.",
+    "portionCountLabel": "Servings",
     "photoAction": "Take food photo",
+    "libraryPhotoAction": "Choose from library",
     "photoRetakeAction": "Retake food photo",
     "photoHint": "Tap the photo area to capture or replace the current food image.",
     "openImageViewer": "Open full screen food image",
     "closeImageViewer": "Close full screen food image",
-    "favoriteSectionTitle": "Quick pick from favorites",
-    "favoriteSectionHint": "Tap to load values into the form, or long press to save it straight to today.",
+    "recentSectionTitle": "Quick pick from recents",
+    "recentSectionHint": "Tap to load values into the form, or long press to save it straight to today.",
     "fields": {
       "foodName": "Food name",
       "quantity": "Meal weight (g)",
@@ -440,13 +753,14 @@
       "notes": "Example: extra greens, less sauce"
     }
   },
-  "favoritesScreen": {
-    "title": "Food library",
+  "recentsScreen": {
+    "title": "Recently Food",
     "subtitle": "Foods you created so they are ready for quick meal logging.",
-    "heroTitle": "Food library",
-    "heroTitleWithCount": "Food library ({{count}})",
+    "heroTitle": "Recently Food",
+    "heroTitleWithCount": "Recently Food ({{count}})",
     "heroSubtitle": "Your personal food collection",
-    "addFavoriteAction": "Add a new food to the library",
+    "addRecentAction": "Add a new food to the library",
+    "addNewFoodAction": "Add new food",
     "searchPlaceholder": "Search your food library",
     "savedItem": "Library item",
     "removeTitle": "Remove from library",
@@ -483,6 +797,11 @@
     "formSubtitle": "We use age, gender, height, current weight, your monthly weight plan, and activity to estimate daily calories and macro targets.",
     "summaryTitle": "Your current profile",
     "summaryBody": "BMI {{bmi}}, maintenance at {{maintenanceCalories}} kcal/day, and target at {{calorieTarget}} kcal/day.",
+    "healthSources": {
+      "title": "Health information sources",
+      "subtitle": "View references for BMI, BMR, calories, and nutrition.",
+      "action": "Open health information sources"
+    },
     "saveAction": "Save and start",
     "continueAction": "Continue to dashboard",
     "status": {
@@ -490,6 +809,7 @@
       "ready": "BMI {{bmi}} • {{calorieTarget}} kcal/day"
     },
     "fields": {
+      "displayName": "Display name",
       "gender": "Gender",
       "age": "Age",
       "height": "Height (cm)",
@@ -519,6 +839,7 @@
       "gain_2": "Gain 2 kg/month"
     },
     "placeholders": {
+      "displayName": "Enter your name",
       "age": "Enter age",
       "height": "Enter height",
       "weight": "Enter weight"
@@ -528,9 +849,119 @@
       "positive": "Value must be greater than 0"
     }
   },
+  "healthInformationSourcesScreen": {
+    "title": "Health information sources",
+    "intro": "This app provides health and nutrition information based on established scientific research. The following sources are used for calculations and recommendations:",
+    "disclaimer": "This app is for informational purposes only and cannot replace professional medical advice. Always consult healthcare professionals for personalized medical guidance.",
+    "sections": {
+      "bmi": {
+        "title": "BMI Calculation (Body Mass Index)",
+        "description": "BMI is calculated from weight and height to estimate weight status. This index is a screening tool only and does not replace a personalized medical assessment.",
+        "references": {
+          "cdc": {
+            "title": "Centers for Disease Control and Prevention.",
+            "citation": "Calculating BMI using the English system and metric system. CDC Growth Chart Training."
+          }
+        }
+      },
+      "bmr": {
+        "title": "BMR Calculation (Basal Metabolic Rate)",
+        "description": "We use the Mifflin-St Jeor equation to calculate basal metabolic rate, considered the most accurate method for healthy individuals.",
+        "references": {
+          "mifflin": {
+            "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
+            "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
+          },
+          "roza": {
+            "title": "Roza AM, Shizgal HM.",
+            "citation": "The Harris Benedict equation reevaluated: resting energy requirements and the body cell mass. Am J Clin Nutr. 1984;40(1):168-82."
+          }
+        }
+      },
+      "activity": {
+        "title": "Activity Level Factors",
+        "description": "Physical activity factors are applied to BMR to estimate total daily energy expenditure based on established research.",
+        "references": {
+          "brooks": {
+            "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
+            "citation": "Chronicle of the Institute of Medicine physical activity recommendation: how a physical activity recommendation came to be among dietary recommendations. Am J Clin Nutr. 2004;79(5):921S-930S."
+          },
+          "iom": {
+            "title": "Institute of Medicine (US) Panel on Macronutrients.",
+            "citation": "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. Washington (DC): National Academies Press (US); 2005."
+          }
+        }
+      },
+      "macros": {
+        "title": "Macronutrient Distribution",
+        "description": "Recommended macronutrient ratios are based on nutrition guidance from health organizations.",
+        "references": {
+          "dietaryGuidelines": {
+            "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
+            "citation": "2020-2025 Dietary Guidelines for Americans. 9th Edition."
+          },
+          "who": {
+            "title": "World Health Organization.",
+            "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          }
+        }
+      },
+      "weightManagement": {
+        "title": "Weight Management",
+        "description": "Weight loss and weight gain recommendations are based on evidence-based methods for sustainable weight management.",
+        "references": {
+          "wadden": {
+            "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
+            "citation": "Lifestyle modification for obesity: new developments in diet, physical activity, and behavior therapy. Circulation. 2012;125(9):1157-70."
+          },
+          "hall": {
+            "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
+            "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          }
+        }
+      }
+    }
+  },
+  "accountScreen": {
+    "title": "Account",
+    "switchAccount": "Switch account",
+    "dangerZone": "Danger zone",
+    "deleteAction": "Delete account",
+    "deleteDescription": "This will permanently delete your cloud account and all data on this device. A new anonymous session will be created.",
+    "deleteTitle": "Delete account?",
+    "deleteMessage": "All your cloud data and local data will be permanently deleted. This cannot be undone.",
+    "deleteConfirm": "Delete everything",
+    "deleteSuccess": "Account and data deleted.",
+    "deleteError": "Unable to delete account right now. Please try again.",
+    "deleteDataAction": "Delete all data",
+    "deleteDataTitle": "Delete all data?",
+    "deleteDataMessage": "This will permanently delete all your local and cloud nutrition data. This action cannot be undone.",
+    "deleteDataConfirm": "Delete everything",
+    "deleteDataSuccess": "All nutrition data deleted.",
+    "deleteDataError": "Could not delete data. Please try again.",
+    "logoutAction": "Sign out",
+    "logoutTitle": "Sign out?",
+    "logoutMessage": "You will be signed out and a new anonymous session will be created. Your cloud data is safe.",
+    "logoutConfirm": "Sign out",
+    "logoutSuccess": "Signed out successfully.",
+    "logoutError": "Unable to sign out right now.",
+    "joinedAt": "Joined {{value}}",
+    "joinedAtUnknown": "Join date unknown"
+  },
   "profileScreen": {
-    "title": "Nutrition profile",
-    "subtitle": "Quick view of BMI, maintenance calories, target calories, and your macro goals.",
+    "title": "Personal profile",
+    "subtitle": "Used to calculate the calories and macro targets that fit you best",
+    "saveAndStart": "Save and start",
+    "saveSuccess": "Personal profile saved.",
+    "basicInfoTitle": "Basic information",
+    "weightPlanTitle": "Weight plan",
+    "activityTitle": "Activity level",
+    "activityDescriptions": {
+      "sedentary": "Mostly sitting, very little movement",
+      "light": "Light activity and regular movement",
+      "moderate": "Training 3-5 sessions per week",
+      "active": "Highly active with consistent weekly training"
+    },
     "editAction": "Edit profile",
     "deleteAction": "Delete nutrition profile",
     "resetAction": "Reset all data",
@@ -544,11 +975,15 @@
     "resetConfirmMessage": "Are you sure you want to delete your local data and any synced nutrition data in Supabase?",
     "deleteSuccess": "Nutrition profile deleted.",
     "resetSuccess": "All nutrition data has been reset.",
-    "logoutAction": "Log out",
-    "logoutConfirmTitle": "Log out",
-    "logoutConfirmMessage": "Are you sure you want to log out of this linked account?",
-    "logoutSuccess": "Logged out successfully.",
+    "logoutAction": "Switch account",
+    "logoutConfirmTitle": "Switch account",
+    "logoutConfirmMessage": "Are you sure you want to switch to another account?",
+    "logoutSuccess": "Switched account successfully.",
     "actionError": "Unable to update data right now. Please try again.",
+    "offlineAiMessage": "Connect to the internet to use AI features.",
+    "signInPromptTitle": "Already have an account?",
+    "signInPromptSubtitle": "Log in to sync this device with an existing account.",
+    "signInAction": "Log in",
     "account": {
       "title": "Sync account",
       "anonymousSubtitle": "Protect your synced meals and photos by linking this anonymous session to a real account.",
@@ -569,16 +1004,20 @@
       "linkAppleSuccess": "Apple account linked successfully.",
       "actionError": "Unable to link this account right now."
     },
-    "deleteSyncAccountAction": "Delete sync account",
-    "deleteSyncAccountConfirmTitle": "Delete linked sync account",
-    "deleteSyncAccountConfirmMessage": "This removes synced Supabase data for the current account and disconnects it from this device. Local data on this device will be kept.",
-    "deleteSyncAccountSuccess": "Linked sync account removed from this device.",
+    "deleteSyncAccountAction": "Delete account and data",
+    "deleteSyncAccountConfirmTitle": "Delete account and reset device",
+    "deleteSyncAccountConfirmMessage": "This will delete the synced Supabase account, wipe all local app data on this device, and start a fresh anonymous session after sign-out.",
+    "deleteSyncAccountSuccess": "Account and data deleted.",
     "debug": {
       "resetAnonymousSessionTitle": "Reset anonymous session",
       "resetAnonymousSessionMessage": "This clears the current Supabase session on this device so the app can create a new anonymous account again.",
       "resetAnonymousSessionAction": "Reset anonymous session",
       "resetAnonymousSessionSuccess": "Anonymous session reset. The app will create a new anonymous account when needed."
     },
+    "versionNoUpdateTitle": "Up to date",
+    "versionNoUpdateMessage": "No update is available right now.",
+    "versionUpdateErrorTitle": "Update failed",
+    "versionUpdateErrorMessage": "Could not check for an update. Please try again.",
     "metrics": {
       "bmi": "BMI",
       "gender": "Gender",
@@ -626,13 +1065,21 @@
     "theme": {
       "light": "Light",
       "dark": "Dark"
-    }
+    },
+    "versionNoUpdateTitle": "Up to date",
+    "versionNoUpdateMessage": "No update is available right now.",
+    "versionUpdateReadyTitle": "Update ready",
+    "versionUpdateReadyMessage": "The app will reload to apply the latest update.",
+    "versionUpdateErrorTitle": "Update failed",
+    "versionUpdateErrorMessage": "Could not check for an update. Please try again."
   },
   "goalTracking": {
     "activeTitle": "Current goal",
     "completedTitle": "Goal completed",
     "profileTitle": "Goal progress",
+    "planTitle": "Plan: {{goal}}",
     "progressLabel": "Progress",
+    "currentProgress": "Current progress: {{current}}/{{target}} days",
     "emptyTitle": "Pick your next goal",
     "emptySubtitle": "Use calorie progress or maintenance days to keep moving forward.",
     "choosePrompt": "Choose the goal you want to start next.",
@@ -642,6 +1089,21 @@
     "progressKcalLose": "Deficit {{current}} / {{target}} kcal",
     "progressKcalGain": "Surplus {{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} days",
+    "deficitAchievedLabel": "Deficit reached",
+    "deficitRemainingLabel": "Remaining {{value}} kg",
+    "fatEquivalent": "({{value}} kg fat)",
+    "calorieDeficitLabel": "Calorie deficit",
+    "remainingDeficitLabel": "Remaining deficit",
+    "calorieDifferenceLabel": "Calorie difference",
+    "statusLabel": "Status",
+    "calorieSurplusLabel": "Calorie surplus",
+    "remainingToTargetLabel": "Remaining to target",
+    "weightEquivalent": "({{value}} kg)",
+    "balanceStatus": {
+      "slightDeficit": "Slight deficit",
+      "balanced": "Balanced",
+      "slightSurplus": "Slight surplus"
+    },
     "consumedKcalProgress": "Consumed {{current}} / {{target}} kcal",
     "remainingKcal": "{{value}} kcal left",
     "remainingDays": "{{value}} days left",
@@ -716,6 +1178,9 @@
     "signIn": "Log in",
     "signInWithGoogle": "Sign in with Google",
     "signUp": "Create account",
+    "forgotPassword": "Forgot password?",
+    "registerPageTitle": "Register",
+    "registerAction": "Register",
     "upgradeAccount": "Protect this account",
     "goToLogin": "I already have an account",
     "goToRegister": "Create a sync account",
@@ -729,13 +1194,153 @@
     "registerUpgradeSubtitle": "Link this anonymous session to email, Google, or Apple so you can recover your data later.",
     "loginSuccess": "Logged in successfully.",
     "loginFailed": "Unable to log in right now.",
+    "loginConfirmTitle": "Replace local data?",
+    "loginConfirmMessage": "Logging in will replace all data on this device with data from your cloud account. This cannot be undone.",
+    "loginConfirmAction": "Log in",
+    "syncPhaseAuth": "Signing in…",
+    "syncPhaseData": "Syncing your data…",
+    "syncPleaseWait": "Please wait, this may take a moment.",
+    "syncFailedTitle": "Sync failed",
+    "syncFailedMessage": "Your data could not be synced from the cloud. You can retry or skip for now.",
+    "syncRetry": "Retry",
+    "syncSkip": "Skip for now",
+    "forgotPasswordTitle": "Reset your password",
+    "forgotPasswordSubtitle": "Enter your email address and we will send you a reset link.",
+    "forgotPasswordAction": "Send reset link",
+    "forgotPasswordSuccess": "If the email exists, a reset link has been sent.",
+    "forgotPasswordFailed": "Unable to send a reset link right now.",
+    "resetPasswordTitle": "Set a new password",
+    "resetPasswordSubtitle": "Choose a new password for your account.",
+    "resetPasswordAction": "Save new password",
+    "resetPasswordSuccess": "Your password has been updated.",
+    "resetPasswordFailed": "Unable to update the password right now.",
     "registerSuccess": "Account created successfully.",
-    "registerFailed": "Unable to create or protect this account right now."
+    "registerFailed": "Unable to create or protect this account right now.",
+    "lastSyncAt": "Last sync: {{value}}",
+    "lastSignedInAt": "Last signed in: {{value}}",
+    "lastSignedInUnknown": "Last signed in: not available"
   },
-  "foodDetail": {
-    "deleteTitle": "Delete meal",
-    "deleteMessage": "Are you sure you want to delete {{mealName}} from today's log?",
-    "deleteAction": "Delete meal"
+  "legal": {
+    "updatedTitle": "Last updated",
+    "updatedDate": "May 15, 2024",
+    "about": {
+      "heroTitle": "Eat Well,\nLive Well",
+      "heroSubtitle": "A calorie and smart nutrition tracking app",
+      "heroBody": "Check Calo helps you understand your body, manage daily calories, and reach your health goals every day.",
+      "ctaTitle": "Start your healthier journey today.",
+      "ctaAction": "Start now",
+      "features": {
+        "tracking": {
+          "title": "Daily calorie tracking",
+          "body": "Record calories from every meal quickly and see your daily progress at a glance."
+        },
+        "goals": {
+          "title": "Personalized goals",
+          "body": "Set nutrition goals that fit your body, lifestyle, and health direction."
+        },
+        "meals": {
+          "title": "Meal insights",
+          "body": "Log breakfast, lunch, dinner, and snacks to understand your eating habits."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "summary": "Please read these terms carefully before using the Check Calo app.",
+      "readMore": "Read more",
+      "readLess": "Show less",
+      "items": {
+        "acceptance": {
+          "title": "Accepting the terms",
+          "body": "By using Check Calo, you agree to follow the terms and conditions described in this document."
+        },
+        "purpose": {
+          "title": "Purpose of use",
+          "body": "The app helps you track calories, nutrition, and personal goals. It is not a replacement for medical advice or treatment."
+        },
+        "account": {
+          "title": "User account",
+          "body": "You are responsible for protecting your account information and for keeping your health data accurate."
+        },
+        "prohibited": {
+          "title": "Prohibited behavior",
+          "body": "Do not use the app for illegal purposes, disrupt the service, or harm other users."
+        },
+        "liability": {
+          "title": "Limitation of liability",
+          "body": "Nutrition information is for reference only. You remain responsible for health and diet decisions."
+        }
+      },
+      "moreItems": {
+        "changes": {
+          "title": "Changes to these terms",
+          "body": "We may update these terms over time to match product changes or legal requirements."
+        },
+        "retention": {
+          "title": "Data retention",
+          "body": "Some data may be kept to support your experience, sync, and history recovery."
+        },
+        "contact": {
+          "title": "Contact support",
+          "body": "If you have questions about these terms, please reach out through the in-app support page."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "summary": "We are committed to protecting your privacy and explaining how data is used in Check Calo.",
+      "items": {
+        "collection": {
+          "title": "Information we collect",
+          "body": "We may collect information you provide, such as name, email, date of birth, gender, height, weight, and meal logs."
+        },
+        "use": {
+          "title": "How information is used",
+          "body": "Data is used to provide personalized goals, nutrition tracking, and a better app experience."
+        },
+        "sharing": {
+          "title": "Information sharing",
+          "body": "We do not sell or share personal data with third parties unless required by law or with your consent."
+        },
+        "security": {
+          "title": "Data security",
+          "body": "We use reasonable technical and organizational measures to protect your information from unauthorized access."
+        },
+        "rights": {
+          "title": "Your rights",
+          "body": "You may access, update, correct, or request deletion of your personal data through the app or support."
+        },
+        "changes": {
+          "title": "Policy changes",
+          "body": "We may update this policy. Any important changes will be announced in the app."
+        }
+      }
+    },
+    "help": {
+      "title": "Need help?",
+      "body": "Contact us if you have questions about these terms or your privacy.",
+      "action": "Contact"
+    }
+  },
+  "contactScreen": {
+    "title": "Contact",
+    "heroTitle": "Get In Touch",
+    "formTitle": "Send us a message",
+    "formSubtitle": "Just leave your email and the issue you are facing.",
+    "copyHint": "Tap to copy",
+    "copySuccess": "Contact info copied.",
+    "submitAction": "Submit",
+    "submitSuccess": "Your contact request has been received.",
+    "emailLabel": "Email address",
+    "emailValue": "checkcalosupport@gmail.com",
+    "phoneLabel": "Phone number",
+    "phoneValue": "0373060206",
+    "locationLabel": "Office location",
+    "locationValue": "No. 2A, Street 55, Quarter 2, Binh Duong Ward, Ho Chi Minh City, Vietnam",
+    "workingDaysLabel": "Working days",
+    "workingDaysValue": "Monday - Saturday | 08:00 - 17:00",
+    "emailPlaceholder": "Your email",
+    "problemPlaceholder": "Your problem"
   },
   "settings": {
     "title": "Settings",
@@ -748,10 +1353,24 @@
     "version": "Version",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
+    "contact": "Contact",
     "profile": {
       "name": "Alex Johnson",
       "email": "alex@example.com",
       "editProfile": "Edit Profile"
+    },
+    "menu": {
+      "profile": "Personal profile",
+      "goal": "Goal",
+      "achievements": "Achievements",
+      "leaderboard": "Leaderboard",
+      "reminders": "Reminders",
+      "healthInformationSources": "Health information sources",
+      "language": "Language",
+      "units": "Units",
+      "theme": "Theme",
+      "supportEmoji": "❤️",
+      "support": "Support the app"
     },
     "sections": {
       "account": "Account",
@@ -883,6 +1502,7 @@
   "validation": {
     "required": "This field is required",
     "emailInvalid": "Please enter a valid email address",
+    "numberInvalid": "Please enter a valid number",
     "passwordMin": "Password must be at least 8 characters",
     "passwordMismatch": "Passwords do not match",
     "usernameMin": "Username must be at least 3 characters",
@@ -896,7 +1516,9 @@
     "scanHint": "Align the QR code inside the frame to scan it automatically.",
     "barcodeHint": "Align the barcode inside the frame to scan it automatically.",
     "permissionDenied": "Camera permission was denied.",
+    "libraryPermissionDenied": "Photo library permission was denied.",
     "captureFailed": "Could not capture the photo. Please try again.",
+    "libraryPickFailed": "Could not choose the photo. Please try again.",
     "scanFailed": "Could not scan the code. Please try again.",
     "actions": {
       "close": "Close",
@@ -909,5 +1531,93 @@
     "fields": {
       "occurredAt": "Occurred at"
     }
+  },
+  "achievementsScreen": {
+    "title": "Achievements",
+    "subtitle": "Stay consistent every day to level up your badge and become a better version of yourself.",
+    "back": "Go back",
+    "status": {
+      "unlocked": "Unlocked",
+      "locked": "Locked"
+    },
+    "summary": {
+      "currentStreak": "Current streak",
+      "completedGoals": "Completed goals"
+    },
+    "units": {
+      "day": "day",
+      "days": "days",
+      "goal": "goal",
+      "goals": "goals"
+    },
+    "requirements": {
+      "streak": "Streak {{count}} {{unit}}",
+      "goals": "Complete {{count}} {{unit}}"
+    },
+    "ranks": {
+      "beginner": "Beginner",
+      "rookie": "Rookie",
+      "learner": "Learner",
+      "pro": "Pro",
+      "elite": "Elite",
+      "master": "Master",
+      "ambassador": "Ambassador",
+      "legend": "Legend"
+    }
+  },
+  "leaderboardScreen": {
+    "title": "Leaderboard",
+    "back": "Go back",
+    "anonymousName": "Anonymous",
+    "anonymousMaskedName": "AN****S",
+    "emptyStateTitle": "No leaderboard data yet",
+    "emptyStateMessage": "Sync your profile and streak to appear here.",
+    "emptyPodiumTitle": "Waiting for players",
+    "levelPrefix": "Lv.",
+    "completedGoals": "completed goals",
+    "rowSubtitle": "Keep your streak alive and hit the goal every day.",
+    "listTitle": "Rankings 4 - 10",
+    "monthPill": "Green race • {{month}}",
+    "hero": {
+      "lossTitle": "Weight loss race",
+      "lossSubtitle": "Lean down, keep the pace, move up the board",
+      "gainTitle": "Weight gain race",
+      "gainSubtitle": "Gain steadily and stay on target",
+      "maintainTitle": "Weight maintenance race",
+      "maintainSubtitle": "Stay balanced, steady, and consistent"
+    },
+    "tabs": {
+      "loss": "Loss",
+      "gain": "Gain",
+      "maintain": "Maintain"
+    },
+    "sections": {
+      "lossTopTitle": "This month’s leaders",
+      "lossTopSubtitle": "The most consistent weight-loss performers.",
+      "lossNextTitle": "Next rankings",
+      "lossNextSubtitle": "Keep pushing to break into the top 3.",
+      "gainTopTitle": "This month’s leaders",
+      "gainTopSubtitle": "The most consistent weight-gain performers.",
+      "gainNextTitle": "Next rankings",
+      "gainNextSubtitle": "Keep pushing to break into the top 3.",
+      "maintainTopTitle": "This month’s leaders",
+      "maintainTopSubtitle": "The most consistent maintenance performers.",
+      "maintainNextTitle": "Next rankings",
+      "maintainNextSubtitle": "Keep pushing to break into the top 3."
+    },
+    "cta": {
+      "lossTitle": "Hold the streak, hold the rank",
+      "lossBody": "Open goal history to see how close you are to the next milestone.",
+      "gainTitle": "Keep the gain going",
+      "gainBody": "Open goal history to keep your pace steady.",
+      "maintainTitle": "Steady today, stronger tomorrow",
+      "maintainBody": "Open goal history to keep your balance on track.",
+      "button": "Update now"
+    },
+    "units": {
+      "kcal": "kcal",
+      "points": "points"
+    },
+    "deltaPrefix": "▲"
   }
 }

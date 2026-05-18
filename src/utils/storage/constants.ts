@@ -23,5 +23,13 @@ export const STORAGE_KEYS = {
   app: {
     lastVersion: 'app_last_version',
     launchCount: 'app_launch_count',
+    homeAiReviewHistory: 'home_ai_review_history',
+    menuAiReviewHistory: 'menu_ai_review_history',
+    mealPlanSuggestionLast: 'meal_plan_suggestion_last',
+    nutritionDeltaFoodEntriesCursor: 'nutrition_delta_food_entries_cursor',
+    nutritionDeltaRecentFoodsCursor: 'nutrition_delta_food_entries_cursor_recent',
+    nutritionDeltaMealsCursor: 'nutrition_delta_food_entries_cursor_meals',
+    nutritionDeltaMealItemsCursor: 'nutrition_delta_food_entries_cursor_meal_items',
+    supportPromptDismissed: 'support_prompt_dismissed',
   },
 } as const;

@@ -1,12 +1,27 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 8;
+const DATABASE_VERSION = 13;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 function createDatabase() {
   return SQLite.openDatabaseAsync(DATABASE_NAME);
+}
+
+async function addColumnIfMissing(
+  database: SQLite.SQLiteDatabase,
+  tableName: string,
+  columnName: string,
+  columnDefinition: string
+) {
+  const columns = await database.getAllAsync<{ name: string }>(`PRAGMA table_info(${tableName});`);
+
+  if (columns.some((column) => column.name === columnName)) {
+    return;
+  }
+
+  await database.execAsync(`ALTER TABLE ${tableName} ADD COLUMN ${columnDefinition};`);
 }
 
 export async function getDatabase() {
@@ -24,6 +39,7 @@ async function runVersion1Migration(database: SQLite.SQLiteDatabase) {
 
     CREATE TABLE IF NOT EXISTS user_profile (
       id INTEGER PRIMARY KEY CHECK (id = 1),
+      display_name TEXT NOT NULL DEFAULT '',
       gender TEXT NOT NULL,
       age INTEGER NOT NULL,
       height_cm REAL NOT NULL,
@@ -46,6 +62,7 @@ async function runVersion1Migration(database: SQLite.SQLiteDatabase) {
 
     CREATE TABLE IF NOT EXISTS food_entries (
       id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT,
       entry_date TEXT NOT NULL,
       consumed_at TEXT NOT NULL,
       meal_name TEXT NOT NULL,
@@ -60,7 +77,7 @@ async function runVersion1Migration(database: SQLite.SQLiteDatabase) {
       updated_at TEXT NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS favorite_foods (
+    CREATE TABLE IF NOT EXISTS recent_foods (
       id TEXT PRIMARY KEY NOT NULL,
       source_entry_id TEXT UNIQUE,
       name TEXT NOT NULL,
@@ -78,19 +95,20 @@ async function runVersion1Migration(database: SQLite.SQLiteDatabase) {
     CREATE INDEX IF NOT EXISTS idx_food_entries_entry_date
       ON food_entries(entry_date);
 
+    CREATE INDEX IF NOT EXISTS idx_food_entries_user_id
+      ON food_entries(user_id);
+
     CREATE INDEX IF NOT EXISTS idx_food_entries_consumed_at
       ON food_entries(consumed_at);
 
-    CREATE INDEX IF NOT EXISTS idx_favorite_foods_name
-      ON favorite_foods(name);
+    CREATE INDEX IF NOT EXISTS idx_recent_foods_name
+      ON recent_foods(name);
   `);
 }
 
 async function runVersion2Migration(database: SQLite.SQLiteDatabase) {
-  await database.execAsync(`
-    ALTER TABLE food_entries ADD COLUMN image_uri TEXT;
-    ALTER TABLE favorite_foods ADD COLUMN image_uri TEXT;
-  `);
+  await addColumnIfMissing(database, 'food_entries', 'image_uri', 'image_uri TEXT');
+  await addColumnIfMissing(database, 'recent_foods', 'image_uri', 'image_uri TEXT');
 }
 
 async function runVersion3Migration(database: SQLite.SQLiteDatabase) {
@@ -232,20 +250,43 @@ async function runVersion3Migration(database: SQLite.SQLiteDatabase) {
 }
 
 async function runVersion4Migration(database: SQLite.SQLiteDatabase) {
-  await database.execAsync(`
-    ALTER TABLE food_entries ADD COLUMN thumbnail_uri TEXT;
-    ALTER TABLE favorite_foods ADD COLUMN thumbnail_uri TEXT;
-  `);
+  await addColumnIfMissing(database, 'food_entries', 'thumbnail_uri', 'thumbnail_uri TEXT');
+  await addColumnIfMissing(database, 'recent_foods', 'thumbnail_uri', 'thumbnail_uri TEXT');
 }
 
 async function runVersion5Migration(database: SQLite.SQLiteDatabase) {
-  await database.execAsync(`
-    ALTER TABLE user_profile ADD COLUMN desired_weight_kg REAL NOT NULL DEFAULT 0;
-    ALTER TABLE user_profile ADD COLUMN maintenance_calorie_target INTEGER NOT NULL DEFAULT 0;
-    ALTER TABLE user_profile ADD COLUMN protein_target_grams REAL NOT NULL DEFAULT 0;
-    ALTER TABLE user_profile ADD COLUMN carbs_target_grams REAL NOT NULL DEFAULT 0;
-    ALTER TABLE user_profile ADD COLUMN fat_target_grams REAL NOT NULL DEFAULT 0;
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'desired_weight_kg',
+    'desired_weight_kg REAL NOT NULL DEFAULT 0'
+  );
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'maintenance_calorie_target',
+    'maintenance_calorie_target INTEGER NOT NULL DEFAULT 0'
+  );
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'protein_target_grams',
+    'protein_target_grams REAL NOT NULL DEFAULT 0'
+  );
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'carbs_target_grams',
+    'carbs_target_grams REAL NOT NULL DEFAULT 0'
+  );
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'fat_target_grams',
+    'fat_target_grams REAL NOT NULL DEFAULT 0'
+  );
 
+  await database.execAsync(`
     UPDATE user_profile
     SET
       desired_weight_kg = CASE
@@ -281,9 +322,14 @@ async function runVersion5Migration(database: SQLite.SQLiteDatabase) {
 }
 
 async function runVersion6Migration(database: SQLite.SQLiteDatabase) {
-  await database.execAsync(`
-    ALTER TABLE user_profile ADD COLUMN monthly_weight_loss_kg REAL NOT NULL DEFAULT 0;
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'monthly_weight_loss_kg',
+    'monthly_weight_loss_kg REAL NOT NULL DEFAULT 0'
+  );
 
+  await database.execAsync(`
     UPDATE user_profile
     SET monthly_weight_loss_kg = CASE
       WHEN desired_weight_kg < weight_kg
@@ -322,9 +368,109 @@ async function runVersion7Migration(database: SQLite.SQLiteDatabase) {
 }
 
 async function runVersion8Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(database, 'meal_items', 'image_uri', 'image_uri TEXT');
+  await addColumnIfMissing(database, 'meal_items', 'thumbnail_uri', 'thumbnail_uri TEXT');
+}
+
+async function runVersion9Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(database, 'food_entries', 'barcode', 'barcode TEXT');
+  await addColumnIfMissing(database, 'recent_foods', 'barcode', 'barcode TEXT');
+
   await database.execAsync(`
-    ALTER TABLE meal_items ADD COLUMN image_uri TEXT;
-    ALTER TABLE meal_items ADD COLUMN thumbnail_uri TEXT;
+    CREATE TABLE IF NOT EXISTS food_products (
+      id TEXT PRIMARY KEY NOT NULL,
+      barcode TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      brand TEXT,
+      quantity_label TEXT NOT NULL,
+      quantity_grams REAL,
+      total_calories REAL NOT NULL,
+      protein_grams REAL NOT NULL,
+      carbs_grams REAL NOT NULL,
+      fat_grams REAL NOT NULL,
+      notes TEXT,
+      image_uri TEXT,
+      source TEXT NOT NULL CHECK (source IN ('user', 'openfoodfacts', 'admin')),
+      verified_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_food_entries_barcode
+      ON food_entries(barcode);
+
+    CREATE INDEX IF NOT EXISTS idx_recent_foods_barcode
+      ON recent_foods(barcode);
+
+    CREATE INDEX IF NOT EXISTS idx_food_products_barcode
+      ON food_products(barcode);
+  `);
+}
+
+async function runVersion10Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(
+    database,
+    'user_profile',
+    'display_name',
+    "display_name TEXT NOT NULL DEFAULT ''"
+  );
+}
+
+async function runVersion11Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(database, 'food_entries', 'user_id', 'user_id TEXT');
+
+  await database.execAsync(`
+    CREATE INDEX IF NOT EXISTS idx_food_entries_user_id
+      ON food_entries(user_id);
+  `);
+}
+
+async function runVersion13Migration(database: SQLite.SQLiteDatabase) {
+  // Check if favorite_foods exists and rename to recent_foods
+  const favoriteFoodsTable = await database.getAllAsync<{ name: string }>(`
+    SELECT name FROM sqlite_master WHERE type='table' AND name='favorite_foods';
+  `);
+
+  if (favoriteFoodsTable.length > 0) {
+    await database.execAsync(`
+      ALTER TABLE favorite_foods RENAME TO recent_foods;
+    `);
+  } else {
+    // If neither favorite_foods nor recent_foods exists, create recent_foods
+    const recentFoodsTable = await database.getAllAsync<{ name: string }>(`
+      SELECT name FROM sqlite_master WHERE type='table' AND name='recent_foods';
+    `);
+
+    if (recentFoodsTable.length === 0) {
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS recent_foods (
+          id TEXT PRIMARY KEY NOT NULL,
+          source_entry_id TEXT UNIQUE,
+          name TEXT NOT NULL,
+          quantity_label TEXT NOT NULL,
+          quantity_grams REAL,
+          total_calories REAL NOT NULL,
+          protein_grams REAL NOT NULL,
+          carbs_grams REAL NOT NULL,
+          fat_grams REAL NOT NULL,
+          notes TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+      `);
+    }
+  }
+
+  // Ensure indices and columns for recent_foods
+  await addColumnIfMissing(database, 'recent_foods', 'image_uri', 'image_uri TEXT');
+  await addColumnIfMissing(database, 'recent_foods', 'thumbnail_uri', 'thumbnail_uri TEXT');
+  await addColumnIfMissing(database, 'recent_foods', 'barcode', 'barcode TEXT');
+
+  await database.execAsync(`
+    DROP INDEX IF EXISTS idx_recent_foods_name;
+    DROP INDEX IF EXISTS idx_recent_foods_barcode;
+    CREATE INDEX IF NOT EXISTS idx_recent_foods_name ON recent_foods(name);
+    CREATE INDEX IF NOT EXISTS idx_recent_foods_barcode ON recent_foods(barcode);
   `);
 }
 
@@ -363,6 +509,26 @@ export async function initializeDatabase() {
 
   if (currentVersion < 8) {
     await runVersion8Migration(database);
+  }
+
+  if (currentVersion < 9) {
+    await runVersion9Migration(database);
+  }
+
+  if (currentVersion < 10) {
+    await runVersion10Migration(database);
+  }
+
+  if (currentVersion < 11) {
+    await runVersion11Migration(database);
+  }
+
+  if (currentVersion < 12) {
+    // Migration 12 was replaced by 13 due to table rename issues
+  }
+
+  if (currentVersion < 13) {
+    await runVersion13Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {

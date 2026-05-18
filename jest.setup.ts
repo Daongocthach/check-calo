@@ -38,6 +38,21 @@ jest.mock('expo-constants', () => ({
   expoConfig: { extra: {} },
 }));
 
+// Mock expo-application
+jest.mock('expo-application', () => ({
+  nativeApplicationVersion: '1.0.0',
+  nativeBuildVersion: '1',
+  applicationId: 'com.ngocthach.checkcalo',
+}));
+
+// Mock expo-updates
+jest.mock('expo-updates', () => ({
+  updateId: 'ceb80b84-4ab8-4649-853c-f9b696812911',
+  checkForUpdateAsync: jest.fn(async () => ({ isAvailable: false })),
+  fetchUpdateAsync: jest.fn(async () => ({})),
+  reloadAsync: jest.fn(async () => undefined),
+}));
+
 // Silence noisy warnings in test output
 const originalWarn = console.warn;
 jest.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {

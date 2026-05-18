@@ -8,11 +8,19 @@
     "back": "Quay lại",
     "next": "Tiếp theo",
     "done": "Xong",
+    "date": "Ngày",
+    "time": "Giờ",
     "retry": "Thử lại",
     "search": "Tìm kiếm",
     "settings": "Cài đặt",
     "close": "Đóng",
     "edit": "Chỉnh sửa",
+    "clear": "Xóa sạch",
+    "more": "Thêm",
+    "decreaseQuantity": "Giảm khẩu phần",
+    "increaseQuantity": "Tăng khẩu phần",
+    "defaultMealName": "Món ăn",
+    "numberPlaceholder": "0",
     "submit": "Gửi",
     "ok": "OK",
     "units": {
@@ -22,6 +30,8 @@
       "gram": "g",
       "day": "ngày"
     },
+    "aiQuotaExceeded": "Bạn đã đạt giới hạn AI hôm nay. Hãy thử lại vào ngày mai.",
+    "signInRequired": "Bạn cần đăng nhập để dùng tính năng AI.",
     "syncStatus": {
       "syncNow": "Đồng bộ ngay",
       "loginToSync": "Đăng nhập để đồng bộ",
@@ -36,7 +46,7 @@
     "stats": "Thống kê",
     "add": "Thêm",
     "menu": "Thực đơn",
-    "favorites": "Thư viện",
+    "recents": "Món gần đây",
     "profile": "Hồ sơ",
     "showcase": "Trình diễn",
     "settings": "Cài đặt"
@@ -52,8 +62,142 @@
   },
   "menuScreen": {
     "title": "Thực đơn",
+    "headerSubtitle": "Theo dõi bữa ăn mỗi ngày",
+    "todayTotal": "Tổng hôm nay",
+    "planLabel": "Kế hoạch",
+    "planValue": "{{count}} bữa",
+    "aiTitle": "Gợi ý từ AI",
+    "aiSubtitle": "Bạn còn thiếu ~{{value}}g protein để đạt mục tiêu hôm nay.",
+    "viewSuggestion": "Xem gợi ý",
+    "aiPanel": {
+      "title": "Nhận xét thực đơn",
+      "subtitle": "AI xem lại các bữa bạn đã nhập và chỉ ra điểm mạnh, điểm cần chỉnh.",
+      "dailyAction": "Nhận xét thực đơn"
+    },
+    "review": {
+      "title": "Nhận xét thực đơn",
+      "subtitle": "Coach dinh dưỡng hằng ngày cho các bữa bạn đã ghi trong hôm nay.",
+      "dailyAction": "Nhận xét thực đơn",
+      "goalMode": {
+        "lose": "Chế độ giảm cân",
+        "maintain": "Chế độ giữ cân",
+        "gain": "Chế độ tăng cơ"
+      },
+      "heroStatus": {
+        "good": "Đang ổn",
+        "warning": "Cần chỉnh",
+        "attention": "Nên xử lý ngay"
+      },
+      "caloriesTitle": "Calo",
+      "sections": {
+        "adjustments": "Cần chỉnh"
+      },
+      "metricTarget": "{{current}} / {{target}}{{unit}}",
+      "metricNoTarget": "Chưa có mục tiêu",
+      "history": "Lịch sử",
+      "backToReview": "Quay lại",
+      "deleteHistoryTitle": "Xóa nhận xét",
+      "deleteHistoryMessage": "Xóa nhận xét này khỏi lịch sử?",
+      "historyEmpty": "Chưa có lịch sử nhận xét",
+      "historyMealTitle": "Nhận xét: {{name}}",
+      "mealAction": "Nhận xét",
+      "loading": "AI đang nhận xét thực đơn...",
+      "reviewingMeal": "Đang nhận xét bữa được chọn",
+      "emptyTitle": "Chưa có bữa nào để nhận xét",
+      "emptySubtitle": "Hãy thêm vài bữa vào thực đơn trước rồi nhờ AI xem lại.",
+      "generateAction": "Nhận xét",
+      "regenerateAction": "Nhận xét lại",
+      "generateNeedMoreInfo": "AI cần thêm dữ liệu để nhận xét thực đơn.",
+      "generateFailed": "Chưa nhận xét được. Vui lòng thử lại.",
+      "unsupportedTitle": "Không thể nhận xét",
+      "errorTitle": "Không nhận xét được",
+      "mealItemCount": "{{count}} món",
+      "breakfast": "Nhận xét bữa sáng",
+      "lunch": "Nhận xét bữa trưa",
+      "dinner": "Nhận xét bữa tối",
+      "snack": "Nhận xét bữa phụ"
+    },
+    "aiForm": {
+      "title": "Tùy chọn gợi ý thực đơn",
+      "subtitle": "Điền vài thông tin ngắn để gợi ý sát hơn với thói quen và mục tiêu của bạn.",
+      "noteLabel": "Ghi chú gợi ý",
+      "notePlaceholder": "Ví dụ: dị ứng đậu phộng, không ăn hải sản, nấu nhanh, các món hay ăn: ức gà, trứng, sữa, ...",
+      "noteLegacyRecent": "Ưu tiên món gần đây",
+      "noteLegacyIngredients": "Nguyên liệu có thể có",
+      "noteLegacyContraindications": "Chống chỉ định",
+      "noteLegacyCriteria": "Tiêu chí ưu tiên",
+      "criteria": {
+        "quick": "Nhanh",
+        "cheap": "Rẻ",
+        "satiating": "No lâu",
+        "protein": "Nhiều protein"
+      },
+      "suggestionListTitle": "Danh sách nháp từ AI",
+      "suggestionListHint": "Bấm thêm từng món hoặc áp cả thực đơn nếu muốn.",
+      "suggestionCount": "{{count}} món",
+      "draftEmpty": "Chưa có gợi ý nháp",
+      "draftEmptyHint": "Bấm Tạo gợi ý để xem danh sách món AI đề xuất cho cả ngày.",
+      "resultsTitle": "Danh sách gợi ý",
+      "resultsSubtitle": "Xem các món AI trả về và quay lại phần tùy chọn khi cần.",
+      "backToResults": "Quay lại kết quả",
+      "macros": {
+        "calories": "Calories",
+        "protein": "Protein",
+        "carbs": "Carb",
+        "fat": "Fat"
+      },
+      "generateAction": "Tạo gợi ý",
+      "regenerateAction": "Tạo lại",
+      "generating": "Đang tạo...",
+      "addAllToMenu": "Thêm tất cả vào thực đơn",
+      "addOne": "Thêm",
+      "addWholeMeal": "Thêm cả bữa",
+      "added": "Đã thêm",
+      "addedOne": "Đã thêm món vào thực đơn.",
+      "addedAll": "Đã thêm {{count}} món vào thực đơn.",
+      "addedWithSkipped": "Đã thêm {{count}} món, bỏ qua {{skipped}} món.",
+      "addFailed": "Không thể thêm món. Vui lòng thử lại.",
+      "submitted": "Đã ghi nhận tuỳ chọn gợi ý.",
+      "generated": "Đã tạo {{count}} gợi ý từ AI.",
+      "generateNeedMoreInfo": "AI cần thêm chút thông tin để tạo gợi ý.",
+      "generateFailed": "Chưa tạo được gợi ý. Vui lòng thử lại.",
+      "noMealFound": "Chưa tìm thấy bữa ăn phù hợp để thêm gợi ý."
+    },
+    "mealSuggestions": {
+      "short": "Gợi ý",
+      "breakfast": "Gợi ý bữa sáng",
+      "lunch": "Gợi ý bữa trưa",
+      "dinner": "Gợi ý bữa tối",
+      "snack": "Gợi ý bữa phụ"
+    },
+    "quickAdd": "Thêm nhanh",
+    "quickFoods": {
+      "chicken": "Ức gà",
+      "egg": "Trứng",
+      "banana": "Chuối",
+      "oat": "Yến mạch"
+    },
+    "summary": {
+      "totalCalories": "Tổng calories",
+      "average": "Trung bình",
+      "target": "Mục tiêu"
+    },
     "totalCaloriesTitle": "Tổng năng lượng",
-    "subtitle": "Mock tạm cho tab Thực đơn. Có thể mở rộng thành planner theo ngày, bữa ăn và gợi ý món từ thư viện.",
+    "energyTitle": "Tổng năng lượng",
+    "todayLabel": "Hôm nay",
+    "calendarAction": "Chọn ngày",
+    "aiSuggestion": "Gợi ý thêm món từ AI",
+    "week": {
+      "title": "Tuần này",
+      "subtitle": "Chọn một ngày trong chế độ 7 ngày",
+      "previousWeek": "Tuần trước",
+      "nextWeek": "Tuần sau"
+    },
+    "addFoodAction": "+ Thêm món ăn",
+    "filters": {
+      "all": "Tất cả"
+    },
+    "subtitle": "Trang quản lý thực đơn theo ngày với gợi ý AI và theo dõi bữa ăn thủ công.",
     "libraryAction": "Quản lý thư viện món ăn",
     "addMeal": "Thêm bữa ăn",
     "createMealTitle": "Tạo bữa ăn",
@@ -61,6 +205,7 @@
     "mealNameLabel": "Tên bữa ăn",
     "mealNamePlaceholder": "Ví dụ: Bữa trưa đi làm",
     "defaultMealName": "Bữa ăn {{index}}",
+    "createMealSuccess": "Đã tạo bữa ăn {{name}}.",
     "deleteMealTitle": "Xóa bữa ăn",
     "deleteMealMessage": "Xóa \"{{name}}\" và toàn bộ món trong bữa này?",
     "renameMealAction": "Đổi tên bữa ăn",
@@ -90,6 +235,7 @@
     "itemCount": "{{count}} món",
     "emptyTitle": "Chưa có bữa ăn nào",
     "emptySubtitle": "Tạo bữa ăn đầu tiên và thêm món theo cách thủ công.",
+    "mealEmptySubtitle": "Chưa có món ăn nào trong bữa",
     "validation": {
       "mealNameRequired": "Vui lòng nhập tên bữa ăn.",
       "itemFormInvalid": "Vui lòng nhập đủ thông tin món và số dinh dưỡng hợp lệ."
@@ -100,7 +246,7 @@
       "snack": "Bữa phụ"
     },
     "sectionSubtitles": {
-      "breakfast": "Khởi động ngày mới với món nhẹ và đủ đạm.",
+      "breakfast": "Khởi động ngày mới với món nhẹ và đủ protein.",
       "lunch": "Ưu tiên món no lâu, cân bằng năng lượng giữa ngày.",
       "dinner": "Giữ bữa tối gọn nhưng vẫn đủ chất.",
       "snack": "Bổ sung nhanh để giữ nhịp năng lượng trong ngày."
@@ -110,7 +256,7 @@
     "title": "Thêm món ăn",
     "subtitle": "Chọn cách thêm món vào {{mealName}}.",
     "manualTitle": "Nhập bằng food form",
-    "manualSubtitle": "Mở form đầy đủ để nhập năng lượng và macro thủ công.",
+    "manualSubtitle": "Mở form đầy đủ để nhập năng lượng và dinh dưỡng thủ công.",
     "manualAction": "Mở food form",
     "manualAddSuccess": "Đã thêm {{name}} vào bữa ăn.",
     "libraryTitle": "Từ thư viện món",
@@ -119,11 +265,11 @@
     "searchLabel": "Tìm trong thư viện",
     "searchPlaceholder": "Nhập tên món",
     "emptyLibrary": "Không tìm thấy món nào trong thư viện.",
-    "favoriteMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}"
+    "recentMeta": "{{quantity}} | {{calories}} {{kcalUnit}} | P {{protein}}{{gramUnit}} C {{carbs}}{{gramUnit}} F {{fat}}{{gramUnit}}"
   },
   "language": {
     "label": "Ngôn ngữ",
-    "english": "Tiếng Anh",
+    "english": "English",
     "vietnamese": "Tiếng Việt"
   },
   "application": {
@@ -178,9 +324,86 @@
       "item4Time": "3 giờ trước"
     }
   },
+  "foodDetail": {
+    "title": "Chi tiết món ăn",
+    "analysisTitle": "Kết quả phân tích",
+    "editAction": "Sửa kết quả",
+    "editTitle": "Chỉnh sửa kết quả AI",
+    "editFields": {
+      "title": "Tên món ăn",
+      "quantityLabel": "Nhãn khẩu phần",
+      "quantityGrams": "Số gram",
+      "consumedAt": "Ngày giờ ăn",
+      "calories": "Calories"
+    },
+    "unknownFoodName": "Món ăn chưa xác định",
+    "defaultQuantity": "1 phần",
+    "summaryTitle": "Tổng năng lượng",
+    "accuracyLabel": "Sai số ±10%",
+    "estimatedDisclaimer": "Đây là ước tính tham khảo, kết quả có thể sai số ±10%",
+    "quantityLabel": "Số lượng món ăn",
+    "quantityCountLabel": "Số lượng",
+    "peopleCountAction": "Số người cùng ăn: {{count}}",
+    "peopleCountDialogTitle": "Số người cùng ăn",
+    "peopleCountInputLabel": "Số người cùng ăn",
+    "peopleCountHelper": "Nhập số nguyên từ 1 đến 100.",
+    "peopleCountError": "Vui lòng nhập số nguyên từ 1 đến 100.",
+    "consumedAtLabel": "Ngày giờ ăn",
+    "notesLabel": "Ghi chú",
+    "sourceLabels": {
+      "ai": "AI",
+      "barcode": "Mã vạch",
+      "entry": "Đã lưu",
+      "recent": "Đã lưu",
+      "manual": "Thủ công"
+    },
+    "saveAction": "Thêm vào nhật ký",
+    "saveSuccess": "Đã thêm món vào nhật ký.",
+    "downloadImageAction": "Tải ảnh",
+    "downloadImageSuccess": "Đã lưu ảnh vào thư viện ảnh.",
+    "downloadImagePermissionDenied": "Bạn đã từ chối quyền truy cập thư viện ảnh.",
+    "downloadImageFailed": "Không thể lưu ảnh. Vui lòng thử lại.",
+    "supportMessage": "Nếu bạn thấy app hữu ích, bạn có thể mời tụi mình 1 ly cafe để duy trì app nhé ☕️",
+    "supportAction": "Ủng hộ ngay",
+    "supportThanks": "Cảm ơn bạn đã ủng hộ!",
+    "foodImageAlt": "Ảnh món ăn"
+  },
+  "supportScreen": {
+    "title": "Ủng hộ phát triển app",
+    "introTitle": "Cảm ơn bạn đã đồng hành cùng app",
+    "introBody": "Mỗi đóng góp của bạn giúp tụi mình duy trì và cải thiện trải nghiệm cho mọi người ❤️",
+    "subtitle": "Ủng hộ qua chuyển khoản ngân hàng",
+    "providerBrand": "VIETQR.IO",
+    "bankBrand": "Shinhan Bank",
+    "napasBrand": "napas",
+    "accountHolderLabel": "Tên tài khoản",
+    "accountHolder": "DAO NGOC THACH",
+    "accountNumberLabel": "Số tài khoản",
+    "accountNumber": "700-034-951978",
+    "bankLabel": "Ngân hàng",
+    "bankName": "Ngân hàng Shinhan Viet Nam",
+    "copySectionTitle": "Sao chép nhanh",
+    "copyAccountNumberAction": "Sao chép số tài khoản",
+    "copyAccountHolderAction": "Sao chép tên tài khoản",
+    "copyBankAction": "Sao chép tên ngân hàng",
+    "copySuccess": "Đã sao chép vào clipboard.",
+    "saveImageAction": "Lưu ảnh",
+    "saveImageModalTitle": "Đã lưu ảnh thành công!",
+    "saveImageModalBody": "Bạn là một phần quan trọng giúp app ngày càng hoàn thiện hơn ❤️",
+    "saveImagePermissionDenied": "Bạn đã từ chối quyền truy cập thư viện ảnh.",
+    "saveImageFailed": "Không thể lưu ảnh. Vui lòng thử lại.",
+    "thanks": "Cảm ơn bạn rất nhiều! 🙏"
+  },
   "homeScreen": {
     "greetingTitle": "Chào {{name}}",
     "alerts": "Thông báo",
+    "caloriesRemainingTitle": "Calories còn lại",
+    "caloriesRemainingUnitLabel": "kcal còn lại",
+    "caloriesRemainingLabel": "{{value}} kcal còn lại",
+    "caloriesConsumed": "Đã nạp {{consumed}} / {{target}} kcal",
+    "goalPercent": "{{percent}}% mục tiêu",
+    "macroToday": "Dinh dưỡng hôm nay",
+    "details": "Chi tiết",
     "dailyIntake": "Lượng nạp trong ngày",
     "dayCount": "Ngày 4",
     "target": "Mục tiêu",
@@ -200,7 +423,7 @@
     "greetings": {
       "morning": "Sẵn sàng bắt đầu",
       "afternoon": "Giữ nhịp thật tốt",
-      "evening": "Kết thúc thật đẹp"
+      "evening": "Chào buổi tối"
     },
     "week": {
       "sun": "CN",
@@ -222,10 +445,15 @@
     },
     "meals": {
       "title": "Bữa ăn hôm nay",
-      "subtitle": "Món ăn mới nhất ở trên",
+      "subtitle": "Món ăn mới nhất trong ngày",
+      "totalEnergy": "Năng lượng",
+      "addFood": "Thêm món",
+      "review": "Nhận xét",
       "detailComposition": "Xem thành phần",
-      "addFavorite": "Thêm vào thư viện món",
-      "removeFavorite": "Xóa khỏi thư viện món",
+      "addRecent": "Thêm vào thư viện món",
+      "removeRecent": "Xóa khỏi thư viện món",
+      "deleteTitle": "Xóa món ăn",
+      "deleteMessage": "Xóa \"{{name}}\" khỏi bữa ăn hôm nay?",
       "emptyTitle": "Chưa có món ăn nào",
       "emptySubtitle": "Hãy thêm món đầu tiên để theo dõi calo và dinh dưỡng trong ngày.",
       "comboLabel": "Combo {{first}} + {{second}}",
@@ -235,6 +463,8 @@
       "lunchTime": "12:00 - 13:30",
       "dinner": "Bữa tối",
       "dinnerTime": "18:30 - 20:00",
+      "snack": "Bữa phụ",
+      "snackTime": "15:00 - 16:30",
       "add": "Thêm",
       "addMeal": "Thêm {{meal}}",
       "metrics": {
@@ -248,11 +478,32 @@
         "greekYogurt": "Ly sữa chua Hy Lạp",
         "bananaSmoothie": "Sinh tố chuối yến mạch"
       }
+    },
+    "aiReview": {
+      "title": "Nhận xét dinh dưỡng",
+      "subtitle": "AI đọc log của ngày này và tóm tắt những điểm nên giữ, nên chỉnh.",
+      "history": "Lịch sử",
+      "historyTitle": "Lịch sử nhận xét",
+      "historySubtitle": "Chọn một ngày để xem lại các nhận xét đã lưu.",
+      "historyEmpty": "Chưa có nhận xét nào được lưu.",
+      "backToReview": "Quay lại",
+      "loading": "AI đang xem nhật ký hôm nay...",
+      "calories": "Calories",
+      "progress": "Tiến độ",
+      "improvements": "Cần chỉnh",
+      "retry": "Nhận xét lại",
+      "generateFailed": "Không thể tạo nhận xét. Vui lòng thử lại.",
+      "noEnoughDataFallback": "Chưa đủ dữ liệu để nhận xét kỹ hơn. Hãy thêm vài món trước.",
+      "needMoreInfoTitle": "Cần thêm thông tin",
+      "unsupportedTitle": "Không hỗ trợ",
+      "errorTitle": "Không thể nhận xét",
+      "todayOnly": "Chỉ có thể nhận xét cho hôm nay."
     }
   },
   "statsScreen": {
-    "title": "Hoạt động của tôi",
-    "subtitle": "Xem nhanh calories, thời lượng tập và thay đổi cân nặng.",
+    "title": "Thống kê",
+    "subtitle": "Theo dõi tiến trình và đạt mục tiêu mỗi ngày",
+    "calUnit": "kcal",
     "weekly": "Theo tuần",
     "peakDuration": "70 phút",
     "modes": {
@@ -266,7 +517,7 @@
       "weightToLose": "kg tới mục tiêu",
       "caloriesConsumed": "Calories hôm nay",
       "calorieTarget": "Mục tiêu hôm nay",
-      "remainingCalories": "Calories cách mục tiêu"
+      "remainingCalories": "Còn cách mục tiêu"
     },
     "days": {
       "sat": "T7",
@@ -287,9 +538,9 @@
     },
     "macros": {
       "title": "Mục tiêu dinh dưỡng",
-      "subtitle": "Phân bổ đạm, tinh bột và fat đã nạp hôm nay.",
-      "centerLabel": "Tổng macro",
-      "empty": "Chưa có dữ liệu macro cho hôm nay.",
+      "subtitle": "Phân bổ protein, carb và fat đã nạp hôm nay.",
+      "centerLabel": "Tổng dinh dưỡng",
+      "empty": "Chưa có dữ liệu dinh dưỡng cho hôm nay.",
       "carbs": "Carb",
       "protein": "Protein",
       "fat": "Fat"
@@ -302,8 +553,16 @@
       "title": "Xu hướng calories",
       "subtitle": "Tổng lượng calories ăn vào theo ngày và tháng."
     },
+    "chartDistributionTitle": "Phân bổ dinh dưỡng",
+    "chartSummary": {
+      "totalCalories": "Tổng calories",
+      "dailyAverage": "TB mỗi ngày",
+      "target": "Mục tiêu",
+      "thisMonth": "Tháng này",
+      "perDay": "/ ngày"
+    },
     "macroDistribution": {
-      "title": "Phân bổ macro theo giai đoạn",
+      "title": "Phân bổ dinh dưỡng theo giai đoạn",
       "subtitle": "Biểu đồ cột chồng hiển thị protein, carb và fat theo từng ngày hoặc tháng."
     }
   },
@@ -317,30 +576,45 @@
     "addedItemsCount": "{{count}} món",
     "editItem": "Sửa món {{mealName}}",
     "emptyTitle": "Chưa có món nào trong bữa này",
-    "emptySubtitle": "Chọn từ yêu thích hoặc thêm bằng nhập tay, chụp ảnh, barcode.",
-    "addFoodTitle": "Thêm món vào bữa",
-    "favoriteFoodsTitle": "Thư viện món",
-    "favoriteFoodsSubtitle": "Chọn nhanh món đã tạo và thêm thẳng vào bữa hiện tại.",
-    "favoriteFoodsAction": "Chọn từ thư viện món",
+    "emptySubtitle": "Nhập tay, chụp ảnh hoặc quét barcode để thêm món nhanh hơn.",
+    "addFoodTitle": "Thêm món ăn",
+    "recentFoodsTitle": "Thư viện món",
+    "recentFoodsSubtitle": "Chọn nhanh món đã tạo và thêm thẳng vào bữa hiện tại.",
+    "recentFoodsAction": "Chọn từ thư viện món",
     "manageLibraryAction": "Quản lý thư viện món ăn",
-    "favoriteSearchPlaceholder": "Tìm món trong thư viện...",
-    "favoriteEmptyTitle": "Không tìm thấy món phù hợp",
-    "favoriteEmptySubtitle": "Thử từ khóa khác hoặc tạo thêm món mới trong thư viện.",
+    "menuToday": {
+      "title": "Theo thực đơn hôm nay",
+      "viewMenu": "Xem thực đơn",
+      "emptyTitle": "Chưa có bữa nào trong thực đơn hôm nay",
+      "emptySubtitle": "Tạo hoặc chọn bữa trong màn thực đơn trước khi ghi log.",
+      "alertTitle": "Lưu bữa ăn",
+      "alertMessage": "Sẽ lưu lại lịch sử bữa ăn theo thực đơn này. Các món sẽ được ghi vào nhật ký hôm nay.",
+      "itemSummary": "{{count}} món",
+      "confirmAction": "Lưu",
+      "loggedSuccess": "Đã lưu {{mealName}}.",
+      "saveFailed": "Không thể lưu bữa ăn. Vui lòng thử lại."
+    },
+    "recentSearchPlaceholder": "Tìm món trong thư viện...",
+    "recentEmptyTitle": "Không tìm thấy món phù hợp",
+    "recentEmptySubtitle": "Thử từ khóa khác hoặc tạo thêm món mới trong thư viện.",
     "saveMeal": "Lưu bữa ăn",
     "saveSuccess": "Đã lưu bữa ăn vào nhật ký hôm nay.",
     "saveError": "Không thể lưu bữa ăn. Vui lòng thử lại.",
     "aiAnalysisFallback": "AI chưa chắc chắn về món này. Bạn hãy kiểm tra và chỉnh lại trong form.",
     "aiAnalysisError": "Không thể phân tích ảnh món ăn lúc này.",
+    "barcodeNotFound": "Không tìm thấy sản phẩm. Bạn có thể nhập thủ công.",
     "clearMeal": "Đặt lại",
     "clearMealTitle": "Xóa bữa ăn hiện tại",
     "clearMealMessage": "Bạn có chắc muốn xóa toàn bộ món đang thêm không?",
     "increasePortion": "Tăng khẩu phần",
     "decreasePortion": "Giảm khẩu phần",
-    "modalTitle": "Thêm bữa ăn",
-    "modalSubtitle": "Chọn cách bạn muốn tạo mục món ăn này.",
+    "modalTitle": "Thêm món ăn",
+    "modalSubtitle": "Chọn cách bạn muốn thêm món ăn vào bữa này",
     "captureModes": {
       "scanFood": "Chụp ảnh",
       "scanFoodAnalyzing": "Đang phân tích",
+      "scanFoodAnalyzingWithAi": "Đang phân tích món ăn với AI...",
+      "library": "Chọn ảnh",
       "barcode": "Barcode",
       "manual": "Nhập tay"
     },
@@ -348,17 +622,54 @@
       "scanFood": {
         "title": "Quét món ăn",
         "body": "Mở camera, chụp món ăn và app sẽ ước tính calories cùng các chỉ số dinh dưỡng.",
+        "sheetBody": "Mở camera, chụp món ăn và app sẽ ước tính calories",
         "button": "Mở camera món ăn"
+      },
+      "library": {
+        "title": "Chọn từ thư viện",
+        "body": "Chọn ảnh món ăn có sẵn và app sẽ ước tính calories cùng các chỉ số dinh dưỡng.",
+        "sheetBody": "Chọn ảnh món ăn từ thư viện để AI phân tích",
+        "button": "Chọn ảnh"
       },
       "barcode": {
         "title": "Quét thực phẩm đóng gói",
         "body": "Dùng barcode cho nước uống, snack hoặc sản phẩm có nhãn để lấy dinh dưỡng nhanh hơn.",
+        "sheetBody": "Dùng barcode cho nước uống, snack hoặc sản phẩm có nhãn",
         "button": "Mở quét barcode"
       },
       "manual": {
         "title": "Nhập món thủ công",
         "body": "Tạo món ăn thủ công khi bạn không cần camera hoặc muốn chỉnh nhanh kết quả.",
+        "sheetBody": "Tạo món ăn thủ công nhanh chóng",
         "button": "Tạo mục nhập tay"
+      }
+    },
+    "recent": {
+      "title": "Gần đây",
+      "viewAll": "Xem tất cả",
+      "emptyTitle": "Chưa có món gần đây",
+      "emptySubtitle": "Thêm một món trước, nó sẽ hiện ở đây để dùng lại nhanh.",
+      "items": {
+        "chickenRice": {
+          "title": "Cơm gà",
+          "calories": "450 kcal",
+          "emoji": "🍛"
+        },
+        "milkTea": {
+          "title": "Trà sữa",
+          "calories": "320 kcal",
+          "emoji": "🧋"
+        },
+        "banhMi": {
+          "title": "Bánh mì",
+          "calories": "280 kcal",
+          "emoji": "🥖"
+        },
+        "banana": {
+          "title": "Chuối",
+          "calories": "100 kcal",
+          "emoji": "🍌"
+        }
       }
     },
     "stats": {
@@ -412,14 +723,16 @@
     "saveAction": "Lưu món ăn",
     "saveActionWithCalories": "Lưu món ăn ({{calories}}{{kcal}})",
     "updateAction": "Cập nhật món ăn",
-    "portionCountLabel": "Số lượng khẩu phần",
+    "updateSuccess": "Đã cập nhật {{name}}.",
+    "portionCountLabel": "Khẩu phần",
     "photoAction": "Chụp ảnh món ăn",
+    "libraryPhotoAction": "Chọn từ thư viện",
     "photoRetakeAction": "Chụp lại ảnh món ăn",
     "photoHint": "Chạm vào khung ảnh để chụp hoặc thay đổi ảnh món ăn.",
     "openImageViewer": "Mở ảnh món ăn toàn màn hình",
     "closeImageViewer": "Đóng ảnh món ăn toàn màn hình",
-    "favoriteSectionTitle": "Chọn nhanh từ yêu thích",
-    "favoriteSectionHint": "Chạm để nạp dữ liệu lên form, giữ lâu để lưu thẳng vào hôm nay.",
+    "recentSectionTitle": "Chọn nhanh từ yêu thích",
+    "recentSectionHint": "Chạm để nạp dữ liệu lên form, giữ lâu để lưu thẳng vào hôm nay.",
     "fields": {
       "foodName": "Tên món ăn",
       "quantity": "Khối lượng món ăn (g)",
@@ -440,13 +753,14 @@
       "notes": "Ví dụ: ít sốt, thêm rau"
     }
   },
-  "favoritesScreen": {
-    "title": "Thư viện món",
+  "recentsScreen": {
+    "title": "Món gần đây",
     "subtitle": "Những món bạn đã tạo để dùng lại nhanh khi nhập bữa ăn.",
-    "heroTitle": "Thư viện món",
-    "heroTitleWithCount": "Thư viện món ({{count}})",
+    "heroTitle": "Món gần đây",
+    "heroTitleWithCount": "Món gần đây ({{count}})",
     "heroSubtitle": "Kho món ăn cá nhân của bạn",
-    "addFavoriteAction": "Thêm món mới vào thư viện",
+    "addRecentAction": "Thêm món mới vào thư viện",
+    "addNewFoodAction": "Thêm món mới",
     "searchPlaceholder": "Tìm món trong thư viện",
     "savedItem": "Món trong thư viện",
     "removeTitle": "Xóa khỏi thư viện",
@@ -457,7 +771,7 @@
     "filteredEmptySubtitle": "Thử đổi ngày hoặc từ khóa tìm kiếm để xem thêm món trong thư viện.",
     "filters": {
       "all": "Tất cả",
-      "protein": "Nhiều đạm",
+      "protein": "Nhiều protein",
       "lowCarb": "Ít carb"
     },
     "items": {
@@ -480,9 +794,14 @@
     "subtitle": "Nhập thông tin BMI một lần để app cá nhân hóa mục tiêu calo mỗi ngày.",
     "profileStatus": "Trạng thái BMI",
     "formTitle": "Thông tin cơ bản",
-    "formSubtitle": "Tuổi, giới tính, chiều cao, cân nặng hiện tại, kế hoạch thay đổi cân nặng theo tháng và mức vận động sẽ giúp app tính mục tiêu calories và macro phù hợp.",
+    "formSubtitle": "Tuổi, giới tính, chiều cao, cân nặng hiện tại, kế hoạch thay đổi cân nặng theo tháng và mức vận động sẽ giúp app tính mục tiêu calories và dinh dưỡng phù hợp.",
     "summaryTitle": "Hồ sơ hiện tại",
     "summaryBody": "BMI {{bmi}}, mục tiêu {{calorieTarget}} kcal/ngày.",
+    "healthSources": {
+      "title": "Nguồn thông tin y tế",
+      "subtitle": "Xem nguồn tham khảo cho BMI, BMR, calories và dinh dưỡng.",
+      "action": "Mở nguồn thông tin y tế"
+    },
     "saveAction": "Lưu và bắt đầu",
     "continueAction": "Vào trang chính",
     "status": {
@@ -490,6 +809,7 @@
       "ready": "BMI {{bmi}} • {{calorieTarget}} kcal/ngày"
     },
     "fields": {
+      "displayName": "Tên hiển thị",
       "gender": "Giới tính",
       "age": "Tuổi",
       "height": "Chiều cao (cm)",
@@ -519,6 +839,7 @@
       "gain_2": "Tăng 2 kg/tháng"
     },
     "placeholders": {
+      "displayName": "Nhập tên của bạn",
       "age": "Nhập tuổi",
       "height": "Nhập chiều cao",
       "weight": "Nhập cân nặng"
@@ -528,9 +849,119 @@
       "positive": "Giá trị phải lớn hơn 0"
     }
   },
+  "healthInformationSourcesScreen": {
+    "title": "Nguồn thông tin y tế",
+    "intro": "Ứng dụng này cung cấp thông tin sức khỏe và dinh dưỡng dựa trên các nghiên cứu khoa học đã được thiết lập. Các nguồn sau được sử dụng cho tính toán và khuyến nghị:",
+    "disclaimer": "Ứng dụng này chỉ mang tính chất thông tin và không thể thay thế lời khuyên y tế chuyên nghiệp. Luôn tham khảo ý kiến của các chuyên gia y tế để được hướng dẫn y tế cá nhân hóa.",
+    "sections": {
+      "bmi": {
+        "title": "Tính Toán BMI (Chỉ Số Khối Cơ Thể)",
+        "description": "BMI được tính từ cân nặng và chiều cao để ước tính tình trạng cân nặng. Chỉ số này chỉ mang tính sàng lọc và không thay thế đánh giá y tế cá nhân.",
+        "references": {
+          "cdc": {
+            "title": "Centers for Disease Control and Prevention.",
+            "citation": "Calculating BMI using the English system and metric system. CDC Growth Chart Training."
+          }
+        }
+      },
+      "bmr": {
+        "title": "Tính Toán BMR (Tỷ Lệ Trao Đổi Chất Cơ Bản)",
+        "description": "Chúng tôi sử dụng phương trình Mifflin-St Jeor để tính tỷ lệ trao đổi chất cơ bản, được coi là phương pháp chính xác nhất cho người khỏe mạnh.",
+        "references": {
+          "mifflin": {
+            "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
+            "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
+          },
+          "roza": {
+            "title": "Roza AM, Shizgal HM.",
+            "citation": "The Harris Benedict equation reevaluated: resting energy requirements and the body cell mass. Am J Clin Nutr. 1984;40(1):168-82."
+          }
+        }
+      },
+      "activity": {
+        "title": "Hệ Số Mức Độ Hoạt Động",
+        "description": "Hệ số hoạt động thể chất được áp dụng vào BMR để ước tính tổng lượng năng lượng tiêu thụ hằng ngày dựa trên nghiên cứu đã được thiết lập.",
+        "references": {
+          "brooks": {
+            "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
+            "citation": "Chronicle of the Institute of Medicine physical activity recommendation: how a physical activity recommendation came to be among dietary recommendations. Am J Clin Nutr. 2004;79(5):921S-930S."
+          },
+          "iom": {
+            "title": "Institute of Medicine (US) Panel on Macronutrients.",
+            "citation": "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. Washington (DC): National Academies Press (US); 2005."
+          }
+        }
+      },
+      "macros": {
+        "title": "Phân Bổ Chất Dinh Dưỡng Đa Lượng",
+        "description": "Tỷ lệ chất dinh dưỡng đa lượng được khuyến nghị dựa trên hướng dẫn dinh dưỡng từ các tổ chức y tế.",
+        "references": {
+          "dietaryGuidelines": {
+            "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
+            "citation": "2020-2025 Dietary Guidelines for Americans. 9th Edition."
+          },
+          "who": {
+            "title": "World Health Organization.",
+            "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          }
+        }
+      },
+      "weightManagement": {
+        "title": "Quản Lý Cân Nặng",
+        "description": "Khuyến nghị giảm cân và tăng cân dựa trên các phương pháp có bằng chứng khoa học để quản lý cân nặng bền vững.",
+        "references": {
+          "wadden": {
+            "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
+            "citation": "Lifestyle modification for obesity: new developments in diet, physical activity, and behavior therapy. Circulation. 2012;125(9):1157-70."
+          },
+          "hall": {
+            "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
+            "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          }
+        }
+      }
+    }
+  },
+  "accountScreen": {
+    "title": "Tài khoản",
+    "switchAccount": "Chuyển đổi tài khoản",
+    "dangerZone": "Vùng nguy hiểm",
+    "deleteAction": "Xoá tài khoản",
+    "deleteDescription": "Thao tác này sẽ xoá vĩnh viễn tài khoản cloud và toàn bộ dữ liệu trên thiết bị. Một phiên ẩn danh mới sẽ được tạo.",
+    "deleteTitle": "Xoá tài khoản?",
+    "deleteMessage": "Toàn bộ dữ liệu cloud và dữ liệu trên thiết bị sẽ bị xoá vĩnh viễn. Không thể hoàn tác.",
+    "deleteConfirm": "Xoá tất cả",
+    "deleteSuccess": "Đã xoá tài khoản và dữ liệu.",
+    "deleteError": "Không thể xoá tài khoản lúc này. Vui lòng thử lại.",
+    "deleteDataAction": "Xoá toàn bộ dữ liệu",
+    "deleteDataTitle": "Xoá toàn bộ dữ liệu?",
+    "deleteDataMessage": "Thao tác này sẽ xoá vĩnh viễn toàn bộ dữ liệu dinh dưỡng trên thiết bị và cloud. Không thể hoàn tác.",
+    "deleteDataConfirm": "Xoá tất cả",
+    "deleteDataSuccess": "Đã xoá toàn bộ dữ liệu dinh dưỡng.",
+    "deleteDataError": "Không thể xoá dữ liệu lúc này. Vui lòng thử lại.",
+    "logoutAction": "Đăng xuất",
+    "logoutTitle": "Đăng xuất?",
+    "logoutMessage": "Bạn sẽ được đăng xuất và tạo phiên ẩn danh mới. Dữ liệu cloud vẫn an toàn.",
+    "logoutConfirm": "Đăng xuất",
+    "logoutSuccess": "Đã đăng xuất thành công.",
+    "logoutError": "Không thể đăng xuất lúc này.",
+    "joinedAt": "Tham gia {{value}}",
+    "joinedAtUnknown": "Không rõ ngày tham gia"
+  },
   "profileScreen": {
-    "title": "Hồ sơ dinh dưỡng",
-    "subtitle": "Xem nhanh BMI, calories duy trì, calories mục tiêu và macro mục tiêu của bạn.",
+    "title": "Hồ sơ cá nhân",
+    "subtitle": "Dùng để tính calories và dinh dưỡng phù hợp",
+    "saveAndStart": "Lưu và bắt đầu",
+    "saveSuccess": "Đã lưu hồ sơ cá nhân.",
+    "basicInfoTitle": "Thông tin cơ bản",
+    "weightPlanTitle": "Kế hoạch cân nặng",
+    "activityTitle": "Hệ số vận động",
+    "activityDescriptions": {
+      "sedentary": "Ngồi nhiều, ít vận động",
+      "light": "Vận động nhẹ và đi lại vừa phải",
+      "moderate": "Tập luyện 3–5 buổi/tuần",
+      "active": "Hoạt động nhiều, tập đều mỗi tuần"
+    },
     "editAction": "Chỉnh sửa",
     "deleteAction": "Xóa hồ sơ dinh dưỡng",
     "resetAction": "Đặt lại toàn bộ dữ liệu",
@@ -549,6 +980,10 @@
     "logoutConfirmMessage": "Bạn có chắc muốn đăng xuất khỏi tài khoản đã liên kết này không?",
     "logoutSuccess": "Đã đăng xuất thành công.",
     "actionError": "Không thể cập nhật dữ liệu lúc này. Vui lòng thử lại.",
+    "offlineAiMessage": "Kết nối mạng để sử dụng tính năng AI.",
+    "signInPromptTitle": "Đã có tài khoản?",
+    "signInPromptSubtitle": "Đăng nhập để đồng bộ thiết bị này với một tài khoản có sẵn.",
+    "signInAction": "Đăng nhập",
     "account": {
       "title": "Tài khoản đồng bộ",
       "anonymousSubtitle": "Liên kết phiên ẩn danh này với tài khoản thật để bảo vệ dữ liệu món ăn và ảnh đã đồng bộ.",
@@ -569,16 +1004,22 @@
       "linkAppleSuccess": "Đã liên kết tài khoản Apple thành công.",
       "actionError": "Không thể liên kết tài khoản lúc này."
     },
-    "deleteSyncAccountAction": "Xóa tài khoản đồng bộ",
-    "deleteSyncAccountConfirmTitle": "Xóa tài khoản đồng bộ đã liên kết",
-    "deleteSyncAccountConfirmMessage": "Thao tác này sẽ xóa dữ liệu đã đồng bộ trên Supabase của tài khoản hiện tại và ngắt liên kết khỏi thiết bị này. Dữ liệu local trên máy vẫn được giữ lại.",
-    "deleteSyncAccountSuccess": "Đã gỡ tài khoản đồng bộ khỏi thiết bị này.",
+    "deleteSyncAccountAction": "Xóa tài khoản và dữ liệu",
+    "deleteSyncAccountConfirmTitle": "Xóa tài khoản và đặt lại thiết bị",
+    "deleteSyncAccountConfirmMessage": "Thao tác này sẽ xóa tài khoản Supabase đã đồng bộ, xóa toàn bộ dữ liệu local của ứng dụng trên thiết bị này và tạo lại một phiên anonymous mới sau khi đăng xuất.",
+    "deleteSyncAccountSuccess": "Đã xóa tài khoản và dữ liệu.",
     "debug": {
       "resetAnonymousSessionTitle": "Đặt lại phiên ẩn danh",
       "resetAnonymousSessionMessage": "Thao tác này sẽ xóa phiên Supabase hiện tại trên thiết bị để app có thể tạo lại một tài khoản anonymous mới khi cần.",
       "resetAnonymousSessionAction": "Đặt lại phiên ẩn danh",
       "resetAnonymousSessionSuccess": "Đã đặt lại phiên ẩn danh. App sẽ tạo tài khoản anonymous mới khi cần."
     },
+    "versionNoUpdateTitle": "Đã mới nhất",
+    "versionNoUpdateMessage": "Hiện chưa có bản cập nhật nào.",
+    "versionUpdateReadyTitle": "Sẵn sàng cập nhật",
+    "versionUpdateReadyMessage": "App sẽ tải lại để áp dụng bản mới nhất.",
+    "versionUpdateErrorTitle": "Cập nhật thất bại",
+    "versionUpdateErrorMessage": "Không thể kiểm tra bản cập nhật. Vui lòng thử lại.",
     "metrics": {
       "bmi": "BMI",
       "gender": "Giới tính",
@@ -632,7 +1073,9 @@
     "activeTitle": "Kế hoạch",
     "completedTitle": "Đã hoàn thành kế hoạch",
     "profileTitle": "Tiến độ kế hoạch",
+    "planTitle": "Kế hoạch: {{goal}}",
     "progressLabel": "Tiến độ",
+    "currentProgress": "Tiến độ hiện tại: {{current}}/{{target}} ngày",
     "emptyTitle": "Chọn kế hoạch tiếp theo",
     "emptySubtitle": "Tiếp tục đi bằng kế hoạch calories hoặc chuỗi ngày giữ cân.",
     "choosePrompt": "Chọn kế hoạch bạn muốn bắt đầu tiếp theo.",
@@ -642,6 +1085,21 @@
     "progressKcalLose": "Đã thâm hụt {{current}} / {{target}} kcal",
     "progressKcalGain": "Đã dư {{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} ngày",
+    "deficitAchievedLabel": "Đã thâm hụt",
+    "deficitRemainingLabel": "Còn lại {{value}} kg",
+    "fatEquivalent": "(~{{value}} kg mỡ)",
+    "calorieDeficitLabel": "Thâm hụt",
+    "remainingDeficitLabel": "Còn thiếu",
+    "calorieDifferenceLabel": "Chênh lệch calories",
+    "statusLabel": "Trạng thái",
+    "calorieSurplusLabel": "Dư calories",
+    "remainingToTargetLabel": "Còn tới mục tiêu",
+    "weightEquivalent": "({{value}} kg)",
+    "balanceStatus": {
+      "slightDeficit": "Thâm hụt nhẹ",
+      "balanced": "Cân bằng",
+      "slightSurplus": "Dư nhẹ"
+    },
     "consumedKcalProgress": "Đã nạp {{current}} / {{target}} kcal",
     "remainingKcal": "Còn {{value}} kcal",
     "remainingDays": "Còn {{value}} ngày",
@@ -715,7 +1173,10 @@
     "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
     "signIn": "Đăng nhập",
     "signInWithGoogle": "Đăng nhập với Google",
-    "signUp": "Tạo tài khoản",
+    "signUp": "Đăng ký",
+    "forgotPassword": "Quên mật khẩu?",
+    "registerPageTitle": "Đăng ký",
+    "registerAction": "Đăng ký",
     "upgradeAccount": "Bảo vệ tài khoản này",
     "goToLogin": "Tôi đã có tài khoản",
     "goToRegister": "Tạo tài khoản đồng bộ",
@@ -729,13 +1190,153 @@
     "registerUpgradeSubtitle": "Liên kết phiên ẩn danh này với email, Google hoặc Apple để có thể khôi phục dữ liệu sau này.",
     "loginSuccess": "Đăng nhập thành công.",
     "loginFailed": "Không thể đăng nhập lúc này.",
+    "loginConfirmTitle": "Thay thế dữ liệu?",
+    "loginConfirmMessage": "Đăng nhập sẽ thay thế toàn bộ dữ liệu trên thiết bị này bằng dữ liệu từ tài khoản cloud. Không thể hoàn tác.",
+    "loginConfirmAction": "Đăng nhập",
+    "syncPhaseAuth": "Đang đăng nhập…",
+    "syncPhaseData": "Đang đồng bộ dữ liệu…",
+    "syncPleaseWait": "Vui lòng đợi trong giây lát.",
+    "syncFailedTitle": "Đồng bộ thất bại",
+    "syncFailedMessage": "Không thể đồng bộ dữ liệu từ cloud. Bạn có thể thử lại hoặc bỏ qua.",
+    "syncRetry": "Thử lại",
+    "syncSkip": "Bỏ qua",
+    "forgotPasswordTitle": "Đặt lại mật khẩu",
+    "forgotPasswordSubtitle": "Nhập email của bạn và mình sẽ gửi link đặt lại mật khẩu.",
+    "forgotPasswordAction": "Gửi link đặt lại",
+    "forgotPasswordSuccess": "Nếu email tồn tại, link đặt lại đã được gửi.",
+    "forgotPasswordFailed": "Không thể gửi link đặt lại lúc này.",
+    "resetPasswordTitle": "Đặt mật khẩu mới",
+    "resetPasswordSubtitle": "Chọn một mật khẩu mới cho tài khoản của bạn.",
+    "resetPasswordAction": "Lưu mật khẩu mới",
+    "resetPasswordSuccess": "Mật khẩu của bạn đã được cập nhật.",
+    "resetPasswordFailed": "Không thể cập nhật mật khẩu lúc này.",
     "registerSuccess": "Tạo tài khoản thành công.",
-    "registerFailed": "Không thể tạo hoặc bảo vệ tài khoản lúc này."
+    "registerFailed": "Không thể tạo hoặc bảo vệ tài khoản lúc này.",
+    "lastSyncAt": "Lần sync cuối: {{value}}",
+    "lastSignedInAt": "Đăng nhập cuối: {{value}}",
+    "lastSignedInUnknown": "Đăng nhập cuối: chưa có"
   },
-  "foodDetail": {
-    "deleteTitle": "Xóa món ăn",
-    "deleteMessage": "Bạn có chắc muốn xóa {{mealName}} khỏi nhật ký hôm nay không?",
-    "deleteAction": "Xóa món ăn"
+  "legal": {
+    "updatedTitle": "Cập nhật lần cuối",
+    "updatedDate": "15 tháng 05, 2024",
+    "about": {
+      "heroTitle": "Eat Well,\nLive Well",
+      "heroSubtitle": "Ứng dụng theo dõi calo và dinh dưỡng thông minh",
+      "heroBody": "Check Calo giúp bạn hiểu cơ thể, kiểm soát calo đã dùng và đạt mục tiêu sức khỏe mỗi ngày.",
+      "ctaTitle": "Bắt đầu hành trình sống khỏe hôm nay!",
+      "ctaAction": "Bắt đầu ngay",
+      "features": {
+        "tracking": {
+          "title": "Theo dõi calo hằng ngày",
+          "body": "Ghi nhận calo từ từng bữa ăn nhanh chóng và xem tiến độ mỗi ngày."
+        },
+        "goals": {
+          "title": "Mục tiêu cá nhân hóa",
+          "body": "Thiết lập mục tiêu phù hợp với bạn, vóc dáng và định hướng sức khỏe."
+        },
+        "meals": {
+          "title": "Theo dõi bữa ăn",
+          "body": "Ghi lại bữa sáng, trưa, tối và bữa phụ để hiểu thói quen ăn uống."
+        }
+      }
+    },
+    "terms": {
+      "title": "Điều khoản dịch vụ",
+      "summary": "Vui lòng đọc kỹ các điều khoản sử dụng trước khi dùng ứng dụng Check Calo.",
+      "readMore": "Xem thêm",
+      "readLess": "Thu gọn",
+      "items": {
+        "acceptance": {
+          "title": "Chấp thuận điều khoản",
+          "body": "Khi sử dụng Check Calo, bạn đồng ý tuân thủ các điều khoản và điều kiện được mô tả trong tài liệu này."
+        },
+        "purpose": {
+          "title": "Mục đích sử dụng",
+          "body": "Ứng dụng hỗ trợ theo dõi calo, dinh dưỡng và mục tiêu cá nhân. Đây không phải lời khuyên, chẩn đoán hoặc điều trị y tế."
+        },
+        "account": {
+          "title": "Tài khoản người dùng",
+          "body": "Bạn có trách nhiệm bảo mật thông tin đăng nhập và cập nhật dữ liệu sức khỏe chính xác."
+        },
+        "prohibited": {
+          "title": "Hành vi bị cấm",
+          "body": "Không sử dụng ứng dụng cho mục đích bất hợp pháp, gây gián đoạn dịch vụ hoặc làm hại người dùng khác."
+        },
+        "liability": {
+          "title": "Giới hạn trách nhiệm",
+          "body": "Thông tin dinh dưỡng chỉ mang tính tham khảo. Bạn chịu trách nhiệm với quyết định sức khỏe và ăn uống của mình."
+        }
+      },
+      "moreItems": {
+        "changes": {
+          "title": "Thay đổi điều khoản",
+          "body": "Chúng tôi có thể cập nhật điều khoản theo thời gian để phù hợp với sản phẩm hoặc yêu cầu pháp lý."
+        },
+        "retention": {
+          "title": "Lưu giữ dữ liệu",
+          "body": "Một số dữ liệu có thể được lưu lại để đảm bảo trải nghiệm, đồng bộ và khôi phục lịch sử của bạn."
+        },
+        "contact": {
+          "title": "Liên hệ hỗ trợ",
+          "body": "Nếu có câu hỏi về điều khoản, hãy liên hệ với chúng tôi qua trang hỗ trợ trong ứng dụng."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Chính sách bảo mật",
+      "summary": "Chúng tôi cam kết bảo vệ quyền riêng tư và dữ liệu cá nhân của bạn khi sử dụng Check Calo.",
+      "items": {
+        "collection": {
+          "title": "Thông tin chúng tôi thu thập",
+          "body": "Chúng tôi có thể thu thập thông tin bạn cung cấp như họ tên, email, ngày sinh, giới tính, chiều cao, cân nặng và nhật ký bữa ăn."
+        },
+        "use": {
+          "title": "Mục đích sử dụng thông tin",
+          "body": "Thông tin được dùng để cá nhân hóa mục tiêu, theo dõi dinh dưỡng và cải thiện trải nghiệm ứng dụng."
+        },
+        "sharing": {
+          "title": "Chia sẻ thông tin",
+          "body": "Chúng tôi không bán hoặc chia sẻ dữ liệu cá nhân cho bên thứ ba, trừ khi pháp luật yêu cầu hoặc có sự đồng ý của bạn."
+        },
+        "security": {
+          "title": "Bảo mật thông tin",
+          "body": "Chúng tôi áp dụng các biện pháp kỹ thuật và tổ chức hợp lý để bảo vệ dữ liệu khỏi truy cập trái phép."
+        },
+        "rights": {
+          "title": "Quyền của bạn",
+          "body": "Bạn có quyền truy cập, chỉnh sửa hoặc yêu cầu xóa dữ liệu cá nhân thông qua ứng dụng hoặc bộ phận hỗ trợ."
+        },
+        "changes": {
+          "title": "Thay đổi chính sách",
+          "body": "Chúng tôi có thể cập nhật chính sách này. Mọi thay đổi quan trọng sẽ được thông báo trong ứng dụng."
+        }
+      }
+    },
+    "help": {
+      "title": "Cần hỗ trợ?",
+      "body": "Liên hệ với chúng tôi nếu bạn có câu hỏi về điều khoản hoặc quyền riêng tư.",
+      "action": "Liên hệ"
+    }
+  },
+  "contactScreen": {
+    "title": "Liên hệ",
+    "heroTitle": "Liên hệ",
+    "formTitle": "Gửi tin nhắn",
+    "formSubtitle": "Chỉ cần để lại email và vấn đề bạn gặp phải.",
+    "copyHint": "Chạm để sao chép",
+    "copySuccess": "Đã sao chép thông tin liên hệ.",
+    "submitAction": "Gửi",
+    "submitSuccess": "Đã ghi nhận yêu cầu liên hệ.",
+    "emailLabel": "Địa chỉ email",
+    "emailValue": "checkcalosupport@gmail.com",
+    "phoneLabel": "Số điện thoại",
+    "phoneValue": "0373060206",
+    "locationLabel": "Địa chỉ văn phòng",
+    "locationValue": "No. 2A, Street 55, Quarter 2, Binh Duong Ward, Ho Chi Minh City, Vietnam",
+    "workingDaysLabel": "Ngày làm việc",
+    "workingDaysValue": "Monday - Saturday | 08:00 - 17:00",
+    "emailPlaceholder": "Email của bạn",
+    "problemPlaceholder": "Vấn đề của bạn"
   },
   "settings": {
     "title": "Cài đặt",
@@ -748,10 +1349,24 @@
     "version": "Phiên bản",
     "privacy": "Chính sách bảo mật",
     "terms": "Điều khoản dịch vụ",
+    "contact": "Liên hệ",
     "profile": {
       "name": "Alex Johnson",
       "email": "alex@example.com",
       "editProfile": "Chỉnh sửa hồ sơ"
+    },
+    "menu": {
+      "profile": "Hồ sơ cá nhân",
+      "goal": "Mục tiêu",
+      "achievements": "Danh hiệu",
+      "leaderboard": "Bảng xếp hạng",
+      "reminders": "Nhắc nhở",
+      "healthInformationSources": "Nguồn thông tin y tế",
+      "language": "Ngôn ngữ",
+      "units": "Đơn vị",
+      "theme": "Chủ đề",
+      "supportEmoji": "❤️",
+      "support": "Ủng hộ phát triển app"
     },
     "sections": {
       "account": "Tài khoản",
@@ -883,6 +1498,7 @@
   "validation": {
     "required": "Trường này là bắt buộc",
     "emailInvalid": "Vui lòng nhập địa chỉ email hợp lệ",
+    "numberInvalid": "Vui lòng nhập số hợp lệ",
     "passwordMin": "Mật khẩu phải có ít nhất 8 ký tự",
     "passwordMismatch": "Mật khẩu không khớp",
     "usernameMin": "Tên người dùng phải có ít nhất 3 ký tự",
@@ -896,7 +1512,9 @@
     "scanHint": "Căn mã QR vào khung để quét tự động.",
     "barcodeHint": "Căn barcode vào khung để quét tự động.",
     "permissionDenied": "Bạn đã từ chối quyền truy cập máy ảnh.",
+    "libraryPermissionDenied": "Bạn đã từ chối quyền truy cập thư viện ảnh.",
     "captureFailed": "Không thể chụp ảnh. Vui lòng thử lại.",
+    "libraryPickFailed": "Không thể chọn ảnh. Vui lòng thử lại.",
     "scanFailed": "Không thể quét mã. Vui lòng thử lại.",
     "actions": {
       "close": "Đóng",
@@ -909,5 +1527,93 @@
     "fields": {
       "occurredAt": "Thời điểm giao dịch"
     }
+  },
+  "achievementsScreen": {
+    "title": "Danh hiệu",
+    "subtitle": "Kiên trì mỗi ngày để nâng cấp danh hiệu và chinh phục phiên bản tốt hơn của chính bạn!",
+    "back": "Quay lại",
+    "status": {
+      "unlocked": "Đã mở khóa",
+      "locked": "Đã khóa"
+    },
+    "summary": {
+      "currentStreak": "Streak hiện tại",
+      "completedGoals": "Mục tiêu đã hoàn thành"
+    },
+    "units": {
+      "day": "ngày",
+      "days": "ngày",
+      "goal": "mục tiêu",
+      "goals": "mục tiêu"
+    },
+    "requirements": {
+      "streak": "Streak {{count}} {{unit}}",
+      "goals": "Hoàn thành {{count}} {{unit}}"
+    },
+    "ranks": {
+      "beginner": "Nhập môn",
+      "rookie": "Tập sự",
+      "learner": "Học viên",
+      "pro": "Tinh anh",
+      "elite": "Cao thủ",
+      "master": "Bậc thầy",
+      "ambassador": "Đại sứ",
+      "legend": "Huyền thoại"
+    }
+  },
+  "leaderboardScreen": {
+    "title": "Bảng xếp hạng",
+    "back": "Quay lại",
+    "anonymousName": "Ẩn danh",
+    "anonymousMaskedName": "AN****S",
+    "emptyStateTitle": "Chưa có dữ liệu bảng xếp hạng",
+    "emptyStateMessage": "Đồng bộ hồ sơ và streak để xuất hiện ở đây.",
+    "emptyPodiumTitle": "Đang chờ người chơi",
+    "levelPrefix": "Lv.",
+    "completedGoals": "hoàn thành",
+    "rowSubtitle": "Giữ chuỗi và đạt mục tiêu mỗi ngày.",
+    "listTitle": "Xếp hạng 4 - 10",
+    "monthPill": "Cuộc đua xanh • Tháng {{month}}",
+    "hero": {
+      "lossTitle": "Cuộc đua giảm cân",
+      "lossSubtitle": "Giảm đều, giữ nhịp, lên hạng",
+      "gainTitle": "Cuộc đua tăng cân",
+      "gainSubtitle": "Tăng đúng cách, tăng bền vững",
+      "maintainTitle": "Cuộc đua giữ cân",
+      "maintainSubtitle": "Ổn định từng ngày, bền vững từng tuần"
+    },
+    "tabs": {
+      "loss": "Giảm cân",
+      "gain": "Tăng cân",
+      "maintain": "Giữ cân"
+    },
+    "sections": {
+      "lossTopTitle": "Dẫn đầu tháng này",
+      "lossTopSubtitle": "Những người giảm cân bền bỉ nhất.",
+      "lossNextTitle": "Bảng xếp hạng tiếp theo",
+      "lossNextSubtitle": "Tiếp tục cố gắng để lọt vào Top 3.",
+      "gainTopTitle": "Dẫn đầu tháng này",
+      "gainTopSubtitle": "Những người tăng cân đúng nhịp nhất.",
+      "gainNextTitle": "Bảng xếp hạng tiếp theo",
+      "gainNextSubtitle": "Tiếp tục cố gắng để lọt vào Top 3.",
+      "maintainTopTitle": "Dẫn đầu tháng này",
+      "maintainTopSubtitle": "Những người giữ cân ổn định nhất.",
+      "maintainNextTitle": "Bảng xếp hạng tiếp theo",
+      "maintainNextSubtitle": "Tiếp tục cố gắng để lọt vào Top 3."
+    },
+    "cta": {
+      "lossTitle": "Giữ chuỗi là giữ hạng",
+      "lossBody": "Mở lịch sử mục tiêu để xem bạn đang tiến gần đến đâu.",
+      "gainTitle": "Giữ đà tăng mỗi ngày",
+      "gainBody": "Mở lịch sử mục tiêu để giữ nhịp tốt hơn.",
+      "maintainTitle": "Ổn định hôm nay, bền vững mai sau",
+      "maintainBody": "Mở lịch sử mục tiêu để giữ cân đều đặn.",
+      "button": "Cập nhật ngay"
+    },
+    "units": {
+      "kcal": "kcal",
+      "points": "điểm"
+    },
+    "deltaPrefix": "▲"
   }
 }

@@ -68,14 +68,14 @@ export const styles = StyleSheet.create((theme) => ({
     color: theme.colors.state.error,
   },
   statusWrap: {
-    height: theme.metrics.spacing.p20,
+    height: theme.metrics.spacing.p24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: -theme.metrics.spacingV.p8,
+    marginBottom: -theme.metrics.spacingV.p4,
     zIndex: 1,
   },
   crownIcon: {
-    width: theme.metrics.spacing.p20,
-    height: theme.metrics.spacing.p20,
+    width: theme.metrics.spacing.p24,
+    height: theme.metrics.spacing.p24,
   },
 }));

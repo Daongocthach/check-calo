@@ -2,8 +2,7 @@ import { getDatabase } from '@/services/database/sqlite';
 import type {
   DailyNutritionSummary,
   DailyTargetOverride,
-  FavoriteFood,
-  FoodEntry,
+  RecentFood,
   FoodEntryInput,
   NutritionTrendPoint,
   UserProfile,
@@ -20,9 +19,31 @@ import {
   getDailyCalorieGoalState,
   nowIsoString,
 } from '../utils/calorie';
+import { deleteFoodEntryFromCloud, syncFoodEntryToCloud } from './foodEntrySync';
+import {
+  countImageAssetReferences,
+  getFoodEntryById,
+  mapFoodEntry,
+  mapRecentFood,
+  replaceImageUriReferences,
+  replaceThumbnailUriReferences,
+} from './nutritionDatabaseCore';
+import type { FoodEntryRow, RecentFoodRow } from './nutritionDatabaseCore';
+import type { PageRequest, PaginatedResult } from './pagination';
+import { deleteRecentFoodFromCloud, syncRecentFoodToCloud } from './recentFoodSync';
+
+export {
+  countImageAssetReferences,
+  getFoodEntryById,
+  mapFoodEntry,
+  mapRecentFood,
+  replaceImageUriReferences,
+  replaceThumbnailUriReferences,
+};
 
 interface UserProfileRow {
   id: number;
+  display_name: string;
   gender: UserProfile['gender'];
   age: number;
   height_cm: number;
@@ -40,42 +61,6 @@ interface UserProfileRow {
   updated_at: string;
 }
 
-interface FoodEntryRow {
-  id: string;
-  entry_date: string;
-  consumed_at: string;
-  meal_name: string;
-  quantity_label: string;
-  quantity_grams: number | null;
-  total_calories: number;
-  protein_grams: number;
-  carbs_grams: number;
-  fat_grams: number;
-  notes: string | null;
-  image_uri: string | null;
-  thumbnail_uri: string | null;
-  created_at: string;
-  updated_at: string;
-  is_favorite: number;
-}
-
-interface FavoriteFoodRow {
-  id: string;
-  source_entry_id: string | null;
-  name: string;
-  quantity_label: string;
-  quantity_grams: number | null;
-  total_calories: number;
-  protein_grams: number;
-  carbs_grams: number;
-  fat_grams: number;
-  notes: string | null;
-  image_uri: string | null;
-  thumbnail_uri: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 interface DailyTotalsRow {
   entry_date: string;
   consumed_calories: number | null;
@@ -87,6 +72,7 @@ interface DailyTotalsRow {
 function mapProfile(row: UserProfileRow): UserProfile {
   return {
     id: row.id,
+    displayName: row.display_name,
     gender: row.gender,
     age: row.age,
     heightCm: row.height_cm,
@@ -105,43 +91,56 @@ function mapProfile(row: UserProfileRow): UserProfile {
   };
 }
 
-function mapFoodEntry(row: FoodEntryRow): FoodEntry {
-  return {
-    id: row.id,
-    entryDate: row.entry_date,
-    consumedAt: row.consumed_at,
-    mealName: row.meal_name,
-    quantityLabel: row.quantity_label,
-    quantityGrams: row.quantity_grams,
-    totalCalories: row.total_calories,
-    proteinGrams: row.protein_grams,
-    carbsGrams: row.carbs_grams,
-    fatGrams: row.fat_grams,
-    notes: row.notes,
-    imageUri: row.image_uri,
-    thumbnailUri: row.thumbnail_uri,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-    isFavorite: row.is_favorite === 1,
-  };
+function normalizePage(page?: number) {
+  return Math.max(1, Math.floor(page ?? 1));
 }
 
-function mapFavoriteFood(row: FavoriteFoodRow): FavoriteFood {
+function normalizePageSize(pageSize?: number) {
+  return Math.max(1, Math.floor(pageSize ?? 20));
+}
+
+function startOfDayIso(value: string | Date) {
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+}
+
+function endOfDayIso(value: string | Date) {
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+  date.setHours(23, 59, 59, 999);
+  return date.toISOString();
+}
+
+interface RecentFoodPageRequest extends PageRequest {
+  searchQuery?: string;
+  startDate?: string | Date;
+  endDate?: string | Date;
+}
+
+function buildRecentFoodsWhereClause(request: RecentFoodPageRequest) {
+  const conditions: string[] = [];
+  const params: Array<string> = [];
+  const normalizedSearch = request.searchQuery?.trim().toLowerCase();
+
+  if (request.startDate) {
+    conditions.push('created_at >= ?');
+    params.push(startOfDayIso(request.startDate));
+  }
+
+  if (request.endDate) {
+    conditions.push('created_at <= ?');
+    params.push(endOfDayIso(request.endDate));
+  }
+
+  if (normalizedSearch) {
+    conditions.push("(LOWER(name) LIKE ? OR LOWER(COALESCE(notes, '')) LIKE ?)");
+    const query = `%${normalizedSearch}%`;
+    params.push(query, query);
+  }
+
   return {
-    id: row.id,
-    sourceEntryId: row.source_entry_id,
-    name: row.name,
-    quantityLabel: row.quantity_label,
-    quantityGrams: row.quantity_grams,
-    totalCalories: row.total_calories,
-    proteinGrams: row.protein_grams,
-    carbsGrams: row.carbs_grams,
-    fatGrams: row.fat_grams,
-    notes: row.notes,
-    imageUri: row.image_uri,
-    thumbnailUri: row.thumbnail_uri,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    whereClause: conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '',
+    params,
   };
 }
 
@@ -167,6 +166,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
     `
       INSERT INTO user_profile (
         id,
+        display_name,
         gender,
         age,
         height_cm,
@@ -183,8 +183,9 @@ export async function upsertUserProfile(profile: UserProfileInput) {
         created_at,
         updated_at
       )
-      VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
+        display_name = excluded.display_name,
         gender = excluded.gender,
         age = excluded.age,
         height_cm = excluded.height_cm,
@@ -201,6 +202,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
         updated_at = excluded.updated_at;
     `,
     [
+      profile.displayName,
       profile.gender,
       profile.age,
       profile.heightCm,
@@ -235,7 +237,7 @@ export async function resetNutritionData() {
   const database = await getDatabase();
 
   await database.withTransactionAsync(async () => {
-    await database.runAsync('DELETE FROM favorite_foods;');
+    await database.runAsync('DELETE FROM recent_foods;');
     await database.runAsync('DELETE FROM food_entries;');
     await database.runAsync('DELETE FROM daily_calorie_targets;');
     await database.runAsync('DELETE FROM user_profile;');
@@ -419,9 +421,9 @@ export async function listFoodEntriesByDate(date: string | Date) {
     `
       SELECT
         food_entries.*,
-        CASE WHEN favorite_foods.id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
+        CASE WHEN recent_foods.id IS NOT NULL THEN 1 ELSE 0 END AS is_recent
       FROM food_entries
-      LEFT JOIN favorite_foods ON favorite_foods.source_entry_id = food_entries.id
+      LEFT JOIN recent_foods ON recent_foods.source_entry_id = food_entries.id
       WHERE food_entries.entry_date = ?
       ORDER BY food_entries.consumed_at DESC;
     `,
@@ -429,24 +431,6 @@ export async function listFoodEntriesByDate(date: string | Date) {
   );
 
   return rows.map(mapFoodEntry);
-}
-
-export async function getFoodEntryById(entryId: string) {
-  const database = await getDatabase();
-  const row = await database.getFirstAsync<FoodEntryRow>(
-    `
-      SELECT
-        food_entries.*,
-        CASE WHEN favorite_foods.id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite
-      FROM food_entries
-      LEFT JOIN favorite_foods ON favorite_foods.source_entry_id = food_entries.id
-      WHERE food_entries.id = ?
-      LIMIT 1;
-    `,
-    [entryId]
-  );
-
-  return row ? mapFoodEntry(row) : null;
 }
 
 export async function createFoodEntry(input: FoodEntryInput) {
@@ -462,6 +446,7 @@ export async function createFoodEntry(input: FoodEntryInput) {
         id,
         entry_date,
         consumed_at,
+        barcode,
         meal_name,
         quantity_label,
         quantity_grams,
@@ -475,12 +460,13 @@ export async function createFoodEntry(input: FoodEntryInput) {
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
       id,
       entryDate,
       consumedAt,
+      input.barcode ?? null,
       input.mealName,
       input.quantityLabel,
       input.quantityGrams ?? null,
@@ -497,6 +483,10 @@ export async function createFoodEntry(input: FoodEntryInput) {
   );
 
   const createdEntry = await getFoodEntryById(id);
+
+  if (createdEntry) {
+    void syncFoodEntryToCloud(createdEntry.id);
+  }
 
   if (!createdEntry) {
     throw new Error('Failed to create food entry');
@@ -523,6 +513,7 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
       SET
         entry_date = ?,
         consumed_at = ?,
+        barcode = ?,
         meal_name = ?,
         quantity_label = ?,
         quantity_grams = ?,
@@ -539,6 +530,7 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
     [
       entryDate,
       consumedAt,
+      input.barcode ?? existingEntry.barcode ?? null,
       input.mealName,
       input.quantityLabel,
       input.quantityGrams ?? null,
@@ -554,108 +546,102 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
     ]
   );
 
+  void syncFoodEntryToCloud(entryId);
+
   return getFoodEntryById(entryId);
-}
-
-export async function replaceImageUriReferences(previousUri: string, nextUri: string | null) {
-  const database = await getDatabase();
-  const now = nowIsoString();
-
-  await database.withTransactionAsync(async () => {
-    await database.runAsync(
-      `
-        UPDATE food_entries
-        SET image_uri = ?, updated_at = ?
-        WHERE image_uri = ?;
-      `,
-      [nextUri, now, previousUri]
-    );
-
-    await database.runAsync(
-      `
-        UPDATE favorite_foods
-        SET image_uri = ?, updated_at = ?
-        WHERE image_uri = ?;
-      `,
-      [nextUri, now, previousUri]
-    );
-  });
-}
-
-export async function replaceThumbnailUriReferences(previousUri: string, nextUri: string | null) {
-  const database = await getDatabase();
-  const now = nowIsoString();
-
-  await database.withTransactionAsync(async () => {
-    await database.runAsync(
-      `
-        UPDATE food_entries
-        SET thumbnail_uri = ?, updated_at = ?
-        WHERE thumbnail_uri = ?;
-      `,
-      [nextUri, now, previousUri]
-    );
-
-    await database.runAsync(
-      `
-        UPDATE favorite_foods
-        SET thumbnail_uri = ?, updated_at = ?
-        WHERE thumbnail_uri = ?;
-      `,
-      [nextUri, now, previousUri]
-    );
-  });
-}
-
-export async function countImageAssetReferences(uri: string) {
-  const database = await getDatabase();
-  const row = await database.getFirstAsync<{ reference_count: number | null }>(
-    `
-      SELECT (
-        SELECT COUNT(*) FROM food_entries WHERE image_uri = ? OR thumbnail_uri = ?
-      ) + (
-        SELECT COUNT(*) FROM favorite_foods WHERE image_uri = ? OR thumbnail_uri = ?
-      ) AS reference_count;
-    `,
-    [uri, uri, uri, uri]
-  );
-
-  return row?.reference_count ?? 0;
 }
 
 export async function deleteFoodEntry(entryId: string) {
   const database = await getDatabase();
   await database.runAsync('DELETE FROM food_entries WHERE id = ?;', [entryId]);
+  void deleteFoodEntryFromCloud(entryId);
 }
 
-export async function listFavoriteFoods() {
+export async function listRecentFoodsPage(
+  request: RecentFoodPageRequest = {}
+): Promise<PaginatedResult<RecentFood>> {
   const database = await getDatabase();
-  const rows = await database.getAllAsync<FavoriteFoodRow>(
-    'SELECT * FROM favorite_foods ORDER BY created_at DESC;'
+  const page = normalizePage(request.page);
+  const pageSize = normalizePageSize(request.pageSize);
+  const offset = (page - 1) * pageSize;
+  const { whereClause, params } = buildRecentFoodsWhereClause(request);
+  const rows = await database.getAllAsync<RecentFoodRow>(
+    `
+      SELECT *
+      FROM recent_foods
+      ${whereClause}
+      ORDER BY updated_at DESC, created_at DESC, id DESC
+      LIMIT ? OFFSET ?;
+    `,
+    [...params, pageSize + 1, offset]
   );
 
-  return rows.map(mapFavoriteFood);
+  const hasNextPage = rows.length > pageSize;
+  const pagedRows = hasNextPage ? rows.slice(0, pageSize) : rows;
+
+  return {
+    items: pagedRows.map(mapRecentFood),
+    page,
+    pageSize,
+    hasNextPage,
+  };
 }
 
-export async function getFavoriteFoodById(favoriteId: string) {
+export async function countRecentFoods(request: RecentFoodPageRequest = {}) {
   const database = await getDatabase();
-  const row = await database.getFirstAsync<FavoriteFoodRow>(
-    'SELECT * FROM favorite_foods WHERE id = ? LIMIT 1;',
-    [favoriteId]
+  const { whereClause, params } = buildRecentFoodsWhereClause(request);
+  const row = await database.getFirstAsync<{ count: number | null }>(
+    `
+      SELECT COUNT(*) AS count
+      FROM recent_foods
+      ${whereClause};
+    `,
+    params
   );
 
-  return row ? mapFavoriteFood(row) : null;
+  return row?.count ?? 0;
 }
 
-export async function toggleFavoriteFoodEntry(entryId: string) {
+export async function getRecentFoodsStartDate(request: RecentFoodPageRequest = {}) {
   const database = await getDatabase();
-  const existingFavorite = await database.getFirstAsync<{ id: string }>(
-    'SELECT id FROM favorite_foods WHERE source_entry_id = ? LIMIT 1;',
+  const { whereClause, params } = buildRecentFoodsWhereClause(request);
+  const row = await database.getFirstAsync<{ created_at: string | null }>(
+    `
+      SELECT MIN(created_at) AS created_at
+      FROM recent_foods
+      ${whereClause};
+    `,
+    params
+  );
+
+  return row?.created_at ?? null;
+}
+
+export async function listRecentFoods() {
+  const result = await listRecentFoodsPage();
+  return result.items;
+}
+
+export async function getRecentFoodById(recentId: string) {
+  const database = await getDatabase();
+  const row = await database.getFirstAsync<RecentFoodRow>(
+    'SELECT * FROM recent_foods WHERE id = ? LIMIT 1;',
+    [recentId]
+  );
+
+  return row ? mapRecentFood(row) : null;
+}
+
+export async function toggleRecentFoodEntry(entryId: string) {
+  const database = await getDatabase();
+  const existingRecent = await database.getFirstAsync<{ id: string }>(
+    'SELECT id FROM recent_foods WHERE source_entry_id = ? LIMIT 1;',
     [entryId]
   );
 
-  if (existingFavorite) {
-    await database.runAsync('DELETE FROM favorite_foods WHERE id = ?;', [existingFavorite.id]);
+  if (existingRecent) {
+    await database.runAsync('DELETE FROM recent_foods WHERE id = ?;', [existingRecent.id]);
+    void deleteRecentFoodFromCloud(existingRecent.id);
     return false;
   }
 
@@ -667,11 +653,14 @@ export async function toggleFavoriteFoodEntry(entryId: string) {
 
   const now = nowIsoString();
 
+  const id = createEntityId('recent');
+
   await database.runAsync(
     `
-      INSERT INTO favorite_foods (
+      INSERT INTO recent_foods (
         id,
         source_entry_id,
+        barcode,
         name,
         quantity_label,
         quantity_grams,
@@ -685,11 +674,12 @@ export async function toggleFavoriteFoodEntry(entryId: string) {
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
-      createEntityId('favorite'),
+      id,
       entry.id,
+      entry.barcode ?? null,
       entry.mealName,
       entry.quantityLabel,
       entry.quantityGrams ?? null,
@@ -705,19 +695,23 @@ export async function toggleFavoriteFoodEntry(entryId: string) {
     ]
   );
 
+  void syncRecentFoodToCloud(id);
+
   return true;
 }
 
-export async function deleteFavoriteFood(favoriteId: string) {
+export async function deleteRecentFood(recentId: string) {
   const database = await getDatabase();
-  await database.runAsync('DELETE FROM favorite_foods WHERE id = ?;', [favoriteId]);
+  await database.runAsync('DELETE FROM recent_foods WHERE id = ?;', [recentId]);
+  void deleteRecentFoodFromCloud(recentId);
 }
 
-export async function updateFavoriteFood(
-  favoriteId: string,
+export async function updateRecentFood(
+  recentId: string,
   input: Pick<
-    FavoriteFood,
+    RecentFood,
     | 'name'
+    | 'barcode'
     | 'quantityLabel'
     | 'quantityGrams'
     | 'totalCalories'
@@ -734,9 +728,10 @@ export async function updateFavoriteFood(
 
   await database.runAsync(
     `
-      UPDATE favorite_foods
+      UPDATE recent_foods
       SET
         name = ?,
+        barcode = ?,
         quantity_label = ?,
         quantity_grams = ?,
         total_calories = ?,
@@ -751,6 +746,7 @@ export async function updateFavoriteFood(
     `,
     [
       input.name,
+      input.barcode ?? null,
       input.quantityLabel,
       input.quantityGrams ?? null,
       input.totalCalories,
@@ -761,17 +757,20 @@ export async function updateFavoriteFood(
       input.imageUri ?? null,
       input.thumbnailUri ?? input.imageUri ?? null,
       now,
-      favoriteId,
+      recentId,
     ]
   );
 
-  return getFavoriteFoodById(favoriteId);
+  void syncRecentFoodToCloud(recentId);
+
+  return getRecentFoodById(recentId);
 }
 
-export async function upsertFavoriteFoodFromInput(
+export async function upsertRecentFoodFromInput(
   input: Pick<
-    FavoriteFood,
+    RecentFood,
     | 'name'
+    | 'barcode'
     | 'quantityLabel'
     | 'quantityGrams'
     | 'totalCalories'
@@ -784,23 +783,26 @@ export async function upsertFavoriteFoodFromInput(
   >
 ) {
   const database = await getDatabase();
-  const existingFavorite = await database.getFirstAsync<{ id: string }>(
-    'SELECT id FROM favorite_foods WHERE name = ? COLLATE NOCASE LIMIT 1;',
-    [input.name]
+  const existingRecent = await database.getFirstAsync<{ id: string }>(
+    input.barcode
+      ? 'SELECT id FROM recent_foods WHERE barcode = ? LIMIT 1;'
+      : 'SELECT id FROM recent_foods WHERE name = ? COLLATE NOCASE LIMIT 1;',
+    [input.barcode ?? input.name]
   );
 
-  if (existingFavorite) {
-    return updateFavoriteFood(existingFavorite.id, input);
+  if (existingRecent) {
+    return updateRecentFood(existingRecent.id, input);
   }
 
   const now = nowIsoString();
-  const favoriteId = createEntityId('favorite');
+  const recentId = createEntityId('recent');
 
   await database.runAsync(
     `
-      INSERT INTO favorite_foods (
+      INSERT INTO recent_foods (
         id,
         source_entry_id,
+        barcode,
         name,
         quantity_label,
         quantity_grams,
@@ -814,10 +816,11 @@ export async function upsertFavoriteFoodFromInput(
         created_at,
         updated_at
       )
-      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
-      favoriteId,
+      recentId,
+      input.barcode ?? null,
       input.name,
       input.quantityLabel,
       input.quantityGrams ?? null,
@@ -833,32 +836,35 @@ export async function upsertFavoriteFoodFromInput(
     ]
   );
 
-  return getFavoriteFoodById(favoriteId);
+  void syncRecentFoodToCloud(recentId);
+
+  return getRecentFoodById(recentId);
 }
 
-export async function createFoodEntryFromFavorite(
-  favoriteId: string,
+export async function createFoodEntryFromRecent(
+  recentId: string,
   overrides?: Partial<
     Pick<FoodEntryInput, 'quantityLabel' | 'quantityGrams' | 'notes' | 'consumedAt' | 'entryDate'>
   >
 ) {
-  const favorite = await getFavoriteFoodById(favoriteId);
+  const recent = await getRecentFoodById(recentId);
 
-  if (!favorite) {
-    throw new Error('Favorite food not found');
+  if (!recent) {
+    throw new Error('Recent food not found');
   }
 
   return createFoodEntry({
-    mealName: favorite.name,
-    quantityLabel: overrides?.quantityLabel ?? favorite.quantityLabel,
-    quantityGrams: overrides?.quantityGrams ?? favorite.quantityGrams,
-    totalCalories: favorite.totalCalories,
-    proteinGrams: favorite.proteinGrams,
-    carbsGrams: favorite.carbsGrams,
-    fatGrams: favorite.fatGrams,
-    notes: overrides?.notes ?? favorite.notes,
-    imageUri: favorite.imageUri,
-    thumbnailUri: favorite.thumbnailUri,
+    mealName: recent.name,
+    barcode: recent.barcode,
+    quantityLabel: overrides?.quantityLabel ?? recent.quantityLabel,
+    quantityGrams: overrides?.quantityGrams ?? recent.quantityGrams,
+    totalCalories: recent.totalCalories,
+    proteinGrams: recent.proteinGrams,
+    carbsGrams: recent.carbsGrams,
+    fatGrams: recent.fatGrams,
+    notes: overrides?.notes ?? recent.notes,
+    imageUri: recent.imageUri,
+    thumbnailUri: recent.thumbnailUri,
     consumedAt: overrides?.consumedAt,
     entryDate: overrides?.entryDate,
   });

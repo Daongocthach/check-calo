@@ -11,12 +11,19 @@ export { Badge } from './Badge';
 export type { BadgeProps, BadgeVariant, BadgeSize } from './Badge';
 export { Card } from './Card';
 export type { CardProps } from './Card';
+export { CircularProgressRing } from './CircularProgressRing';
+export type { CircularProgressRingProps } from './CircularProgressRing';
+export { GiftedCircularProgress } from './GiftedCircularProgress';
+export type { GiftedCircularProgressProps } from './GiftedCircularProgress';
 export { Chip } from './Chip';
 export type { ChipProps, ChipVariant, ChipSize } from './Chip';
 export { ListItem } from './ListItem';
 export type { ListItemProps } from './ListItem';
 export { LineTrendChart } from './LineTrendChart';
 export type { LineTrendChartPoint, LineTrendChartProps } from './LineTrendChart';
+export { Streak } from './Streak';
+export { STREAK_STATUS } from './Streak';
+export type { StreakProps, StreakStatus } from './Streak';
 
 // Disclosure
 export { Accordion } from './Accordion';
@@ -70,12 +77,14 @@ export { ScreenContainer } from './ScreenContainer';
 export type { ScreenContainerProps } from './ScreenContainer';
 export { TabsHeader } from './TabsHeader';
 export type { TabsHeaderProps } from './TabsHeader';
+export { SupportPromptCard } from './SupportPromptCard';
+export type { SupportPromptCardProps } from './SupportPromptCard';
 
 // Overlay
 export { Dialog } from './Dialog';
 export type { DialogProps, DialogAction } from './Dialog';
 export { DateTimeField } from './DateTimeField';
-export type { DateTimeFieldMode, DateTimeFieldProps } from './DateTimeField';
+export type { DateTimeFieldHandle, DateTimeFieldMode, DateTimeFieldProps } from './DateTimeField';
 export { Menu } from './Menu';
 export type { MenuProps, MenuItem } from './Menu';
 export { MonthSelector } from './MonthSelector';

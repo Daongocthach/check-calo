@@ -1,10 +1,10 @@
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useFonts } from 'expo-font';
 import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useCallback, useEffect, useState } from 'react';
+import * as Updates from 'expo-updates';
+import { useEffect, useState } from 'react';
 import { Appearance, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -17,9 +17,11 @@ import {
   isCalorieReminderResponse,
 } from '@/features/notifications/services/calorieReminderService';
 import { useFoodEntrySyncQueue } from '@/features/nutrition/hooks/useFoodEntrySyncQueue';
+import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import { QueryProvider } from '@/providers';
 import { AppAlertProvider } from '@/providers/app-alert/AppAlertProvider';
 import { useAuthStore } from '@/providers/auth/authStore';
+import { AppBottomSheetProvider } from '@/providers/bottom-sheet';
 import { CameraProvider } from '@/providers/camera';
 import { initializeDatabase } from '@/services/database/sqlite';
 import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
@@ -49,9 +51,8 @@ function RootNavigator() {
         headerShown: false,
         contentStyle: { backgroundColor: 'transparent' },
       }}
-      initialRouteName="welcome"
+      initialRouteName="(main)"
     >
-      <Stack.Screen name="welcome" />
       <Stack.Screen name="(main)" />
     </Stack>
   );
@@ -62,6 +63,38 @@ function AppContent() {
   useFoodEntrySyncQueue();
   const { theme } = useUnistyles();
   const router = useRouter();
+
+  useEffect(() => {
+    let active = true;
+
+    const checkForAppUpdate = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+
+        if (!active || !update.isAvailable) {
+          return;
+        }
+
+        await Updates.fetchUpdateAsync();
+
+        if (!active) {
+          return;
+        }
+
+        await Updates.reloadAsync();
+      } catch (error) {
+        if (__DEV__) {
+          console.warn('Failed to check for app update', error);
+        }
+      }
+    };
+
+    void checkForAppUpdate();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -77,7 +110,8 @@ function AppContent() {
         return;
       }
 
-      router.push('/add');
+      useAddMealSourceSheetStore.getState().requestOpen();
+      router.replace('/');
     });
 
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
@@ -85,7 +119,8 @@ function AppContent() {
         return;
       }
 
-      router.push('/add');
+      useAddMealSourceSheetStore.getState().requestOpen();
+      router.replace('/');
     });
 
     return () => {
@@ -106,7 +141,6 @@ function AppContent() {
       />
       <AppHeader />
       <RootNavigator />
-      <Toast />
     </View>
   );
 }
@@ -151,9 +185,9 @@ export default function RootLayout() {
     };
   }, []);
 
-  const onLayoutRootView = useCallback(async () => {
+  useEffect(() => {
     if ((fontsLoaded || fontError) && databaseReady) {
-      await SplashScreen.hideAsync();
+      void SplashScreen.hideAsync();
     }
   }, [databaseReady, fontsLoaded, fontError]);
 
@@ -162,16 +196,17 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={styles.rootView} onLayout={onLayoutRootView}>
+    <GestureHandlerRootView style={styles.rootView}>
       <ErrorBoundary>
         <QueryProvider>
           <KeyboardProvider>
             <CameraProvider>
-              <BottomSheetModalProvider>
+              <AppBottomSheetProvider>
                 <AppAlertProvider>
                   <AppContent />
                 </AppAlertProvider>
-              </BottomSheetModalProvider>
+              </AppBottomSheetProvider>
+              <Toast />
             </CameraProvider>
           </KeyboardProvider>
         </QueryProvider>

@@ -7,7 +7,7 @@ import {
   countImageAssetReferences,
   getFoodEntryById,
   replaceImageUriReferences,
-} from './nutritionDatabase';
+} from './nutritionDatabaseCore';
 
 const FOOD_ENTRY_IMAGE_DIRECTORY = `${FileSystem.documentDirectory ?? ''}food-entry-images/`;
 const FOOD_ENTRY_THUMBNAIL_DIRECTORY = `${FileSystem.documentDirectory ?? ''}food-entry-thumbnails/`;
@@ -50,21 +50,27 @@ async function ensureManagedDirectory(directory: string) {
 }
 
 async function clearManagedDirectory(directory: string) {
-  const directoryInfo = await FileSystem.getInfoAsync(directory);
+  try {
+    const directoryInfo = await FileSystem.getInfoAsync(directory);
 
-  if (!directoryInfo.exists || !directoryInfo.isDirectory) {
-    return;
+    if (!directoryInfo.exists || !directoryInfo.isDirectory) {
+      return;
+    }
+
+    const fileNames = await FileSystem.readDirectoryAsync(directory);
+
+    await Promise.all(
+      fileNames.map((fileName) =>
+        FileSystem.deleteAsync(`${directory}${fileName}`, {
+          idempotent: true,
+        }).catch(() => {
+          // Individual file deletion failed — safe to skip
+        })
+      )
+    );
+  } catch {
+    // Directory may not exist or be inaccessible — safe to skip
   }
-
-  const fileNames = await FileSystem.readDirectoryAsync(directory);
-
-  await Promise.all(
-    fileNames.map((fileName) =>
-      FileSystem.deleteAsync(`${directory}${fileName}`, {
-        idempotent: true,
-      })
-    )
-  );
 }
 
 async function getAuthenticatedUserId() {
@@ -196,9 +202,13 @@ export async function deleteLocalFoodEntryImage(imageUri: string | null | undefi
     return;
   }
 
-  await FileSystem.deleteAsync(imageUri, {
-    idempotent: true,
-  });
+  try {
+    await FileSystem.deleteAsync(imageUri, {
+      idempotent: true,
+    });
+  } catch {
+    // File may already be gone or URI may be invalid — safe to skip
+  }
 }
 
 export async function deleteLocalFoodEntryAssets(...imageUris: Array<string | null | undefined>) {
@@ -256,4 +266,30 @@ export async function syncFoodEntryImageToSupabase(entryId: string) {
   await upsertRemoteFoodEntry(refreshedEntry, userId, syncedImageUri);
 
   return true;
+}
+
+export async function ensureRemoteImage(
+  localUri: string | null | undefined,
+  entityId: string,
+  prefix = 'assets'
+): Promise<string | null> {
+  if (!localUri) return null;
+  if (!isLocalFileUri(localUri)) return localUri;
+
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return localUri;
+
+  const remotePath = `users/${userId}/${prefix}/${entityId}-${Date.now()}.${getFileExtension(
+    localUri
+  )}`;
+
+  try {
+    await uploadLocalImage(localUri, remotePath);
+    return buildRemoteImageUri(remotePath);
+  } catch (err) {
+    if (__DEV__) {
+      console.error('[ImageSync] Failed to upload image:', err);
+    }
+    return localUri;
+  }
 }

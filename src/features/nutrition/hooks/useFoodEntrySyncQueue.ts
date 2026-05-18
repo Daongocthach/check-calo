@@ -1,13 +1,28 @@
 import NetInfo from '@react-native-community/netinfo';
 import { useEffect } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { processPendingFoodEntryImageSyncQueue } from '../services/foodEntrySyncQueue';
+import {
+  syncFoodEntriesDeltaFromSupabase,
+  syncRecentFoodsDeltaFromSupabase,
+  syncMealsDeltaFromSupabase,
+  syncMealItemsDeltaFromSupabase,
+} from '../services/nutritionDeltaSync';
+
+function runNutritionSync() {
+  void processPendingFoodEntryImageSyncQueue();
+  void syncFoodEntriesDeltaFromSupabase();
+  void syncRecentFoodsDeltaFromSupabase();
+  void syncMealsDeltaFromSupabase();
+  void syncMealItemsDeltaFromSupabase();
+}
 
 export function useFoodEntrySyncQueue() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
-    void processPendingFoodEntryImageSyncQueue();
+    runNutritionSync();
   }, []);
 
   useEffect(() => {
@@ -15,16 +30,28 @@ export function useFoodEntrySyncQueue() {
       return;
     }
 
-    void processPendingFoodEntryImageSyncQueue();
+    runNutritionSync();
   }, [isAuthenticated]);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
       if (state.isConnected && state.isInternetReachable !== false) {
-        void processPendingFoodEntryImageSyncQueue();
+        runNutritionSync();
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active' && isAuthenticated) {
+        runNutritionSync();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => subscription.remove();
+  }, [isAuthenticated]);
 }

@@ -1,54 +1,54 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { TFunction } from 'i18next';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionList, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import {
   Button,
   Card,
-  Chip,
   Icon,
+  Loading,
   MonthSelector,
-  ProgressBar,
   ScreenContainer,
-  Select,
   Text,
 } from '@/common/components';
+import { GoalTrackingCard } from '@/features/nutrition/components/GoalTrackingCard';
 import { HomeMealCard, toHomeMealCardItem } from '@/features/nutrition/components/HomeMealCard';
-import { MacroGoalCard } from '@/features/nutrition/components/MacroGoalCard';
-import { MONTHLY_WEIGHT_GOAL_OPTIONS } from '@/features/nutrition/constants';
+import { NutritionReviewSheet } from '@/features/nutrition/components/NutritionReviewSheet/NutritionReviewSheet';
 import { deleteOrphanedFoodEntryAssets } from '@/features/nutrition/services/foodEntryImageSync';
 import { getFoodEntryImageSyncStateMap } from '@/features/nutrition/services/foodEntrySyncQueue';
 import {
-  continueLatestCompletedGoal,
-  syncActiveGoalToProfile,
-  syncGoalTracking,
-} from '@/features/nutrition/services/goalTrackingService';
+  analyzeHomeNutritionWithGemini,
+  type HomeNutritionReviewDraft,
+} from '@/features/nutrition/services/geminiHomeNutritionReview';
+import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
+import {
+  getLatestHomeAiReviewHistoryRecord,
+  getHomeAiReviewHistoryRecords,
+  saveHomeAiReviewHistoryRecord,
+  type HomeAiReviewHistoryRecord,
+} from '@/features/nutrition/services/homeAiReviewHistoryStorage';
 import {
   deleteFoodEntry,
   getDailyNutritionSummary,
   getUserProfile,
-  listLoggedDailyStatuses,
   listFoodEntriesByDate,
-  upsertUserProfile,
+  listLoggedDailyStatuses,
 } from '@/features/nutrition/services/nutritionDatabase';
+import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
 import type {
-  AchievementKey,
   DailyNutritionSummary,
   FoodEntry,
   GoalTrackingSnapshot,
   UserProfile,
-  WeightGoalProgress,
 } from '@/features/nutrition/types';
-import { getDailyCalorieGoalState, getWeightGoalMode } from '@/features/nutrition/utils/calorie';
-import {
-  formatWeightGoalTitle,
-  getGoalCycleDayProgress,
-} from '@/features/nutrition/utils/goalTracking';
-import { useCurrentDate } from '@/hooks';
+import { formatDateKey, getWeightGoalMode } from '@/features/nutrition/utils/calorie';
+import { useBottomPadding, useCurrentDate, useScreenDimensions } from '@/hooks';
 import { useAppAlert } from '@/providers/app-alert';
+import { useAppBottomSheet } from '@/providers/bottom-sheet';
 import { vs } from '@/theme/metrics';
 import { toast } from '@/utils/toast';
 
@@ -60,6 +60,20 @@ interface MealSection {
 type FoodEntryWithSyncDebug = FoodEntry & {
   devSyncBadgeLabel?: string | null;
 };
+
+type HomeAiReviewState =
+  | {
+      status: 'idle' | 'loading';
+    }
+  | {
+      status: 'ready';
+      review: HomeNutritionReviewDraft;
+      assistantMessage: string | null;
+    }
+  | {
+      status: 'need_more_info' | 'unsupported' | 'error';
+      message: string;
+    };
 
 function toDevSyncBadgeLabel(
   imageUri: string | null | undefined,
@@ -123,215 +137,300 @@ function createEmptySummary(date: Date): DailyNutritionSummary {
   };
 }
 
-function getHomeBalanceCopy(
-  profile: UserProfile | null,
-  summary: DailyNutritionSummary
-): {
-  value: number;
-  displayValue: string;
-  labelKey:
-    | 'homeScreen.onTrack'
-    | 'homeScreen.goalMet'
-    | 'homeScreen.belowTarget'
-    | 'homeScreen.overTarget';
-  color: 'link' | 'accent' | 'secondary';
-  valueTone: 'default' | 'success' | 'danger';
-  labelTone: 'default' | 'success' | 'danger';
-} {
-  const goalMode = getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0);
-  const goalState = getDailyCalorieGoalState(
-    profile,
-    summary.calorieTarget,
-    summary.consumedCalories
-  );
-
-  if (goalMode === 'lose') {
-    const isOverTarget = goalState === 'above_target';
-    const value = Math.abs(summary.remainingCalories);
-
-    return {
-      value: Math.max(summary.remainingCalories, 0),
-      displayValue: isOverTarget ? `-${value}` : String(value),
-      labelKey: isOverTarget ? 'homeScreen.overTarget' : 'homeScreen.onTrack',
-      color: isOverTarget ? 'accent' : 'secondary',
-      valueTone: isOverTarget ? 'danger' : 'default',
-      labelTone: isOverTarget ? 'danger' : 'default',
-    };
-  }
-
-  if (goalMode === 'gain') {
-    if (summary.remainingCalories < 0) {
-      const value = Math.abs(summary.remainingCalories);
-
-      return {
-        value,
-        displayValue: `+${value}`,
-        labelKey: 'homeScreen.overTarget',
-        color: 'accent',
-        valueTone: 'success',
-        labelTone: 'success',
-      };
-    }
-
-    if (summary.remainingCalories === 0) {
-      return {
-        value: 0,
-        displayValue: '0',
-        labelKey: 'homeScreen.goalMet',
-        color: 'link',
-        valueTone: 'default',
-        labelTone: 'default',
-      };
-    }
-
-    return {
-      value: Math.abs(summary.remainingCalories),
-      displayValue: String(Math.abs(summary.remainingCalories)),
-      labelKey: 'homeScreen.belowTarget',
-      color: 'secondary',
-      valueTone: 'default',
-      labelTone: 'default',
-    };
-  }
-
-  if (goalState === 'on_target') {
-    return {
-      value: 0,
-      displayValue: '0',
-      labelKey: 'homeScreen.goalMet',
-      color: 'link',
-      valueTone: 'default',
-      labelTone: 'default',
-    };
-  }
-
-  if (goalState === 'below_target') {
-    return {
-      value: Math.abs(summary.remainingCalories),
-      displayValue: String(Math.abs(summary.remainingCalories)),
-      labelKey: 'homeScreen.belowTarget',
-      color: 'secondary',
-      valueTone: 'default',
-      labelTone: 'default',
-    };
-  }
-
-  const value = Math.abs(summary.remainingCalories);
-
-  return {
-    value,
-    displayValue: String(value),
-    labelKey: 'homeScreen.overTarget',
-    color: 'accent',
-    valueTone: 'danger',
-    labelTone: 'danger',
-  };
+function formatNumber(value: number, locale: string) {
+  return new Intl.NumberFormat(locale).format(value);
 }
 
-function getMonthlyWeightGoalPlanKey(value: number) {
-  switch (value) {
-    case -2:
-      return 'welcomeScreen.monthlyWeightPlans.gain_2' as const;
-    case -1:
-      return 'welcomeScreen.monthlyWeightPlans.gain_1' as const;
-    case -0.5:
-      return 'welcomeScreen.monthlyWeightPlans.gain_0_5' as const;
-    case 0:
-      return 'welcomeScreen.monthlyWeightPlans.0' as const;
-    case 0.5:
-      return 'welcomeScreen.monthlyWeightPlans.lose_0_5' as const;
-    case 1:
-      return 'welcomeScreen.monthlyWeightPlans.lose_1' as const;
-    case 2:
-      return 'welcomeScreen.monthlyWeightPlans.lose_2' as const;
-    default:
-      return 'welcomeScreen.monthlyWeightPlans.0' as const;
-  }
-}
-
-function getGoalProgressCopy(
-  t: ReturnType<typeof useTranslation>['t'],
-  goalProgress: WeightGoalProgress
-) {
-  if (goalProgress.unit === 'days') {
-    return {
-      progressLabel: t('goalTracking.progressDays', {
-        current: goalProgress.progressValue,
-        target: goalProgress.targetValue,
-      }),
-      remainingLabel: t('goalTracking.remainingDays', { value: goalProgress.remainingValue }),
-    };
-  }
-
-  const progressLabelKey =
-    goalProgress.goal.mode === 'gain'
-      ? 'goalTracking.progressKcalGain'
-      : 'goalTracking.progressKcalLose';
-
-  return {
-    progressLabel: t(progressLabelKey, {
-      current: goalProgress.progressValue,
-      target: goalProgress.targetValue,
-    }),
-    remainingLabel: t('goalTracking.remainingKcal', { value: goalProgress.remainingValue }),
-  };
-}
-
-function getAchievementTitleKey(achievementKey: AchievementKey) {
-  switch (achievementKey) {
-    case 'fire_keeper_7':
-      return 'achievements.items.fire_keeper_7.title' as const;
-    case 'fire_keeper_14':
-      return 'achievements.items.fire_keeper_14.title' as const;
-    case 'first_maintain_goal':
-      return 'achievements.items.first_maintain_goal.title' as const;
-    default:
-      return 'achievements.items.goal_crusher.title' as const;
-  }
-}
-
-function formatGoalDate(value: string, locale: string) {
+function formatReviewDateLabel(date: Date, locale: string) {
   return new Intl.DateTimeFormat(locale, {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date(value));
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(date);
 }
 
-function getActiveGoalDateRange(
-  goalProgress: Pick<WeightGoalProgress, 'goal' | 'unit'>,
-  locale: string
+function formatReviewTimeLabel(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
+function parseLocalDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split('-').map((value) => Number(value));
+
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day) ||
+    month <= 0 ||
+    month > 12 ||
+    day <= 0 ||
+    day > 31
+  ) {
+    return new Date(dateKey);
+  }
+
+  return new Date(year, month - 1, day);
+}
+
+function groupHomeAiReviewHistory(records: HomeAiReviewHistoryRecord[]) {
+  const grouped = new Map<string, HomeAiReviewHistoryRecord[]>();
+
+  for (const record of records) {
+    const list = grouped.get(record.reviewDateKey);
+    if (list) {
+      list.push(record);
+      continue;
+    }
+
+    grouped.set(record.reviewDateKey, [record]);
+  }
+
+  return Array.from(grouped, ([dateKey, items]) => ({ dateKey, items }));
+}
+
+function getHomeAiReviewRecordTitle(record: HomeAiReviewHistoryRecord, t: TFunction): string {
+  if (record.status === 'ready') {
+    return record.review?.title ?? t('homeScreen.aiReview.errorTitle');
+  }
+
+  return getHomeAiReviewStatusTitle(t, record.status === 'error' ? 'error' : record.status);
+}
+
+function getHomeAiReviewRecordSummary(record: HomeAiReviewHistoryRecord, t: TFunction): string {
+  if (record.status === 'ready') {
+    return record.review?.summary ?? t('homeScreen.aiReview.generateFailed');
+  }
+
+  return (
+    record.assistantMessage ??
+    (record.status === 'error'
+      ? t('homeScreen.aiReview.generateFailed')
+      : t('homeScreen.aiReview.noEnoughDataFallback'))
+  );
+}
+
+function getGoalTrackingCalorieLabel(t: TFunction, mode: 'lose' | 'gain' | 'maintain') {
+  switch (mode) {
+    case 'lose':
+      return t('goalTracking.calorieDeficitLabel');
+    case 'gain':
+      return t('goalTracking.calorieSurplusLabel');
+    case 'maintain':
+    default:
+      return t('goalTracking.calorieDifferenceLabel');
+  }
+}
+
+function getHomeAiReviewStatusTitle(
+  t: TFunction,
+  status: 'error' | 'need_more_info' | 'unsupported'
 ) {
-  const startDate = new Date(goalProgress.goal.startedAt);
-  const durationDays =
-    goalProgress.unit === 'days' ? Math.max(1, goalProgress.goal.targetDays) : 30;
-  const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + durationDays - 1);
+  switch (status) {
+    case 'error':
+      return t('homeScreen.aiReview.errorTitle');
+    case 'need_more_info':
+      return t('homeScreen.aiReview.needMoreInfoTitle');
+    case 'unsupported':
+      return t('homeScreen.aiReview.unsupportedTitle');
+  }
+}
+
+function getHomeAiReviewAccentColors(
+  theme: ReturnType<typeof useUnistyles>['theme'],
+  status: HomeAiReviewState['status']
+) {
+  if (status === 'ready') {
+    return {
+      iconColor: theme.colors.state.success,
+      accentColor: theme.colors.state.success,
+      accentBg: theme.colors.state.successBg,
+      softBg: theme.colors.state.successBg,
+    };
+  }
+
+  if (status === 'need_more_info') {
+    return {
+      iconColor: theme.colors.state.warning,
+      accentColor: theme.colors.state.warning,
+      accentBg: theme.colors.state.warningBg,
+      softBg: theme.colors.state.warningBg,
+    };
+  }
+
+  if (status === 'unsupported') {
+    return {
+      iconColor: theme.colors.state.info,
+      accentColor: theme.colors.state.info,
+      accentBg: theme.colors.state.infoBg,
+      softBg: theme.colors.state.infoBg,
+    };
+  }
 
   return {
-    startLabel: formatGoalDate(goalProgress.goal.startedAt, locale),
-    endLabel: formatGoalDate(endDate.toISOString(), locale),
+    iconColor: theme.colors.state.success,
+    accentColor: theme.colors.state.success,
+    accentBg: theme.colors.state.successBg,
+    softBg: theme.colors.state.successBg,
   };
+}
+
+function getMacroProgress(value: number, target: number) {
+  if (target <= 0) {
+    return 0;
+  }
+
+  return Math.min(100, Math.round((value / target) * 100));
+}
+
+function describeSemicirclePath(radius: number, centerX: number, centerY: number) {
+  const startX = centerX - radius;
+  const endX = centerX + radius;
+  return `M ${startX} ${centerY} A ${radius} ${radius} 0 0 1 ${endX} ${centerY}`;
+}
+
+interface CaloriesRingProps {
+  remainingCalories: number;
+  consumedCalories: number;
+  targetCalories: number;
+  progressPercent: number;
+  locale: string;
+  t: ReturnType<typeof useTranslation>['t'];
+}
+
+function CaloriesRing({
+  remainingCalories,
+  consumedCalories,
+  targetCalories,
+  progressPercent,
+  locale,
+  t,
+}: CaloriesRingProps) {
+  const { theme } = useUnistyles();
+  const { width: screenWidth, isTablet } = useScreenDimensions();
+  const translate = t as unknown as (
+    key: string,
+    options?: Record<string, string | number>
+  ) => string;
+  const width = isTablet ? 360 : Math.max(240, screenWidth - theme.metrics.spacing.p32);
+  const scale = width / 260;
+  const height = Math.round(140 * scale);
+  const strokeWidth = Math.round(14 * scale);
+  const radius = Math.round(100 * scale);
+  const centerX = width / 2;
+  const centerY = Math.round(112 * scale);
+  const trackPath = describeSemicirclePath(radius, centerX, centerY);
+  const safeProgress = Math.min(100, Math.max(0, progressPercent));
+  const dashLength = Math.PI * radius;
+  const dashOffset = dashLength * (1 - safeProgress / 100);
+  const centerTop = Math.round(40 * scale);
+  const endsBottom = Math.round(16 * scale);
+  const endLabelOffset = Math.round(strokeWidth / 2);
+  const endLabelWidth = Math.round(36 * scale);
+
+  return (
+    <View style={[styles.calorieRingWrap, { width }]}>
+      <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        <Path
+          d={trackPath}
+          stroke={theme.colors.border.subtle}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          fill="none"
+        />
+        <Path
+          d={trackPath}
+          stroke={theme.colors.brand.primary}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray={dashLength}
+          strokeDashoffset={dashOffset}
+        />
+      </Svg>
+
+      <View style={[styles.calorieRingCenter, { top: centerTop }]}>
+        <View style={styles.calorieRingPrimaryCopy}>
+          <Text
+            variant="h2"
+            weight="bold"
+            align="center"
+            color="primary"
+            style={styles.calorieRingValue}
+          >
+            {formatNumber(Math.max(remainingCalories, 0), locale)}
+          </Text>
+          <Text variant="bodySmall" color="secondary" align="center">
+            {translate('homeScreen.caloriesRemainingUnitLabel')}
+          </Text>
+        </View>
+        <View style={styles.calorieRingSecondaryCopy}>
+          <Text variant="bodySmall" color="secondary" align="center">
+            {translate('homeScreen.caloriesConsumed', {
+              consumed: formatNumber(consumedCalories, locale),
+              target: formatNumber(targetCalories, locale),
+            })}
+          </Text>
+        </View>
+        <Text variant="bodySmall" weight="semibold" color="link" align="center">
+          {translate('homeScreen.goalPercent', {
+            percent: formatNumber(safeProgress, locale),
+          })}
+        </Text>
+      </View>
+
+      <View style={[styles.calorieRingEnds, { bottom: endsBottom }]}>
+        <View style={[styles.calorieRingEndAnchor, { left: endLabelOffset, width: endLabelWidth }]}>
+          <Text variant="caption" color="secondary" align="center">
+            0
+          </Text>
+        </View>
+        <View
+          style={[styles.calorieRingEndAnchor, { right: endLabelOffset, width: endLabelWidth }]}
+        >
+          <Text variant="caption" color="secondary" align="center">
+            {formatNumber(targetCalories, locale)}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
 }
 
 export default function HomeTab() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
   const appAlert = useAppAlert();
+  const { openSheet, closeSheet } = useAppBottomSheet();
+  const bottomPadding = useBottomPadding();
   const currentDate = useCurrentDate();
   const previousCurrentDateRef = useRef(currentDate);
   const [selectedDate, setSelectedDate] = useState(() => currentDate);
-  const [summary, setSummary] = useState<DailyNutritionSummary>(() =>
-    createEmptySummary(currentDate)
-  );
-  const [entries, setEntries] = useState<FoodEntryWithSyncDebug[]>([]);
-  const [hasProfile, setHasProfile] = useState(false);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [visibleMonth, setVisibleMonth] = useState(() => currentDate);
   const [monthStatuses, setMonthStatuses] = useState<Partial<Record<string, 'success' | 'failed'>>>(
     {}
   );
+  const [summary, setSummary] = useState<DailyNutritionSummary>(() =>
+    createEmptySummary(currentDate)
+  );
+  const [entries, setEntries] = useState<FoodEntryWithSyncDebug[]>([]);
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
+  const [homeAiReviewState, setHomeAiReviewState] = useState<HomeAiReviewState>({
+    status: 'idle',
+  });
+  const [homeAiReviewDateKey, setHomeAiReviewDateKey] = useState<string | null>(null);
+  const [homeAiReviewSheetMode, setHomeAiReviewSheetMode] = useState<'review' | 'history'>(
+    'review'
+  );
+  const [homeAiReviewHistoryRecords, setHomeAiReviewHistoryRecords] = useState<
+    HomeAiReviewHistoryRecord[]
+  >([]);
+  const [isHomeAiReviewSheetOpen, setIsHomeAiReviewSheetOpen] = useState(false);
+  const foodEntryRefreshRevision = useFoodEntryRefreshStore((state) => state.refreshRevision);
+  const lastFoodEntryRefreshRevisionRef = useRef(foodEntryRefreshRevision);
 
   useEffect(() => {
     const previousCurrentDate = previousCurrentDateRef.current;
@@ -344,6 +443,27 @@ export default function HomeTab() {
     );
     previousCurrentDateRef.current = currentDate;
   }, [currentDate]);
+
+  const loadNutritionData = useCallback(async (date: Date) => {
+    const [nextProfile, nextSummary, nextEntries, nextGoalTracking] = await Promise.all([
+      getUserProfile(),
+      getDailyNutritionSummary(date),
+      listFoodEntriesByDate(date),
+      syncGoalTracking(),
+    ]);
+
+    const syncStateMap = await getFoodEntryImageSyncStateMap(nextEntries.map((entry) => entry.id));
+    const entriesWithSyncDebug = nextEntries.map((entry) => ({
+      ...entry,
+      devSyncBadgeLabel: toDevSyncBadgeLabel(entry.imageUri, syncStateMap[entry.id]),
+    }));
+
+    setHasProfile(nextProfile !== null);
+    setProfile(nextProfile);
+    setSummary(nextSummary);
+    setEntries(entriesWithSyncDebug);
+    setGoalTracking(nextGoalTracking);
+  }, []);
 
   const loadMonthStatuses = useCallback(async (month: Date) => {
     const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -358,44 +478,527 @@ export default function HomeTab() {
     );
   }, []);
 
-  const loadNutritionData = useCallback(async (date: Date) => {
-    const [nextProfile, nextSummary, nextEntries] = await Promise.all([
-      getUserProfile(),
-      getDailyNutritionSummary(date),
-      listFoodEntriesByDate(date),
-    ]);
-    const syncStateMap = await getFoodEntryImageSyncStateMap(nextEntries.map((entry) => entry.id));
-    const entriesWithSyncDebug = nextEntries.map((entry) => ({
-      ...entry,
-      devSyncBadgeLabel: toDevSyncBadgeLabel(entry.imageUri, syncStateMap[entry.id]),
-    }));
+  const closeHomeAiReviewSheet = useCallback(() => {
+    closeSheet();
+    setIsHomeAiReviewSheetOpen(false);
+    setHomeAiReviewSheetMode('review');
+  }, [closeSheet]);
 
-    setHasProfile(nextProfile !== null);
-    setProfile(nextProfile);
-    setSummary(nextSummary);
-    setEntries(entriesWithSyncDebug);
+  const applyHomeAiReviewRecord = useCallback(
+    (record: HomeAiReviewHistoryRecord) => {
+      setHomeAiReviewDateKey(record.reviewDateKey);
+
+      if (record.status === 'ready' && record.review) {
+        setHomeAiReviewState({
+          status: 'ready',
+          review: record.review,
+          assistantMessage: record.assistantMessage,
+        });
+        return;
+      }
+
+      if (record.status === 'error') {
+        setHomeAiReviewState({
+          status: 'error',
+          message: record.assistantMessage ?? t('homeScreen.aiReview.generateFailed'),
+        });
+        return;
+      }
+
+      if (record.status === 'unsupported' || record.status === 'need_more_info') {
+        setHomeAiReviewState({
+          status: record.status,
+          message: record.assistantMessage ?? t('homeScreen.aiReview.noEnoughDataFallback'),
+        });
+      }
+    },
+    [t]
+  );
+
+  const refreshHomeAiReviewHistory = useCallback(() => {
+    setHomeAiReviewHistoryRecords(getHomeAiReviewHistoryRecords());
   }, []);
 
-  const loadGoalTracking = useCallback(async () => {
-    const snapshot = await syncGoalTracking();
-    setGoalTracking(snapshot);
+  const handleOpenHomeAiReviewHistory = useCallback(() => {
+    refreshHomeAiReviewHistory();
+    setHomeAiReviewSheetMode('history');
+    setIsHomeAiReviewSheetOpen(true);
+  }, [refreshHomeAiReviewHistory]);
 
-    if (snapshot.justCompletedGoal) {
-      toast.success(t('goalTracking.toasts.goalCompleted'));
+  const openHomeAiReviewRecord = useCallback(
+    (record: HomeAiReviewHistoryRecord) => {
+      applyHomeAiReviewRecord(record);
+      setHomeAiReviewSheetMode('review');
+      setIsHomeAiReviewSheetOpen(true);
+    },
+    [applyHomeAiReviewRecord]
+  );
+
+  const homeAiReviewHistorySections = useMemo(
+    () => groupHomeAiReviewHistory(homeAiReviewHistoryRecords),
+    [homeAiReviewHistoryRecords]
+  );
+
+  const buildHomeAiReviewContext = useCallback(() => {
+    const selectedDateLabel = formatReviewDateLabel(selectedDate, i18n.language);
+    const selectedDateIso = selectedDate.toISOString();
+    const goalMode = profile ? getWeightGoalMode(profile.monthlyWeightGoalKg) : 'maintain';
+    let goalLabel: string | null = null;
+
+    if (profile) {
+      if (goalMode === 'lose') {
+        goalLabel = t('menuScreen.review.goalMode.lose');
+      } else if (goalMode === 'gain') {
+        goalLabel = t('menuScreen.review.goalMode.gain');
+      } else {
+        goalLabel = t('menuScreen.review.goalMode.maintain');
+      }
+    }
+    const reviewEntries = entries.slice(0, 12).map((entry) => ({
+      timeLabel: formatTimeLabel(entry.consumedAt),
+      mealName: entry.mealName,
+      calories: Math.round(entry.totalCalories),
+      proteinGrams: Math.round(entry.proteinGrams),
+      carbsGrams: Math.round(entry.carbsGrams),
+      fatGrams: Math.round(entry.fatGrams),
+      quantityLabel: entry.quantityLabel,
+    }));
+
+    return {
+      selectedDateLabel,
+      selectedDateIso,
+      targets: profile
+        ? {
+            calorieTarget: profile.dailyCalorieTarget,
+            proteinTargetGrams: profile.proteinTargetGrams,
+            carbsTargetGrams: profile.carbsTargetGrams,
+            fatTargetGrams: profile.fatTargetGrams,
+          }
+        : null,
+      summary: {
+        consumedCalories: summary.consumedCalories,
+        calorieTarget: summary.calorieTarget,
+        remainingCalories: summary.remainingCalories,
+        progressPercent: summary.progressPercent,
+        proteinGrams: summary.proteinGrams,
+        carbsGrams: summary.carbsGrams,
+        fatGrams: summary.fatGrams,
+      },
+      goalMode,
+      goalLabel,
+      goalTracking: goalTracking?.activeGoal
+        ? {
+            activeGoalTitle: t('goalTracking.activeTitle'),
+            progressPercent: goalTracking.activeGoal.progressPercent,
+            currentStreak: goalTracking.currentStreak,
+            calorieDifferenceLabel: getGoalTrackingCalorieLabel(
+              t,
+              goalTracking.activeGoal.goal.mode
+            ),
+          }
+        : null,
+      entries: reviewEntries,
+      locale: i18n.language,
+    };
+  }, [entries, goalTracking, i18n.language, profile, selectedDate, summary, t]);
+
+  const generateHomeAiReview = useCallback(async () => {
+    try {
+      const result = await analyzeHomeNutritionWithGemini(buildHomeAiReviewContext());
+      const savedRecord = saveHomeAiReviewHistoryRecord({
+        reviewDate: selectedDate,
+        status: result.status,
+        review: result.status === 'ready' ? result.review : null,
+        assistantMessage: result.assistantMessage,
+      });
+
+      if (result.status === 'ready') {
+        applyHomeAiReviewRecord(savedRecord);
+        refreshHomeAiReviewHistory();
+        return;
+      }
+
+      applyHomeAiReviewRecord(savedRecord);
+      refreshHomeAiReviewHistory();
+    } catch (error) {
+      const rawMessage =
+        error instanceof Error ? error.message : t('homeScreen.aiReview.generateFailed');
+      let message = rawMessage;
+      if (rawMessage.includes('Daily AI usage limit reached')) {
+        message = t('common.aiQuotaExceeded');
+      } else if (
+        rawMessage.includes('Authentication required') ||
+        rawMessage.includes('Unauthorized')
+      ) {
+        message = t('common.signInRequired');
+      }
+      const savedRecord = saveHomeAiReviewHistoryRecord({
+        reviewDate: selectedDate,
+        status: 'error',
+        review: null,
+        assistantMessage: message,
+      });
+      applyHomeAiReviewRecord(savedRecord);
+      refreshHomeAiReviewHistory();
+    }
+  }, [
+    applyHomeAiReviewRecord,
+    buildHomeAiReviewContext,
+    refreshHomeAiReviewHistory,
+    selectedDate,
+    t,
+  ]);
+
+  const handleOpenHomeAiReview = useCallback(() => {
+    if (entries.length === 0) {
+      return;
     }
 
-    if (snapshot.newlyUnlockedAchievements.length > 0) {
-      toast.success(t('goalTracking.toasts.achievementUnlockedGeneric'));
+    const latestRecord = getLatestHomeAiReviewHistoryRecord(selectedDate);
+    if (latestRecord) {
+      applyHomeAiReviewRecord(latestRecord);
+      refreshHomeAiReviewHistory();
+      setHomeAiReviewSheetMode('review');
+      setIsHomeAiReviewSheetOpen(true);
+      return;
     }
-  }, [t]);
+
+    setHomeAiReviewDateKey(formatDateKey(selectedDate));
+    setHomeAiReviewSheetMode('review');
+    setIsHomeAiReviewSheetOpen(true);
+    setHomeAiReviewState({ status: 'loading' });
+  }, [applyHomeAiReviewRecord, entries.length, refreshHomeAiReviewHistory, selectedDate]);
+
+  useEffect(() => {
+    if (!isHomeAiReviewSheetOpen) {
+      return;
+    }
+
+    const isHistoryMode = homeAiReviewSheetMode === 'history';
+    const displayDateKey = homeAiReviewDateKey ?? formatDateKey(selectedDate);
+    const displayDate = parseLocalDateKey(displayDateKey);
+    const isTodayReview = displayDateKey === formatDateKey(currentDate);
+    const reviewColors = getHomeAiReviewAccentColors(theme, homeAiReviewState.status);
+    let reviewMoodTitle = t('homeScreen.aiReview.loading');
+    if (homeAiReviewState.status === 'ready') {
+      reviewMoodTitle = homeAiReviewState.review.title;
+    } else if (homeAiReviewState.status === 'need_more_info') {
+      reviewMoodTitle = t('homeScreen.aiReview.needMoreInfoTitle');
+    } else if (homeAiReviewState.status === 'unsupported') {
+      reviewMoodTitle = t('homeScreen.aiReview.unsupportedTitle');
+    }
+
+    let aiReviewBody: ReactNode;
+    if (isHistoryMode) {
+      if (homeAiReviewHistorySections.length > 0) {
+        aiReviewBody = (
+          <View style={styles.aiReviewHistoryList}>
+            {homeAiReviewHistorySections.map((section) => {
+              const sectionDate = parseLocalDateKey(section.dateKey);
+
+              return (
+                <View key={section.dateKey} style={styles.aiReviewHistorySection}>
+                  <Text variant="bodySmall" weight="bold">
+                    {formatReviewDateLabel(sectionDate, i18n.language)}
+                  </Text>
+                  <View style={styles.aiReviewHistorySectionItems}>
+                    {section.items.map((record) => (
+                      <Card
+                        key={record.id}
+                        pressable
+                        variant="outlined"
+                        onPress={() => {
+                          openHomeAiReviewRecord(record);
+                        }}
+                        style={styles.aiReviewHistoryItem}
+                      >
+                        <View style={styles.aiReviewHistoryItemTopRow}>
+                          <Text variant="caption" color="secondary">
+                            {formatReviewTimeLabel(new Date(record.createdAt), i18n.language)}
+                          </Text>
+                          <Text variant="bodySmall" weight="bold">
+                            {getHomeAiReviewRecordTitle(record, t)}
+                          </Text>
+                        </View>
+                        <Text variant="bodySmall" color="secondary">
+                          {getHomeAiReviewRecordSummary(record, t)}
+                        </Text>
+                      </Card>
+                    ))}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        );
+      } else {
+        aiReviewBody = (
+          <Card variant="elevated" style={styles.aiReviewEmptyCard}>
+            <Text variant="bodySmall" weight="bold">
+              {t('homeScreen.aiReview.historyEmpty')}
+            </Text>
+          </Card>
+        );
+      }
+    } else {
+      const homeAiReviewMessage =
+        homeAiReviewState.status === 'error' ||
+        homeAiReviewState.status === 'need_more_info' ||
+        homeAiReviewState.status === 'unsupported'
+          ? homeAiReviewState.message
+          : '';
+      let homeAiReviewEmptyTitle = t('homeScreen.aiReview.errorTitle');
+      if (
+        homeAiReviewState.status === 'error' ||
+        homeAiReviewState.status === 'need_more_info' ||
+        homeAiReviewState.status === 'unsupported'
+      ) {
+        homeAiReviewEmptyTitle = getHomeAiReviewStatusTitle(t, homeAiReviewState.status);
+      }
+
+      if (homeAiReviewState.status === 'loading') {
+        aiReviewBody = (
+          <View style={styles.aiReviewLoadingState}>
+            <Card variant="outlined" style={styles.aiReviewIntroCard}>
+              <View style={[styles.aiReviewIntroIcon, { backgroundColor: reviewColors.softBg }]}>
+                <Icon name="document-text-outline" size={20} color={reviewColors.iconColor} />
+              </View>
+              <View style={styles.aiReviewIntroCopy}>
+                <Text variant="body" weight="semibold">
+                  {t('homeScreen.aiReview.loading')}
+                </Text>
+                <Text variant="bodySmall" color="secondary">
+                  {t('homeScreen.aiReview.subtitle')}
+                </Text>
+              </View>
+              <View style={styles.aiReviewIntroChevron}>
+                <Loading size="small" />
+              </View>
+            </Card>
+          </View>
+        );
+      } else if (homeAiReviewState.status === 'ready') {
+        aiReviewBody = (
+          <View style={styles.aiReviewResult}>
+            <Card variant="outlined" style={styles.aiReviewSummaryCard}>
+              <View style={styles.aiReviewSummaryCopy}>
+                <Text variant="body" weight="bold">
+                  {reviewMoodTitle}
+                </Text>
+                <Text variant="bodySmall" color="secondary">
+                  {homeAiReviewState.review.summary}
+                </Text>
+              </View>
+            </Card>
+
+            {homeAiReviewState.review.improvements.length > 0 ? (
+              <Card variant="outlined" style={styles.aiReviewListBlock}>
+                <View style={styles.aiReviewListHeader}>
+                  <Icon name="warning-outline" size={22} color={theme.colors.state.warning} />
+                  <Text variant="bodySmall" weight="bold" color="primary">
+                    {t('homeScreen.aiReview.improvements')}
+                  </Text>
+                </View>
+                <View style={styles.aiReviewBulletList}>
+                  {homeAiReviewState.review.improvements.map((item, index) => (
+                    <View key={`${item}-${index}`} style={styles.aiReviewBulletRow}>
+                      <View style={[styles.aiReviewBulletDot, styles.aiReviewBulletDotWarning]} />
+                      <Text variant="bodySmall" color="secondary" style={styles.aiReviewBulletText}>
+                        {item}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </Card>
+            ) : null}
+
+            {homeAiReviewState.assistantMessage ? (
+              <Text variant="caption" color="secondary">
+                {homeAiReviewState.assistantMessage}
+              </Text>
+            ) : null}
+          </View>
+        );
+      } else {
+        aiReviewBody = (
+          <Card variant="elevated" style={styles.aiReviewEmptyCard}>
+            <Text variant="bodySmall" weight="bold">
+              {homeAiReviewEmptyTitle}
+            </Text>
+            <Text variant="bodySmall" color="secondary">
+              {homeAiReviewMessage}
+            </Text>
+          </Card>
+        );
+      }
+    }
+
+    openSheet(
+      <NutritionReviewSheet
+        title={
+          isHistoryMode ? t('homeScreen.aiReview.historyTitle') : t('homeScreen.aiReview.title')
+        }
+        subtitle={
+          isHistoryMode
+            ? t('homeScreen.aiReview.historySubtitle')
+            : t('homeScreen.aiReview.subtitle')
+        }
+        iconColor={reviewColors.iconColor}
+        headerActions={
+          !isHistoryMode ? (
+            <Button
+              title={t('homeScreen.aiReview.history')}
+              variant="ghost"
+              size="sm"
+              rightIcon={
+                <Icon name="chevron-forward-outline" size={16} color={theme.colors.brand.primary} />
+              }
+              onPress={handleOpenHomeAiReviewHistory}
+            />
+          ) : null
+        }
+        headerMeta={
+          isHistoryMode ? (
+            <View style={styles.aiReviewHistoryHeaderRow}>
+              <View style={styles.aiReviewDatePill}>
+                <Text variant="caption" weight="semibold" color="secondary">
+                  {formatReviewDateLabel(displayDate, i18n.language)}
+                </Text>
+              </View>
+              <Button
+                title={t('homeScreen.aiReview.backToReview')}
+                variant="ghost"
+                size="sm"
+                leftIcon={
+                  <Icon name="chevron-back-outline" size={16} color={theme.colors.text.primary} />
+                }
+                onPress={() => {
+                  setHomeAiReviewSheetMode('review');
+                }}
+              />
+            </View>
+          ) : null
+        }
+        badge={
+          isHistoryMode ? null : (
+            <View style={styles.aiReviewDatePill}>
+              <Text variant="caption" weight="semibold" color="secondary">
+                {formatReviewDateLabel(displayDate, i18n.language)}
+              </Text>
+            </View>
+          )
+        }
+        footerActions={
+          <>
+            {!isHistoryMode && homeAiReviewState.status !== 'loading' && isTodayReview ? (
+              <Button
+                title={t('homeScreen.aiReview.retry')}
+                variant="outline"
+                size="sm"
+                leftIcon={
+                  <Icon name="sparkles-outline" size={16} color={theme.colors.text.primary} />
+                }
+                onPress={() => {
+                  setHomeAiReviewState({ status: 'loading' });
+                }}
+              />
+            ) : null}
+            <Button
+              title={t('common.close')}
+              variant="ghost"
+              size="sm"
+              onPress={closeHomeAiReviewSheet}
+            />
+          </>
+        }
+      >
+        {aiReviewBody}
+      </NutritionReviewSheet>,
+      {
+        snapPoints: ['90%', '100%'],
+        containerVariant: 'scroll',
+        enablePanDownToClose: true,
+        onDismiss: closeHomeAiReviewSheet,
+      }
+    );
+  }, [
+    closeHomeAiReviewSheet,
+    currentDate,
+    handleOpenHomeAiReviewHistory,
+    homeAiReviewDateKey,
+    homeAiReviewHistorySections,
+    homeAiReviewSheetMode,
+    homeAiReviewState,
+    i18n.language,
+    isHomeAiReviewSheetOpen,
+    openSheet,
+    openHomeAiReviewRecord,
+    selectedDate,
+    summary.calorieTarget,
+    summary.consumedCalories,
+    summary.progressPercent,
+    t,
+    theme.colors.text.primary,
+    theme,
+  ]);
+
+  useEffect(() => {
+    if (!isHomeAiReviewSheetOpen || homeAiReviewState.status !== 'loading') {
+      return;
+    }
+
+    void generateHomeAiReview();
+  }, [generateHomeAiReview, homeAiReviewState.status, isHomeAiReviewSheetOpen]);
+
+  const handleDeleteEntry = useCallback(
+    (meal: FoodEntryWithSyncDebug) => {
+      appAlert.alert(
+        t('homeScreen.meals.deleteTitle'),
+        t('homeScreen.meals.deleteMessage', { name: meal.mealName }),
+        [
+          {
+            text: t('common.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('common.delete'),
+            style: 'destructive',
+            onPress: () => {
+              void deleteFoodEntry(meal.id)
+                .then(async () => {
+                  await deleteOrphanedFoodEntryAssets(meal.imageUri, meal.thumbnailUri);
+                  await Promise.all([
+                    loadNutritionData(selectedDate),
+                    loadMonthStatuses(visibleMonth),
+                  ]);
+                })
+                .catch(() => {
+                  toast.error(t('profileScreen.actionError'));
+                });
+            },
+          },
+        ]
+      );
+    },
+    [appAlert, loadMonthStatuses, loadNutritionData, selectedDate, t, visibleMonth]
+  );
 
   useFocusEffect(
     useCallback(() => {
       void loadNutritionData(selectedDate);
       void loadMonthStatuses(visibleMonth);
-      void loadGoalTracking();
-    }, [loadGoalTracking, loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth])
+    }, [loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth])
   );
+
+  useEffect(() => {
+    if (lastFoodEntryRefreshRevisionRef.current === foodEntryRefreshRevision) {
+      return;
+    }
+
+    lastFoodEntryRefreshRevisionRef.current = foodEntryRefreshRevision;
+    void loadNutritionData(selectedDate);
+    void loadMonthStatuses(visibleMonth);
+  }, [foodEntryRefreshRevision, loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth]);
 
   const mealSections = useMemo<MealSection[]>(() => {
     return entries.reduce<MealSection[]>((accumulator, entry) => {
@@ -416,379 +1019,113 @@ export default function HomeTab() {
     }, []);
   }, [entries]);
 
-  const balanceCopy = useMemo(() => getHomeBalanceCopy(profile, summary), [profile, summary]);
-  const balanceTitleKey = useMemo(
-    () =>
-      getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0) === 'lose'
-        ? 'homeScreen.left'
-        : 'homeScreen.remaining',
-    [profile?.monthlyWeightGoalKg]
-  );
-  const progressColorScheme = useMemo(() => {
-    const goalState = getDailyCalorieGoalState(
-      profile,
-      summary.calorieTarget,
-      summary.consumedCalories
-    );
+  const caloriesLeft = Math.max(summary.remainingCalories, 0);
+  let profileCardContent: ReactNode;
 
-    if (goalState === 'on_target') {
-      return 'success' as const;
-    }
-
-    return goalState === 'below_target' ? 'warning' : 'error';
-  }, [profile, summary.calorieTarget, summary.consumedCalories]);
-
-  const activeGoalProgress = goalTracking?.activeGoal ?? null;
-  const latestCompletedGoal = goalTracking?.latestCompletedGoal ?? null;
-  const activeGoalCopy = useMemo(
-    () => (activeGoalProgress ? getGoalProgressCopy(t, activeGoalProgress) : null),
-    [activeGoalProgress, t]
-  );
-  const activeGoalConsumedCopy = useMemo(() => {
-    if (!activeGoalProgress || activeGoalProgress.goal.mode !== 'maintain') {
-      return null;
-    }
-
-    return t('goalTracking.consumedKcalProgress', {
-      current: activeGoalProgress.consumedCalories,
-      target: activeGoalProgress.targetCalories,
-    });
-  }, [activeGoalProgress, t]);
-  const activeGoalCycleCopy = useMemo(() => {
-    if (!activeGoalProgress) {
-      return null;
-    }
-
-    const cycleProgress = getGoalCycleDayProgress(activeGoalProgress);
-    if (!cycleProgress) {
-      return null;
-    }
-
-    return t('goalTracking.progressDays', {
-      current: cycleProgress.current,
-      target: cycleProgress.target,
-    });
-  }, [activeGoalProgress, t]);
-  const activeGoalDateRange = useMemo(
-    () => (activeGoalProgress ? getActiveGoalDateRange(activeGoalProgress, i18n.language) : null),
-    [activeGoalProgress, i18n.language]
-  );
-  const heroHighlight = useMemo(() => {
-    if (goalTracking?.currentStreak && goalTracking.currentStreak > 0) {
-      return {
-        icon: 'flame' as const,
-        iconVariant: 'accent' as const,
-        label: t('achievements.currentStreak'),
-        value: t('achievements.currentStreakValue', { count: goalTracking.currentStreak }),
-      };
-    }
-
-    const latestAchievement = goalTracking?.unlockedAchievements[0];
-    if (latestAchievement) {
-      return {
-        icon: 'trophy-outline' as const,
-        iconVariant: 'primary' as const,
-        label: t('achievements.title'),
-        value: t(getAchievementTitleKey(latestAchievement.achievementKey)),
-      };
-    }
-
-    return null;
-  }, [goalTracking, t]);
-  const monthlyGoalOptions = useMemo(
-    () =>
-      [...MONTHLY_WEIGHT_GOAL_OPTIONS].sort((left, right) => {
-        const orderMap = new Map<number, number>([
-          [0.5, 0],
-          [1, 1],
-          [0, 2],
-          [-0.5, 3],
-          [-1, 4],
-        ]);
-
-        return (orderMap.get(left) ?? 99) - (orderMap.get(right) ?? 99);
-      }),
-    []
-  );
-  const goalSelectOptions = useMemo(
-    () =>
-      monthlyGoalOptions.map((option) => ({
-        label: t(getMonthlyWeightGoalPlanKey(option)),
-        value: String(option),
-      })),
-    [monthlyGoalOptions, t]
-  );
-  const selectedGoalValue = profile ? String(profile.monthlyWeightGoalKg) : '';
-
-  const handleSelectNewGoal = useCallback(
-    (option: number) => {
-      if (!profile) {
-        return;
-      }
-
-      void upsertUserProfile({
-        gender: profile.gender,
-        age: profile.age,
-        heightCm: profile.heightCm,
-        weightKg: profile.weightKg,
-        monthlyWeightGoalKg: option,
-        activityLevel: profile.activityLevel,
-      }).then(async (nextProfile) => {
-        if (!nextProfile) {
-          return;
-        }
-
-        await syncActiveGoalToProfile(nextProfile);
-        setProfile(nextProfile);
-        await loadNutritionData(selectedDate);
-        await loadMonthStatuses(visibleMonth);
-        await loadGoalTracking();
-      });
-    },
-    [loadGoalTracking, loadMonthStatuses, loadNutritionData, profile, selectedDate, visibleMonth]
-  );
-
-  const handleGoalSelectChange = useCallback(
-    (value: string) => {
-      const parsedValue = Number(value);
-
-      if (Number.isNaN(parsedValue) || !profile) {
-        return;
-      }
-
-      if (parsedValue === profile.monthlyWeightGoalKg) {
-        return;
-      }
-
-      appAlert.alert(
-        t('goalTracking.changeGoalConfirmTitle'),
-        t('goalTracking.changeGoalConfirmMessage'),
-        [
-          {
-            text: t('common.cancel'),
-            style: 'cancel',
-          },
-          {
-            text: t('common.confirm'),
-            style: 'destructive',
-            onPress: () => {
-              handleSelectNewGoal(parsedValue);
-            },
-          },
-        ]
-      );
-    },
-    [appAlert, handleSelectNewGoal, profile, t]
-  );
-
-  const handleContinueGoal = useCallback(() => {
-    void continueLatestCompletedGoal().then((didContinue) => {
-      if (didContinue) {
-        void loadGoalTracking();
-      }
-    });
-  }, [loadGoalTracking]);
-
-  const handleDeleteMeal = useCallback(
-    (meal: FoodEntry) => {
-      appAlert.alert(
-        t('foodDetail.deleteTitle'),
-        t('foodDetail.deleteMessage', { mealName: meal.mealName }),
-        [
-          {
-            text: t('common.cancel'),
-            style: 'cancel',
-          },
-          {
-            text: t('foodDetail.deleteAction'),
-            style: 'destructive',
-            onPress: () => {
-              void deleteFoodEntry(meal.id).then(async () => {
-                await deleteOrphanedFoodEntryAssets(meal.imageUri, meal.thumbnailUri);
-                await loadNutritionData(selectedDate);
-                await loadGoalTracking();
-              });
-            },
-          },
-        ]
-      );
-    },
-    [appAlert, loadGoalTracking, loadNutritionData, selectedDate, t]
-  );
-
-  let goalTrackingSection = null;
-
-  if (hasProfile && activeGoalProgress) {
-    const goalTitle = formatWeightGoalTitle(t, activeGoalProgress.goal);
-
-    goalTrackingSection = (
-      <Card variant="filled" style={styles.goalTrackingCard}>
-        <View style={styles.goalTrackingHeader}>
-          <View style={styles.goalTrackingCopy}>
-            <Text variant="h3">{`${t('goalTracking.activeTitle')}: ${goalTitle}`}</Text>
-          </View>
-          <Chip
-            label={`${activeGoalProgress.progressPercent}%`}
-            variant="outline"
-            icon={<Icon name="trophy-outline" variant="accent" size={14} />}
-          />
+  if (hasProfile === null) {
+    profileCardContent = (
+      <Card variant="elevated" style={styles.calorieCard}>
+        <View style={styles.profilePromptLoading}>
+          <Loading size="small" />
         </View>
-        <View style={styles.goalProgressRow}>
-          <View style={styles.goalProgressMetric}>
-            <Text variant="bodySmall" color="secondary">
-              {activeGoalConsumedCopy ?? activeGoalCopy?.progressLabel}
-            </Text>
-          </View>
-          <View style={[styles.goalProgressMetric, styles.goalProgressMetricEnd]}>
-            <Text variant="bodySmall" color="secondary" align="right">
-              {activeGoalCycleCopy ?? activeGoalCopy?.progressLabel}
-            </Text>
-          </View>
-        </View>
-        <ProgressBar value={activeGoalProgress.progressPercent} size="md" colorScheme="success" />
-        <View style={styles.goalDateRow}>
-          <Text variant="bodySmall" color="secondary">
-            {t('goalTracking.startDate', { value: activeGoalDateRange?.startLabel ?? '' })}
-          </Text>
-          <Text variant="bodySmall" color="secondary" align="right">
-            {t('goalTracking.endDate', { value: activeGoalDateRange?.endLabel ?? '' })}
-          </Text>
-        </View>
-        <View style={styles.goalCardActions}>
-          <Select
-            value={selectedGoalValue}
-            onChange={handleGoalSelectChange}
-            options={goalSelectOptions}
-            size="sm"
-            triggerVariant="plain"
-            placeholder={t('goalTracking.actions.chooseNew')}
-          >
-            <View style={styles.goalSelectTrigger}>
-              <Icon name="swap-horizontal" size={16} variant="primary" />
-              <Text variant="label" weight="semibold">
-                {t('goalTracking.actions.chooseNew')}
-              </Text>
-            </View>
-          </Select>
-          <Button
-            title={t('goalTracking.actions.viewHistory')}
-            variant="ghost"
-            size="sm"
-            style={styles.goalActionButton}
-            labelStyle={styles.goalActionButtonLabel}
-            rightIcon={<Icon name="chevron-forward" variant="primary" size={16} />}
-            onPress={() => router.push('/goal-history')}
-          />
-        </View>
-      </Card>
-    );
-  } else if (hasProfile && latestCompletedGoal) {
-    goalTrackingSection = (
-      <Card variant="filled" style={styles.goalTrackingCard}>
-        <View style={styles.goalTrackingCopy}>
-          <Text variant="h3">{t('goalTracking.completedTitle')}</Text>
-          <Text variant="bodySmall" color="secondary">
-            {formatWeightGoalTitle(t, latestCompletedGoal.goal)}
-          </Text>
-        </View>
-        <View style={styles.goalActionRow}>
-          <Button
-            title={t('goalTracking.actions.continueGoal')}
-            variant="primary"
-            size="sm"
-            onPress={handleContinueGoal}
-          />
-          <Select
-            value={selectedGoalValue}
-            onChange={handleGoalSelectChange}
-            options={goalSelectOptions}
-            size="sm"
-            triggerVariant="plain"
-            placeholder={t('goalTracking.actions.chooseNew')}
-          >
-            <View style={styles.goalSelectTrigger}>
-              <Icon name="swap-horizontal" size={16} variant="primary" />
-            </View>
-          </Select>
-        </View>
-        <Button
-          title={t('goalTracking.actions.viewHistory')}
-          variant="ghost"
-          size="sm"
-          style={styles.goalActionButton}
-          labelStyle={styles.goalActionButtonLabel}
-          rightIcon={<Icon name="chevron-forward" variant="primary" size={16} />}
-          onPress={() => router.push('/goal-history')}
-        />
       </Card>
     );
   } else if (hasProfile) {
-    goalTrackingSection = (
-      <Card variant="filled" style={styles.goalTrackingCard}>
-        <View style={styles.goalTrackingCopy}>
-          <Text variant="h3">{t('goalTracking.emptyTitle')}</Text>
-          <Text variant="bodySmall" color="secondary">
-            {t('goalTracking.emptySubtitle')}
-          </Text>
-        </View>
-        <Select
-          value={selectedGoalValue}
-          onChange={handleGoalSelectChange}
-          options={goalSelectOptions}
-          size="sm"
-          triggerVariant="plain"
-          placeholder={t('goalTracking.actions.startGoal')}
-        >
-          <View style={styles.goalSelectCallToAction}>
-            <Icon name="flag-outline" size={16} variant="onBrand" />
-            <Text variant="label" weight="semibold" color="onBrand">
-              {t('goalTracking.actions.startGoal')}
+    profileCardContent = (
+      <Card variant="elevated" style={styles.calorieCard}>
+        <CaloriesRing
+          remainingCalories={caloriesLeft}
+          consumedCalories={summary.consumedCalories}
+          targetCalories={summary.calorieTarget}
+          progressPercent={summary.progressPercent}
+          locale={i18n.language}
+          t={t}
+        />
+      </Card>
+    );
+  } else {
+    profileCardContent = (
+      <Card variant="elevated" style={styles.calorieCard}>
+        <View style={styles.cardHeaderRow}>
+          <View style={styles.cardHeaderCopy}>
+            <Text variant="body" weight="bold">
+              {t('homeScreen.profilePrompt.title')}
+            </Text>
+            <Text variant="bodySmall" color="secondary">
+              {t('homeScreen.profilePrompt.subtitle')}
             </Text>
           </View>
-        </Select>
+        </View>
         <Button
-          title={t('goalTracking.actions.viewHistory')}
-          variant="ghost"
-          size="sm"
-          style={styles.goalActionButton}
-          labelStyle={styles.goalActionButtonLabel}
-          rightIcon={<Icon name="chevron-forward" variant="primary" size={16} />}
-          onPress={() => router.push('/goal-history')}
+          title={t('homeScreen.profilePrompt.action')}
+          onPress={() => router.push('/welcome')}
         />
       </Card>
     );
   }
 
+  const macroRows = useMemo(
+    () => [
+      {
+        label: t('statsScreen.macros.carbs'),
+        current: summary.carbsGrams,
+        target: profile?.carbsTargetGrams ?? 0,
+        progressColor: theme.colors.state.warning,
+      },
+      {
+        label: t('statsScreen.macros.protein'),
+        current: summary.proteinGrams,
+        target: profile?.proteinTargetGrams ?? 0,
+        progressColor: theme.colors.state.info,
+      },
+      {
+        label: t('statsScreen.macros.fat'),
+        current: summary.fatGrams,
+        target: profile?.fatTargetGrams ?? 0,
+        progressColor: theme.colors.state.success,
+      },
+    ],
+    [
+      profile?.carbsTargetGrams,
+      profile?.fatTargetGrams,
+      profile?.proteinTargetGrams,
+      summary.carbsGrams,
+      summary.fatGrams,
+      summary.proteinGrams,
+      t,
+      theme.colors.state.info,
+      theme.colors.state.success,
+      theme.colors.state.warning,
+    ]
+  );
+  const canOpenHomeAiReview = entries.length > 0;
+
   return (
-    <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
+    <ScreenContainer padded={false} edges={['bottom']}>
       <SectionList
         sections={mealSections}
         keyExtractor={(item) => item.id}
         stickySectionHeadersEnabled={false}
         showsVerticalScrollIndicator={false}
         style={styles.list}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: bottomPadding + theme.metrics.spacingV.p32 },
+        ]}
         renderSectionHeader={({ section }) => (
           <View style={styles.mealSection}>
-            <View style={styles.sectionTimeRow}>
-              <Text variant="bodySmall" weight="semibold" color="secondary">
-                {section.title}
-              </Text>
-            </View>
+            <Text variant="caption" weight="semibold" color="secondary">
+              {section.title}
+            </Text>
           </View>
         )}
         renderItem={({ item: meal }) => (
-          <View style={styles.itemTimelineRow}>
-            <View style={styles.itemRail}>
-              <View style={styles.itemDot} />
-              <View style={styles.itemLine} />
-            </View>
-
+          <View style={styles.mealItemWrap}>
             <HomeMealCard.Root
               item={toHomeMealCardItem(meal)}
               onPress={() =>
                 router.push({
-                  pathname: '/food-form',
+                  pathname: '/food-detail',
                   params: {
                     entryId: meal.id,
                   },
@@ -803,184 +1140,104 @@ export default function HomeTab() {
                     label={t('common.delete')}
                     tone="danger"
                     onPress={() => {
-                      handleDeleteMeal(meal);
+                      handleDeleteEntry(meal);
                     }}
                   />
                 </HomeMealCard.Header>
-                <HomeMealCard.Macros />
+                <HomeMealCard.Macros
+                  proteinTargetGrams={profile?.proteinTargetGrams}
+                  carbsTargetGrams={profile?.carbsTargetGrams}
+                  fatTargetGrams={profile?.fatTargetGrams}
+                />
               </HomeMealCard.Content>
             </HomeMealCard.Root>
           </View>
         )}
         ListHeaderComponent={
           <View style={styles.header}>
-            <MonthSelector
-              selectedDate={selectedDate}
-              onChange={setSelectedDate}
-              maxDate={currentDate}
-              dayStatuses={monthStatuses}
-              onMonthChange={setVisibleMonth}
-            />
+            <Card variant="elevated" style={styles.monthSelectorCard}>
+              <MonthSelector
+                selectedDate={selectedDate}
+                onChange={setSelectedDate}
+                maxDate={currentDate}
+                locale={i18n.language}
+                dayStatuses={monthStatuses}
+                onMonthChange={setVisibleMonth}
+              />
+            </Card>
 
-            {hasProfile ? (
-              <LinearGradient colors={theme.colors.gradient.secondary} style={styles.heroCard}>
-                <View style={styles.heroTopRow}>
-                  <View style={styles.heroBadge}>
-                    <Icon name="flash" size={14} variant="secondary" />
-                    <Text variant="caption" weight="semibold">
-                      {`${t('profileScreen.metrics.maintenanceCalories')} ${profile?.maintenanceCalorieTarget ?? 0} ${t('common.units.kcal')}`}
-                    </Text>
-                  </View>
-                  <View style={styles.dayPill}>
-                    <Text variant="caption" weight="semibold">
-                      {selectedDate.getDate()}/{selectedDate.getMonth() + 1}
-                    </Text>
-                  </View>
-                </View>
+            {profileCardContent}
 
-                <View style={styles.heroStatsRow}>
-                  <View style={styles.heroStat}>
-                    <Text variant="caption" color="secondary">
-                      {t('homeScreen.target')}
-                    </Text>
-                    <Text variant="h2">{summary.calorieTarget}</Text>
-                    <Text variant="bodySmall" color="secondary">
-                      {t('homeScreen.kcalToday')}
-                    </Text>
-                  </View>
-                  <View style={[styles.heroStat, styles.heroStatEnd]}>
-                    <Text variant="caption" color="secondary">
-                      {t(balanceTitleKey)}
-                    </Text>
-                    <Text
-                      variant="h2"
-                      align="right"
-                      style={[
-                        balanceCopy.valueTone === 'danger' ? styles.remainingOverText : undefined,
-                        balanceCopy.valueTone === 'success'
-                          ? styles.remainingPositiveText
-                          : undefined,
-                      ]}
-                    >
-                      {balanceCopy.displayValue}
-                    </Text>
-                    <Text
-                      variant="bodySmall"
-                      color={balanceCopy.color}
-                      align="right"
-                      style={[
-                        balanceCopy.labelTone === 'danger' ? styles.remainingOverText : undefined,
-                        balanceCopy.labelTone === 'success'
-                          ? styles.remainingPositiveText
-                          : undefined,
-                      ]}
-                    >
-                      {t(balanceCopy.labelKey)}
-                    </Text>
-                  </View>
-                </View>
+            <View style={styles.macroCard}>
+              <View style={styles.macroList}>
+                {macroRows.map((row) => {
+                  const progress = getMacroProgress(row.current, row.target);
 
-                <View style={styles.progressHeader}>
-                  <Text variant="bodySmall" weight="medium">
-                    {t('homeScreen.progress')}
-                  </Text>
-                  <Text variant="bodySmall" weight="semibold">
-                    {`${summary.consumedCalories} ${t('common.units.kcal')} (${summary.progressPercent}%)`}
-                  </Text>
-                </View>
-                <ProgressBar
-                  value={summary.progressPercent}
-                  size="lg"
-                  colorScheme={progressColorScheme}
-                />
-
-                {heroHighlight ? (
-                  <View style={styles.heroHighlight}>
-                    <View style={styles.heroHighlightIcon}>
-                      <Icon
-                        name={heroHighlight.icon}
-                        size={16}
-                        variant={heroHighlight.iconVariant}
-                      />
-                    </View>
-                    <View style={styles.heroHighlightCopy}>
-                      <Text variant="caption" color="secondary">
-                        {heroHighlight.label}
+                  return (
+                    <Card key={row.label} variant="elevated" style={styles.macroRow}>
+                      <Text variant="caption" weight="semibold" color="secondary" numberOfLines={1}>
+                        {row.label}
                       </Text>
-                      <Text variant="bodySmall" weight="semibold">
-                        {heroHighlight.value}
-                      </Text>
-                    </View>
-                  </View>
-                ) : null}
+                      <View style={styles.macroValueRow}>
+                        <Text variant="h3" weight="bold" color="primary" style={styles.macroValue}>
+                          {formatNumber(Math.round(row.current), i18n.language)}
+                        </Text>
+                        <Text variant="caption" color="secondary" style={styles.macroTarget}>
+                          {`/${formatNumber(Math.round(row.target), i18n.language)} g`}
+                        </Text>
+                      </View>
+                      <View
+                        style={styles.macroProgressTrack}
+                        accessibilityRole="progressbar"
+                        accessibilityLabel={row.label}
+                        accessibilityValue={{ min: 0, max: 100, now: progress }}
+                      >
+                        <View
+                          style={[
+                            styles.macroProgressFill,
+                            { width: `${progress}%`, backgroundColor: row.progressColor },
+                          ]}
+                        />
+                      </View>
+                    </Card>
+                  );
+                })}
+              </View>
+            </View>
 
-                <View style={styles.macroGoalSection}>
-                  <Text
-                    variant="bodySmall"
-                    weight="semibold"
-                    align="center"
-                    style={styles.macroGoalTitle}
-                  >
-                    {t('statsScreen.macros.title')}
-                  </Text>
+            <GoalTrackingCard goalTracking={goalTracking} todaySummary={summary} />
 
-                  <View style={styles.quickStatsRow}>
-                    <MacroGoalCard
-                      current={summary.proteinGrams}
-                      target={profile?.proteinTargetGrams ?? 0}
-                      label={t('statsScreen.macros.protein')}
-                      iconName="fish"
-                      iconColor={theme.colors.state.info}
-                      ringColor={theme.colors.state.info}
-                      ringTrackColor={theme.colors.state.infoBg}
-                    />
-                    <MacroGoalCard
-                      current={summary.carbsGrams}
-                      target={profile?.carbsTargetGrams ?? 0}
-                      label={t('statsScreen.macros.carbs')}
-                      iconName="nutrition"
-                      iconColor={theme.colors.state.warning}
-                      ringColor={theme.colors.state.warning}
-                      ringTrackColor={theme.colors.state.warningBg}
-                    />
-                    <MacroGoalCard
-                      current={summary.fatGrams}
-                      target={profile?.fatTargetGrams ?? 0}
-                      label={t('statsScreen.macros.fat')}
-                      iconName="water"
-                      iconColor={theme.colors.state.success}
-                      ringColor={theme.colors.state.success}
-                      ringTrackColor={theme.colors.state.successBg}
-                    />
-                  </View>
-                </View>
-              </LinearGradient>
-            ) : (
-              <Card variant="filled" style={styles.profilePromptCard}>
-                <View style={styles.profilePromptHeader}>
-                  <View style={styles.profilePromptIcon}>
-                    <Icon name="body-outline" size={18} variant="primary" />
-                  </View>
-                  <View style={styles.profilePromptCopy}>
-                    <Text variant="h3">{t('homeScreen.profilePrompt.title')}</Text>
-                    <Text variant="bodySmall" color="secondary">
-                      {t('homeScreen.profilePrompt.subtitle')}
-                    </Text>
-                  </View>
-                </View>
-
-                <Button
-                  title={t('homeScreen.profilePrompt.action')}
-                  onPress={() => router.push('/welcome')}
-                />
-              </Card>
-            )}
-
-            {goalTrackingSection}
+            <View style={styles.mealsHeaderRow}>
+              <View style={styles.cardHeaderCopy}>
+                <Text variant="body" weight="bold">
+                  {t('homeScreen.meals.title')}
+                </Text>
+                <Text variant="bodySmall" color="secondary">
+                  {t('homeScreen.meals.subtitle')}
+                </Text>
+              </View>
+              <Button
+                title={t('homeScreen.meals.review')}
+                variant="outline"
+                size="sm"
+                leftIcon={
+                  <Icon
+                    name="sparkles-outline"
+                    size={16}
+                    color={theme.colors.text.primary}
+                    variant="primary"
+                  />
+                }
+                disabled={!canOpenHomeAiReview}
+                onPress={handleOpenHomeAiReview}
+              />
+            </View>
 
             {entries.length === 0 ? (
-              <Card variant="filled" style={styles.emptyCard}>
-                <Text variant="h3">{t('homeScreen.meals.emptyTitle')}</Text>
+              <Card variant="elevated" style={styles.emptyCard}>
+                <Text variant="body" weight="bold">
+                  {t('homeScreen.meals.emptyTitle')}
+                </Text>
                 <Text variant="bodySmall" color="secondary">
                   {t('homeScreen.meals.emptySubtitle')}
                 </Text>
@@ -1002,10 +1259,250 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacingV.p20,
     paddingBottom: theme.metrics.spacingV.p24,
   },
+  monthSelectorCard: {
+    gap: 0,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p12,
+  },
   listContent: {
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: theme.metrics.spacingV.p16,
     gap: theme.metrics.spacingV.p4,
+  },
+  calorieCard: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  calorieRingWrap: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: theme.metrics.spacingV.p4,
+    paddingBottom: theme.metrics.spacingV.p4,
+    alignSelf: 'center',
+  },
+  calorieRingCenter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: theme.metrics.spacing.p36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.metrics.spacingV.p4,
+  },
+  calorieRingPrimaryCopy: {
+    alignItems: 'center',
+  },
+  calorieRingSecondaryCopy: {
+    alignItems: 'center',
+    marginTop: theme.metrics.spacingV.p8,
+  },
+  calorieRingEnds: {
+    position: 'absolute',
+    left: theme.metrics.spacing.p8,
+    right: theme.metrics.spacing.p8,
+    bottom: theme.metrics.spacingV.p4,
+  },
+  calorieRingEndAnchor: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  cardHeaderCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  calorieRingValue: {
+    lineHeight: 44,
+    fontWeight: '800',
+  },
+  macroCard: {
+    marginTop: -theme.metrics.spacingV.p4,
+  },
+  macroList: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+  },
+  macroRow: {
+    flex: 1,
+    minHeight: vs(78),
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacingV.p8,
+    borderRadius: theme.metrics.borderRadius.lg,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p8,
+  },
+  macroValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    minWidth: 0,
+  },
+  macroValue: {
+    lineHeight: 30,
+    fontWeight: '800',
+  },
+  macroTarget: {
+    flexShrink: 1,
+  },
+  macroProgressTrack: {
+    height: vs(5),
+    borderRadius: theme.metrics.borderRadius.full,
+    overflow: 'hidden',
+    backgroundColor: theme.colors.border.default,
+  },
+  macroProgressFill: {
+    height: '100%',
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.text.secondary,
+  },
+  mealsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  aiReviewSheetContent: {
+    gap: theme.metrics.spacingV.p16,
+    paddingBottom: theme.metrics.spacingV.p12,
+  },
+  aiReviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p16,
+  },
+  aiReviewHeaderCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  aiReviewIntroCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.xl,
+    padding: theme.metrics.spacing.p16,
+    backgroundColor: theme.colors.background.surface,
+  },
+  aiReviewIntroIcon: {
+    width: theme.metrics.spacing.p44,
+    height: theme.metrics.spacing.p44,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiReviewIntroCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  aiReviewIntroChevron: {
+    width: theme.metrics.spacing.p28,
+    alignItems: 'flex-end',
+  },
+  aiReviewDatePill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p4,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.background.section,
+  },
+  aiReviewHistoryHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  aiReviewLoadingState: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  aiReviewResult: {
+    gap: theme.metrics.spacingV.p12,
+  },
+  aiReviewHistoryList: {
+    gap: theme.metrics.spacingV.p16,
+  },
+  aiReviewHistorySection: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  aiReviewHistorySectionItems: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  aiReviewHistoryItem: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  aiReviewHistoryItemTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.metrics.spacing.p12,
+  },
+  aiReviewListBlock: {
+    gap: theme.metrics.spacingV.p8,
+    padding: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.xl,
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border.default,
+  },
+  aiReviewBulletList: {
+    gap: theme.metrics.spacingV.p8,
+  },
+  aiReviewBulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: theme.metrics.spacing.p8,
+  },
+  aiReviewBulletDot: {
+    width: theme.metrics.spacing.p4,
+    height: theme.metrics.spacing.p4,
+    borderRadius: theme.metrics.borderRadius.full,
+    backgroundColor: theme.colors.brand.primary,
+    marginTop: theme.metrics.spacingV.p8,
+  },
+  aiReviewBulletDotWarning: {
+    backgroundColor: theme.colors.state.warning,
+  },
+  aiReviewBulletText: {
+    flex: 1,
+  },
+  aiReviewSummaryCard: {
+    borderRadius: theme.metrics.borderRadius.xl,
+    padding: theme.metrics.spacing.p16,
+    borderColor: theme.colors.border.default,
+  },
+  aiReviewSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: theme.metrics.spacing.p12,
+  },
+  aiReviewSummaryIcon: {
+    width: theme.metrics.spacing.p48,
+    height: theme.metrics.spacing.p48,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiReviewSummaryCopy: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  aiReviewListHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+  },
+  aiReviewEmptyCard: {
+    gap: theme.metrics.spacingV.p4,
+  },
+  aiReviewActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: theme.metrics.spacing.p12,
+    flexWrap: 'wrap',
   },
   heroCard: {
     borderRadius: theme.metrics.borderRadius.xl,
@@ -1110,6 +1607,11 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     gap: theme.metrics.spacingV.p4,
   },
+  profilePromptLoading: {
+    minHeight: vs(140),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   goalTrackingCard: {
     gap: theme.metrics.spacingV.p12,
   },
@@ -1187,23 +1689,35 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.brand.primary,
   },
   mealSection: {
-    gap: theme.metrics.spacingV.p12,
+    gap: theme.metrics.spacingV.p4,
+  },
+  mealItemWrap: {
+    marginTop: theme.metrics.spacingV.p4,
+    marginBottom: theme.metrics.spacingV.p16,
+  },
+  addFoodIconCircle: {
+    width: theme.metrics.spacing.p24,
+    height: theme.metrics.spacing.p24,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.section,
   },
   sectionTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: theme.metrics.spacing.p20,
+    minHeight: theme.metrics.spacing.p12,
   },
   itemTimelineRow: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    gap: theme.metrics.spacing.p8,
-    paddingLeft: theme.metrics.spacing.p12,
+    gap: theme.metrics.spacing.p4,
+    paddingLeft: theme.metrics.spacing.p4,
   },
   itemRail: {
     width: theme.metrics.spacing.p20,
     alignItems: 'center',
-    paddingTop: theme.metrics.spacingV.p12,
+    paddingTop: theme.metrics.spacingV.p4,
   },
   itemDot: {
     width: theme.metrics.spacing.p8,

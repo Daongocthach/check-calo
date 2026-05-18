@@ -13,11 +13,12 @@ import {
   DateTimeField,
   Icon,
   Input,
-  QuantityStepper,
   ScreenContainer,
   Text,
   TextArea,
 } from '@/common/components';
+import { QuantitySelector } from '@/features/nutrition/components/QuantitySelector';
+import { upsertFoodProductCatalog } from '@/features/nutrition/services/barcodeFoodLookup';
 import {
   deleteOrphanedFoodEntryAssets,
   persistFoodEntryAssetsLocally,
@@ -26,18 +27,24 @@ import {
   enqueueFoodEntryImageSync,
   processPendingFoodEntryImageSyncQueue,
 } from '@/features/nutrition/services/foodEntrySyncQueue';
-import { createManualMealItem } from '@/features/nutrition/services/manualMealsDatabase';
+import {
+  createManualMealItem,
+  getManualMealByItemIds,
+  updateManualMealItem,
+  type ManualMealItem,
+} from '@/features/nutrition/services/manualMealsDatabase';
 import {
   createFoodEntry,
-  getFavoriteFoodById,
+  getRecentFoodById,
   getFoodEntryById,
-  upsertFavoriteFoodFromInput,
-  updateFavoriteFood,
+  upsertRecentFoodFromInput,
+  updateRecentFood,
   updateFoodEntry,
 } from '@/features/nutrition/services/nutritionDatabase';
 import { useAddMealStore } from '@/features/nutrition/stores/useAddMealStore';
+import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
 import { formatMealWeight, parseMealWeightInput } from '@/features/nutrition/utils/quantity';
-import { useOpenCamera } from '@/providers/camera';
+import { useOpenCamera, useOpenImageLibrary } from '@/providers/camera';
 import { toast } from '@/utils/toast';
 
 interface FoodFormState {
@@ -112,11 +119,12 @@ export default function FoodFormScreen() {
   const { theme } = useUnistyles();
   const params = useLocalSearchParams<{
     entryId?: string;
-    favoriteId?: string;
+    recentId?: string;
     draftItemId?: string;
     context?: string;
     submitMode?: string;
     mealLocalId?: string;
+    itemLocalId?: string;
     servings?: string;
     consumedAt?: string;
     foodName?: string;
@@ -127,15 +135,19 @@ export default function FoodFormScreen() {
     fat?: string;
     notes?: string;
     imageUri?: string;
+    barcode?: string;
   }>();
   const openCamera = useOpenCamera();
+  const openImageLibrary = useOpenImageLibrary();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [servings, setServings] = useState(1);
+  const [menuMealItem, setMenuMealItem] = useState<ManualMealItem | null>(null);
   const addMealItem = useAddMealStore((state) => state.addItem);
   const updateMealItem = useAddMealStore((state) => state.updateItem);
+  const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const {
     control,
     handleSubmit,
@@ -151,22 +163,35 @@ export default function FoodFormScreen() {
     () => typeof params.entryId === 'string' && params.entryId.length > 0,
     [params.entryId]
   );
-  const isEditingFavorite = useMemo(
-    () => typeof params.favoriteId === 'string' && params.favoriteId.length > 0,
-    [params.favoriteId]
+  const isEditingRecent = useMemo(
+    () => typeof params.recentId === 'string' && params.recentId.length > 0,
+    [params.recentId]
   );
-  const isEditing = isEditingEntry || isEditingFavorite;
+  const isAIDraftFlow = params.context === 'aiDraft' && !isEditingEntry && !isEditingRecent;
+  const isDraftEditing =
+    isAIDraftFlow && typeof params.draftItemId === 'string' && params.draftItemId.length > 0;
+  const isEditingMenuMealItem =
+    params.context === 'menuMeal' &&
+    typeof params.mealLocalId === 'string' &&
+    params.mealLocalId.length > 0 &&
+    typeof params.itemLocalId === 'string' &&
+    params.itemLocalId.length > 0;
+  const isEditing = isEditingEntry || isEditingRecent || isDraftEditing || isEditingMenuMealItem;
   const isAddMealFlow = params.context === 'addMeal' && !isEditing;
-  const isMenuMealFlow = params.context === 'menuMeal' && !isEditing;
+  const isMenuMealFlow = params.context === 'menuMeal' && !isEditingMenuMealItem;
+  const isRecentFoodFlow = params.context === 'recentFood' && !isEditing;
   const isInstantAddMealFlow = isAddMealFlow && params.submitMode === 'instant';
+  const isServingsFlow = isAddMealFlow || isAIDraftFlow;
 
   const loadScreenData = useCallback(async () => {
     setIsLoading(true);
+    setMenuMealItem(null);
 
     if (isEditingEntry && typeof params.entryId === 'string') {
       const entry = await getFoodEntryById(params.entryId);
 
       if (entry) {
+        setMenuMealItem(null);
         setServings(1);
         reset({
           foodName: entry.mealName,
@@ -183,27 +208,51 @@ export default function FoodFormScreen() {
         });
         setImageUri(entry.imageUri ?? null);
       }
-    } else if (isEditingFavorite && typeof params.favoriteId === 'string') {
-      const favorite = await getFavoriteFoodById(params.favoriteId);
+    } else if (isEditingRecent && typeof params.recentId === 'string') {
+      const recent = await getRecentFoodById(params.recentId);
 
-      if (favorite) {
+      if (recent) {
+        setMenuMealItem(null);
         setServings(1);
         reset({
-          foodName: favorite.name,
+          foodName: recent.name,
           quantityLabel:
-            favorite.quantityGrams !== null && favorite.quantityGrams !== undefined
-              ? toRoundedString(favorite.quantityGrams)
-              : favorite.quantityLabel,
+            recent.quantityGrams !== null && recent.quantityGrams !== undefined
+              ? toRoundedString(recent.quantityGrams)
+              : recent.quantityLabel,
           consumedAt: formatDateTimeInputValue(new Date()),
-          calories: toRoundedString(favorite.totalCalories),
-          protein: toRoundedString(favorite.proteinGrams),
-          carbs: toRoundedString(favorite.carbsGrams),
-          fat: toRoundedString(favorite.fatGrams),
-          notes: favorite.notes ?? '',
+          calories: toRoundedString(recent.totalCalories),
+          protein: toRoundedString(recent.proteinGrams),
+          carbs: toRoundedString(recent.carbsGrams),
+          fat: toRoundedString(recent.fatGrams),
+          notes: recent.notes ?? '',
         });
-        setImageUri(favorite.imageUri ?? null);
+        setImageUri(recent.imageUri ?? null);
+      }
+    } else if (isEditingMenuMealItem && params.mealLocalId && params.itemLocalId) {
+      const result = await getManualMealByItemIds(params.mealLocalId, params.itemLocalId);
+
+      if (result) {
+        const { meal, item } = result;
+        setMenuMealItem(item);
+        setServings(item.servings);
+        reset({
+          foodName: item.title,
+          quantityLabel:
+            item.quantityGrams !== null && item.quantityGrams !== undefined
+              ? toRoundedString(item.quantityGrams)
+              : item.quantityLabel,
+          consumedAt: formatDateTimeInputValue(meal.eatenAt),
+          calories: toRoundedString(item.totalCalories),
+          protein: toRoundedString(item.proteinGrams),
+          carbs: toRoundedString(item.carbsGrams),
+          fat: toRoundedString(item.fatGrams),
+          notes: item.notes ?? '',
+        });
+        setImageUri(item.imageUri ?? null);
       }
     } else {
+      setMenuMealItem(null);
       setServings(
         typeof params.servings === 'string' && Number(params.servings) > 0
           ? Number(params.servings)
@@ -227,16 +276,19 @@ export default function FoodFormScreen() {
 
     setIsLoading(false);
   }, [
+    isEditingMenuMealItem,
     isEditingEntry,
-    isEditingFavorite,
+    isEditingRecent,
     params.calories,
     params.carbs,
     params.consumedAt,
     params.entryId,
     params.fat,
-    params.favoriteId,
+    params.recentId,
     params.foodName,
     params.imageUri,
+    params.itemLocalId,
+    params.mealLocalId,
     params.notes,
     params.protein,
     params.quantityLabel,
@@ -260,6 +312,16 @@ export default function FoodFormScreen() {
     setImageUri(photo.uri);
   }, [openCamera]);
 
+  const handlePickPhoto = useCallback(async () => {
+    const photo = await openImageLibrary();
+
+    if (!photo) {
+      return;
+    }
+
+    setImageUri(photo.uri);
+  }, [openImageLibrary]);
+
   const totalCaloriesForSave = useMemo(
     () => Math.max(0, parseNumber(caloriesValue) * servings),
     [caloriesValue, servings]
@@ -270,7 +332,7 @@ export default function FoodFormScreen() {
       return t('manualFoodEntry.updateAction');
     }
 
-    if (isAddMealFlow) {
+    if (isServingsFlow) {
       return t('manualFoodEntry.saveActionWithCalories', {
         calories: Math.round(totalCaloriesForSave),
         kcal: t('common.units.kcal'),
@@ -278,7 +340,7 @@ export default function FoodFormScreen() {
     }
 
     return t('manualFoodEntry.saveAction');
-  }, [isAddMealFlow, isEditing, t, totalCaloriesForSave]);
+  }, [isEditing, isServingsFlow, t, totalCaloriesForSave]);
 
   const onSubmit = async (form: FoodFormState) => {
     const quantityGrams = parseMealWeightInput(form.quantityLabel);
@@ -295,13 +357,14 @@ export default function FoodFormScreen() {
         isEditingEntry && typeof params.entryId === 'string'
           ? await getFoodEntryById(params.entryId)
           : null;
-      const previousFavorite =
-        isEditingFavorite && typeof params.favoriteId === 'string'
-          ? await getFavoriteFoodById(params.favoriteId)
+      const previousRecent =
+        isEditingRecent && typeof params.recentId === 'string'
+          ? await getRecentFoodById(params.recentId)
           : null;
 
       const servingsMultiplier = isAddMealFlow ? servings : 1;
       const basePayload = {
+        barcode: typeof params.barcode === 'string' ? params.barcode : null,
         mealName: form.foodName.trim(),
         quantityLabel: formatMealWeight(quantityGrams, null, t('common.units.gram')),
         quantityGrams,
@@ -328,9 +391,78 @@ export default function FoodFormScreen() {
         fatGrams: basePayload.fatGrams * servingsMultiplier,
       };
 
-      const syncedFavorite = !isEditingFavorite
-        ? await upsertFavoriteFoodFromInput({
+      if (isAIDraftFlow) {
+        const existingDraft =
+          isDraftEditing && typeof params.draftItemId === 'string'
+            ? useAddMealStore
+                .getState()
+                .items.find((draftItem) => draftItem.id === params.draftItemId)
+            : null;
+        const nextDraftItem = {
+          sourceKey: existingDraft?.sourceKey ?? null,
+          title: basePayload.mealName,
+          quantityLabel: basePayload.quantityLabel,
+          quantityGrams: basePayload.quantityGrams,
+          totalCalories: basePayload.totalCalories,
+          proteinGrams: basePayload.proteinGrams,
+          carbsGrams: basePayload.carbsGrams,
+          fatGrams: basePayload.fatGrams,
+          notes: basePayload.notes,
+          imageUri: basePayload.imageUri,
+          thumbnailUri: basePayload.thumbnailUri,
+          consumedAt: basePayload.consumedAt,
+          servings,
+        };
+
+        if (isDraftEditing && typeof params.draftItemId === 'string') {
+          updateMealItem(params.draftItemId, nextDraftItem);
+        } else {
+          addMealItem(nextDraftItem);
+        }
+
+        router.back();
+        return;
+      }
+
+      if (isRecentFoodFlow) {
+        const syncedRecentRecent = await upsertRecentFoodFromInput({
+          name: basePayload.mealName,
+          barcode: basePayload.barcode,
+          quantityLabel: basePayload.quantityLabel,
+          quantityGrams: basePayload.quantityGrams ?? null,
+          totalCalories: basePayload.totalCalories,
+          proteinGrams: basePayload.proteinGrams,
+          carbsGrams: basePayload.carbsGrams,
+          fatGrams: basePayload.fatGrams,
+          notes: basePayload.notes,
+          imageUri: basePayload.imageUri,
+          thumbnailUri: basePayload.thumbnailUri,
+        });
+
+        if (basePayload.barcode && syncedRecentRecent) {
+          await upsertFoodProductCatalog({
+            barcode: basePayload.barcode,
+            name: syncedRecentRecent.name,
+            quantityLabel: syncedRecentRecent.quantityLabel,
+            quantityGrams: syncedRecentRecent.quantityGrams,
+            totalCalories: syncedRecentRecent.totalCalories,
+            proteinGrams: syncedRecentRecent.proteinGrams,
+            carbsGrams: syncedRecentRecent.carbsGrams,
+            fatGrams: syncedRecentRecent.fatGrams,
+            notes: syncedRecentRecent.notes,
+            imageUri: syncedRecentRecent.imageUri,
+            source: 'user',
+          });
+        }
+
+        router.replace('/recently-food');
+        return;
+      }
+
+      const syncedRecent = !isEditingRecent
+        ? await upsertRecentFoodFromInput({
             name: basePayload.mealName,
+            barcode: basePayload.barcode,
             quantityLabel: basePayload.quantityLabel,
             quantityGrams: basePayload.quantityGrams ?? null,
             totalCalories: basePayload.totalCalories,
@@ -342,6 +474,22 @@ export default function FoodFormScreen() {
             thumbnailUri: basePayload.thumbnailUri,
           })
         : null;
+
+      if (basePayload.barcode && syncedRecent) {
+        await upsertFoodProductCatalog({
+          barcode: basePayload.barcode,
+          name: basePayload.mealName,
+          quantityLabel: basePayload.quantityLabel,
+          quantityGrams: basePayload.quantityGrams ?? null,
+          totalCalories: basePayload.totalCalories,
+          proteinGrams: basePayload.proteinGrams,
+          carbsGrams: basePayload.carbsGrams,
+          fatGrams: basePayload.fatGrams,
+          notes: basePayload.notes,
+          imageUri: basePayload.imageUri,
+          source: 'user',
+        });
+      }
 
       if (isAddMealFlow) {
         if (isInstantAddMealFlow) {
@@ -356,13 +504,22 @@ export default function FoodFormScreen() {
             void processPendingFoodEntryImageSyncQueue();
           }
 
+          markFoodEntriesChanged();
           toast.success(t('addScreen.saveSuccess'));
           router.replace('/');
           return;
         }
 
+        let draftSourceKey: string | null = null;
+
+        if (basePayload.barcode) {
+          draftSourceKey = `barcode:${basePayload.barcode}`;
+        } else if (syncedRecent) {
+          draftSourceKey = `recent:${syncedRecent.id}`;
+        }
+
         const nextDraftItem = {
-          sourceKey: syncedFavorite ? `favorite:${syncedFavorite.id}` : null,
+          sourceKey: draftSourceKey,
           title: basePayload.mealName,
           quantityLabel: basePayload.quantityLabel,
           quantityGrams: basePayload.quantityGrams,
@@ -382,7 +539,7 @@ export default function FoodFormScreen() {
         } else {
           addMealItem(nextDraftItem);
         }
-        router.replace('/add');
+        router.replace('/');
         return;
       }
 
@@ -391,7 +548,16 @@ export default function FoodFormScreen() {
         typeof params.mealLocalId === 'string' &&
         params.mealLocalId.length > 0
       ) {
+        let menuSourceKey: string | null = null;
+
+        if (payload.barcode) {
+          menuSourceKey = `barcode:${payload.barcode}`;
+        } else if (syncedRecent) {
+          menuSourceKey = `recent:${syncedRecent.id}`;
+        }
+
         await createManualMealItem(params.mealLocalId, {
+          sourceKey: menuSourceKey,
           title: payload.mealName,
           quantityLabel: payload.quantityLabel,
           quantityGrams: payload.quantityGrams ?? null,
@@ -400,6 +566,8 @@ export default function FoodFormScreen() {
           carbsGrams: payload.carbsGrams,
           fatGrams: payload.fatGrams,
           notes: payload.notes,
+          imageUri: payload.imageUri,
+          thumbnailUri: payload.thumbnailUri,
           servings: 1,
         });
 
@@ -408,9 +576,46 @@ export default function FoodFormScreen() {
         return;
       }
 
-      if (isEditingFavorite && typeof params.favoriteId === 'string') {
-        await updateFavoriteFood(params.favoriteId, {
+      if (
+        isEditingMenuMealItem &&
+        typeof params.mealLocalId === 'string' &&
+        typeof params.itemLocalId === 'string'
+      ) {
+        const existingMenuItem =
+          menuMealItem ??
+          (await getManualMealByItemIds(params.mealLocalId, params.itemLocalId))?.item;
+
+        if (!existingMenuItem) {
+          return;
+        }
+
+        const existingSourceKey =
+          payload.barcode !== null ? `barcode:${payload.barcode}` : existingMenuItem.sourceKey;
+
+        await updateManualMealItem(params.itemLocalId, {
+          sourceKey: existingSourceKey,
+          title: payload.mealName,
+          quantityLabel: payload.quantityLabel,
+          quantityGrams: payload.quantityGrams ?? null,
+          totalCalories: payload.totalCalories,
+          proteinGrams: payload.proteinGrams,
+          carbsGrams: payload.carbsGrams,
+          fatGrams: payload.fatGrams,
+          notes: payload.notes,
+          imageUri: payload.imageUri,
+          thumbnailUri: payload.thumbnailUri,
+          servings: existingMenuItem.servings,
+        });
+
+        toast.success(t('manualFoodEntry.updateSuccess', { name: payload.mealName }));
+        router.replace('/menu');
+        return;
+      }
+
+      if (isEditingRecent && typeof params.recentId === 'string') {
+        const updatedRecent = await updateRecentFood(params.recentId, {
           name: payload.mealName,
+          barcode: payload.barcode ?? previousRecent?.barcode ?? null,
           quantityLabel: payload.quantityLabel,
           quantityGrams: payload.quantityGrams ?? null,
           totalCalories: payload.totalCalories,
@@ -421,11 +626,25 @@ export default function FoodFormScreen() {
           imageUri: payload.imageUri,
           thumbnailUri: payload.thumbnailUri,
         });
-        await deleteOrphanedFoodEntryAssets(
-          previousFavorite?.imageUri,
-          previousFavorite?.thumbnailUri
-        );
-        router.replace('/favorites');
+
+        if (updatedRecent?.barcode) {
+          await upsertFoodProductCatalog({
+            barcode: updatedRecent.barcode,
+            name: updatedRecent.name,
+            quantityLabel: updatedRecent.quantityLabel,
+            quantityGrams: updatedRecent.quantityGrams,
+            totalCalories: updatedRecent.totalCalories,
+            proteinGrams: updatedRecent.proteinGrams,
+            carbsGrams: updatedRecent.carbsGrams,
+            fatGrams: updatedRecent.fatGrams,
+            notes: updatedRecent.notes,
+            imageUri: updatedRecent.imageUri,
+            source: 'user',
+          });
+        }
+
+        await deleteOrphanedFoodEntryAssets(previousRecent?.imageUri, previousRecent?.thumbnailUri);
+        router.replace('/recently-food');
         return;
       }
 
@@ -445,6 +664,7 @@ export default function FoodFormScreen() {
         void processPendingFoodEntryImageSyncQueue();
       }
 
+      markFoodEntriesChanged();
       router.back();
     } finally {
       setIsSaving(false);
@@ -513,6 +733,33 @@ export default function FoodFormScreen() {
                 </View>
               </View>
             </Pressable>
+
+            <View style={styles.photoActions}>
+              <Button
+                title={t('manualFoodEntry.photoAction')}
+                variant="outline"
+                size="sm"
+                leftIcon={
+                  <Icon name="camera-outline" size={18} color={theme.colors.brand.primary} />
+                }
+                onPress={() => {
+                  void handleCapturePhoto();
+                }}
+                style={styles.photoActionButton}
+              />
+              <Button
+                title={t('manualFoodEntry.libraryPhotoAction')}
+                variant="outline"
+                size="sm"
+                leftIcon={
+                  <Icon name="image-outline" size={18} color={theme.colors.brand.primary} />
+                }
+                onPress={() => {
+                  void handlePickPhoto();
+                }}
+                style={styles.photoActionButton}
+              />
+            </View>
 
             <View style={styles.formBlock}>
               <Controller
@@ -645,7 +892,7 @@ export default function FoodFormScreen() {
                 )}
               />
 
-              {!isEditingFavorite ? (
+              {!isEditingRecent ? (
                 <Controller
                   control={control}
                   name="consumedAt"
@@ -675,24 +922,21 @@ export default function FoodFormScreen() {
         >
           <View style={styles.footer}>
             <View style={styles.actions}>
-              {isAddMealFlow ? (
-                <View style={styles.servingsBlock}>
-                  <Text variant="bodySmall" weight="semibold">
-                    {t('manualFoodEntry.portionCountLabel')}
-                  </Text>
-                  <QuantityStepper
-                    value={servings}
-                    minValue={1}
-                    decreaseLabel={t('addScreen.decreasePortion')}
-                    increaseLabel={t('addScreen.increasePortion')}
-                    onDecrease={() => {
-                      setServings((currentValue) => Math.max(1, currentValue - 1));
-                    }}
-                    onIncrease={() => {
-                      setServings((currentValue) => currentValue + 1);
-                    }}
-                  />
-                </View>
+              {isServingsFlow ? (
+                <QuantitySelector
+                  label={t('manualFoodEntry.portionCountLabel')}
+                  value={servings}
+                  minValue={1}
+                  decreaseLabel={t('addScreen.decreasePortion')}
+                  increaseLabel={t('addScreen.increasePortion')}
+                  onDecrease={() => {
+                    setServings((currentValue) => Math.max(1, currentValue - 1));
+                  }}
+                  onIncrease={() => {
+                    setServings((currentValue) => currentValue + 1);
+                  }}
+                  style={styles.servingsBlock}
+                />
               ) : null}
               <Button
                 title={saveButtonTitle}
@@ -811,6 +1055,13 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     backgroundColor:
       theme.colors.mode === 'dark' ? theme.colors.background.elevated : theme.colors.overlay.modal,
+  },
+  photoActions: {
+    flexDirection: 'row',
+    gap: theme.metrics.spacing.p8,
+  },
+  photoActionButton: {
+    flex: 1,
   },
   viewerContainer: {
     flex: 1,

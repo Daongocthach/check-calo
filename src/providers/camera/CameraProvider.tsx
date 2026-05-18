@@ -1,5 +1,6 @@
 import { CameraView, type BarcodeScanningResult, useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
 import {
   type ReactNode,
   createContext,
@@ -26,12 +27,14 @@ export interface CameraCaptureFile {
 }
 
 type OpenCamera = () => Promise<CameraCaptureFile | null>;
+type OpenImageLibrary = () => Promise<CameraCaptureFile | null>;
 type OpenBarcodeScanner = () => Promise<string | null>;
 
 type CameraMode = 'capture' | 'scan';
 
 interface CameraContextValue {
   openCamera: OpenCamera;
+  openImageLibrary: OpenImageLibrary;
   openBarcodeScanner: OpenBarcodeScanner;
 }
 
@@ -86,6 +89,8 @@ export function CameraProvider({ children }: CameraProviderProps) {
   const { theme } = useUnistyles();
   const { isTablet } = useScreenDimensions();
   const [permission, requestPermission] = useCameraPermissions();
+  const [mediaLibraryPermission, requestMediaLibraryPermission] =
+    ImagePicker.useMediaLibraryPermissions();
   const [visible, setVisible] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [facing, setFacing] = useState<'back' | 'front'>('back');
@@ -136,6 +141,23 @@ export function CameraProvider({ children }: CameraProviderProps) {
     return true;
   }, [permission?.granted, requestPermission, t]);
 
+  const requestMediaLibraryAccess = useCallback(async () => {
+    const hasPermission = mediaLibraryPermission?.granted ?? false;
+    let isGranted = hasPermission;
+
+    if (!hasPermission) {
+      const nextPermission = await requestMediaLibraryPermission();
+      isGranted = nextPermission.granted;
+    }
+
+    if (!isGranted) {
+      toast.error(t('camera.libraryPermissionDenied'));
+      return false;
+    }
+
+    return true;
+  }, [mediaLibraryPermission?.granted, requestMediaLibraryPermission, t]);
+
   const openCamera = useCallback(async () => {
     if (resolverRef.current) {
       return null;
@@ -157,6 +179,45 @@ export function CameraProvider({ children }: CameraProviderProps) {
       };
     });
   }, [requestCameraAccess, setZoomValue]);
+
+  const openImageLibrary = useCallback(async () => {
+    const isGranted = await requestMediaLibraryAccess();
+
+    if (!isGranted) {
+      return null;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        allowsMultipleSelection: false,
+        quality: 1,
+      });
+
+      if (result.canceled || result.assets.length === 0) {
+        return null;
+      }
+
+      const asset = result.assets[0];
+      const optimizedPhoto = await optimizeCapturedPhoto({
+        uri: asset.uri,
+        width: asset.width,
+        height: asset.height,
+      });
+
+      return {
+        uri: optimizedPhoto.uri,
+        width: optimizedPhoto.width,
+        height: optimizedPhoto.height,
+        fileName: buildFileName(asset.fileName ?? optimizedPhoto.uri),
+        mimeType: 'image/jpeg' as const,
+      };
+    } catch {
+      toast.error(t('camera.libraryPickFailed'));
+      return null;
+    }
+  }, [requestMediaLibraryAccess, t]);
 
   const openBarcodeScanner = useCallback(async () => {
     if (resolverRef.current) {
@@ -235,9 +296,10 @@ export function CameraProvider({ children }: CameraProviderProps) {
   const contextValue = useMemo(
     () => ({
       openCamera,
+      openImageLibrary,
       openBarcodeScanner,
     }),
-    [openBarcodeScanner, openCamera]
+    [openBarcodeScanner, openCamera, openImageLibrary]
   );
 
   const pinchGesture = useMemo(
@@ -402,6 +464,16 @@ export function useOpenQrScanner() {
   }
 
   return context.openBarcodeScanner;
+}
+
+export function useOpenImageLibrary() {
+  const context = useContext(CameraContext);
+
+  if (!context) {
+    throw new Error('useOpenImageLibrary must be used within CameraProvider');
+  }
+
+  return context.openImageLibrary;
 }
 
 const styles = StyleSheet.create((theme, rt) => ({

@@ -1,5 +1,10 @@
 export type DateTimeFieldMode = 'date' | 'time' | 'datetime';
 
+export interface DateTimeFieldHandle {
+  present: () => void;
+  dismiss: () => void;
+}
+
 export interface DateTimeFieldProps {
   label?: string;
   placeholder?: string;
@@ -13,4 +18,5 @@ export interface DateTimeFieldProps {
   locale?: string;
   minimumDate?: Date;
   maximumDate?: Date;
+  hideTrigger?: boolean;
 }

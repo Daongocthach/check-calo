@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Icon, Text } from '@/common/components';
 import { FoodImagePreview } from '@/features/nutrition/components/FoodImagePreview';
-import type { FavoriteFood, FoodEntry } from '@/features/nutrition/types';
+import type { RecentFood, FoodEntry } from '@/features/nutrition/types';
 import { formatMealWeight } from '@/features/nutrition/utils/quantity';
 
 export interface HomeMealCardItem {
@@ -18,7 +18,7 @@ export interface HomeMealCardItem {
   imageUri?: string | null;
   thumbnailUri?: string | null;
   devSyncBadgeLabel?: string | null;
-  isFavorite: boolean;
+  isRecent: boolean;
 }
 
 interface HomeMealCardContextValue {
@@ -70,7 +70,6 @@ function Root({ item, onPress, children }: RootProps) {
 
 function Preview() {
   const { item } = useHomeMealCardContext();
-  const { t } = useTranslation();
 
   return (
     <FoodImagePreview
@@ -78,13 +77,7 @@ function Preview() {
       thumbnailUri={item.thumbnailUri}
       devSyncBadgeLabel={item.devSyncBadgeLabel}
       style={styles.mealPreview}
-    >
-      <View style={styles.previewCalories}>
-        <Text variant="caption" weight="semibold" color="onShadow">
-          {`${Math.round(item.totalCalories)} ${t('common.units.kcal')}`}
-        </Text>
-      </View>
-    </FoodImagePreview>
+    />
   );
 }
 
@@ -98,21 +91,26 @@ function Header({ children }: { children?: ReactNode }) {
   return (
     <View style={styles.mealHeaderRow}>
       <View style={styles.mealTitleBlock}>
-        <Text variant="h3">{`${item.title} (${quantityDisplay})`}</Text>
+        <Text variant="body" weight="semibold" numberOfLines={2}>
+          {item.title}
+        </Text>
+        <Text variant="caption" color="secondary" numberOfLines={1}>
+          {quantityDisplay}
+        </Text>
       </View>
       {children ? <View style={styles.headerActions}>{children}</View> : null}
     </View>
   );
 }
 
-function FavoriteAction({ onPress }: { onPress: () => void | Promise<void> }) {
+function RecentAction({ onPress }: { onPress: () => void | Promise<void> }) {
   const { t } = useTranslation();
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t('common.edit')}
-      style={styles.favoriteButton}
+      style={styles.recentButton}
       onPress={(event) => {
         event.stopPropagation();
         void onPress();
@@ -123,52 +121,106 @@ function FavoriteAction({ onPress }: { onPress: () => void | Promise<void> }) {
   );
 }
 
-function Macros() {
+interface MacrosProps {
+  proteinTargetGrams?: number;
+  carbsTargetGrams?: number;
+  fatTargetGrams?: number;
+}
+
+function Macros({ proteinTargetGrams, carbsTargetGrams, fatTargetGrams }: MacrosProps) {
   const { item } = useHomeMealCardContext();
   const { t } = useTranslation();
+  const totalCalories = Math.round(item.totalCalories);
+  const proteinPercent =
+    proteinTargetGrams && proteinTargetGrams > 0
+      ? Math.min(100, Math.round((item.proteinGrams / proteinTargetGrams) * 100))
+      : 0;
+  const carbsPercent =
+    carbsTargetGrams && carbsTargetGrams > 0
+      ? Math.min(100, Math.round((item.carbsGrams / carbsTargetGrams) * 100))
+      : 0;
+  const fatPercent =
+    fatTargetGrams && fatTargetGrams > 0
+      ? Math.min(100, Math.round((item.fatGrams / fatTargetGrams) * 100))
+      : 0;
 
   return (
     <View style={styles.macroPanel}>
-      <View style={styles.macroColumn}>
+      <View style={styles.energyColumn}>
         <Text variant="caption" color="secondary">
-          {t('statsScreen.macros.protein')}
+          {t('homeScreen.meals.totalEnergy')}
         </Text>
-        <View style={styles.macroValueRow}>
-          <Text variant="bodySmall" weight="semibold">
-            {Math.round(item.proteinGrams)}
+        <View style={styles.energyValueRow}>
+          <Text variant="body" weight="bold">
+            {totalCalories}
           </Text>
-          <Text variant="caption" color="secondary">
-            {t('common.units.gram')}
+          <Text variant="bodySmall" color="secondary">
+            {t('common.units.kcal')}
           </Text>
         </View>
       </View>
+
       <View style={styles.macroDivider} />
-      <View style={styles.macroColumn}>
-        <Text variant="caption" color="secondary">
-          {t('statsScreen.macros.carbs')}
-        </Text>
-        <View style={styles.macroValueRow}>
-          <Text variant="bodySmall" weight="semibold">
-            {Math.round(item.carbsGrams)}
-          </Text>
-          <Text variant="caption" color="secondary">
-            {t('common.units.gram')}
-          </Text>
-        </View>
+
+      <View style={styles.macroColumns}>
+        <MacroStat
+          label={t('statsScreen.macros.protein')}
+          value={Math.round(item.proteinGrams)}
+          unit={t('common.units.gram')}
+          tone="success"
+          percent={proteinPercent}
+        />
+        <MacroStat
+          label={t('statsScreen.macros.carbs')}
+          value={Math.round(item.carbsGrams)}
+          unit={t('common.units.gram')}
+          tone="warning"
+          percent={carbsPercent}
+        />
+        <MacroStat
+          label={t('statsScreen.macros.fat')}
+          value={Math.round(item.fatGrams)}
+          unit={t('common.units.gram')}
+          tone="error"
+          percent={fatPercent}
+        />
       </View>
-      <View style={styles.macroDivider} />
-      <View style={styles.macroColumn}>
-        <Text variant="caption" color="secondary">
-          {t('statsScreen.macros.fat')}
+    </View>
+  );
+}
+
+interface MacroStatProps {
+  label: string;
+  value: number;
+  unit: string;
+  tone: 'success' | 'warning' | 'error';
+  percent: number;
+}
+
+function MacroStat({ label, value, unit, tone, percent }: MacroStatProps) {
+  return (
+    <View style={styles.macroStat}>
+      <Text variant="caption" color="secondary" numberOfLines={1}>
+        {label}
+      </Text>
+      <View style={styles.macroStatValueRow}>
+        <Text variant="caption" weight="semibold">
+          {value}
         </Text>
-        <View style={styles.macroValueRow}>
-          <Text variant="bodySmall" weight="semibold">
-            {Math.round(item.fatGrams)}
-          </Text>
-          <Text variant="caption" color="secondary">
-            {t('common.units.gram')}
-          </Text>
-        </View>
+        <Text variant="caption" color="secondary">
+          {unit}
+        </Text>
+      </View>
+      <View style={styles.macroTrack}>
+        <View
+          style={[
+            styles.macroFill,
+            tone === 'success' && styles.macroFillSuccess,
+            tone === 'warning' && styles.macroFillWarning,
+            tone === 'error' && styles.macroFillError,
+            { width: `${Math.max(12, percent)}%` },
+          ]}
+        />
       </View>
     </View>
   );
@@ -179,24 +231,25 @@ function Actions({ children }: { children: ReactNode }) {
 }
 
 interface ActionButtonProps {
-  icon: 'create-outline' | 'trash-outline';
+  icon: 'create-outline' | 'trash-outline' | 'ellipsis-vertical' | 'add-circle-outline';
   label: string;
   onPress: () => void;
   tone?: 'default' | 'danger';
+  iconColor?: string;
 }
 
-function ActionButton({ icon, label, onPress, tone = 'default' }: ActionButtonProps) {
+function ActionButton({ icon, label, onPress, tone = 'default', iconColor }: ActionButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={[styles.favoriteButton, tone === 'danger' && styles.actionButtonDanger]}
+      style={[styles.recentButton, tone === 'danger' && styles.actionButtonDanger]}
       onPress={(event) => {
         event.stopPropagation();
         onPress();
       }}
     >
-      <Icon name={icon} size={16} variant={tone === 'danger' ? 'accent' : 'primary'} />
+      <Icon name={icon} size={16} destructive={tone === 'danger'} color={iconColor} />
     </Pressable>
   );
 }
@@ -206,7 +259,7 @@ export const HomeMealCard = {
   Preview,
   Content,
   Header,
-  FavoriteAction,
+  RecentAction,
   Macros,
   Actions,
   ActionButton,
@@ -219,13 +272,14 @@ const styles = StyleSheet.create((theme) => ({
   mealCard: {
     flex: 1,
     backgroundColor: theme.colors.background.surface,
-    paddingHorizontal: theme.metrics.spacing.p8,
-    paddingVertical: theme.metrics.spacingV.p8,
+    paddingHorizontal: theme.metrics.spacing.p12,
+    paddingVertical: theme.metrics.spacingV.p12,
+    borderRadius: theme.metrics.borderRadius.xl,
   },
   mealMainRow: {
     flexDirection: 'row',
-    alignItems: 'stretch',
-    gap: theme.metrics.spacing.p4,
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p12,
   },
   mealCopy: {
     flex: 1,
@@ -237,19 +291,19 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: theme.metrics.spacing.p8,
-    paddingLeft: theme.metrics.spacing.p8,
   },
   mealTitleBlock: {
     flex: 1,
+    gap: theme.metrics.spacingV.p4,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.metrics.spacing.p8,
   },
-  favoriteButton: {
-    width: theme.metrics.spacing.p32,
-    height: theme.metrics.spacing.p32,
+  recentButton: {
+    width: theme.metrics.spacing.p36,
+    height: theme.metrics.spacing.p36,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
@@ -259,35 +313,63 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     alignItems: 'stretch',
     borderRadius: theme.metrics.borderRadius.lg,
-  },
-  macroColumn: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
+    backgroundColor: theme.colors.background.surfaceAlt,
     paddingHorizontal: theme.metrics.spacing.p8,
-    paddingVertical: theme.metrics.spacingV.p4,
+    paddingVertical: theme.metrics.spacingV.p8,
+    gap: theme.metrics.spacing.p8,
   },
-  macroValueRow: {
+  energyColumn: {
+    flex: 0.95,
+    gap: theme.metrics.spacingV.p4,
+    justifyContent: 'center',
+  },
+  energyValueRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: theme.metrics.spacing.p4,
   },
+  macroColumns: {
+    flex: 1.5,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: theme.metrics.spacing.p4,
+  },
   macroDivider: {
     width: 1,
-    marginVertical: theme.metrics.spacingV.p4,
-    backgroundColor: theme.colors.border.default,
+    backgroundColor: theme.colors.border.subtle,
   },
   mealPreview: {
-    width: theme.metrics.spacing.p88,
-    minHeight: theme.metrics.spacing.p88,
+    width: theme.metrics.spacing.p96,
+    height: theme.metrics.spacing.p96,
     borderRadius: theme.metrics.borderRadius.lg,
-    justifyContent: 'flex-end',
   },
-  previewCalories: {
-    alignSelf: 'center',
-    paddingHorizontal: theme.metrics.spacing.p8,
-    paddingVertical: theme.metrics.spacingV.p4,
+  macroStat: {
+    flex: 1,
+    gap: theme.metrics.spacingV.p4,
+  },
+  macroStatValueRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: theme.metrics.spacing.p4,
+  },
+  macroTrack: {
+    height: 4,
     borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.overlay.modal,
+    backgroundColor: theme.colors.background.surface,
+    overflow: 'hidden',
+  },
+  macroFill: {
+    height: '100%',
+    borderRadius: theme.metrics.borderRadius.full,
+  },
+  macroFillSuccess: {
+    backgroundColor: theme.colors.state.info,
+  },
+  macroFillWarning: {
+    backgroundColor: theme.colors.state.warning,
+  },
+  macroFillError: {
+    backgroundColor: theme.colors.state.success,
   },
   actionRow: {
     flexDirection: 'row',
@@ -302,16 +384,16 @@ const styles = StyleSheet.create((theme) => ({
 export function toHomeMealCardItem(item: {
   mealName?: string;
   name?: string;
-  quantityLabel: FoodEntry['quantityLabel'] | FavoriteFood['quantityLabel'];
-  quantityGrams?: FoodEntry['quantityGrams'] | FavoriteFood['quantityGrams'];
-  totalCalories: FoodEntry['totalCalories'] | FavoriteFood['totalCalories'];
-  proteinGrams: FoodEntry['proteinGrams'] | FavoriteFood['proteinGrams'];
-  carbsGrams: FoodEntry['carbsGrams'] | FavoriteFood['carbsGrams'];
-  fatGrams: FoodEntry['fatGrams'] | FavoriteFood['fatGrams'];
-  imageUri?: FoodEntry['imageUri'] | FavoriteFood['imageUri'];
-  thumbnailUri?: FoodEntry['thumbnailUri'] | FavoriteFood['thumbnailUri'];
+  quantityLabel: FoodEntry['quantityLabel'] | RecentFood['quantityLabel'];
+  quantityGrams?: FoodEntry['quantityGrams'] | RecentFood['quantityGrams'];
+  totalCalories: FoodEntry['totalCalories'] | RecentFood['totalCalories'];
+  proteinGrams: FoodEntry['proteinGrams'] | RecentFood['proteinGrams'];
+  carbsGrams: FoodEntry['carbsGrams'] | RecentFood['carbsGrams'];
+  fatGrams: FoodEntry['fatGrams'] | RecentFood['fatGrams'];
+  imageUri?: FoodEntry['imageUri'] | RecentFood['imageUri'];
+  thumbnailUri?: FoodEntry['thumbnailUri'] | RecentFood['thumbnailUri'];
   devSyncBadgeLabel?: string | null;
-  isFavorite: boolean;
+  isRecent: boolean;
 }): HomeMealCardItem {
   return {
     title:
@@ -325,6 +407,6 @@ export function toHomeMealCardItem(item: {
     imageUri: item.imageUri,
     thumbnailUri: item.thumbnailUri,
     devSyncBadgeLabel: item.devSyncBadgeLabel ?? null,
-    isFavorite: item.isFavorite,
+    isRecent: item.isRecent,
   };
 }
