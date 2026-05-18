@@ -109,7 +109,14 @@ const config: ExpoConfig = {
       },
     ],
     'expo-sqlite',
-    'expo-build-properties',
+    [
+      'expo-build-properties',
+      {
+        android: {
+          enableMinifyInReleaseBuilds: true,
+        },
+      },
+    ],
     'expo-web-browser',
     ['./plugins/with-android-splits'],
   ],
