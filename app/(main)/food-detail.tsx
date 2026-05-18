@@ -808,7 +808,7 @@ export default function FoodDetailScreen() {
   }
 
   return (
-    <ScreenContainer padded={false} edges={[]}>
+    <ScreenContainer padded={false} edges={['bottom']}>
       <View style={styles.screen}>
         <ScrollView
           style={styles.scrollView}
