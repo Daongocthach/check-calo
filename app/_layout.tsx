@@ -1,5 +1,4 @@
 import { useFonts } from 'expo-font';
-import { Image } from 'expo-image';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -9,7 +8,7 @@ import { Appearance, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import Toast from 'react-native-toast-message';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 import { AppHeader } from '@/common/components/AppHeader';
 import { ErrorBoundary } from '@/common/components/ErrorBoundary';
 import {
@@ -26,7 +25,6 @@ import { CameraProvider } from '@/providers/camera';
 import { initializeDatabase } from '@/services/database/sqlite';
 import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
 import { handleSystemThemeChange } from '@/theme/themeManager';
-import AppBackground from '../assets/background.png';
 import InterBold from '../assets/fonts/Inter-Bold.ttf';
 import InterMedium from '../assets/fonts/Inter-Medium.ttf';
 import InterRegular from '../assets/fonts/Inter-Regular.ttf';
@@ -61,7 +59,6 @@ function RootNavigator() {
 function AppContent() {
   useAuthInit();
   useFoodEntrySyncQueue();
-  const { theme } = useUnistyles();
   const router = useRouter();
 
   useEffect(() => {
@@ -131,14 +128,6 @@ function AppContent() {
 
   return (
     <View style={styles.appContainer}>
-      <Image
-        source={AppBackground}
-        style={[
-          styles.backgroundImage,
-          theme.colors.mode === 'dark' ? styles.backgroundImageDark : styles.backgroundImageLight,
-        ]}
-        contentFit="cover"
-      />
       <AppHeader />
       <RootNavigator />
     </View>
@@ -223,14 +212,5 @@ const styles = StyleSheet.create((theme) => ({
   appContainer: {
     flex: 1,
     backgroundColor: theme.colors.background.app,
-  },
-  backgroundImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  backgroundImageLight: {
-    opacity: 0.92,
-  },
-  backgroundImageDark: {
-    opacity: 0.12,
   },
 }));
