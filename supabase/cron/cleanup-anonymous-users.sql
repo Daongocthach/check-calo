@@ -2,11 +2,13 @@
 -- Before running:
 -- 1. Deploy the Edge Function: supabase functions deploy cleanup-anonymous-users
 -- 2. Set secret: supabase secrets set ANONYMOUS_CLEANUP_SECRET=...
--- 3. Replace YOUR_PROJECT_REF and YOUR_ANONYMOUS_CLEANUP_SECRET below.
+-- 3. Replace YOUR_PROJECT_REF and YOUR_ANONYMOUS_CLEANUP_SECRET below when running it.
+--    Never commit the real values. To rotate an existing secret, use
+--    vault.update_secret((select id from vault.secrets where name = 'anonymous_cleanup_secret'), '<new value>').
 
 -- Store secrets in Vault so the cron job does not hardcode them inline.
-select vault.create_secret('https://aeyzouadpkyvkyhqsoty.supabase.co', 'project_url');
-select vault.create_secret('5d7c4a91e8f24b7aa6c3f19d2e8b4c7f91a6d3e5b8c2f4a7d9e1c3b5f7a9d2c4', 'anonymous_cleanup_secret');
+select vault.create_secret('https://YOUR_PROJECT_REF.supabase.co', 'project_url');
+select vault.create_secret('YOUR_ANONYMOUS_CLEANUP_SECRET', 'anonymous_cleanup_secret');
 
 -- Optional: remove an existing job with the same name before re-creating it.
 select cron.unschedule('cleanup-anonymous-users-daily')

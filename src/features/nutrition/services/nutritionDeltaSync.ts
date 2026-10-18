@@ -82,6 +82,16 @@ interface SupabaseMealItemRow {
   updated_at: string;
 }
 
+interface CloudProfileRow {
+  display_name: string | null;
+  gender: string | null;
+  age: number | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  desired_weight_kg: number | null;
+  activity_level: string | null;
+}
+
 interface NutritionDeltaSyncResult {
   syncedCount: number;
   lastCursor: string | null;
@@ -568,11 +578,7 @@ export async function syncUserProfileFromCloud() {
     return false;
   }
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('gender, age, height_cm, weight_kg, desired_weight_kg, activity_level, display_name')
-    .eq('user_id', userId)
-    .single();
+  const { data, error } = await supabase.rpc('get_my_profile').maybeSingle<CloudProfileRow>();
 
   if (error || !data) {
     if (__DEV__) {
