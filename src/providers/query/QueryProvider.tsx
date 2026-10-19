@@ -1,7 +1,7 @@
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { useCallback, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
+import i18n from '@/i18n/config';
 import { toast } from '@/utils/toast';
 import { mmkvPersister } from './mmkvPersister';
 
@@ -9,41 +9,37 @@ interface QueryProviderProps {
   children: React.ReactNode;
 }
 
-export function QueryProvider({ children }: QueryProviderProps) {
-  const { t } = useTranslation();
+function handleError(error: Error) {
+  toast.error(error.message || i18n.t('errors.generic'), {
+    title: i18n.t('errors.title'),
+  });
+}
 
-  const handleError = useCallback(
-    (error: Error) => {
-      toast.error(error.message || t('errors.generic'), {
-        title: t('errors.title'),
-      });
+function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 60 * 24,
+        retry: 2,
+        refetchOnWindowFocus: false,
+      },
+      mutations: {
+        retry: 1,
+      },
     },
-    [t]
-  );
+    queryCache: new QueryCache({
+      onError: handleError,
+    }),
+    mutationCache: new MutationCache({
+      onError: handleError,
+    }),
+  });
+}
 
-  const queryClient = useMemo(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 1000 * 60 * 5,
-            gcTime: 1000 * 60 * 60 * 24,
-            retry: 2,
-            refetchOnWindowFocus: false,
-          },
-          mutations: {
-            retry: 1,
-          },
-        },
-        queryCache: new QueryCache({
-          onError: handleError,
-        }),
-        mutationCache: new MutationCache({
-          onError: handleError,
-        }),
-      }),
-    [handleError]
-  );
+export function QueryProvider({ children }: QueryProviderProps) {
+  // Created once so a language change (new `t` identity) does not drop the query cache.
+  const [queryClient] = useState(createQueryClient);
 
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: mmkvPersister }}>

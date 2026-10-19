@@ -107,9 +107,16 @@ export async function requestCalorieReminderPermissions() {
   return Notifications.requestPermissionsAsync();
 }
 
-export async function syncCalorieReminderSchedule(
-  inputSettings?: Partial<CalorieReminderSettings>
-) {
+let reminderSyncChain: Promise<unknown> = Promise.resolve();
+
+// Serialize schedule syncs: overlapping cancel-then-schedule runs would create duplicate reminders.
+export function syncCalorieReminderSchedule(inputSettings?: Partial<CalorieReminderSettings>) {
+  const run = reminderSyncChain.then(() => runCalorieReminderScheduleSync(inputSettings));
+  reminderSyncChain = run.catch(() => undefined);
+  return run;
+}
+
+async function runCalorieReminderScheduleSync(inputSettings?: Partial<CalorieReminderSettings>) {
   const settings = {
     ...getStoredCalorieReminderSettings(),
     ...inputSettings,

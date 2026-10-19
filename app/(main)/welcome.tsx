@@ -195,18 +195,28 @@ export default function WelcomeScreen() {
   const ageValue = watch('age');
   const heightValue = watch('height');
   const weightValue = watch('weight');
-  const debouncedProfileForm = useDebouncedValue(
-    {
-      displayName: watch('displayName'),
+  const displayNameValue = watch('displayName');
+  const profileFormSnapshot = useMemo(
+    () => ({
+      displayName: displayNameValue,
       gender: selectedGender,
       age: ageValue,
       height: heightValue,
       weight: weightValue,
       monthlyWeightGoalKg: selectedMonthlyWeightGoalKg,
       activityLevel: selectedActivityLevel,
-    },
-    250
+    }),
+    [
+      displayNameValue,
+      selectedGender,
+      ageValue,
+      heightValue,
+      weightValue,
+      selectedMonthlyWeightGoalKg,
+      selectedActivityLevel,
+    ]
   );
+  const debouncedProfileForm = useDebouncedValue(profileFormSnapshot, 250);
   const profileSummary = useMemo(
     () => buildProfileSummary(debouncedProfileForm),
     [debouncedProfileForm]

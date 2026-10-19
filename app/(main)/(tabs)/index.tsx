@@ -398,6 +398,12 @@ function CaloriesRing({
   );
 }
 
+function logHomeLoadError(error: unknown) {
+  if (__DEV__) {
+    console.warn('[Home] Failed to load nutrition data', error);
+  }
+}
+
 export default function HomeTab() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
@@ -444,7 +450,11 @@ export default function HomeTab() {
     previousCurrentDateRef.current = currentDate;
   }, [currentDate]);
 
+  const nutritionLoadGenerationRef = useRef(0);
+  const monthStatusLoadGenerationRef = useRef(0);
+
   const loadNutritionData = useCallback(async (date: Date) => {
+    const generation = ++nutritionLoadGenerationRef.current;
     const [nextProfile, nextSummary, nextEntries, nextGoalTracking] = await Promise.all([
       getUserProfile(),
       getDailyNutritionSummary(date),
@@ -458,6 +468,11 @@ export default function HomeTab() {
       devSyncBadgeLabel: toDevSyncBadgeLabel(entry.imageUri, syncStateMap[entry.id]),
     }));
 
+    // Ignore results from an older request so fast date taps cannot show another day's data.
+    if (generation !== nutritionLoadGenerationRef.current) {
+      return;
+    }
+
     setHasProfile(nextProfile !== null);
     setProfile(nextProfile);
     setSummary(nextSummary);
@@ -468,7 +483,12 @@ export default function HomeTab() {
   const loadMonthStatuses = useCallback(async (month: Date) => {
     const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
     const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+    const generation = ++monthStatusLoadGenerationRef.current;
     const statuses = await listLoggedDailyStatuses(monthStart, monthEnd);
+
+    if (generation !== monthStatusLoadGenerationRef.current) {
+      return;
+    }
 
     setMonthStatuses(
       statuses.reduce<Partial<Record<string, 'success' | 'failed'>>>((accumulator, item) => {
@@ -985,8 +1005,8 @@ export default function HomeTab() {
 
   useFocusEffect(
     useCallback(() => {
-      void loadNutritionData(selectedDate);
-      void loadMonthStatuses(visibleMonth);
+      loadNutritionData(selectedDate).catch(logHomeLoadError);
+      loadMonthStatuses(visibleMonth).catch(logHomeLoadError);
     }, [loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth])
   );
 
@@ -996,8 +1016,8 @@ export default function HomeTab() {
     }
 
     lastFoodEntryRefreshRevisionRef.current = foodEntryRefreshRevision;
-    void loadNutritionData(selectedDate);
-    void loadMonthStatuses(visibleMonth);
+    loadNutritionData(selectedDate).catch(logHomeLoadError);
+    loadMonthStatuses(visibleMonth).catch(logHomeLoadError);
   }, [foodEntryRefreshRevision, loadMonthStatuses, loadNutritionData, selectedDate, visibleMonth]);
 
   const mealSections = useMemo<MealSection[]>(() => {

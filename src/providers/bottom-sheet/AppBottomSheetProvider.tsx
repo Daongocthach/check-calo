@@ -61,6 +61,10 @@ function FixedBackdrop({ animatedIndex, style, onPress }: FixedBackdropProps) {
   );
 }
 
+function areSnapPointsEqual(left: Array<string | number>, right: Array<string | number>) {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
 export function AppBottomSheetProvider({ children }: AppBottomSheetProviderProps) {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
@@ -98,7 +102,11 @@ export function AppBottomSheetProvider({ children }: AppBottomSheetProviderProps
 
     pendingOpenRef.current = !isPresentedRef.current;
     dismissHandlerRef.current = onDismiss;
-    setSnapPoints(nextSnapPoints);
+    // Keep the previous array when values are unchanged so the sheet does not recompute snap points
+    // every time callers re-open it with fresh content.
+    setSnapPoints((currentSnapPoints) =>
+      areSnapPointsEqual(currentSnapPoints, nextSnapPoints) ? currentSnapPoints : nextSnapPoints
+    );
     setContent(nextContent);
     setEnablePanDownToClose(nextEnablePanDownToClose);
     setShowCloseButton(nextShowCloseButton ?? !nextEnablePanDownToClose);

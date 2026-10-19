@@ -182,8 +182,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
 
-    authSubscription?.unsubscribe();
-
     const {
       data: { session },
       error,
@@ -198,6 +196,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       applyAuthState(set, session);
     }
 
+    // Unsubscribe right before re-subscribing so concurrent initialize() calls cannot leak a listener.
+    authSubscription?.unsubscribe();
     authSubscription = supabase.auth.onAuthStateChange((_event, nextSession) => {
       applyAuthState(set, nextSession);
     }).data.subscription;

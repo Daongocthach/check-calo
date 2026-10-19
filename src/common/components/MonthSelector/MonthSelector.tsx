@@ -62,6 +62,15 @@ export function MonthSelector({
       }),
     [resolvedLocale]
   );
+  const accessibilityDateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(resolvedLocale, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }),
+    [resolvedLocale]
+  );
   const weekdayFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat(resolvedLocale, {
@@ -168,11 +177,7 @@ export function MonthSelector({
     return (
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={new Intl.DateTimeFormat(resolvedLocale, {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        }).format(item)}
+        accessibilityLabel={accessibilityDateFormatter.format(item)}
         accessibilityState={{ selected: isSelected, disabled }}
         disabled={disabled}
         onPress={() => onChange(startOfDay(item))}

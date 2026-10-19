@@ -184,6 +184,23 @@ async function markJobAsPending(jobId: string) {
   );
 }
 
+// Jobs are only marked 'processing' inside the guarded queue loop, so any left over when a new run
+// starts were orphaned by an app kill mid-upload and must be re-queued.
+async function requeueOrphanedProcessingJobs() {
+  const database = await getDatabase();
+
+  await database.runAsync(
+    `
+      UPDATE sync_queue
+      SET status = 'pending', updated_at = ?
+      WHERE entity_type = ?
+        AND operation = ?
+        AND status = 'processing';
+    `,
+    [nowIsoString(), FOOD_ENTRY_IMAGE_SYNC_ENTITY_TYPE, FOOD_ENTRY_IMAGE_SYNC_OPERATION]
+  );
+}
+
 async function markJobAsFailed(jobId: string, retryCount: number, errorMessage: string) {
   const database = await getDatabase();
   const now = nowIsoString();
@@ -285,6 +302,7 @@ export async function processPendingFoodEntryImageSyncQueue() {
       return;
     }
 
+    await requeueOrphanedProcessingJobs();
     const jobs = await getPendingFoodEntryImageJobs();
 
     for (const job of jobs) {
