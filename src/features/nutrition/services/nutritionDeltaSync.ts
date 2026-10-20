@@ -539,9 +539,16 @@ export async function syncRecentFoodsDeltaFromSupabase(
     let lastCursor = cursor;
 
     for (const row of data as SupabaseRecentFoodRow[]) {
-      await upsertRecentFoodFromCloudRow(database, row);
-      if (!lastCursor || row.updated_at > lastCursor) {
-        lastCursor = row.updated_at;
+      try {
+        await upsertRecentFoodFromCloudRow(database, row);
+
+        if (!lastCursor || row.updated_at > lastCursor) {
+          lastCursor = row.updated_at;
+        }
+      } catch (err) {
+        if (__DEV__) {
+          console.error('[DeltaSync] Failed to upsert recent food:', row.id, err);
+        }
       }
     }
 

@@ -10,12 +10,18 @@ import {
   syncMealItemsDeltaFromSupabase,
 } from '../services/nutritionDeltaSync';
 
+function handleSyncError(error: unknown) {
+  if (__DEV__) {
+    console.warn('[NutritionSync] Background sync failed', error);
+  }
+}
+
 function runNutritionSync() {
-  void processPendingFoodEntryImageSyncQueue();
-  void syncFoodEntriesDeltaFromSupabase();
-  void syncRecentFoodsDeltaFromSupabase();
-  void syncMealsDeltaFromSupabase();
-  void syncMealItemsDeltaFromSupabase();
+  processPendingFoodEntryImageSyncQueue().catch(handleSyncError);
+  syncFoodEntriesDeltaFromSupabase().catch(handleSyncError);
+  syncRecentFoodsDeltaFromSupabase().catch(handleSyncError);
+  syncMealsDeltaFromSupabase().catch(handleSyncError);
+  syncMealItemsDeltaFromSupabase().catch(handleSyncError);
 }
 
 export function useFoodEntrySyncQueue() {
