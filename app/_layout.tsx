@@ -102,14 +102,20 @@ function AppContent() {
       }
     });
 
-    void Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (!mounted || !isCalorieReminderResponse(response)) {
-        return;
-      }
+    void Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (!mounted || !isCalorieReminderResponse(response)) {
+          return;
+        }
 
-      useAddMealSourceSheetStore.getState().requestOpen();
-      router.replace('/');
-    });
+        useAddMealSourceSheetStore.getState().requestOpen();
+        router.replace('/');
+      })
+      .catch((error: unknown) => {
+        if (__DEV__) {
+          console.warn('Failed to read last notification response', error);
+        }
+      });
 
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
       if (!isCalorieReminderResponse(response)) {

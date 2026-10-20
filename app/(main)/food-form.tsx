@@ -187,94 +187,97 @@ export default function FoodFormScreen() {
     setIsLoading(true);
     setMenuMealItem(null);
 
-    if (isEditingEntry && typeof params.entryId === 'string') {
-      const entry = await getFoodEntryById(params.entryId);
+    // try/finally so a failed DB read cannot leave the form stuck on the loading state.
+    try {
+      if (isEditingEntry && typeof params.entryId === 'string') {
+        const entry = await getFoodEntryById(params.entryId);
 
-      if (entry) {
+        if (entry) {
+          setMenuMealItem(null);
+          setServings(1);
+          reset({
+            foodName: entry.mealName,
+            quantityLabel:
+              entry.quantityGrams !== null && entry.quantityGrams !== undefined
+                ? toRoundedString(entry.quantityGrams)
+                : entry.quantityLabel,
+            consumedAt: formatDateTimeInputValue(entry.consumedAt),
+            calories: toRoundedString(entry.totalCalories),
+            protein: toRoundedString(entry.proteinGrams),
+            carbs: toRoundedString(entry.carbsGrams),
+            fat: toRoundedString(entry.fatGrams),
+            notes: entry.notes ?? '',
+          });
+          setImageUri(entry.imageUri ?? null);
+        }
+      } else if (isEditingRecent && typeof params.recentId === 'string') {
+        const recent = await getRecentFoodById(params.recentId);
+
+        if (recent) {
+          setMenuMealItem(null);
+          setServings(1);
+          reset({
+            foodName: recent.name,
+            quantityLabel:
+              recent.quantityGrams !== null && recent.quantityGrams !== undefined
+                ? toRoundedString(recent.quantityGrams)
+                : recent.quantityLabel,
+            consumedAt: formatDateTimeInputValue(new Date()),
+            calories: toRoundedString(recent.totalCalories),
+            protein: toRoundedString(recent.proteinGrams),
+            carbs: toRoundedString(recent.carbsGrams),
+            fat: toRoundedString(recent.fatGrams),
+            notes: recent.notes ?? '',
+          });
+          setImageUri(recent.imageUri ?? null);
+        }
+      } else if (isEditingMenuMealItem && params.mealLocalId && params.itemLocalId) {
+        const result = await getManualMealByItemIds(params.mealLocalId, params.itemLocalId);
+
+        if (result) {
+          const { meal, item } = result;
+          setMenuMealItem(item);
+          setServings(item.servings);
+          reset({
+            foodName: item.title,
+            quantityLabel:
+              item.quantityGrams !== null && item.quantityGrams !== undefined
+                ? toRoundedString(item.quantityGrams)
+                : item.quantityLabel,
+            consumedAt: formatDateTimeInputValue(meal.eatenAt),
+            calories: toRoundedString(item.totalCalories),
+            protein: toRoundedString(item.proteinGrams),
+            carbs: toRoundedString(item.carbsGrams),
+            fat: toRoundedString(item.fatGrams),
+            notes: item.notes ?? '',
+          });
+          setImageUri(item.imageUri ?? null);
+        }
+      } else {
         setMenuMealItem(null);
-        setServings(1);
+        setServings(
+          typeof params.servings === 'string' && Number(params.servings) > 0
+            ? Number(params.servings)
+            : 1
+        );
         reset({
-          foodName: entry.mealName,
-          quantityLabel:
-            entry.quantityGrams !== null && entry.quantityGrams !== undefined
-              ? toRoundedString(entry.quantityGrams)
-              : entry.quantityLabel,
-          consumedAt: formatDateTimeInputValue(entry.consumedAt),
-          calories: toRoundedString(entry.totalCalories),
-          protein: toRoundedString(entry.proteinGrams),
-          carbs: toRoundedString(entry.carbsGrams),
-          fat: toRoundedString(entry.fatGrams),
-          notes: entry.notes ?? '',
+          foodName: typeof params.foodName === 'string' ? params.foodName : '',
+          quantityLabel: typeof params.quantityLabel === 'string' ? params.quantityLabel : '',
+          consumedAt:
+            typeof params.consumedAt === 'string' && params.consumedAt.length > 0
+              ? formatDateTimeInputValue(params.consumedAt)
+              : formatDateTimeInputValue(new Date()),
+          calories: typeof params.calories === 'string' ? params.calories : '',
+          protein: typeof params.protein === 'string' ? params.protein : '',
+          carbs: typeof params.carbs === 'string' ? params.carbs : '',
+          fat: typeof params.fat === 'string' ? params.fat : '',
+          notes: typeof params.notes === 'string' ? params.notes : '',
         });
-        setImageUri(entry.imageUri ?? null);
+        setImageUri(typeof params.imageUri === 'string' ? params.imageUri : null);
       }
-    } else if (isEditingRecent && typeof params.recentId === 'string') {
-      const recent = await getRecentFoodById(params.recentId);
-
-      if (recent) {
-        setMenuMealItem(null);
-        setServings(1);
-        reset({
-          foodName: recent.name,
-          quantityLabel:
-            recent.quantityGrams !== null && recent.quantityGrams !== undefined
-              ? toRoundedString(recent.quantityGrams)
-              : recent.quantityLabel,
-          consumedAt: formatDateTimeInputValue(new Date()),
-          calories: toRoundedString(recent.totalCalories),
-          protein: toRoundedString(recent.proteinGrams),
-          carbs: toRoundedString(recent.carbsGrams),
-          fat: toRoundedString(recent.fatGrams),
-          notes: recent.notes ?? '',
-        });
-        setImageUri(recent.imageUri ?? null);
-      }
-    } else if (isEditingMenuMealItem && params.mealLocalId && params.itemLocalId) {
-      const result = await getManualMealByItemIds(params.mealLocalId, params.itemLocalId);
-
-      if (result) {
-        const { meal, item } = result;
-        setMenuMealItem(item);
-        setServings(item.servings);
-        reset({
-          foodName: item.title,
-          quantityLabel:
-            item.quantityGrams !== null && item.quantityGrams !== undefined
-              ? toRoundedString(item.quantityGrams)
-              : item.quantityLabel,
-          consumedAt: formatDateTimeInputValue(meal.eatenAt),
-          calories: toRoundedString(item.totalCalories),
-          protein: toRoundedString(item.proteinGrams),
-          carbs: toRoundedString(item.carbsGrams),
-          fat: toRoundedString(item.fatGrams),
-          notes: item.notes ?? '',
-        });
-        setImageUri(item.imageUri ?? null);
-      }
-    } else {
-      setMenuMealItem(null);
-      setServings(
-        typeof params.servings === 'string' && Number(params.servings) > 0
-          ? Number(params.servings)
-          : 1
-      );
-      reset({
-        foodName: typeof params.foodName === 'string' ? params.foodName : '',
-        quantityLabel: typeof params.quantityLabel === 'string' ? params.quantityLabel : '',
-        consumedAt:
-          typeof params.consumedAt === 'string' && params.consumedAt.length > 0
-            ? formatDateTimeInputValue(params.consumedAt)
-            : formatDateTimeInputValue(new Date()),
-        calories: typeof params.calories === 'string' ? params.calories : '',
-        protein: typeof params.protein === 'string' ? params.protein : '',
-        carbs: typeof params.carbs === 'string' ? params.carbs : '',
-        fat: typeof params.fat === 'string' ? params.fat : '',
-        notes: typeof params.notes === 'string' ? params.notes : '',
-      });
-      setImageUri(typeof params.imageUri === 'string' ? params.imageUri : null);
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   }, [
     isEditingMenuMealItem,
     isEditingEntry,
@@ -298,7 +301,11 @@ export default function FoodFormScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      void loadScreenData();
+      loadScreenData().catch((error: unknown) => {
+        if (__DEV__) {
+          console.warn('[FoodForm] Failed to load screen data', error);
+        }
+      });
     }, [loadScreenData])
   );
 
