@@ -1,5 +1,5 @@
 {
   "permissions": {
-    "allow": []
+    "allow": ["Bash(npx -y supabase@2.121.0 db query:*)"]
   }
 }
