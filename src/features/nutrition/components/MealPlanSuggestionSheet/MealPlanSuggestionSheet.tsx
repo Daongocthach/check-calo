@@ -418,39 +418,46 @@ function MealPlanReviewContent({ payload, onRequestClose }: MealPlanReviewConten
       ? getLatestMenuAiReviewHistoryRecord(new Date(payload.selectedDateIso))
       : null;
 
-    void loadMealsForSelectedDay().then((meals) => {
-      if (
-        latestRecord &&
-        (!payload?.mealLocalId || latestRecord.mealLocalId === payload.mealLocalId)
-      ) {
-        if (latestRecord.status === 'ready' && latestRecord.review) {
-          setReviewState({
-            status: 'ready',
-            review: latestRecord.review,
-            assistantMessage: latestRecord.assistantMessage,
-          });
-          return;
+    void loadMealsForSelectedDay()
+      .then((meals) => {
+        if (
+          latestRecord &&
+          (!payload?.mealLocalId || latestRecord.mealLocalId === payload.mealLocalId)
+        ) {
+          if (latestRecord.status === 'ready' && latestRecord.review) {
+            setReviewState({
+              status: 'ready',
+              review: latestRecord.review,
+              assistantMessage: latestRecord.assistantMessage,
+            });
+            return;
+          }
+
+          if (latestRecord.status === 'unsupported') {
+            setReviewState({
+              status: 'unsupported',
+              message: latestRecord.assistantMessage ?? t('menuScreen.review.unsupportedTitle'),
+            });
+            return;
+          }
+
+          if (latestRecord.status === 'need_more_info') {
+            setReviewState({
+              status: 'need_more_info',
+              message: latestRecord.assistantMessage ?? t('menuScreen.review.generateNeedMoreInfo'),
+            });
+            return;
+          }
         }
 
-        if (latestRecord.status === 'unsupported') {
-          setReviewState({
-            status: 'unsupported',
-            message: latestRecord.assistantMessage ?? t('menuScreen.review.unsupportedTitle'),
-          });
-          return;
-        }
-
-        if (latestRecord.status === 'need_more_info') {
-          setReviewState({
-            status: 'need_more_info',
-            message: latestRecord.assistantMessage ?? t('menuScreen.review.generateNeedMoreInfo'),
-          });
-          return;
-        }
-      }
-
-      void runReview(meals);
-    });
+        void runReview(meals);
+      })
+      .catch((error: unknown) => {
+        setReviewState({
+          status: 'error',
+          message: error instanceof Error ? error.message : t('menuScreen.review.generateFailed'),
+        });
+      });
   }, [
     loadMealsForSelectedDay,
     payload?.mealLocalId,

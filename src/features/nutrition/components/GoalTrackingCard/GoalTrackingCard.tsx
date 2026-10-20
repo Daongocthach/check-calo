@@ -15,8 +15,29 @@ interface GoalTrackingCardProps {
   todaySummary: DailyNutritionSummary;
 }
 
+const numberFormatterCache = new Map<string, Intl.NumberFormat>();
+
+// Intl formatters are expensive to construct on Hermes; reuse one per locale + fraction digits.
+function getNumberFormatter(locale: string, fractionDigits?: number) {
+  const cacheKey = `${locale}|${fractionDigits ?? ''}`;
+  let formatter = numberFormatterCache.get(cacheKey);
+
+  if (!formatter) {
+    formatter =
+      fractionDigits === undefined
+        ? new Intl.NumberFormat(locale)
+        : new Intl.NumberFormat(locale, {
+            minimumFractionDigits: fractionDigits,
+            maximumFractionDigits: fractionDigits,
+          });
+    numberFormatterCache.set(cacheKey, formatter);
+  }
+
+  return formatter;
+}
+
 function formatNumber(value: number, locale: string) {
-  return new Intl.NumberFormat(locale).format(value);
+  return getNumberFormatter(locale).format(value);
 }
 
 function formatSignedNumber(value: number, locale: string, fractionDigits = 0) {
@@ -28,17 +49,11 @@ function formatSignedNumber(value: number, locale: string, fractionDigits = 0) {
     sign = '-';
   }
 
-  return `${sign}${new Intl.NumberFormat(locale, {
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  }).format(Math.abs(value))}`;
+  return `${sign}${getNumberFormatter(locale, fractionDigits).format(Math.abs(value))}`;
 }
 
 function formatWeightEquivalentKg(value: number, locale: string) {
-  return `~${new Intl.NumberFormat(locale, {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  }).format(Math.abs(value) / 7700)}`;
+  return `~${getNumberFormatter(locale, 1).format(Math.abs(value) / 7700)}`;
 }
 
 function getCalorieBalanceStatusKey(difference: number) {

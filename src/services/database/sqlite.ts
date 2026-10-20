@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 13;
+const DATABASE_VERSION = 14;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -474,6 +474,20 @@ async function runVersion13Migration(database: SQLite.SQLiteDatabase) {
   `);
 }
 
+// Additive, idempotent indexes for hot read paths; no data or schema changes.
+async function runVersion14Migration(database: SQLite.SQLiteDatabase) {
+  await database.execAsync(`
+    CREATE INDEX IF NOT EXISTS idx_sync_queue_entity
+      ON sync_queue(entity_type, operation, entity_local_id);
+    CREATE INDEX IF NOT EXISTS idx_recent_foods_updated_at
+      ON recent_foods(updated_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_recent_foods_name_nocase
+      ON recent_foods(name COLLATE NOCASE);
+    CREATE INDEX IF NOT EXISTS idx_food_entries_entry_date_consumed_at
+      ON food_entries(entry_date, consumed_at);
+  `);
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -529,6 +543,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 13) {
     await runVersion13Migration(database);
+  }
+
+  if (currentVersion < 14) {
+    await runVersion14Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {
