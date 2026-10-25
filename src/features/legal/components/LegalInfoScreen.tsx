@@ -212,7 +212,13 @@ function AboutScreenContent() {
   const router = useRouter();
 
   return (
-    <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
+    <ScreenContainer
+      scrollable
+      padded={false}
+      edges={['bottom']}
+      tabBarAware
+      title={t('settings.about')}
+    >
       <View style={styles.aboutScreen}>
         <View style={styles.aboutHero}>
           <LeafBadge />
@@ -251,10 +257,17 @@ function AboutScreenContent() {
 }
 
 function LegalDocumentScreen({ type }: { type: Exclude<LegalScreenType, 'about'> }) {
+  const { t } = useTranslation();
   const items = type === 'terms' ? [...TERMS_ITEMS, ...TERMS_MORE_ITEMS] : PRIVACY_ITEMS;
 
   return (
-    <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
+    <ScreenContainer
+      scrollable
+      padded={false}
+      edges={['bottom']}
+      tabBarAware
+      title={type === 'terms' ? t('settings.terms') : t('settings.privacy')}
+    >
       <View style={styles.documentScreen}>
         <SummaryCard type={type} />
 

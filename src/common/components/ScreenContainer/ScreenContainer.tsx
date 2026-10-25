@@ -1,4 +1,5 @@
 import { ScrollView, View } from 'react-native';
+import { ScreenHeader } from '@/common/components/ScreenHeader';
 import { useBottomPadding } from '@/hooks';
 import { styles } from './ScreenContainer.styles';
 import type { ScreenContainerProps } from './ScreenContainer.types';
@@ -19,10 +20,16 @@ export function ScreenContainer({
   padded = true,
   edges = ['top'],
   tabBarAware = false,
+  title,
+  subtitle,
+  headerRight,
   style,
 }: ScreenContainerProps) {
   const bottomPadding = useBottomPadding();
-  const hasTop = edges.includes('top');
+  const header = title ? (
+    <ScreenHeader title={title} subtitle={subtitle} right={headerRight} />
+  ) : null;
+  const hasTop = !header && edges.includes('top');
   const hasBottom = edges.includes('bottom');
   let bottomStyle = null;
 
@@ -33,6 +40,7 @@ export function ScreenContainer({
   if (scrollable) {
     return (
       <View style={styles.container}>
+        {header}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[
@@ -53,6 +61,7 @@ export function ScreenContainer({
 
   return (
     <View style={styles.container}>
+      {header}
       <View
         style={[
           styles.content,

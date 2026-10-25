@@ -9,7 +9,7 @@ import {
   disconnectCurrentSyncAccount,
   logout,
 } from '@/features/auth/services/authService';
-import { resetLocalNutritionData } from '@/features/nutrition/services/nutritionLocalReset';
+import { resetLocalNutritionData } from '@/features/food-log/services/localDataReset';
 import { useAppAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { removeItem, STORAGE_KEYS } from '@/utils/storage';
@@ -187,7 +187,7 @@ export default function AccountScreen() {
   }, [appAlert, t, router]);
 
   return (
-    <ScreenContainer scrollable padded edges={['bottom']}>
+    <ScreenContainer scrollable padded edges={['bottom']} title={t('accountScreen.title')}>
       <View style={styles.screen}>
         <Card variant="elevated" style={styles.profileCard}>
           <View style={styles.profileCardInner}>

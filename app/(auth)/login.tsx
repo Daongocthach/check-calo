@@ -111,7 +111,7 @@ export default function LoginScreen() {
   const showOverlay = syncPhase !== 'idle';
 
   return (
-    <ScreenContainer padded={false} edges={[]}>
+    <ScreenContainer padded={false} edges={[]} title={t('auth.signIn')}>
       <View style={styles.layout}>
         <KeyboardAwareScrollView
           contentContainerStyle={[

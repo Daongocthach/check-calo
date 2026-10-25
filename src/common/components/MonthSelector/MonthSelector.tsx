@@ -5,7 +5,7 @@ import { FlatList, Pressable, View, type ListRenderItem } from 'react-native';
 import { useUnistyles } from 'react-native-unistyles';
 import { IconButton } from '@/common/components/IconButton';
 import { Text } from '@/common/components/Text';
-import { formatDateKey } from '@/features/nutrition/utils/calorie';
+import { formatDateKey } from '@/utils/date';
 import CrownIcon from '../../../../assets/crown.png';
 import { DAY_ITEM_WIDTH, styles } from './MonthSelector.styles';
 import type { MonthSelectorProps } from './MonthSelector.types';

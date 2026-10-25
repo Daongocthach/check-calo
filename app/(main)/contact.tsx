@@ -96,7 +96,13 @@ export default function ContactScreen() {
   }, [isSubmitting, t]);
 
   return (
-    <ScreenContainer scrollable padded={false} edges={['bottom']} tabBarAware>
+    <ScreenContainer
+      scrollable
+      padded={false}
+      edges={['bottom']}
+      tabBarAware
+      title={t('contactScreen.title')}
+    >
       <View style={styles.screen}>
         <View style={styles.content}>
           <View style={styles.detailsBlock}>

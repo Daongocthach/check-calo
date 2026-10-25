@@ -1,0 +1,1 @@
+export { FoodChatScreen } from './FoodChatScreen';

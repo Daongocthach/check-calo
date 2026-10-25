@@ -65,6 +65,8 @@ export type {
 } from './SegmentedControl';
 export { Select } from './Select';
 export type { SelectProps, SelectOption } from './Select';
+export { Slider } from './Slider';
+export type { SliderProps } from './Slider';
 export { Switch } from './Switch';
 export type { SwitchProps } from './Switch';
 export { TextArea } from './TextArea';
@@ -75,6 +77,8 @@ export { Divider } from './Divider';
 export type { DividerProps } from './Divider';
 export { ScreenContainer } from './ScreenContainer';
 export type { ScreenContainerProps } from './ScreenContainer';
+export { ScreenHeader } from './ScreenHeader';
+export type { ScreenHeaderProps } from './ScreenHeader';
 export { TabsHeader } from './TabsHeader';
 export type { TabsHeaderProps } from './TabsHeader';
 export { SupportPromptCard } from './SupportPromptCard';

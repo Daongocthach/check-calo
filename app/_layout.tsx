@@ -9,14 +9,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import Toast from 'react-native-toast-message';
 import { StyleSheet } from 'react-native-unistyles';
-import { AppHeader } from '@/common/components/AppHeader';
 import { ErrorBoundary } from '@/common/components/ErrorBoundary';
+import { useFoodLogSync } from '@/features/food-log/hooks/useFoodLogSync';
 import {
   initializeCalorieReminderNotifications,
   isCalorieReminderResponse,
 } from '@/features/notifications/services/calorieReminderService';
-import { useFoodEntrySyncQueue } from '@/features/nutrition/hooks/useFoodEntrySyncQueue';
-import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import { QueryProvider } from '@/providers';
 import { AppAlertProvider } from '@/providers/app-alert/AppAlertProvider';
 import { useAuthStore } from '@/providers/auth/authStore';
@@ -58,7 +56,7 @@ function RootNavigator() {
 
 function AppContent() {
   useAuthInit();
-  useFoodEntrySyncQueue();
+  useFoodLogSync();
   const router = useRouter();
 
   useEffect(() => {
@@ -108,8 +106,7 @@ function AppContent() {
           return;
         }
 
-        useAddMealSourceSheetStore.getState().requestOpen();
-        router.replace('/');
+        router.push('/chat');
       })
       .catch((error: unknown) => {
         if (__DEV__) {
@@ -122,8 +119,7 @@ function AppContent() {
         return;
       }
 
-      useAddMealSourceSheetStore.getState().requestOpen();
-      router.replace('/');
+      router.push('/chat');
     });
 
     return () => {
@@ -134,7 +130,6 @@ function AppContent() {
 
   return (
     <View style={styles.appContainer}>
-      <AppHeader />
       <RootNavigator />
     </View>
   );

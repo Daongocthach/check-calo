@@ -42,7 +42,10 @@ npm run test:coverage      # Coverage report
 src/
 ├── common/components/     # 33 shared UI components (see docs/COMPONENTS.md for full API reference)
 ├── config/                # Centralized env config with validation
-├── features/              # Feature modules (auth, settings)
+├── features/              # Feature modules:
+│                          #   food-log (diary, Check AI chat, meal detail, sync), profile (onboarding),
+│                          #   home, progress, achievements, buddy (mascot), goals, settings,
+│                          #   auth, notifications, support, legal, leaderboard (service only)
 ├── hooks/                 # useBottomPadding, useNetworkStatus, useScreenDimensions, useProtectedRoute
 ├── i18n/                  # Translation files (en.json, vi.json) and config
 ├── integrations/          # Supabase client (graceful init)
@@ -55,8 +58,12 @@ src/
 app/                       # Expo Router
 ├── _layout.tsx            # Root layout with ErrorBoundary, providers
 ├── +not-found.tsx
-└── (main)/(tabs)/         # Home + Settings tabs
+└── (main)/(tabs)/         # Home, Progress, Achievements, Profile tabs (thin routes)
 ```
+
+Route files stay thin: they render a screen component exported by a feature. The diary is the
+`food_entries` table; `meals`/`meal_items` belong to the removed menu feature and are no longer read.
+Buddy artwork: register PNGs in `src/features/buddy/constants/images.ts` (SVG placeholder otherwise).
 
 ## Path Aliases
 

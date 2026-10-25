@@ -39,7 +39,7 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <ScreenContainer scrollable padded edges={['bottom']}>
+    <ScreenContainer scrollable padded edges={['bottom']} title={t('auth.forgotPasswordTitle')}>
       <View style={styles.screen}>
         <View style={styles.heroSection}>
           <Image source={AppLogo} style={styles.heroLogo} contentFit="contain" />

@@ -97,7 +97,7 @@ export default function ResetPasswordScreen() {
   };
 
   return (
-    <ScreenContainer scrollable padded edges={['bottom']}>
+    <ScreenContainer scrollable padded edges={['bottom']} title={t('auth.resetPasswordTitle')}>
       <View style={styles.screen}>
         <View style={styles.header}>
           <Text variant="h2">{t('auth.resetPasswordTitle')}</Text>

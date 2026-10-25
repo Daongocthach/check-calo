@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Card, Icon, ScreenContainer, Text } from '@/common/components';
-import { HEALTH_INFORMATION_SOURCE_SECTIONS } from '@/features/nutrition/constants/healthInformationSources';
+import { HEALTH_INFORMATION_SOURCE_SECTIONS } from '@/features/legal/constants/healthInformationSources';
 
 export default function HealthInformationSourcesScreen() {
   const { t } = useTranslation();
@@ -15,7 +15,13 @@ export default function HealthInformationSourcesScreen() {
   }, []);
 
   return (
-    <ScreenContainer scrollable padded={false} edges={['bottom']} style={styles.scrollContent}>
+    <ScreenContainer
+      scrollable
+      padded={false}
+      edges={['bottom']}
+      style={styles.scrollContent}
+      title={t('healthInformationSourcesScreen.title')}
+    >
       <View style={styles.content}>
         <Text variant="body" color="secondary" style={styles.intro}>
           {t('healthInformationSourcesScreen.intro')}

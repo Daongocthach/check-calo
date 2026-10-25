@@ -1,5 +1,5 @@
 import { env } from '@/config/env';
-import type { UserProfile } from '@/features/nutrition/types';
+import type { UserProfile } from '@/features/profile/types';
 import { supabase } from '@/integrations/supabase';
 
 const SUPABASE_PROFILES_TABLE = 'profiles';

@@ -4,19 +4,19 @@ export const lightColors: ThemeColors = {
   mode: 'light',
 
   brand: {
-    primary: '#52A13C', // xanh chính (calories ring)
+    primary: '#4F46E5', // indigo chính
     secondary: '#1C1C1E', // text chính
-    tertiary: '#FF7A2F', // CTA (+ button)
-    primaryVariant: '#6FB85A',
+    tertiary: '#F97316', // streak / CTA phụ
+    primaryVariant: '#6366F1',
     secondaryVariant: '#6B7280',
     onBrand: '#FFFFFF',
   },
 
   background: {
-    app: '#F7F7F7', // nền chính
+    app: '#F5F6FB', // nền chính
     surface: '#FFFFFF', // card
-    surfaceAlt: '#FAFAFA',
-    section: '#F0F2F4',
+    surfaceAlt: '#F8F8FD',
+    section: '#EEF0FB',
     elevated: '#FFFFFF',
     input: '#F3F4F6',
     disabled: '#E5E7EB',
@@ -30,15 +30,15 @@ export const lightColors: ThemeColors = {
     muted: '#B0B3B8',
     inverse: '#FFFFFF',
     accent: '#FF7A2F',
-    link: '#52A13C',
-    linkHover: '#438130',
+    link: '#4F46E5',
+    linkHover: '#4338CA',
   },
 
   border: {
     default: '#E5E7EB',
     subtle: '#F0F2F4',
     strong: '#D1D5DB',
-    focus: '#52A13C',
+    focus: '#4F46E5',
     disabled: '#E5E7EB',
   },
 
@@ -52,8 +52,8 @@ export const lightColors: ThemeColors = {
   },
 
   state: {
-    success: '#52A13C', // fat
-    successBg: '#F1FBEA',
+    success: '#22C55E',
+    successBg: '#ECFDF3',
 
     warning: '#F5A623', // carb
     warningBg: '#FFF3E0',
@@ -69,15 +69,15 @@ export const lightColors: ThemeColors = {
 
   overlay: {
     modal: 'rgba(0, 0, 0, 0.5)',
-    pressed: 'rgba(82, 161, 60, 0.15)',
-    hover: 'rgba(82, 161, 60, 0.08)',
-    focus: 'rgba(82, 161, 60, 0.2)',
+    pressed: 'rgba(79, 70, 229, 0.15)',
+    hover: 'rgba(79, 70, 229, 0.08)',
+    focus: 'rgba(79, 70, 229, 0.2)',
     ripple: 'rgba(0, 0, 0, 0.08)',
     shadow: 'rgba(0, 0, 0, 0.08)',
   },
 
   gradient: {
-    primary: ['#52A13C', '#8ED36F'], // vòng calories đẹp hơn
+    primary: ['#4F46E5', '#818CF8'],
     secondary: ['#FFFFFF', '#F3F4F6'],
     accent: ['#FF8C42', '#FF7A2F'],
 
@@ -85,7 +85,7 @@ export const lightColors: ThemeColors = {
     error: ['#F87171', '#EF4444'],
     warning: ['#FFD37A', '#F5A623'],
 
-    highlight: ['#E8F5E9', '#C8E6C9'],
+    highlight: ['#EEF2FF', '#E0E7FF'],
   },
 
   shadow: {

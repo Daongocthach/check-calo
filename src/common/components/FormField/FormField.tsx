@@ -1,5 +1,6 @@
 import { cloneElement, type ReactElement } from 'react';
 import { Controller, type FieldValues } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import type { FormFieldProps } from './FormField.types';
 
 /**
@@ -35,6 +36,8 @@ export function FormField<T extends FieldValues = FieldValues>({
   required,
   children,
 }: FormFieldProps<T>) {
+  const { t } = useTranslation();
+
   return (
     <Controller
       name={name}
@@ -45,7 +48,8 @@ export function FormField<T extends FieldValues = FieldValues>({
           value,
           onChangeText: onChange,
           onBlur,
-          error: error?.message,
+          // Schema messages are i18n keys (e.g. 'validation.required'); unknown keys pass through.
+          error: error?.message ? t(error.message as never) : undefined,
         })
       }
     />

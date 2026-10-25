@@ -5,14 +5,12 @@ import {
   syncFoodEntriesDeltaFromSupabase,
   syncUserProfileFromCloud,
   syncRecentFoodsDeltaFromSupabase,
-  syncMealsDeltaFromSupabase,
-  syncMealItemsDeltaFromSupabase,
-} from '@/features/nutrition/services/nutritionDeltaSync';
+} from '@/features/food-log/services/foodLogDeltaSync';
 import {
   resetLocalNutritionData,
   resetLocalNutritionDataForLogin,
-} from '@/features/nutrition/services/nutritionLocalReset';
-import { useFoodEntryRefreshStore } from '@/features/nutrition/stores/useFoodEntryRefreshStore';
+} from '@/features/food-log/services/localDataReset';
+import { useFoodEntryRefreshStore } from '@/features/food-log/stores/useFoodEntryRefreshStore';
 import { supabase } from '@/integrations/supabase';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { STORAGE_KEYS, removeItem, setItem } from '@/utils/storage';
@@ -78,11 +76,7 @@ export async function loginSyncCloudData() {
   await syncUserProfileFromCloud();
   await syncFoodEntriesDeltaFromSupabase();
   await syncRecentFoodsDeltaFromSupabase();
-  await syncMealsDeltaFromSupabase();
-  await syncMealItemsDeltaFromSupabase();
   useFoodEntryRefreshStore.getState().markFoodEntriesChanged();
-  useFoodEntryRefreshStore.getState().markMenuMealsChanged();
-  useFoodEntryRefreshStore.getState().markRecentFoodsChanged();
 }
 
 export async function login(params: LoginParams) {

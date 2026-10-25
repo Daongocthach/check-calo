@@ -4,16 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Chip, ProgressBar, ScreenContainer, Text } from '@/common/components';
-import { syncGoalTracking } from '@/features/nutrition/services/goalTrackingService';
+import { syncGoalTracking } from '@/features/goals/services/goalTrackingService';
 import type {
   GoalTrackingSnapshot,
   WeightGoalProgress,
   WeightGoalStatus,
-} from '@/features/nutrition/types';
+} from '@/features/goals/types';
 import {
   formatWeightGoalTitle,
   getGoalCycleDayProgress,
-} from '@/features/nutrition/utils/goalTracking';
+} from '@/features/goals/utils/goalTracking';
 
 function formatGoalHistoryDateRange(
   goalProgress: Pick<WeightGoalProgress, 'goal'>,
@@ -68,7 +68,12 @@ export default function GoalHistoryScreen() {
   const goalHistory = goalTracking?.goalHistory ?? [];
 
   return (
-    <ScreenContainer padded={false} edges={['bottom']} tabBarAware>
+    <ScreenContainer
+      padded={false}
+      edges={['bottom']}
+      tabBarAware
+      title={t('profileTab.goalHistory')}
+    >
       <View style={styles.screen}>
         <View style={styles.content}>
           <View style={styles.headerCopy}>

@@ -1,1 +1,0 @@
-export { MacroGoalCard } from './MacroGoalCard';

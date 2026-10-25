@@ -1,4 +1,5 @@
-import { createEntityId, nowIsoString } from '@/features/nutrition/utils/calorie';
+import { nowIsoString } from '@/utils/date';
+import { createEntityId } from '@/utils/id';
 import { STORAGE_KEYS, getItem, setItem } from '@/utils/storage';
 import { getDatabase } from '../database/sqlite';
 

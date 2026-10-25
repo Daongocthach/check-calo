@@ -239,7 +239,13 @@ export default function NotificationSettingsScreen() {
   );
 
   return (
-    <ScreenContainer scrollable padded edges={['bottom']} tabBarAware>
+    <ScreenContainer
+      scrollable
+      padded
+      edges={['bottom']}
+      tabBarAware
+      title={t('profileTab.reminders')}
+    >
       <View style={styles.screen}>
         <Card variant="filled" style={styles.settingsCard}>
           <View style={styles.headerRow}>

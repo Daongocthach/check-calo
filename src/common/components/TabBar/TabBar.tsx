@@ -4,7 +4,6 @@ import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnistyles } from 'react-native-unistyles';
 import { Text } from '@/common/components/Text';
-import { useAddMealSourceSheetStore } from '@/features/nutrition/stores/useAddMealSourceSheetStore';
 import { vs } from '@/theme/metrics';
 import { styles } from './TabBar.styles';
 import type { TabBarProps } from './TabBar.types';
@@ -13,18 +12,14 @@ type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
 const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }> = {
   index: { active: 'home', inactive: 'home-outline' },
-  stats: { active: 'stats-chart', inactive: 'stats-chart-outline' },
-  add: { active: 'add', inactive: 'add' },
-  menu: { active: 'restaurant', inactive: 'restaurant-outline' },
-  profile: { active: 'person', inactive: 'person-outline' },
+  progress: { active: 'bar-chart', inactive: 'bar-chart-outline' },
+  achievements: { active: 'trophy', inactive: 'trophy-outline' },
+  profile: { active: 'person-circle', inactive: 'person-circle-outline' },
 };
 
 export function TabBar({ state, descriptors, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
-  const requestAddMealSourceSheet = useAddMealSourceSheetStore(
-    (sheetState) => sheetState.requestOpen
-  );
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + vs(8) }]}>
@@ -33,11 +28,6 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
         const isFocused = state.index === index;
 
         const onPress = () => {
-          if (route.name === 'add') {
-            requestAddMealSourceSheet();
-            return;
-          }
-
           const event = navigation.emit({
             type: 'tabPress',
             target: route.key,
@@ -57,15 +47,6 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
         };
 
         const icons = TAB_ICONS[route.name] ?? { active: 'ellipse', inactive: 'ellipse-outline' };
-        const iconName = isFocused ? icons.active : icons.inactive;
-        const isAddTab = route.name === 'add';
-        let iconColor = theme.colors.icon.secondary;
-
-        if (isAddTab) {
-          iconColor = theme.colors.icon.inverse;
-        } else if (isFocused) {
-          iconColor = theme.colors.brand.onBrand;
-        }
 
         return (
           <Pressable
@@ -75,51 +56,20 @@ export function TabBar({ state, descriptors, navigation }: TabBarProps) {
             accessibilityRole="tab"
             accessibilityState={{ selected: isFocused }}
             accessibilityLabel={options.tabBarAccessibilityLabel}
-            style={[styles.tab, isAddTab ? styles.addTab : styles.standardTab]}
+            style={styles.tab}
           >
-            {isAddTab ? (
-              <View style={styles.addTabContent}>
-                <View
-                  style={[
-                    styles.addBubble,
-                    theme.colors.mode === 'dark' && styles.addBubbleDark,
-                    isFocused && styles.addBubbleActive,
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.addBubbleGradient,
-                      styles.addBubbleSolid,
-                      isFocused && styles.addBubbleSolidActive,
-                    ]}
-                  >
-                    <Ionicons
-                      name={iconName}
-                      size={theme.colors.mode === 'dark' ? 30 : 32}
-                      color={iconColor}
-                    />
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <View style={styles.tabContent}>
-                <View
-                  style={[
-                    styles.iconWrap,
-                    isFocused ? styles.iconWrapActive : styles.iconWrapInactive,
-                  ]}
-                >
-                  <Ionicons name={iconName} size={20} color={iconColor} />
-                </View>
-                <Text
-                  variant="caption"
-                  weight={isFocused ? 'semibold' : 'medium'}
-                  color={isFocused ? 'primary' : 'secondary'}
-                >
-                  {options.title}
-                </Text>
-              </View>
-            )}
+            <Ionicons
+              name={isFocused ? icons.active : icons.inactive}
+              size={24}
+              color={isFocused ? theme.colors.brand.primary : theme.colors.icon.tertiary}
+            />
+            <Text
+              variant="caption"
+              weight={isFocused ? 'semibold' : 'medium'}
+              style={isFocused ? styles.labelActive : styles.label}
+            >
+              {options.title}
+            </Text>
           </Pressable>
         );
       })}

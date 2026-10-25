@@ -9,7 +9,8 @@ export type IconVariant =
   | 'muted'
   | 'inverse'
   | 'accent'
-  | 'onBrand';
+  | 'onBrand'
+  | 'brand';
 
 /** Named size variant for the Icon, mapped to theme metric values. */
 export type IconSizeVariant = 'xs' | 'sm' | 'md' | 'lg' | 'xl';

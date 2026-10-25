@@ -1,1 +1,0 @@
-export { MenuWeekSelector } from './MenuWeekSelector';

@@ -13,6 +13,12 @@ export interface ScreenContainerProps {
   edges?: ('top' | 'bottom')[];
   /** Whether to reserve space for the floating bottom tab bar. Defaults to `false`. */
   tabBarAware?: boolean;
+  /** When set, renders a {@link ScreenHeader} with this title above the content. */
+  title?: string;
+  /** Subtitle forwarded to the header. */
+  subtitle?: string;
+  /** Right-side header element. */
+  headerRight?: ReactNode;
   /** Additional styles applied to the container or scroll content. */
   style?: ViewStyle;
 }

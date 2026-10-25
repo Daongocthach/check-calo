@@ -71,7 +71,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <ScreenContainer padded={false} edges={[]}>
+    <ScreenContainer padded={false} edges={[]} title={t('auth.registerPageTitle')}>
       <View style={styles.layout}>
         <KeyboardAwareScrollView
           contentContainerStyle={[

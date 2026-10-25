@@ -33,6 +33,7 @@ export function Icon({
           inverse: theme.colors.icon.inverse,
           accent: theme.colors.icon.accent,
           onBrand: theme.colors.brand.onBrand,
+          brand: theme.colors.brand.primary,
         };
 
         return {
