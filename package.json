@@ -16,6 +16,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "type-check": "tsc --noEmit",
+    "postinstall": "node scripts/patch-native-deps.js",
     "prepare": "husky",
     "validate": "npm run type-check && npm run lint && npm run format:check && npm run i18n:check",
     "migrate": "node scripts/migrate.js",
