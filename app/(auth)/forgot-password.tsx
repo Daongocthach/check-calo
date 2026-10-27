@@ -29,7 +29,7 @@ export default function ForgotPasswordScreen() {
     try {
       await sendPasswordResetEmail({ email: normalizedEmail });
       toast.success(t('auth.forgotPasswordSuccess'));
-      router.replace('/(auth)/login');
+      router.replace('/login');
     } catch (error) {
       const message = error instanceof Error ? error.message : t('auth.forgotPasswordFailed');
       toast.error(message);

@@ -1,4 +1,10 @@
-import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
+import {
+  defaultShouldDehydrateQuery,
+  MutationCache,
+  QueryCache,
+  QueryClient,
+  type Query,
+} from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useState } from 'react';
 import i18n from '@/i18n/config';
@@ -15,6 +21,14 @@ function handleError(error: Error) {
   });
 }
 
+/**
+ * Queries tagged `meta: { localOnly: true }` read the on-device database: they handle their own
+ * errors and are not persisted (their results hold `Date`s that would not survive JSON).
+ */
+function isLocalOnlyQuery(query: Pick<Query, 'meta'>) {
+  return query.meta?.localOnly === true;
+}
+
 function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -29,7 +43,11 @@ function createQueryClient() {
       },
     },
     queryCache: new QueryCache({
-      onError: handleError,
+      onError: (error, query) => {
+        if (!isLocalOnlyQuery(query)) {
+          handleError(error);
+        }
+      },
     }),
     mutationCache: new MutationCache({
       onError: handleError,
@@ -42,7 +60,16 @@ export function QueryProvider({ children }: QueryProviderProps) {
   const [queryClient] = useState(createQueryClient);
 
   return (
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: mmkvPersister }}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: mmkvPersister,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) =>
+            !isLocalOnlyQuery(query) && defaultShouldDehydrateQuery(query),
+        },
+      }}
+    >
       {children}
     </PersistQueryClientProvider>
   );

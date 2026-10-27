@@ -10,6 +10,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import Toast from 'react-native-toast-message';
 import { StyleSheet } from 'react-native-unistyles';
 import { ErrorBoundary } from '@/common/components/ErrorBoundary';
+import { useFoodLogInvalidation } from '@/features/food-log/hooks/useFoodLogQuery';
 import { useFoodLogSync } from '@/features/food-log/hooks/useFoodLogSync';
 import {
   initializeCalorieReminderNotifications,
@@ -53,6 +54,8 @@ function RootNavigator() {
       }}
     >
       <Stack.Screen name="(main)" />
+      {/* Sign-in, sign-up and password reset open as one modal over whatever screen asked. */}
+      <Stack.Screen name="(auth)" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }
@@ -60,6 +63,7 @@ function RootNavigator() {
 function AppContent() {
   useAuthInit();
   useFoodLogSync();
+  useFoodLogInvalidation();
   const router = useRouter();
 
   useEffect(() => {

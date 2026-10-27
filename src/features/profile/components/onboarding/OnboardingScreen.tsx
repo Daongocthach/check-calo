@@ -53,7 +53,7 @@ export function OnboardingScreen() {
       if (hasExistingProfile && router.canGoBack()) {
         router.back();
       } else {
-        router.replace('/(main)/(tabs)');
+        router.replace('/');
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('errors.generic'));
@@ -296,7 +296,7 @@ export function OnboardingScreen() {
           title={t('onboarding.healthSources')}
           variant="ghost"
           size="sm"
-          onPress={() => router.push('/health-information-sources')}
+          onPress={() => router.push('/health-sources')}
         />
       </KeyboardAwareScrollView>
     </View>

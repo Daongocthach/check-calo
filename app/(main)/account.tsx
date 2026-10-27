@@ -72,8 +72,18 @@ export default function AccountScreen() {
     );
   }, [user?.createdAt, t]);
 
+  // Account is pushed from Profile; after logout or deletion return there.
+  const returnToProfile = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/profile');
+  }, [router]);
+
   const handleSwitchAccount = useCallback(() => {
-    router.push('/(auth)/login');
+    router.push('/login');
   }, [router]);
 
   const handleLogout = useCallback(() => {
@@ -92,7 +102,7 @@ export default function AccountScreen() {
               try {
                 await logout();
                 toast.success(t('accountScreen.logoutSuccess'));
-                router.replace('/(main)/(tabs)/profile');
+                returnToProfile();
               } catch (error) {
                 const message =
                   error instanceof Error ? error.message : t('accountScreen.logoutError');
@@ -106,7 +116,7 @@ export default function AccountScreen() {
       ],
       { dismissOnBackdropPress: true }
     );
-  }, [appAlert, t, router]);
+  }, [appAlert, t, returnToProfile]);
 
   const handleDeleteData = useCallback(() => {
     appAlert.alert(
@@ -129,7 +139,7 @@ export default function AccountScreen() {
                 await resetLocalNutritionData();
 
                 toast.success(t('accountScreen.deleteDataSuccess'));
-                router.replace('/(main)/(tabs)/profile');
+                returnToProfile();
               } catch (error) {
                 const message =
                   error instanceof Error ? error.message : t('accountScreen.deleteDataError');
@@ -143,7 +153,7 @@ export default function AccountScreen() {
       ],
       { dismissOnBackdropPress: true }
     );
-  }, [appAlert, t, router]);
+  }, [appAlert, t, returnToProfile]);
 
   const handleDeleteAccount = useCallback(() => {
     appAlert.alert(
@@ -170,7 +180,7 @@ export default function AccountScreen() {
                 await useAuthStore.getState().initialize();
 
                 toast.success(t('accountScreen.deleteSuccess'));
-                router.replace('/(main)/(tabs)/profile');
+                returnToProfile();
               } catch (error) {
                 const message =
                   error instanceof Error ? error.message : t('accountScreen.deleteError');
@@ -184,7 +194,7 @@ export default function AccountScreen() {
       ],
       { dismissOnBackdropPress: true }
     );
-  }, [appAlert, t, router]);
+  }, [appAlert, t, returnToProfile]);
 
   return (
     <ScreenContainer scrollable padded edges={['bottom']} title={t('accountScreen.title')}>

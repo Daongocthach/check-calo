@@ -6,6 +6,7 @@ import { ActivityIndicator, Modal, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Icon, Input, ScreenContainer, Text } from '@/common/components';
+import { useCloseAuthFlow } from '@/features/auth/hooks/useCloseAuthFlow';
 import { loginAuthenticate, loginSyncCloudData } from '@/features/auth/services/authService';
 import { useResponsiveKeyboardLayout, useScreenDimensions } from '@/hooks';
 import { useAppAlert } from '@/providers/app-alert/AppAlertProvider';
@@ -35,6 +36,7 @@ export default function LoginScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [syncPhase, setSyncPhase] = useState<SyncPhase>('idle');
   const alert = useAppAlert();
+  const closeAuthFlow = useCloseAuthFlow();
 
   const performSync = async () => {
     setSyncPhase('syncing');
@@ -42,7 +44,7 @@ export default function LoginScreen() {
       await loginSyncCloudData();
       setSyncPhase('done');
       toast.success(t('auth.loginSuccess'));
-      router.replace('/(main)/(tabs)/profile');
+      closeAuthFlow();
     } catch {
       setSyncPhase('failed');
     }
@@ -77,7 +79,7 @@ export default function LoginScreen() {
     setSyncPhase('idle');
     setIsSubmitting(false);
     toast.success(t('auth.loginSuccess'));
-    router.replace('/(main)/(tabs)/profile');
+    closeAuthFlow();
   };
 
   const handleSubmit = () => {
@@ -185,7 +187,7 @@ export default function LoginScreen() {
                   variant="ghost"
                   disabled={isSubmitting}
                   onPress={() => {
-                    router.push('/(auth)/forgot-password');
+                    router.push('/forgot-password');
                   }}
                 />
 
@@ -194,7 +196,7 @@ export default function LoginScreen() {
                   variant="ghost"
                   disabled={isSubmitting}
                   onPress={() => {
-                    router.push('/(auth)/register');
+                    router.push('/register');
                   }}
                 />
               </View>

@@ -14,10 +14,9 @@ export function useProtectedRoute() {
     const inAuthGroup = (segments[0] as string) === '(auth)';
 
     if (!session && !inAuthGroup) {
-      // Route will exist once auth screens are added
-      router.replace('/(auth)/login' as never);
+      router.replace('/login');
     } else if (session && inAuthGroup) {
-      router.replace('/(main)/(tabs)');
+      router.replace('/');
     }
   }, [session, isLoading, segments, router]);
 }

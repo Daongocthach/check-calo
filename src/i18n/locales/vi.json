@@ -47,17 +47,18 @@
       "synced": "Đã đồng bộ"
     }
   },
-  "tabs": {
-    "home": "Trang chủ",
-    "progress": "Tiến độ",
-    "achievements": "Thành tích",
-    "profile": "Cá nhân"
-  },
   "header": {
     "back": "Quay lại",
     "themeSystem": "Theo hệ thống",
     "themeLight": "Sáng",
     "themeDark": "Tối"
+  },
+  "drawer": {
+    "open": "Mở menu",
+    "dashboard": "Tổng quan",
+    "buddy": "Thú cưng",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt"
   },
   "language": {
     "label": "Ngôn ngữ",
@@ -68,7 +69,7 @@
     "subtitle": "Hôm nay của bạn thế nào rồi",
     "greeting": "Chào {{name}}",
     "streakLabel": "Chuỗi {{count}} ngày",
-    "openMenu": "Mở trang cá nhân",
+    "openMenu": "Mở menu",
     "pickDate": "Chọn ngày",
     "goToToday": "Về hôm nay",
     "dailyProgress": "Tiến độ hôm nay",
@@ -282,8 +283,6 @@
     }
   },
   "achievements": {
-    "title": "Thành tích",
-    "subtitle": "Lịch sử duy trì & thành tích",
     "streakHistory": "Lịch sử duy trì",
     "previousMonth": "Tháng trước",
     "nextMonth": "Tháng sau",
@@ -304,10 +303,7 @@
       "balanced_7": "7 ngày ăn cân bằng",
       "entries_10": "Ghi 10 món",
       "entries_100": "Ghi 100 món"
-    },
-    "ctaTitle": "Bạn đang làm rất tốt! 🎉",
-    "ctaSubtitle": "Tiếp tục duy trì thói quen để mở thêm thành tích mới nhé!",
-    "ctaAction": "Xem Buddy"
+    }
   },
   "auth": {
     "email": "Email",
@@ -491,6 +487,12 @@
     "terms": "Điều khoản dịch vụ",
     "contact": "Liên hệ"
   },
+  "settingsScreen": {
+    "title": "Cài đặt",
+    "subtitle": "Nhắc nhở, hiển thị và quyền riêng tư",
+    "general": "Chung",
+    "healthAndPrivacy": "Sức khoẻ & quyền riêng tư"
+  },
   "errorBoundary": {
     "title": "Đã xảy ra lỗi",
     "message": "Ứng dụng gặp lỗi ngoài ý muốn. Vui lòng thử lại.",
@@ -671,23 +673,8 @@
       "age": "Nhập tuổi từ 10 đến 100"
     }
   },
-  "progress": {
-    "title": "Tiến độ",
-    "periods": {
-      "day": "Ngày",
-      "week": "Tuần",
-      "month": "Tháng",
-      "year": "Năm"
-    },
-    "kcalPerDay": "kcal/ngày TB",
-    "tapBarHint": "Chạm vào cột để xem lượng calo",
-    "challengeTitle": "Thử thách calo mỗi ngày",
-    "challengeCount": "{{done}}/{{total}}",
-    "challengeHint": "Một ngày được tính khi bạn ăn trong mục tiêu calo.",
-    "goalHistory": "Lịch sử mục tiêu"
-  },
   "buddy": {
-    "title": "Cấp độ linh vật",
+    "title": "Thú cưng",
     "subtitle": "Cùng Buddy chinh phục thành tích mỗi ngày",
     "levelTitle": "Cấp độ {{level}} - {{stage}}",
     "levelShort": "Cấp {{level}}",
@@ -698,8 +685,6 @@
       "buddy": "Buddy",
       "master": "Master"
     },
-    "points": "Điểm Buddy",
-    "streakDays": "Ngày liên tiếp",
     "progressToNext": "Tiến độ: {{percent}}% · còn {{points}} điểm",
     "maxLevel": "Đã đạt cấp cao nhất!",
     "keepItUp": "Giữ vững phong độ nhé!",
@@ -725,13 +710,12 @@
     "nextRewardHint": "Đạt {{points}} điểm để Buddy tiến hoá thành {{stage}}"
   },
   "profileTab": {
-    "title": "Cá nhân",
-    "subtitle": "Tuỳ chỉnh trải nghiệm của bạn",
+    "title": "Hồ sơ",
+    "subtitle": "Chỉ số cơ thể, mục tiêu và tài khoản",
     "guest": "Khách",
     "guestAccount": "Tài khoản khách · dữ liệu lưu trên máy",
     "profileSummary": "{{kcal}} kcal/ngày · {{weight}} kg",
     "profileEmpty": "Thiết lập hồ sơ",
-    "settings": "Cài đặt",
     "restart": "Bắt đầu lại",
     "restartHint": "Nhập lại chỉ số cơ thể và mục tiêu",
     "reminders": "Nhắc nhở",
@@ -747,6 +731,9 @@
     "resetTitle": "Xoá toàn bộ dữ liệu?",
     "resetMessage": "Nhật ký, mục tiêu và hồ sơ trên máy này và trên cloud sẽ bị xoá vĩnh viễn.",
     "resetConfirm": "Xoá",
-    "version": "Phiên bản {{version}}"
+    "version": "Phiên bản {{version}}",
+    "goals": "Mục tiêu",
+    "account": "Tài khoản",
+    "editProfile": "Chỉnh sửa hồ sơ"
   }
 }

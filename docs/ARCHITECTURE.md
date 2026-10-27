@@ -47,7 +47,9 @@ src/
 app/                       # Expo Router file-based routing
 ├── _layout.tsx            # Root: GestureHandler > ErrorBoundary > QueryProvider > BottomSheet > App
 ├── +not-found.tsx
-└── (main)/(tabs)/         # Tab navigation (Home + Settings)
+├── (auth)/               # Login, register, forgot/reset password — one modal over the app
+└── (main)/                # Stack: the drawer plus detail screens (chat, meal, reminders, legal…)
+    └── (drawer)/          # Drawer: Dashboard (index), Buddy, Profile, Settings (thin routes)
 ```
 
 ## Key Patterns
@@ -83,8 +85,18 @@ Two pre-registered themes (light/dark) with semantic color tokens. Uses react-na
 3. Add translation keys to `en.json` and `vi.json`
 4. Export shared hooks from `src/hooks/index.ts`
 
-## Adding a New Tab
+## Adding a Drawer Screen
 
-1. Create a new file in `app/(main)/(tabs)/` (e.g., `explore.tsx`)
-2. Add a `Tabs.Screen` entry in `app/(main)/(tabs)/_layout.tsx`
-3. Add the tab name translation key to both locale files
+1. Create a thin route in `app/(main)/(drawer)/` (e.g., `explore.tsx`) that renders a feature screen
+2. Add a `Drawer.Screen` entry in `app/(main)/(drawer)/_layout.tsx`
+3. Add the item to `DRAWER_ROUTES` in `src/features/navigation/constants/drawerRoutes.ts`
+4. Add the `drawer.<name>` label key to both locale files
+
+Drawer screens switch in place (no stack push) and stay mounted; detail screens go in
+`app/(main)/` so they push over the drawer with a back button.
+
+## Data Caching
+
+Local SQLite reads go through `useFoodLogQuery`, a react-query wrapper keyed under `food-log`.
+Cached results render immediately and revalidate on focus; `markFoodEntriesChanged()` invalidates
+every key. These queries are tagged `meta.localOnly`, so they are not persisted to MMKV.

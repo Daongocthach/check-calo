@@ -11,8 +11,6 @@ export interface ScreenContainerProps {
   padded?: boolean;
   /** Safe area edges to respect. Defaults to `['top']`. */
   edges?: ('top' | 'bottom')[];
-  /** Whether to reserve space for the floating bottom tab bar. Defaults to `false`. */
-  tabBarAware?: boolean;
   /** When set, renders a {@link ScreenHeader} with this title above the content. */
   title?: string;
   /** Subtitle forwarded to the header. */

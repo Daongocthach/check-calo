@@ -1,1 +1,2 @@
-export { ProfileTabScreen } from './components/ProfileTabScreen';
+export { SettingsGroup, SettingsRow } from './components/SettingsRow';
+export { SettingsScreen } from './components/SettingsScreen';

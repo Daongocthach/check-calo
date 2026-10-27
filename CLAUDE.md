@@ -44,9 +44,10 @@ src/
 ├── common/components/     # 33 shared UI components (see docs/COMPONENTS.md for full API reference)
 ├── config/                # Centralized env config with validation
 ├── features/              # Feature modules:
-│                          #   food-log (diary, Check AI chat, meal detail, sync), profile (onboarding),
-│                          #   home, progress, achievements, buddy (mascot), goals, settings,
-│                          #   auth, notifications, support, legal, leaderboard (service only)
+│                          #   food-log (diary, Check AI chat, meal detail, sync), profile (screen,
+│                          #   onboarding), home, buddy (mascot + achievements), goals, settings,
+│                          #   navigation (drawer), auth, notifications, support, legal,
+│                          #   leaderboard (service only)
 ├── hooks/                 # useBottomPadding, useNetworkStatus, useScreenDimensions, useProtectedRoute
 ├── i18n/                  # Translation files (en.json, vi.json) and config
 ├── integrations/          # Supabase client (graceful init)
@@ -59,7 +60,9 @@ src/
 app/                       # Expo Router
 ├── _layout.tsx            # Root layout with ErrorBoundary, providers
 ├── +not-found.tsx
-└── (main)/(tabs)/         # Home, Progress, Achievements, Profile tabs (thin routes)
+├── (auth)/               # Login, register, forgot/reset password — one modal over the app
+└── (main)/                # Stack: the drawer plus detail screens (chat, meal, reminders, legal…)
+    └── (drawer)/          # Drawer: Dashboard (index), Buddy, Profile, Settings (thin routes)
 ```
 
 Route files stay thin: they render a screen component exported by a feature. The diary is the

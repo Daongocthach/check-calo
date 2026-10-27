@@ -33,7 +33,7 @@ async function loadSlot(date: string, slot: MealSlot) {
 export function MealSlotScreen({ date, slot }: MealSlotScreenProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const bottomPadding = useBottomPadding({ withTabBar: false });
+  const bottomPadding = useBottomPadding();
   const { data } = useFoodLogQuery(`slot:${date}:${slot}`, () => loadSlot(date, slot));
   const entries = data?.entries ?? [];
   const profile = data?.profile ?? null;

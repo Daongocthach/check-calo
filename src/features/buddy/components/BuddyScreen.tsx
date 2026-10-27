@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Icon, Loading, ProgressBar, ScreenHeader, Text } from '@/common/components';
+import { AchievementGrid, getAchievementProgress, StreakCalendar } from '@/features/achievements';
+import { DrawerMenuButton } from '@/features/navigation';
 import { useBottomPadding } from '@/hooks';
 import { hs } from '@/theme/metrics';
 import { BUDDY_POINTS } from '../constants/levels';
@@ -11,10 +13,10 @@ import { BuddyMascot } from './BuddyMascot';
 
 export function BuddyScreen() {
   const { t } = useTranslation();
-  const bottomPadding = useBottomPadding({ withTabBar: false });
-  const { progress } = useBuddyProgress();
+  const bottomPadding = useBottomPadding();
+  const { stats, progress } = useBuddyProgress();
 
-  if (!progress) {
+  if (!stats || !progress) {
     return <Loading />;
   }
 
@@ -47,7 +49,12 @@ export function BuddyScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title={t('buddy.title')} subtitle={t('buddy.subtitle')} />
+      <ScreenHeader
+        title={t('buddy.title')}
+        subtitle={t('buddy.subtitle')}
+        showBack={false}
+        right={<DrawerMenuButton />}
+      />
       <ScrollView
         contentContainerStyle={[styles.content, styles.bottom(bottomPadding)]}
         showsVerticalScrollIndicator={false}
@@ -84,6 +91,9 @@ export function BuddyScreen() {
             </Text>
           </View>
         </View>
+
+        <StreakCalendar stats={stats} />
+        <AchievementGrid items={getAchievementProgress(stats)} />
 
         <View style={styles.card}>
           <Text variant="body" weight="bold">

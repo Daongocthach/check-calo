@@ -47,17 +47,18 @@
       "synced": "Synced"
     }
   },
-  "tabs": {
-    "home": "Home",
-    "progress": "Progress",
-    "achievements": "Rewards",
-    "profile": "Profile"
-  },
   "header": {
     "back": "Back",
     "themeSystem": "System",
     "themeLight": "Light",
     "themeDark": "Dark"
+  },
+  "drawer": {
+    "open": "Open menu",
+    "dashboard": "Dashboard",
+    "buddy": "Buddy",
+    "profile": "Profile",
+    "settings": "Settings"
   },
   "language": {
     "label": "Language",
@@ -68,7 +69,7 @@
     "subtitle": "Here's your day so far",
     "greeting": "Hi {{name}}",
     "streakLabel": "{{count}}-day streak",
-    "openMenu": "Open profile",
+    "openMenu": "Open menu",
     "pickDate": "Pick a date",
     "goToToday": "Go to today",
     "dailyProgress": "Daily progress",
@@ -282,8 +283,6 @@
     }
   },
   "achievements": {
-    "title": "Rewards",
-    "subtitle": "Your streak history and badges",
     "streakHistory": "Streak history",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
@@ -304,10 +303,7 @@
       "balanced_7": "7 balanced days",
       "entries_10": "10 foods logged",
       "entries_100": "100 foods logged"
-    },
-    "ctaTitle": "You're doing great! 🎉",
-    "ctaSubtitle": "Keep the habit going to unlock more badges.",
-    "ctaAction": "See Buddy"
+    }
   },
   "auth": {
     "email": "Email",
@@ -491,6 +487,12 @@
     "terms": "Terms of Service",
     "contact": "Contact"
   },
+  "settingsScreen": {
+    "title": "Settings",
+    "subtitle": "Reminders, display and privacy",
+    "general": "General",
+    "healthAndPrivacy": "Health & privacy"
+  },
   "errorBoundary": {
     "title": "Something went wrong",
     "message": "The app ran into an unexpected error. Please try again.",
@@ -671,23 +673,8 @@
       "age": "Enter an age between 10 and 100"
     }
   },
-  "progress": {
-    "title": "Progress",
-    "periods": {
-      "day": "Day",
-      "week": "Week",
-      "month": "Month",
-      "year": "Year"
-    },
-    "kcalPerDay": "kcal/day avg",
-    "tapBarHint": "Tap a bar to see its calories",
-    "challengeTitle": "Daily calorie challenge",
-    "challengeCount": "{{done}}/{{total}}",
-    "challengeHint": "A day counts when you stay within your calorie goal.",
-    "goalHistory": "Goal history"
-  },
   "buddy": {
-    "title": "Buddy level",
+    "title": "Buddy",
     "subtitle": "Grow Buddy with every healthy day",
     "levelTitle": "Level {{level}} - {{stage}}",
     "levelShort": "Lv {{level}}",
@@ -698,8 +685,6 @@
       "buddy": "Buddy",
       "master": "Master"
     },
-    "points": "Buddy points",
-    "streakDays": "Day streak",
     "progressToNext": "{{percent}}% · {{points}} points to next level",
     "maxLevel": "Max level reached!",
     "keepItUp": "Keep it up!",
@@ -726,12 +711,11 @@
   },
   "profileTab": {
     "title": "Profile",
-    "subtitle": "Personalize your experience",
+    "subtitle": "Your body metrics, goals and account",
     "guest": "Guest",
     "guestAccount": "Guest account · data stays on this device",
     "profileSummary": "{{kcal}} kcal/day · {{weight}} kg",
     "profileEmpty": "Set up your profile",
-    "settings": "Settings",
     "restart": "Start over",
     "restartHint": "Redo your body metrics and goal",
     "reminders": "Reminders",
@@ -747,6 +731,9 @@
     "resetTitle": "Delete all data?",
     "resetMessage": "This permanently removes your diary, goals and profile on this device and in the cloud.",
     "resetConfirm": "Delete",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "goals": "Goals",
+    "account": "Account",
+    "editProfile": "Edit profile"
   }
 }

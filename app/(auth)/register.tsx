@@ -1,11 +1,11 @@
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Input, ScreenContainer, Text } from '@/common/components';
+import { useCloseAuthFlow } from '@/features/auth/hooks/useCloseAuthFlow';
 import { register } from '@/features/auth/services/authService';
 import { useResponsiveKeyboardLayout, useScreenDimensions } from '@/hooks';
 import { toast } from '@/utils/toast';
@@ -15,6 +15,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
+  const closeAuthFlow = useCloseAuthFlow();
   const { height } = useScreenDimensions();
   const { theme } = useUnistyles();
   const isCompactHeight = height < 700;
@@ -61,7 +62,7 @@ export default function RegisterScreen() {
 
       toast.success(t('auth.registerSuccess'));
 
-      router.replace('/(main)/(tabs)/profile');
+      closeAuthFlow();
     } catch (error) {
       const message = error instanceof Error ? error.message : t('auth.registerFailed');
       toast.error(message);

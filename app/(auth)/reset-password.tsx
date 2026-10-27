@@ -87,7 +87,7 @@ export default function ResetPasswordScreen() {
     try {
       await updatePassword(password);
       toast.success(t('auth.resetPasswordSuccess'));
-      router.replace('/(auth)/login');
+      router.replace('/login');
     } catch (error) {
       const message = error instanceof Error ? error.message : t('auth.resetPasswordFailed');
       toast.error(message);
@@ -143,7 +143,7 @@ export default function ResetPasswordScreen() {
             variant="ghost"
             disabled={isSubmitting || isPreparingRecovery}
             onPress={() => {
-              router.replace('/(auth)/login');
+              router.replace('/login');
             }}
           />
         </View>

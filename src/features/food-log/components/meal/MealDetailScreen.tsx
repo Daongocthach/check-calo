@@ -29,7 +29,7 @@ export interface MealDetailScreenProps {
 export function MealDetailScreen({ entryId }: MealDetailScreenProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const bottomPadding = useBottomPadding({ withTabBar: false });
+  const bottomPadding = useBottomPadding();
   const { entry, profile, isLoading, update, remove } = useMealDetail(entryId);
   const [isEditing, setIsEditing] = useState(false);
 

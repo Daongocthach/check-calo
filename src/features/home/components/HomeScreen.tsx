@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import { ChatComposer } from '@/features/food-log/components';
 import { useAttachFoodPhoto } from '@/features/food-log/hooks/useAttachFoodPhoto';
 import type { MealSlotGroup } from '@/features/food-log/utils/mealSlot';
+import { useOpenDrawer } from '@/features/navigation';
 import { formatDateKey } from '@/utils/date';
 import { useHomeScreen } from '../hooks/useHomeScreen';
 import { DailyProgressCard } from './DailyProgressCard';
@@ -15,6 +16,7 @@ export function HomeScreen() {
   const router = useRouter();
   const home = useHomeScreen();
   const attachPhoto = useAttachFoodPhoto();
+  const openDrawer = useOpenDrawer();
   const displayName = home.profile?.displayName.trim() || '';
 
   const openChat = (imageUri?: string) => {
@@ -54,8 +56,8 @@ export function HomeScreen() {
         <HomeHeader
           displayName={displayName}
           streak={home.streak}
-          onStreakPress={() => router.push('/achievements')}
-          onMenuPress={() => router.push('/profile')}
+          onStreakPress={() => router.navigate('/buddy')}
+          onMenuPress={openDrawer}
         />
         <WeekStrip
           selectedDate={home.selectedDate}
@@ -75,6 +77,8 @@ export function HomeScreen() {
           }}
         />
       </View>
+      {/* The header scrolls with the content; keep it from showing through the status bar. */}
+      <View style={styles.statusBarCover} pointerEvents="none" />
     </View>
   );
 }
@@ -94,7 +98,14 @@ const styles = StyleSheet.create((theme, rt) => ({
   composer: {
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: theme.metrics.spacingV.p8,
-    // No tab bar on the dashboard: the composer sits directly above the home indicator.
     paddingBottom: Math.max(rt.insets.bottom, theme.metrics.spacingV.p12),
+  },
+  statusBarCover: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: rt.insets.top,
+    backgroundColor: theme.colors.background.app,
   },
 }));

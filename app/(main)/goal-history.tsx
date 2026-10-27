@@ -1,15 +1,9 @@
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Chip, ProgressBar, ScreenContainer, Text } from '@/common/components';
-import { syncGoalTracking } from '@/features/goals/services/goalTrackingService';
-import type {
-  GoalTrackingSnapshot,
-  WeightGoalProgress,
-  WeightGoalStatus,
-} from '@/features/goals/types';
+import { useGoalTracking } from '@/features/goals/hooks/useGoalTracking';
+import type { WeightGoalProgress, WeightGoalStatus } from '@/features/goals/types';
 import {
   formatWeightGoalTitle,
   getGoalCycleDayProgress,
@@ -45,27 +39,9 @@ function getGoalStatusLabelKey(status: WeightGoalStatus) {
 
 export default function GoalHistoryScreen() {
   const { t, i18n } = useTranslation();
-  const [goalTracking, setGoalTracking] = useState<GoalTrackingSnapshot | null>(null);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-
-      void syncGoalTracking().then((snapshot) => {
-        if (!active) {
-          return;
-        }
-
-        setGoalTracking(snapshot);
-      });
-
-      return () => {
-        active = false;
-      };
-    }, [])
-  );
-
-  const goalHistory = goalTracking?.goalHistory ?? [];
+  // Shares the cached snapshot with the Profile screen, so it renders without a reload.
+  const { snapshot } = useGoalTracking();
+  const goalHistory = snapshot?.goalHistory ?? [];
 
   return (
     <ScreenContainer padded={false} edges={['bottom']} title={t('profileTab.goalHistory')}>
