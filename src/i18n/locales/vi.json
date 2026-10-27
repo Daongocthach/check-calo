@@ -608,6 +608,14 @@
     "addSuggestion": "Thêm vào nhật ký",
     "logged": "Đã thêm vào nhật ký",
     "loggedToast": "Đã lưu vào nhật ký",
+    "scanBarcode": "Quét mã vạch",
+    "recentTitle": "Gần đây",
+    "recentChip": "{{name}} · {{calories}} kcal",
+    "recentLogged": "Đã thêm {{name}} vào nhật ký.",
+    "barcodeMessage": "Mã vạch {{code}}",
+    "barcodeFound": "Tìm thấy {{name}}. Kiểm tra khẩu phần rồi thêm vào nhật ký nhé.",
+    "barcodeNotFound": "Mình chưa tìm thấy sản phẩm có mã {{code}}. Bạn thử mô tả món ăn hoặc gửi ảnh nhé.",
+    "barcodeLookupFailed": "Không tra cứu được mã vạch. Kiểm tra kết nối rồi thử lại nhé.",
     "followUps": {
       "logBreakfast": "Sáng nay mình ăn 1 tô phở bò",
       "suggestDinner": "Gợi ý bữa tối giàu protein dưới 700 calo"

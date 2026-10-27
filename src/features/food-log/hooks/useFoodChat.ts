@@ -1,7 +1,10 @@
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { applyDevChatScenario } from '@/features/dev-tools';
 import { getUserProfile } from '@/features/profile/services/profileRepository';
 import { createEntityId } from '@/utils/id';
+import { NUTRIENTS } from '../constants';
+import { lookupFoodByBarcode, type BarcodeFoodLookupResult } from '../services/barcodeFoodLookup';
 import { getDailyNutritionSummary } from '../services/dailySummaryService';
 import {
   analyzeFoodChatMessage,
@@ -9,8 +12,10 @@ import {
   type ChatIntent,
   type ChatMealTime,
 } from '../services/foodAnalyzer';
-import { logFoodItems } from '../services/foodLogService';
+import { logFoodItems, logRecentFood } from '../services/foodLogService';
 import { useFoodEntryRefreshStore } from '../stores/useFoodEntryRefreshStore';
+import type { RecentFood } from '../types';
+import { pickNutrients } from '../utils/nutrients';
 
 export type ChatMessage =
   | {
@@ -63,6 +68,57 @@ function resolveConsumedAt(mealTime: ChatMealTime | null) {
   return (mealDate < now ? mealDate : now).toISOString();
 }
 
+function toNumberOr(value: string, fallback: number) {
+  const parsed = Number(value);
+  return value.trim() && Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function barcodeResultToItem(result: BarcodeFoodLookupResult): ChatFoodItem {
+  return {
+    name: result.brand ? `${result.foodName} (${result.brand})` : result.foodName,
+    quantityLabel: result.quantityLabel,
+    quantityGrams: result.quantityGrams.trim() ? toNumberOr(result.quantityGrams, 0) : null,
+    calories: toNumberOr(result.calories, 0),
+    proteinGrams: toNumberOr(result.protein, 0),
+    carbsGrams: toNumberOr(result.carbs, 0),
+    fatGrams: toNumberOr(result.fat, 0),
+    ...result.nutrients,
+    barcode: result.barcode,
+  };
+}
+
+function recentFoodToItem(recent: RecentFood): ChatFoodItem {
+  return {
+    name: recent.name,
+    quantityLabel: recent.quantityLabel,
+    quantityGrams: recent.quantityGrams,
+    calories: recent.totalCalories,
+    proteinGrams: recent.proteinGrams,
+    carbsGrams: recent.carbsGrams,
+    fatGrams: recent.fatGrams,
+    ...pickNutrients(recent),
+    barcode: recent.barcode,
+  };
+}
+
+type AssistantMessage = Extract<ChatMessage, { role: 'assistant' }>;
+
+function createAssistantMessage(
+  fields: Pick<AssistantMessage, 'text' | 'intent'> & Partial<AssistantMessage>
+): AssistantMessage {
+  return {
+    id: createEntityId('chat'),
+    role: 'assistant',
+    items: [],
+    mealTime: null,
+    imageUri: null,
+    followUps: [],
+    loggedItemIndexes: [],
+    createdAt: new Date().toISOString(),
+    ...fields,
+  };
+}
+
 async function buildDaySummary() {
   const [profile, summary] = await Promise.all([
     getUserProfile(),
@@ -78,6 +134,11 @@ async function buildDaySummary() {
     `protein ${Math.round(summary.proteinGrams)}/${profile.proteinTargetGrams} g`,
     `carbs ${Math.round(summary.carbsGrams)}/${profile.carbsTargetGrams} g`,
     `fat ${Math.round(summary.fatGrams)}/${profile.fatTargetGrams} g`,
+    ...NUTRIENTS.flatMap(({ key, unit, dailyValue, direction }) => {
+      const value = summary.nutrients[key];
+      const reference = direction === 'limit' ? `limit ${dailyValue}` : dailyValue;
+      return value === null ? [] : [`${key} ${Math.round(value)}/${reference} ${unit}`];
+    }),
   ].join(', ');
 }
 
@@ -128,6 +189,7 @@ export function useFoodChat() {
       ]);
 
       try {
+        await applyDevChatScenario();
         const result = await analyzeFoodChatMessage(
           trimmed || t('chat.photoOnlyPrompt'),
           {
@@ -219,6 +281,8 @@ export function useFoodChat() {
               proteinGrams: item.proteinGrams,
               carbsGrams: item.carbsGrams,
               fatGrams: item.fatGrams,
+              ...pickNutrients(item),
+              barcode: item.barcode,
             };
           }),
           { imageUri: message.imageUri, consumedAt: resolveConsumedAt(message.mealTime) }
@@ -239,5 +303,78 @@ export function useFoodChat() {
     [markFoodEntriesChanged, messages]
   );
 
-  return { messages, isSending, savingKey, sendMessage, logMessageItems };
+  /** Looks up a scanned barcode and offers the product as a loggable card. */
+  const addBarcodeProduct = useCallback(
+    async (barcode: string) => {
+      if (sendingRef.current) {
+        return;
+      }
+
+      sendingRef.current = true;
+      setIsSending(true);
+      setMessages((previous) => [
+        ...previous,
+        {
+          id: createEntityId('chat'),
+          role: 'user',
+          text: t('chat.barcodeMessage', { code: barcode }),
+          imageUri: null,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+
+      try {
+        const result = await lookupFoodByBarcode(barcode);
+        const reply = result
+          ? createAssistantMessage({
+              text: t('chat.barcodeFound', { name: result.foodName }),
+              intent: 'log',
+              items: [barcodeResultToItem(result)],
+            })
+          : createAssistantMessage({
+              text: t('chat.barcodeNotFound', { code: barcode }),
+              intent: 'error',
+            });
+
+        setMessages((previous) => [...previous, reply]);
+      } catch {
+        setMessages((previous) => [
+          ...previous,
+          createAssistantMessage({ text: t('chat.barcodeLookupFailed'), intent: 'error' }),
+        ]);
+      } finally {
+        sendingRef.current = false;
+        setIsSending(false);
+      }
+    },
+    [t]
+  );
+
+  /** One-tap re-log of a recent food; the card in the chat confirms it was saved. */
+  const logRecent = useCallback(
+    async (recent: RecentFood) => {
+      await logRecentFood(recent.id);
+      markFoodEntriesChanged();
+      setMessages((previous) => [
+        ...previous,
+        createAssistantMessage({
+          text: t('chat.recentLogged', { name: recent.name }),
+          intent: 'log',
+          items: [recentFoodToItem(recent)],
+          loggedItemIndexes: [0],
+        }),
+      ]);
+    },
+    [markFoodEntriesChanged, t]
+  );
+
+  return {
+    messages,
+    isSending,
+    savingKey,
+    sendMessage,
+    logMessageItems,
+    addBarcodeProduct,
+    logRecent,
+  };
 }

@@ -21,20 +21,24 @@ export interface AppAlertPayload {
 
 type AlertHandler = (payload: AppAlertPayload) => void;
 
-let alertHandler: AlertHandler | null = null;
+/**
+ * Mounted alert hosts, newest last. A native modal screen (e.g. the chat form sheet) mounts its own
+ * host so alerts render above it; the root host takes over again once it unmounts.
+ */
+let alertHandlers: AlertHandler[] = [];
 
 export function registerAppAlertHandler(handler: AlertHandler) {
-  alertHandler = handler;
+  alertHandlers = [...alertHandlers, handler];
 
   return () => {
-    if (alertHandler === handler) {
-      alertHandler = null;
-    }
+    alertHandlers = alertHandlers.filter((item) => item !== handler);
   };
 }
 
 export const appAlert = {
   alert(title: string, message?: string, buttons?: AppAlertButton[], options?: AppAlertOptions) {
+    const alertHandler = alertHandlers[alertHandlers.length - 1];
+
     if (alertHandler) {
       alertHandler({ title, message, buttons, options });
       return;

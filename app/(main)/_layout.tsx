@@ -18,7 +18,16 @@ export default function MainLayout() {
     >
       <Stack.Screen name="(drawer)" />
       <Stack.Screen name="welcome" />
-      <Stack.Screen name="chat" />
+      <Stack.Screen
+        name="chat"
+        options={{
+          presentation: 'formSheet',
+          sheetAllowedDetents: [1],
+          sheetGrabberVisible: true,
+          sheetCornerRadius: theme.metrics.borderRadius.xl * 1.5,
+          contentStyle: { backgroundColor: theme.colors.background.app },
+        }}
+      />
       <Stack.Screen name="meal/[id]" />
       <Stack.Screen name="meal-slot" />
       <Stack.Screen name="goal-history" />

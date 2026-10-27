@@ -1,5 +1,11 @@
 import { FoodChatScreen } from '@/features/food-log/components';
+import { ModalScreenOverlays } from '@/providers/ModalScreenOverlays';
 
 export default function ChatRoute() {
-  return <FoodChatScreen />;
+  // Chat is a native form sheet (see the main stack layout), so it needs its own overlay hosts.
+  return (
+    <ModalScreenOverlays>
+      <FoodChatScreen />
+    </ModalScreenOverlays>
+  );
 }

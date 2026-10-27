@@ -1,22 +1,32 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { ScreenHeader, Text } from '@/common/components';
+import { IconButton, ScreenHeader, Text } from '@/common/components';
+import { getDevFakeBarcode } from '@/features/dev-tools';
+import { useOpenCamera, useOpenImageLibrary, useOpenQrScanner } from '@/providers/camera';
 import { toast } from '@/utils/toast';
 import { useAttachFoodPhoto } from '../../hooks/useAttachFoodPhoto';
 import { useFoodChat, type ChatMessage } from '../../hooks/useFoodChat';
+import { useRecentFoods } from '../../hooks/useRecentFoods';
+import type { RecentFood } from '../../types';
 import { ChatComposer } from '../ChatComposer';
 import { ChatMessageItem } from './ChatMessageItem';
+import { RecentFoodsBar } from './RecentFoodsBar';
 
 export function FoodChatScreen() {
   const { t } = useTranslation();
-  const { theme } = useUnistyles();
+  const { theme, rt } = useUnistyles();
+  const router = useRouter();
   const params = useLocalSearchParams<{ imageUri?: string; message?: string }>();
   const chat = useFoodChat();
   const attachPhoto = useAttachFoodPhoto();
+  const openCamera = useOpenCamera();
+  const openImageLibrary = useOpenImageLibrary();
+  const openBarcodeScanner = useOpenQrScanner();
+  const recentFoods = useRecentFoods();
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const [draft, setDraft] = useState(params.message ?? '');
   const [imageUri, setImageUri] = useState<string | null>(params.imageUri ?? null);
@@ -41,6 +51,36 @@ export function FoodChatScreen() {
     }
   };
 
+  const handleCamera = async () => {
+    const photo = await openCamera();
+    if (photo) {
+      setImageUri(photo.uri);
+    }
+  };
+
+  const handleLibrary = async () => {
+    const photo = await openImageLibrary();
+    if (photo) {
+      setImageUri(photo.uri);
+    }
+  };
+
+  const handleBarcode = async () => {
+    const barcode = getDevFakeBarcode() ?? (await openBarcodeScanner());
+    if (barcode) {
+      void chat.addBarcodeProduct(barcode);
+    }
+  };
+
+  const handleRecent = async (food: RecentFood) => {
+    try {
+      await chat.logRecent(food);
+      toast.success(t('chat.loggedToast'));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('errors.generic'));
+    }
+  };
+
   const handleLog = async (messageId: string, itemIndex?: number) => {
     try {
       const logged = await chat.logMessageItems(messageId, itemIndex);
@@ -54,8 +94,29 @@ export function FoodChatScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title={t('chat.title')} subtitle={t('chat.subtitle')} />
-      <KeyboardAvoidingView behavior="padding" style={styles.flex}>
+      <View style={styles.sheetTop}>
+        <ScreenHeader
+          title={t('chat.title')}
+          subtitle={t('chat.subtitle')}
+          showBack={false}
+          safeTop={false}
+          right={
+            <IconButton
+              icon="close"
+              variant="ghost"
+              onPress={() => router.back()}
+              accessibilityLabel={t('common.close')}
+            />
+          }
+        />
+      </View>
+      {/* Negative offset lets the composer's home-indicator padding slide under the keyboard. */}
+      <KeyboardAvoidingView
+        behavior="padding"
+        automaticOffset
+        keyboardVerticalOffset={-rt.insets.bottom}
+        style={styles.flex}
+      >
         <FlatList
           ref={listRef}
           data={chat.messages}
@@ -85,6 +146,13 @@ export function FoodChatScreen() {
           }
         />
         <View style={styles.composer}>
+          <RecentFoodsBar
+            foods={recentFoods.data ?? []}
+            onSelect={(food) => {
+              void handleRecent(food);
+            }}
+            disabled={chat.isSending}
+          />
           <ChatComposer
             value={draft}
             onChangeText={setDraft}
@@ -92,9 +160,19 @@ export function FoodChatScreen() {
             onAttachPress={() => {
               void handleAttach();
             }}
+            onCameraPress={() => {
+              void handleCamera();
+            }}
+            onLibraryPress={() => {
+              void handleLibrary();
+            }}
+            onBarcodePress={() => {
+              void handleBarcode();
+            }}
             imageUri={imageUri}
             onRemoveImage={() => setImageUri(null)}
             disabled={chat.isSending}
+            autoFocus={!params.imageUri}
           />
         </View>
       </KeyboardAvoidingView>
@@ -105,6 +183,10 @@ export function FoodChatScreen() {
 const styles = StyleSheet.create((theme, rt) => ({
   container: {
     flex: 1,
+  },
+  sheetTop: {
+    // Leaves room for the native sheet grabber above the header.
+    paddingTop: theme.metrics.spacingV.p20,
   },
   flex: {
     flex: 1,
@@ -125,5 +207,6 @@ const styles = StyleSheet.create((theme, rt) => ({
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: theme.metrics.spacingV.p8,
     paddingBottom: rt.insets.bottom + theme.metrics.spacingV.p8,
+    gap: theme.metrics.spacingV.p8,
   },
 }));

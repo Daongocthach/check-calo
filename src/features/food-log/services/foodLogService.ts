@@ -7,7 +7,7 @@ import {
   enqueueFoodEntryImageSync,
   processPendingFoodEntryImageSyncQueue,
 } from './foodImageSyncQueue';
-import { upsertRecentFoodFromInput } from './recentFoodRepository';
+import { createFoodEntryFromRecent, upsertRecentFoodFromInput } from './recentFoodRepository';
 
 export interface LogFoodItemInput extends Partial<NutrientValues> {
   name: string;
@@ -88,6 +88,15 @@ export async function logFoodItems(items: LogFoodItemInput[], options: LogFoodOp
   void processPendingFoodEntryImageSyncQueue();
 
   return entries;
+}
+
+/** Re-logs a recent food as a new diary entry, reusing its saved photo. */
+export async function logRecentFood(recentId: string) {
+  const entry = await createFoodEntryFromRecent(recentId);
+  await queueImageSync(entry);
+  void processPendingFoodEntryImageSyncQueue();
+
+  return entry;
 }
 
 export async function updateLoggedFood(entryId: string, input: FoodEntryInput) {

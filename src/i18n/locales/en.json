@@ -608,6 +608,14 @@
     "addSuggestion": "Add to diary",
     "logged": "Added to your diary",
     "loggedToast": "Saved to your diary",
+    "scanBarcode": "Scan barcode",
+    "recentTitle": "Recent",
+    "recentChip": "{{name}} · {{calories}} kcal",
+    "recentLogged": "Added {{name}} to your diary.",
+    "barcodeMessage": "Barcode {{code}}",
+    "barcodeFound": "Found {{name}}. Check the portion, then add it to your diary.",
+    "barcodeNotFound": "I couldn't find a product for barcode {{code}}. Try describing the food or sending a photo.",
+    "barcodeLookupFailed": "Couldn't look up that barcode. Check your connection and try again.",
     "followUps": {
       "logBreakfast": "I had a bowl of beef pho for breakfast",
       "suggestDinner": "Suggest a high-protein dinner under 700 kcal"
