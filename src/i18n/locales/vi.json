@@ -71,6 +71,7 @@
     "greeting": "Chào {{name}}",
     "streakLabel": "Chuỗi {{count}} ngày",
     "openMenu": "Mở menu",
+    "changeAvatar": "Đổi ảnh đại diện",
     "pickDate": "Chọn ngày",
     "goToToday": "Về hôm nay",
     "dailyProgress": "Tiến độ hôm nay",

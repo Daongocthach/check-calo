@@ -2,12 +2,15 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Avatar, Icon, Text } from '@/common/components';
+import { hs } from '@/theme/metrics';
 
 export interface HomeHeaderProps {
   displayName: string;
+  avatarUri?: string | null;
   streak: number;
   onStreakPress: () => void;
   onMenuPress: () => void;
+  onAvatarPress?: () => void;
 }
 
 function getInitials(name: string) {
@@ -18,14 +21,35 @@ function getInitials(name: string) {
   return `${first}${last}`.toUpperCase();
 }
 
-export function HomeHeader({ displayName, streak, onStreakPress, onMenuPress }: HomeHeaderProps) {
+export function HomeHeader({
+  displayName,
+  avatarUri,
+  streak,
+  onStreakPress,
+  onMenuPress,
+  onAvatarPress,
+}: HomeHeaderProps) {
   const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
-      <Avatar initials={getInitials(displayName) || '?'} size="md" />
+      <Pressable
+        onPress={onAvatarPress}
+        accessibilityRole="button"
+        accessibilityLabel={t('home.changeAvatar')}
+        style={styles.avatarWrap}
+      >
+        <Avatar
+          source={avatarUri ? { uri: avatarUri } : undefined}
+          initials={getInitials(displayName) || '?'}
+          size="lg"
+        />
+        <View style={styles.avatarEdit}>
+          <Icon name="camera" variant="brand" size={hs(11)} />
+        </View>
+      </Pressable>
       <View style={styles.textWrap}>
-        <Text variant="h3" weight="bold" numberOfLines={1}>
+        <Text variant="body" weight="semibold" numberOfLines={1} style={styles.greeting}>
           {t('home.greeting', { name: displayName })}
         </Text>
         <Text variant="bodySmall" color="secondary" numberOfLines={1}>
@@ -67,9 +91,34 @@ const styles = StyleSheet.create((theme, rt) => ({
     paddingTop: rt.insets.top + theme.metrics.spacingV.p8,
     paddingBottom: theme.metrics.spacingV.p8,
   },
+  avatarWrap: {
+    position: 'relative',
+  },
+  avatarEdit: {
+    position: 'absolute',
+    right: -hs(2),
+    bottom: -hs(2),
+    width: theme.metrics.spacing.p20,
+    height: theme.metrics.spacing.p20,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border.default,
+    shadowColor: theme.colors.shadow.color,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: theme.colors.shadow.elevationSmall,
+  },
   textWrap: {
     flex: 1,
     minWidth: 0,
+    gap: theme.metrics.spacingV.p4,
+  },
+  greeting: {
+    fontSize: theme.fonts.size.lg,
   },
   action: {
     width: theme.metrics.spacing.p44,

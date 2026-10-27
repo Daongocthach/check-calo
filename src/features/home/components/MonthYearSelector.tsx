@@ -34,7 +34,7 @@ function SquareButton({ icon, accessibilityLabel, disabled = false, onPress }: S
         disabled && styles.disabled,
       ]}
     >
-      <Icon name={icon} sizeVariant="sm" />
+      <Icon name={icon} sizeVariant="sm" variant="secondary" />
     </Pressable>
   );
 }
@@ -52,7 +52,7 @@ export function MonthYearSelector({ selectedDate, today, onSelect }: MonthYearSe
 
   return (
     <View style={styles.header}>
-      <Text variant="h3" weight="bold" numberOfLines={1} style={styles.title}>
+      <Text variant="h3" weight="semibold" numberOfLines={1} style={styles.title}>
         {`${monthLabel} ${selectedDate.getFullYear()}`}
       </Text>
       <SquareButton
@@ -61,7 +61,7 @@ export function MonthYearSelector({ selectedDate, today, onSelect }: MonthYearSe
         onPress={() => pickerRef.current?.present()}
       />
       <SquareButton
-        icon="today-outline"
+        icon="options-outline"
         accessibilityLabel={t('home.goToToday')}
         disabled={isSameDay(selectedDate, today)}
         onPress={() => onSelect(today)}
@@ -90,19 +90,14 @@ const styles = StyleSheet.create((theme) => ({
     textTransform: 'capitalize',
   },
   squareButton: {
-    width: theme.metrics.spacing.p40,
-    height: theme.metrics.spacing.p40,
+    width: theme.metrics.spacing.p36,
+    height: theme.metrics.spacing.p36,
     borderRadius: theme.metrics.borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background.surface,
     borderWidth: 1,
     borderColor: theme.colors.border.subtle,
-    shadowColor: theme.colors.shadow.color,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: theme.colors.shadow.elevationSmall,
   },
   pressed: {
     opacity: 0.7,

@@ -71,6 +71,7 @@
     "greeting": "Hi {{name}}",
     "streakLabel": "{{count}}-day streak",
     "openMenu": "Open menu",
+    "changeAvatar": "Change avatar",
     "pickDate": "Pick a date",
     "goToToday": "Go to today",
     "dailyProgress": "Daily progress",

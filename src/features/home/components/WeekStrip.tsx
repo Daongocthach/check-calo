@@ -71,6 +71,12 @@ export function WeekStrip({ selectedDate, today, loggedDateKeys, onSelect }: Wee
         const isFuture = day > today && !isSameDay(day, today);
         const isLogged = loggedDateKeys.has(formatDateKey(day));
         const weekday = day.toLocaleDateString(locale, { weekday: 'narrow' });
+        let textColor: 'inverse' | 'tertiary' | 'primary' = 'primary';
+        if (isSelected) {
+          textColor = 'inverse';
+        } else if (isFuture) {
+          textColor = 'tertiary';
+        }
 
         return (
           <Pressable
@@ -79,21 +85,24 @@ export function WeekStrip({ selectedDate, today, loggedDateKeys, onSelect }: Wee
             onPress={() => onSelect(day)}
             accessibilityRole="button"
             accessibilityState={{ selected: isSelected, disabled: isFuture }}
-            style={[styles.day, isFuture && styles.dayFuture]}
+            style={styles.day}
           >
             <View
               style={[
                 styles.weekdayBubble,
                 isLogged ? styles.weekdayLogged : styles.weekdayEmpty,
-                isFuture && styles.weekdayFuture,
                 isSelected && styles.weekdaySelected,
               ]}
             >
-              <Text variant="caption" weight="semibold" color={isSelected ? 'inverse' : 'primary'}>
+              <Text variant="caption" weight="semibold" color={textColor}>
                 {weekday}
               </Text>
             </View>
-            <Text variant="bodySmall" weight={isSelected ? 'bold' : 'medium'}>
+            <Text
+              variant="bodySmall"
+              weight={isSelected ? 'bold' : 'medium'}
+              color={isFuture ? 'tertiary' : 'primary'}
+            >
               {day.getDate()}
             </Text>
           </Pressable>
@@ -145,23 +154,17 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     gap: theme.metrics.spacingV.p4,
   },
-  dayFuture: {
-    opacity: 0.4,
-  },
   weekdayBubble: {
-    width: theme.metrics.spacing.p36,
-    height: theme.metrics.spacing.p36,
+    width: theme.metrics.spacing.p32,
+    height: theme.metrics.spacing.p32,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
   },
   weekdayEmpty: {
     borderStyle: 'dashed',
     borderColor: theme.colors.border.strong,
-  },
-  weekdayFuture: {
-    borderColor: 'transparent',
   },
   weekdayLogged: {
     borderColor: theme.colors.brand.primary,

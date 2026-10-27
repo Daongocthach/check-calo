@@ -13,7 +13,7 @@ export const lightColors: ThemeColors = {
   },
 
   background: {
-    app: '#F5F6FB', // nền chính
+    app: '#FAFBFE', // nền chính
     surface: '#FFFFFF', // card
     surfaceAlt: '#F8F8FD',
     section: '#EEF0FB',
