@@ -2,8 +2,9 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { ScreenHeader, Select, Text } from '@/common/components';
+import { ScreenHeader, Select, Switch, Text } from '@/common/components';
 import { deleteCurrentUserCloudNutritionData } from '@/features/auth/services/authService';
+import { useDevToolsStore } from '@/features/dev-tools';
 import { resetLocalNutritionData } from '@/features/food-log/services/localDataReset';
 import { useFoodEntryRefreshStore } from '@/features/food-log/stores/useFoodEntryRefreshStore';
 import { DrawerMenuButton } from '@/features/navigation';
@@ -19,6 +20,8 @@ export function SettingsScreen() {
   const bottomPadding = useBottomPadding();
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const preferences = usePreferences();
+  const devModeEnabled = useDevToolsStore((state) => state.enabled);
+  const setDevModeEnabled = useDevToolsStore((state) => state.setEnabled);
 
   const themeOptions = [
     { label: t('header.themeSystem'), value: 'system' },
@@ -149,6 +152,30 @@ export function SettingsScreen() {
             destructive
           />
         </SettingsGroup>
+
+        {__DEV__ ? (
+          <SettingsGroup title={t('devTools.group')}>
+            <SettingsRow
+              icon="construct-outline"
+              title={t('devTools.toggle')}
+              subtitle={t('devTools.toggleHint')}
+              right={
+                <Switch
+                  value={devModeEnabled}
+                  onValueChange={setDevModeEnabled}
+                  accessibilityLabel={t('devTools.toggle')}
+                />
+              }
+            />
+            {devModeEnabled ? (
+              <SettingsRow
+                icon="flask-outline"
+                title={t('devTools.title')}
+                onPress={() => router.push('/dev-tools')}
+              />
+            ) : null}
+          </SettingsGroup>
+        ) : null}
       </ScrollView>
     </View>
   );

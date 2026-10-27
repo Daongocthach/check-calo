@@ -769,5 +769,42 @@
     "goals": "Mục tiêu",
     "account": "Tài khoản",
     "editProfile": "Chỉnh sửa hồ sơ"
+  },
+  "devTools": {
+    "group": "Nhà phát triển",
+    "toggle": "Chế độ dev",
+    "toggleHint": "Công cụ test giao diện. Chỉ có ở bản dev.",
+    "title": "Công cụ test giao diện",
+    "subtitle": "Dữ liệu và trạng thái giả để kiểm tra màn hình",
+    "sampleData": "Dữ liệu mẫu",
+    "seed": "Thêm món mẫu cho {{count}} ngày",
+    "seedHint": "Chỉ lưu trên máy, không đồng bộ lên cloud",
+    "clear": "Xoá món mẫu",
+    "clearHint": "Chỉ xoá dữ liệu mẫu, món thật vẫn giữ nguyên",
+    "seeded": "Đã thêm {{count}} món mẫu",
+    "cleared": "Đã xoá {{count}} món mẫu",
+    "screenStates": "Trạng thái màn hình",
+    "forceEmptyDiary": "Nhật ký trống ở Trang chủ",
+    "forceEmptyDiaryHint": "Hiện trạng thái rỗng kể cả khi đã ghi món",
+    "chatScenario": "Phản hồi Check AI",
+    "chatScenarioHint": "Giả lập cách AI trả lời trong chat",
+    "chatScenarios": {
+      "normal": "Bình thường",
+      "slow": "Chậm (3 giây)",
+      "quota": "Hết lượt dùng",
+      "auth": "Chưa đăng nhập",
+      "error": "Lỗi"
+    },
+    "fakeBarcode": "Giả lập quét mã vạch",
+    "fakeBarcodeHint": "Nút mã vạch trong chat dùng sản phẩm mẫu thay vì mở camera",
+    "notifications": "Toast & alert",
+    "toastSuccess": "Toast thành công",
+    "toastError": "Toast lỗi",
+    "toastInfo": "Toast thông tin",
+    "toastWarning": "Toast cảnh báo",
+    "alert": "Alert",
+    "destructiveAlert": "Alert xoá",
+    "alertTitle": "Alert mẫu",
+    "sampleMessage": "Đây là nội dung mẫu để kiểm tra giao diện."
   }
 }

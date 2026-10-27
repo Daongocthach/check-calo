@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useActivityStats } from '@/features/achievements/hooks/useActivityStats';
+import { useDevToolsStore } from '@/features/dev-tools';
 import { useDayFoodLog } from '@/features/food-log/hooks/useDayFoodLog';
 import { useFoodLogQuery } from '@/features/food-log/hooks/useFoodLogQuery';
 import { listDailyNutritionSummaries } from '@/features/food-log/services/dailySummaryService';
@@ -16,6 +17,9 @@ export function useHomeScreen() {
   const weekEndKey = formatDateKey(weekDays[6]);
 
   const day = useDayFoodLog(selectedDate);
+  const forceEmptyDiary = useDevToolsStore(
+    (state) => __DEV__ && state.enabled && state.forceEmptyDiary
+  );
   const profile = useFoodLogQuery('profile', getUserProfile);
   const stats = useActivityStats();
   const week = useFoodLogQuery(`week:${weekStartKey}`, () =>
@@ -25,11 +29,11 @@ export function useHomeScreen() {
   const loggedDateKeys = useMemo(
     () =>
       new Set(
-        (week.data ?? [])
+        (forceEmptyDiary ? [] : (week.data ?? []))
           .filter((summary) => summary.consumedCalories > 0)
           .map((summary) => summary.date)
       ),
-    [week.data]
+    [forceEmptyDiary, week.data]
   );
 
   return {
@@ -39,8 +43,8 @@ export function useHomeScreen() {
     loggedDateKeys,
     profile: profile.data,
     isProfileMissing: !profile.isLoading && !profile.error && profile.data === null,
-    summary: day.data?.summary ?? null,
-    mealGroups: day.data?.mealGroups ?? [],
+    summary: forceEmptyDiary ? null : (day.data?.summary ?? null),
+    mealGroups: forceEmptyDiary ? [] : (day.data?.mealGroups ?? []),
     isLoading: day.isLoading && !day.data,
     streak: stats.data?.currentStreak ?? 0,
   };

@@ -30,6 +30,7 @@ export default function MainLayout() {
       <Stack.Screen name="contact" />
       <Stack.Screen name="terms" />
       <Stack.Screen name="privacy" />
+      <Stack.Screen name="dev-tools" />
     </Stack>
   );
 }

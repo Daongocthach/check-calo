@@ -12,6 +12,7 @@ export const STORAGE_KEYS = {
     calorieReminderBreakfastTime: 'calorie_reminder_breakfast_time',
     calorieReminderLunchTime: 'calorie_reminder_lunch_time',
     calorieReminderDinnerTime: 'calorie_reminder_dinner_time',
+    devMode: 'dev_mode_enabled',
   },
   auth: {
     lastEmail: 'auth_last_email',

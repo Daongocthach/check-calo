@@ -769,5 +769,42 @@
     "goals": "Goals",
     "account": "Account",
     "editProfile": "Edit profile"
+  },
+  "devTools": {
+    "group": "Developer",
+    "toggle": "Dev mode",
+    "toggleHint": "UI testing tools. Only available in dev builds.",
+    "title": "UI test tools",
+    "subtitle": "Fake data and states to check screens",
+    "sampleData": "Sample data",
+    "seed": "Add {{count}} days of sample meals",
+    "seedHint": "Saved on this device only, never synced",
+    "clear": "Remove sample meals",
+    "clearHint": "Only removes the sample rows, real entries stay",
+    "seeded": "Added {{count}} sample meals",
+    "cleared": "Removed {{count}} sample meals",
+    "screenStates": "Screen states",
+    "forceEmptyDiary": "Empty diary on Home",
+    "forceEmptyDiaryHint": "Show the empty state even when meals are logged",
+    "chatScenario": "Check AI reply",
+    "chatScenarioHint": "Simulate how the AI responds in chat",
+    "chatScenarios": {
+      "normal": "Normal",
+      "slow": "Slow (3s)",
+      "quota": "Out of quota",
+      "auth": "Signed out",
+      "error": "Error"
+    },
+    "fakeBarcode": "Simulate barcode scan",
+    "fakeBarcodeHint": "The chat barcode button uses a sample product instead of the camera",
+    "notifications": "Toasts & alerts",
+    "toastSuccess": "Success toast",
+    "toastError": "Error toast",
+    "toastInfo": "Info toast",
+    "toastWarning": "Warning toast",
+    "alert": "Alert",
+    "destructiveAlert": "Destructive alert",
+    "alertTitle": "Sample alert",
+    "sampleMessage": "This is a sample message for checking the layout."
   }
 }
