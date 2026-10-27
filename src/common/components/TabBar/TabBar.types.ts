@@ -1,3 +1,3 @@
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type { BottomTabBarProps } from 'expo-router/tabs';
 
 export type TabBarProps = BottomTabBarProps;

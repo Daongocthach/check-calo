@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Icon } from '@/common/components/Icon';
@@ -30,13 +30,17 @@ function AccordionSection({
     maxHeight: contentHeight.value * maxContentHeight,
   }));
 
+  // Driven by `isExpanded` so sections collapsed by a sibling (single mode) animate too.
+  useEffect(() => {
+    rotation.value = withTiming(isExpanded ? 1 : 0, { duration: 250 });
+    contentHeight.value = withTiming(isExpanded ? 1 : 0, { duration: 250 });
+  }, [contentHeight, isExpanded, rotation]);
+
   const handleToggle = useCallback(() => {
-    if (item.disabled) return;
-    const newExpanded = !isExpanded;
-    rotation.value = withTiming(newExpanded ? 1 : 0, { duration: 250 });
-    contentHeight.value = withTiming(newExpanded ? 1 : 0, { duration: 250 });
-    onToggle();
-  }, [isExpanded, item.disabled, onToggle, rotation, contentHeight]);
+    if (!item.disabled) {
+      onToggle();
+    }
+  }, [item.disabled, onToggle]);
 
   return (
     <View style={[styles.section, item.disabled && styles.sectionDisabled]}>
@@ -54,7 +58,13 @@ function AccordionSection({
           <Icon name="chevron-down" sizeVariant="lg" variant="secondary" />
         </Animated.View>
       </Pressable>
-      <Animated.View style={[styles.content, contentStyle]}>{item.content}</Animated.View>
+      <Animated.View
+        style={[styles.content, contentStyle]}
+        accessibilityElementsHidden={!isExpanded}
+        importantForAccessibility={isExpanded ? 'auto' : 'no-hide-descendants'}
+      >
+        {item.content}
+      </Animated.View>
     </View>
   );
 }

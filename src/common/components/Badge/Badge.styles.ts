@@ -107,7 +107,7 @@ export const styles = StyleSheet.create((theme) => ({
   badgeText: {
     variants: {
       variant: {
-        solid: {},
+        solid: { color: theme.colors.brand.onBrand },
         outline: {},
       },
       colorScheme: {
@@ -119,11 +119,6 @@ export const styles = StyleSheet.create((theme) => ({
       },
     },
     compoundVariants: [
-      {
-        variant: 'solid',
-        colorScheme: 'primary',
-        styles: { color: theme.colors.brand.onBrand },
-      },
       {
         variant: 'outline',
         colorScheme: 'primary',

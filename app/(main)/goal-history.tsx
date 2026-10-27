@@ -1,4 +1,4 @@
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
@@ -68,12 +68,7 @@ export default function GoalHistoryScreen() {
   const goalHistory = goalTracking?.goalHistory ?? [];
 
   return (
-    <ScreenContainer
-      padded={false}
-      edges={['bottom']}
-      tabBarAware
-      title={t('profileTab.goalHistory')}
-    >
+    <ScreenContainer padded={false} edges={['bottom']} title={t('profileTab.goalHistory')}>
       <View style={styles.screen}>
         <View style={styles.content}>
           <View style={styles.headerCopy}>

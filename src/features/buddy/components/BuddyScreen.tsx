@@ -11,7 +11,7 @@ import { BuddyMascot } from './BuddyMascot';
 
 export function BuddyScreen() {
   const { t } = useTranslation();
-  const bottomPadding = useBottomPadding();
+  const bottomPadding = useBottomPadding({ withTabBar: false });
   const { progress } = useBuddyProgress();
 
   if (!progress) {

@@ -16,17 +16,25 @@ import {
   type ReactNode,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Keyboard, Pressable, View } from 'react-native';
+import { BackHandler, Keyboard, Pressable, View } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { IconButton } from '@/common/components';
 
 export interface OpenSheetOptions {
+  /**
+   * Fixed snap points. When omitted, `view` and `scroll` sheets size themselves to their content
+   * (capped below the top safe area); `none` sheets fall back to 70%.
+   */
   snapPoints?: Array<string | number>;
   isScroll?: boolean;
   enablePanDownToClose?: boolean;
   showCloseButton?: boolean;
+  /**
+   * `view` / `scroll` wrap content with padding; `none` renders content as-is (e.g. a
+   * `BottomSheetFlatList`). Every variant reserves the bottom safe area.
+   */
   containerVariant?: 'view' | 'scroll' | 'none';
   onDismiss?: () => void;
 }
@@ -43,6 +51,8 @@ interface AppBottomSheetProviderProps {
 interface FixedBackdropProps extends Pick<BottomSheetBackdropProps, 'animatedIndex' | 'style'> {
   onPress: () => void;
 }
+
+const DEFAULT_FIXED_SNAP_POINTS = ['70%'];
 
 const BottomSheetContext = createContext<BottomSheetContextType | undefined>(undefined);
 
@@ -61,7 +71,14 @@ function FixedBackdrop({ animatedIndex, style, onPress }: FixedBackdropProps) {
   );
 }
 
-function areSnapPointsEqual(left: Array<string | number>, right: Array<string | number>) {
+function areSnapPointsEqual(
+  left: Array<string | number> | undefined,
+  right: Array<string | number> | undefined
+) {
+  if (!left || !right) {
+    return left === right;
+  }
+
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
@@ -70,37 +87,62 @@ export function AppBottomSheetProvider({ children }: AppBottomSheetProviderProps
   const { theme } = useUnistyles();
   const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const pendingOpenRef = useRef(false);
   const isPresentedRef = useRef(false);
   const dismissHandlerRef = useRef<(() => void) | undefined>(undefined);
   const [content, setContent] = useState<ReactNode>(null);
-  const [snapPoints, setSnapPoints] = useState<Array<string | number>>(['1%']);
+  const [snapPoints, setSnapPoints] = useState<Array<string | number> | undefined>(undefined);
   const [enablePanDownToClose, setEnablePanDownToClose] = useState(true);
   const [showCloseButton, setShowCloseButton] = useState(false);
   const [containerVariant, setContainerVariant] = useState<'view' | 'scroll' | 'none'>('view');
+  const [isPresented, setIsPresented] = useState(false);
+  // Bumped for every open request made while the sheet is hidden, so `present()` runs after the
+  // new content commits, even when the caller re-opens with the exact same content and options.
+  const [presentRequest, setPresentRequest] = useState(0);
 
   useEffect(() => {
-    if (!pendingOpenRef.current) {
+    if (presentRequest === 0) {
       return;
     }
 
-    pendingOpenRef.current = false;
-    requestAnimationFrame(() => {
+    const frame = requestAnimationFrame(() => {
       bottomSheetRef.current?.present();
     });
-  }, [content, snapPoints]);
+
+    return () => cancelAnimationFrame(frame);
+  }, [presentRequest]);
+
+  const closeSheet = useCallback(() => {
+    Keyboard.dismiss();
+    bottomSheetRef.current?.dismiss();
+  }, []);
+
+  // Registered only while the sheet is open so it runs before the navigator's back handler.
+  useEffect(() => {
+    if (!isPresented) {
+      return;
+    }
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      closeSheet();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [closeSheet, isPresented]);
 
   const openSheet = useCallback<BottomSheetContextType['openSheet']>((nextContent, options) => {
     const {
-      snapPoints: nextSnapPoints = ['70%'],
+      snapPoints: requestedSnapPoints,
       isScroll: nextIsScroll = false,
       enablePanDownToClose: nextEnablePanDownToClose = true,
       showCloseButton: nextShowCloseButton,
       containerVariant: nextContainerVariant = nextIsScroll ? 'scroll' : 'view',
       onDismiss,
     } = options ?? {};
+    const nextSnapPoints =
+      requestedSnapPoints ??
+      (nextContainerVariant === 'none' ? DEFAULT_FIXED_SNAP_POINTS : undefined);
 
-    pendingOpenRef.current = !isPresentedRef.current;
     dismissHandlerRef.current = onDismiss;
     // Keep the previous array when values are unchanged so the sheet does not recompute snap points
     // every time callers re-open it with fresh content.
@@ -111,11 +153,11 @@ export function AppBottomSheetProvider({ children }: AppBottomSheetProviderProps
     setEnablePanDownToClose(nextEnablePanDownToClose);
     setShowCloseButton(nextShowCloseButton ?? !nextEnablePanDownToClose);
     setContainerVariant(nextContainerVariant);
-  }, []);
 
-  const closeSheet = useCallback(() => {
-    Keyboard.dismiss();
-    bottomSheetRef.current?.dismiss();
+    if (!isPresentedRef.current) {
+      isPresentedRef.current = true;
+      setPresentRequest((request) => request + 1);
+    }
   }, []);
 
   const contextValue = useMemo(
@@ -133,7 +175,18 @@ export function AppBottomSheetProvider({ children }: AppBottomSheetProviderProps
     [closeSheet]
   );
 
-  const contentBottomPadding = theme.metrics.spacingV.p40 + insets.bottom;
+  const handleChange = useCallback((index: number) => {
+    setIsPresented(index >= 0);
+  }, []);
+
+  const handleDismiss = useCallback(() => {
+    isPresentedRef.current = false;
+    setIsPresented(false);
+    setContent(null);
+    const onDismiss = dismissHandlerRef.current;
+    dismissHandlerRef.current = undefined;
+    onDismiss?.();
+  }, []);
 
   const closeButton = showCloseButton ? (
     <View style={styles.closeButtonContainer}>
@@ -142,35 +195,32 @@ export function AppBottomSheetProvider({ children }: AppBottomSheetProviderProps
         size="md"
         variant="ghost"
         onPress={closeSheet}
-        accessibilityLabel={String(t('common.close' as never))}
+        accessibilityLabel={t('common.close')}
       />
     </View>
   ) : null;
 
-  let renderedContent = content;
+  let renderedContent: ReactNode;
 
   if (containerVariant === 'scroll') {
     renderedContent = (
       <BottomSheetScrollView
-        contentContainerStyle={[
-          styles.scrollContentContainer,
-          { paddingBottom: contentBottomPadding },
-        ]}
-        keyboardShouldPersistTaps="always"
+        contentContainerStyle={[styles.scrollContentContainer, styles.paddedBottom(insets.bottom)]}
+        keyboardShouldPersistTaps="handled"
       >
         {closeButton}
         {content}
       </BottomSheetScrollView>
     );
-  }
-
-  if (containerVariant === 'view') {
+  } else if (containerVariant === 'view') {
     renderedContent = (
-      <BottomSheetView style={[styles.contentContainer, { paddingBottom: contentBottomPadding }]}>
+      <BottomSheetView style={[styles.contentContainer, styles.paddedBottom(insets.bottom)]}>
         {closeButton}
         {content}
       </BottomSheetView>
     );
+  } else {
+    renderedContent = <View style={styles.bareContainer(insets.bottom)}>{content}</View>;
   }
 
   return (
@@ -183,11 +233,13 @@ export function AppBottomSheetProvider({ children }: AppBottomSheetProviderProps
           index={0}
           snapPoints={snapPoints}
           topInset={insets.top}
-          enableDynamicSizing={false}
+          enableDynamicSizing={!snapPoints}
           enablePanDownToClose={enablePanDownToClose}
           enableHandlePanningGesture={enablePanDownToClose}
           enableContentPanningGesture={enablePanDownToClose}
           enableOverDrag={false}
+          keyboardBlurBehavior="restore"
+          android_keyboardInputMode="adjustResize"
           backdropComponent={renderBackdrop}
           backgroundStyle={[
             styles.sheetBackground,
@@ -197,15 +249,8 @@ export function AppBottomSheetProvider({ children }: AppBottomSheetProviderProps
             styles.sheetHandle,
             { backgroundColor: theme.colors.border.default },
           ]}
-          onDismiss={() => {
-            isPresentedRef.current = false;
-            setContent(null);
-            dismissHandlerRef.current?.();
-            dismissHandlerRef.current = undefined;
-          }}
-          onChange={(index) => {
-            isPresentedRef.current = index >= 0;
-          }}
+          onDismiss={handleDismiss}
+          onChange={handleChange}
         >
           {renderedContent}
         </BottomSheetModal>
@@ -233,6 +278,13 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: theme.metrics.spacingV.p16,
   },
+  paddedBottom: (bottomInset: number) => ({
+    paddingBottom: bottomInset + theme.metrics.spacingV.p16,
+  }),
+  bareContainer: (bottomInset: number) => ({
+    flex: 1,
+    paddingBottom: bottomInset,
+  }),
   closeButtonContainer: {
     alignItems: 'flex-end' as const,
     marginTop: -theme.metrics.spacingV.p8,

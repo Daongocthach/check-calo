@@ -25,7 +25,7 @@ export function QuantityStepper({
   const isDecreaseDisabled = value <= minValue;
 
   return (
-    <Pressable style={[styles.stepper, style]} accessibilityRole="adjustable">
+    <View style={[styles.stepper, style]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={decreaseLabel}
@@ -55,7 +55,7 @@ export function QuantityStepper({
       >
         <Icon name="add" variant="primary" size={16} />
       </Pressable>
-    </Pressable>
+    </View>
   );
 }
 

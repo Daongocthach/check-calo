@@ -8,17 +8,19 @@
  * RCTModuleProviders rejects it at startup with "Module provider RNDatePickerManager does not
  * conform to RCTModuleProvider". The app only uses the inline picker (a Fabric component), so
  * dropping the module provider entry is safe.
+ *
+ * Its iOS sources also import React headers with quotes (`#import "RCTComponent.h"`). Since
+ * RN 0.88 React core ships prebuilt as React.framework, so those only resolve as
+ * `<React/RCTComponent.h>`.
  */
 const fs = require('fs');
 const path = require('path');
 
-const packageJsonPath = path.join(
-  __dirname,
-  '..',
-  'node_modules',
-  'react-native-date-picker',
-  'package.json'
-);
+const datePickerPath = path.join(__dirname, '..', 'node_modules', 'react-native-date-picker');
+const packageJsonPath = path.join(datePickerPath, 'package.json');
+const iosSourcePath = path.join(datePickerPath, 'ios');
+
+const QUOTED_REACT_IMPORT = /#import "((?:RCT\w+|UIView\+React)\.h)"/g;
 
 function patchDatePicker() {
   if (!fs.existsSync(packageJsonPath)) {
@@ -37,4 +39,28 @@ function patchDatePicker() {
   console.log('[patch-native-deps] Removed iOS modulesProvider from react-native-date-picker');
 }
 
+function patchDatePickerImports() {
+  if (!fs.existsSync(iosSourcePath)) {
+    return;
+  }
+
+  for (const file of fs.readdirSync(iosSourcePath)) {
+    if (!/\.(h|m|mm)$/.test(file)) {
+      continue;
+    }
+
+    const filePath = path.join(iosSourcePath, file);
+    const source = fs.readFileSync(filePath, 'utf8');
+    const patched = source.replace(QUOTED_REACT_IMPORT, '#import <React/$1>');
+
+    if (patched !== source) {
+      fs.writeFileSync(filePath, patched);
+      console.log(
+        `[patch-native-deps] Rewrote React imports in react-native-date-picker/ios/${file}`
+      );
+    }
+  }
+}
+
 patchDatePicker();
+patchDatePickerImports();

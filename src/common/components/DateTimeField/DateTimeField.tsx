@@ -1,8 +1,15 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import DatePicker from 'react-native-date-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUnistyles } from 'react-native-unistyles';
 import { Button } from '@/common/components/Button';
 import { Icon } from '@/common/components/Icon';
@@ -14,6 +21,17 @@ import type {
   DateTimeFieldMode,
   DateTimeFieldProps,
 } from './DateTimeField.types';
+
+interface DateTimeSheetProps {
+  initialValue: Date;
+  title: string;
+  locale: string;
+  mode: DateTimeFieldMode;
+  minimumDate?: Date;
+  maximumDate?: Date;
+  onCancel: () => void;
+  onConfirm: (value: Date) => void;
+}
 
 function pad(value: number) {
   return `${value}`.padStart(2, '0');
@@ -104,6 +122,52 @@ function parseValue(value: string, mode: DateTimeFieldMode) {
   return new Date(year, month - 1, day);
 }
 
+/** Sheet body that owns the draft value, so scrolling the wheel doesn't re-open the sheet. */
+function DateTimeSheet({
+  initialValue,
+  title,
+  locale,
+  mode,
+  minimumDate,
+  maximumDate,
+  onCancel,
+  onConfirm,
+}: DateTimeSheetProps) {
+  const { t } = useTranslation();
+  const { theme } = useUnistyles();
+  const [draftValue, setDraftValue] = useState(initialValue);
+
+  return (
+    <View style={styles.sheetContent}>
+      <View style={styles.header}>
+        <Text variant="body" weight="bold" style={styles.title}>
+          {title}
+        </Text>
+      </View>
+
+      <View style={styles.pickerSurface}>
+        <DatePicker
+          style={styles.picker}
+          date={draftValue}
+          locale={locale}
+          mode={mode}
+          minimumDate={minimumDate}
+          maximumDate={maximumDate}
+          onDateChange={setDraftValue}
+          theme={theme.colors.mode === 'dark' ? 'dark' : 'light'}
+          dividerColor={theme.colors.border.default}
+          buttonColor={theme.colors.brand.primary}
+        />
+      </View>
+
+      <View style={styles.actions}>
+        <Button title={t('common.cancel')} variant="outline" size="sm" onPress={onCancel} />
+        <Button title={t('common.confirm')} size="sm" onPress={() => onConfirm(draftValue)} />
+      </View>
+    </View>
+  );
+}
+
 export const DateTimeField = forwardRef<DateTimeFieldHandle, DateTimeFieldProps>(
   (
     {
@@ -124,156 +188,85 @@ export const DateTimeField = forwardRef<DateTimeFieldHandle, DateTimeFieldProps>
     ref
   ) => {
     const { t, i18n } = useTranslation();
-    const { theme } = useUnistyles();
     const { openSheet, closeSheet } = useAppBottomSheet();
     const resolvedLocale = locale ?? i18n.language;
     const isInteractionDisabled = disabled || readOnly;
     const pickerValue = useMemo(() => parseValue(value, mode), [mode, value]);
-    const [draftValue, setDraftValue] = useState(pickerValue);
-    const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const snapPoints = useMemo(() => {
-      if (mode === 'time') {
-        return ['60%'];
-      }
+    const isSheetOpenRef = useRef(false);
+    // The sheet lives outside this component's render, so confirm reads the latest props here.
+    const commitRef = useRef<(nextDate: Date) => void>(() => undefined);
 
-      if (mode === 'datetime') {
-        return ['60%'];
-      }
+    useEffect(() => {
+      commitRef.current = (nextDate: Date) => {
+        let normalizedDate = nextDate;
 
-      return ['60%'];
-    }, [mode]);
-
-    const commitValue = useCallback(
-      (nextDate: Date) => {
-        onChange(formatByMode(nextDate, mode));
-      },
-      [mode, onChange]
-    );
-
-    const normalizeValue = useCallback(
-      (nextDate: Date) => {
         if (mode === 'date') {
-          return startOfDay(nextDate);
+          normalizedDate = startOfDay(nextDate);
+        } else if (mode === 'time') {
+          normalizedDate = mergeTime(pickerValue, nextDate);
         }
 
-        if (mode === 'time') {
-          return mergeTime(pickerValue, nextDate);
-        }
+        onChange(formatByMode(normalizedDate, mode));
+      };
+    }, [mode, onChange, pickerValue]);
 
-        return nextDate;
+    // Don't leave a picker open for a screen that is gone.
+    useEffect(
+      () => () => {
+        if (isSheetOpenRef.current) {
+          closeSheet();
+        }
       },
-      [mode, pickerValue]
+      [closeSheet]
     );
 
-    const handleOpen = useCallback(() => {
+    const displayText = value || placeholder || '';
+    const modalTitle = title ?? label ?? t('common.confirm');
+
+    const openPicker = useCallback(() => {
       if (isInteractionDisabled) {
         return;
       }
 
-      setDraftValue(pickerValue);
-      setIsSheetOpen(true);
-    }, [isInteractionDisabled, pickerValue]);
+      isSheetOpenRef.current = true;
+      openSheet(
+        <DateTimeSheet
+          initialValue={pickerValue}
+          title={modalTitle}
+          locale={resolvedLocale}
+          mode={mode}
+          minimumDate={minimumDate}
+          maximumDate={maximumDate}
+          onCancel={closeSheet}
+          onConfirm={(nextDate) => {
+            commitRef.current(nextDate);
+            closeSheet();
+          }}
+        />,
+        {
+          containerVariant: 'view',
+          enablePanDownToClose: true,
+          onDismiss: () => {
+            isSheetOpenRef.current = false;
+          },
+        }
+      );
+    }, [
+      closeSheet,
+      isInteractionDisabled,
+      maximumDate,
+      minimumDate,
+      modalTitle,
+      mode,
+      openSheet,
+      pickerValue,
+      resolvedLocale,
+    ]);
 
-    const handleDismiss = useCallback(() => {
-      setIsSheetOpen(false);
-    }, []);
-
-    const closePicker = useCallback(() => {
-      closeSheet();
-    }, [closeSheet]);
-
-    const handleConfirm = useCallback(() => {
-      commitValue(normalizeValue(draftValue));
-      closePicker();
-    }, [closePicker, commitValue, draftValue, normalizeValue]);
-
-    const displayText = value || placeholder || '';
-    const modalTitle = title ?? label ?? String(t('common.confirm' as never));
-    const pickerTheme = theme.colors.mode === 'dark' ? 'dark' : 'light';
-
-    useImperativeHandle(
-      ref,
-      () => ({
-        present: () => {
-          if (!isInteractionDisabled) {
-            setDraftValue(pickerValue);
-            setIsSheetOpen(true);
-          }
-        },
-        dismiss: closePicker,
-      }),
-      [closePicker, isInteractionDisabled, pickerValue]
-    );
-
-    const sheetContent = useMemo(
-      () => (
-        <View style={styles.sheetContent}>
-          <View style={styles.header}>
-            <Text variant="body" weight="bold" style={styles.title}>
-              {modalTitle}
-            </Text>
-          </View>
-
-          <View style={styles.pickerSurface}>
-            <DatePicker
-              style={styles.picker}
-              date={draftValue}
-              locale={resolvedLocale}
-              mode={mode}
-              minimumDate={minimumDate}
-              maximumDate={maximumDate}
-              onDateChange={setDraftValue}
-              theme={pickerTheme}
-              dividerColor={theme.colors.border.default}
-              buttonColor={theme.colors.brand.primary}
-            />
-          </View>
-
-          <View style={styles.actions}>
-            <Button
-              title={String(t('common.cancel' as never))}
-              variant="outline"
-              size="sm"
-              onPress={closePicker}
-            />
-            <Button
-              title={String(t('common.confirm' as never))}
-              size="sm"
-              onPress={handleConfirm}
-            />
-          </View>
-
-          <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea} />
-        </View>
-      ),
-      [
-        closePicker,
-        draftValue,
-        handleConfirm,
-        maximumDate,
-        minimumDate,
-        modalTitle,
-        mode,
-        pickerTheme,
-        resolvedLocale,
-        t,
-        theme.colors.border.default,
-        theme.colors.brand.primary,
-      ]
-    );
-
-    useEffect(() => {
-      if (!isSheetOpen) {
-        return;
-      }
-
-      openSheet(sheetContent, {
-        snapPoints,
-        containerVariant: 'view',
-        enablePanDownToClose: true,
-        onDismiss: handleDismiss,
-      });
-    }, [handleDismiss, isSheetOpen, openSheet, sheetContent, snapPoints]);
+    useImperativeHandle(ref, () => ({ present: openPicker, dismiss: closeSheet }), [
+      closeSheet,
+      openPicker,
+    ]);
 
     return (
       <View style={styles.wrapper}>
@@ -285,9 +278,11 @@ export const DateTimeField = forwardRef<DateTimeFieldHandle, DateTimeFieldProps>
 
         {!hideTrigger ? (
           <Pressable
-            onPress={handleOpen}
+            onPress={openPicker}
             disabled={isInteractionDisabled}
             accessibilityRole="button"
+            accessibilityLabel={label ?? title}
+            accessibilityValue={{ text: displayText }}
             accessibilityState={{ disabled: isInteractionDisabled }}
             style={({ pressed }) => [
               styles.trigger,

@@ -105,10 +105,6 @@ export const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     paddingVertical: theme.metrics.spacingV.p12,
   },
-  footerSafeArea: {
-    backgroundColor: theme.colors.background.surface,
-    minHeight: theme.metrics.spacingV.p8,
-  },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -128,13 +124,9 @@ export const styles = StyleSheet.create((theme) => ({
     marginHorizontal: theme.metrics.spacing.p8,
     marginVertical: theme.metrics.spacingV.p4,
     borderRadius: theme.metrics.borderRadius.lg,
-    variants: {
-      disabled: {
-        true: {
-          opacity: 0.5,
-        },
-      },
-    },
+  },
+  optionDisabled: {
+    opacity: 0.5,
   },
   optionSelected: {
     backgroundColor: theme.colors.background.section,

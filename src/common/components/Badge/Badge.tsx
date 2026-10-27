@@ -38,17 +38,11 @@ export function Badge({
   }
 
   const displayCount = getDisplayCount(count, maxCount);
-  const isSolid = variant === 'solid';
 
   return (
     <View style={styles.badge}>
       {displayCount !== undefined && (
-        <Text
-          variant="caption"
-          weight="semibold"
-          color={isSolid ? 'primary' : undefined}
-          style={!isSolid ? styles.badgeText : undefined}
-        >
+        <Text variant="caption" weight="semibold" style={styles.badgeText}>
           {displayCount}
         </Text>
       )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useUnistyles } from 'react-native-unistyles';
@@ -29,6 +30,7 @@ export function Chip({
   icon,
   disabled = false,
 }: ChipProps) {
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const { animatedStyle, onPressIn, onPressOut } = useAnimatedPress();
   const content = text ?? label ?? '';
@@ -70,9 +72,9 @@ export function Chip({
       onPressIn={onPressIn}
       onPressOut={onPressOut}
       disabled={disabled || !onPress}
-      accessibilityRole="button"
+      accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityLabel={content}
-      accessibilityState={{ selected, disabled }}
+      accessibilityState={onPress ? { selected, disabled } : undefined}
       style={[styles.container, containerColorStyle, animatedStyle]}
     >
       {icon && <View style={styles.iconWrapper}>{icon}</View>}
@@ -88,7 +90,7 @@ export function Chip({
           onPress={onClose}
           hitSlop={4}
           accessibilityRole="button"
-          accessibilityLabel={`Remove ${content}`}
+          accessibilityLabel={t('common.removeItem', { name: content })}
         >
           <Icon
             name="close-circle"

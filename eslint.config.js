@@ -194,4 +194,13 @@ module.exports = [
       ],
     },
   },
+  {
+    // Module augmentations must repeat the augmented interface's type parameters verbatim,
+    // even when the merged members don't use them.
+    files: ['**/*.d.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+      'unused-imports/no-unused-vars': 'off',
+    },
+  },
 ];

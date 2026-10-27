@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Text } from '@/common/components/Text';
 import { UniActivityIndicator } from '@/common/components/uni';
@@ -19,13 +20,15 @@ export function Loading({
   size = 'large',
   accessibilityLabel,
 }: LoadingProps) {
+  const { t } = useTranslation();
+
   styles.useVariants({ fullScreen });
 
   return (
     <View
       style={styles.container}
       accessibilityRole="progressbar"
-      accessibilityLabel={accessibilityLabel ?? message ?? 'Loading'}
+      accessibilityLabel={accessibilityLabel ?? message ?? t('common.loading')}
     >
       <UniActivityIndicator
         size={size}

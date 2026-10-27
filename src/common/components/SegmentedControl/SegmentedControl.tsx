@@ -9,7 +9,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { useUnistyles } from 'react-native-unistyles';
-import { styles } from './SegmentedControl.styles';
+import { SEGMENT_TRACK_PADDING, styles } from './SegmentedControl.styles';
 import type { SegmentedControlProps, SegmentOption } from './SegmentedControl.types';
 
 /**
@@ -48,7 +48,9 @@ export function SegmentedControl({
     onChange(optionValue);
   };
 
-  const segmentWidth = containerWidth > 0 ? containerWidth / options.length : 0;
+  // Absolute children ignore the track padding, so size segments from the inner width.
+  const innerWidth = containerWidth - SEGMENT_TRACK_PADDING[size] * 2;
+  const segmentWidth = innerWidth > 0 && options.length > 0 ? innerWidth / options.length : 0;
 
   useEffect(() => {
     const nextIndex = selectedIndex >= 0 ? selectedIndex : 0;
@@ -122,7 +124,7 @@ function SegmentItem({
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="tab"
-      accessibilityState={{ selected: isSelected }}
+      accessibilityState={{ selected: isSelected, disabled }}
       style={styles.segment}
     >
       {option.icon && <View style={styles.segmentIcon}>{option.icon}</View>}

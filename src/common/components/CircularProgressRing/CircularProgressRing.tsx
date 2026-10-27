@@ -16,7 +16,7 @@ export function CircularProgressRing({
   contentStyle,
   showCap = true,
 }: CircularProgressRingProps) {
-  const clampedProgress = Math.min(100, Math.max(0, progress));
+  const clampedProgress = Number.isFinite(progress) ? Math.min(100, Math.max(0, progress)) : 0;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - clampedProgress / 100);
@@ -39,18 +39,21 @@ export function CircularProgressRing({
           strokeWidth={strokeWidth}
           fill="none"
         />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={progressColor}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          fill="none"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
+        {/* A round cap on a zero-length dash would still draw a dot at 0%. */}
+        {clampedProgress > 0 ? (
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={progressColor}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            fill="none"
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        ) : null}
       </Svg>
 
       {showCap ? (

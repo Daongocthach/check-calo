@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Pressable } from 'react-native';
 import { Icon } from '@/common/components/Icon';
 import { UniActivityIndicator, UniTextInput } from '@/common/components/uni';
@@ -28,6 +29,7 @@ export function SearchBar({
   autoFocus = false,
   size = 'md',
 }: SearchBarProps) {
+  const { t } = useTranslation();
   const [focused, setFocused] = useState(false);
   styles.useVariants({ size, focused });
 
@@ -50,7 +52,7 @@ export function SearchBar({
         onBlur={() => setFocused(false)}
         autoFocus={autoFocus}
         autoCorrect={false}
-        accessibilityLabel={placeholder ?? 'Search'}
+        accessibilityLabel={placeholder ?? t('common.search')}
         uniProps={(theme) => ({ placeholderTextColor: theme.colors.text.muted })}
       />
       {loading ? (
@@ -64,7 +66,7 @@ export function SearchBar({
             onPress={handleClear}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="Clear search"
+            accessibilityLabel={t('common.clearSearch')}
           >
             <Icon name="close-circle" sizeVariant="md" variant="muted" />
           </Pressable>

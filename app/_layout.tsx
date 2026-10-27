@@ -28,6 +28,10 @@ import InterMedium from '../assets/fonts/Inter-Medium.ttf';
 import InterRegular from '../assets/fonts/Inter-Regular.ttf';
 import InterSemiBold from '../assets/fonts/Inter-SemiBold.ttf';
 
+export const unstable_settings = {
+  anchor: '(main)',
+};
+
 SplashScreen.preventAutoHideAsync();
 
 function useAuthInit() {
@@ -47,7 +51,6 @@ function RootNavigator() {
         headerShown: false,
         contentStyle: { backgroundColor: 'transparent' },
       }}
-      initialRouteName="(main)"
     >
       <Stack.Screen name="(main)" />
     </Stack>

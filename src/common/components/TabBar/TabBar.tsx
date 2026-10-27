@@ -1,10 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { ComponentProps } from 'react';
-import { Pressable, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useUnistyles } from 'react-native-unistyles';
 import { Text } from '@/common/components/Text';
-import { vs } from '@/theme/metrics';
 import { styles } from './TabBar.styles';
 import type { TabBarProps } from './TabBar.types';
 
@@ -17,30 +15,38 @@ const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }
   profile: { active: 'person-circle', inactive: 'person-circle-outline' },
 };
 
-export function TabBar({ state, descriptors, navigation }: TabBarProps) {
-  const insets = useSafeAreaInsets();
+export function TabBar({ state, descriptors, emitter, navigateToTab }: TabBarProps) {
   const { theme } = useUnistyles();
+  const focusedRoute = state.routes[state.index];
+  const focusedTabBarStyle = focusedRoute
+    ? descriptors[focusedRoute.key]?.options.tabBarStyle
+    : undefined;
+
+  // Screens opt out of the tab bar with `tabBarStyle: { display: 'none' }`.
+  if (focusedTabBarStyle && StyleSheet.flatten(focusedTabBarStyle)?.display === 'none') {
+    return null;
+  }
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom + vs(8) }]}>
+    <View style={styles.container}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const isFocused = state.index === index;
 
         const onPress = () => {
-          const event = navigation.emit({
+          const event = emitter.emit({
             type: 'tabPress',
             target: route.key,
             canPreventDefault: true,
           });
 
           if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name, route.params);
+            navigateToTab(route.key);
           }
         };
 
         const onLongPress = () => {
-          navigation.emit({
+          emitter.emit({
             type: 'tabLongPress',
             target: route.key,
           });

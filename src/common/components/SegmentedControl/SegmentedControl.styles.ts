@@ -1,6 +1,9 @@
 import { StyleSheet, type UnistylesVariants } from 'react-native-unistyles';
 import { hs } from '@/theme/metrics';
 
+/** Inner padding of the track per size; the indicator is inset by the same amount. */
+export const SEGMENT_TRACK_PADDING = { sm: hs(2), md: hs(3) } as const;
+
 export const styles = StyleSheet.create((theme) => ({
   container: {
     flexDirection: 'row' as const,
@@ -11,10 +14,10 @@ export const styles = StyleSheet.create((theme) => ({
     variants: {
       size: {
         sm: {
-          padding: hs(2),
+          padding: SEGMENT_TRACK_PADDING.sm,
         },
         md: {
-          padding: hs(3),
+          padding: SEGMENT_TRACK_PADDING.md,
         },
       },
       disabled: {
@@ -26,9 +29,21 @@ export const styles = StyleSheet.create((theme) => ({
   },
   indicator: {
     position: 'absolute' as const,
-    top: hs(3),
-    bottom: hs(3),
     backgroundColor: theme.colors.brand.primary,
+    variants: {
+      size: {
+        sm: {
+          top: SEGMENT_TRACK_PADDING.sm,
+          bottom: SEGMENT_TRACK_PADDING.sm,
+          left: SEGMENT_TRACK_PADDING.sm,
+        },
+        md: {
+          top: SEGMENT_TRACK_PADDING.md,
+          bottom: SEGMENT_TRACK_PADDING.md,
+          left: SEGMENT_TRACK_PADDING.md,
+        },
+      },
+    },
     borderRadius: theme.metrics.borderRadius.md,
     elevation: 1,
     shadowColor: theme.colors.shadow.color,

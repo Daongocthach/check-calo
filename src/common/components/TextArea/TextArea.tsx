@@ -1,7 +1,6 @@
 import { View } from 'react-native';
 import { Input } from '@/common/components/Input';
 import { Text } from '@/common/components/Text';
-import { vs } from '@/theme/metrics';
 import { styles } from './TextArea.styles';
 import type { TextAreaProps } from './TextArea.types';
 
@@ -38,13 +37,13 @@ export function TextArea({
         numberOfLines={numberOfLines}
         maxLength={maxLength}
         textAlignVertical="top"
-        style={[styles.textArea, { minHeight: numberOfLines * vs(22) }, style]}
+        style={[styles.textArea, styles.minHeight(numberOfLines), style]}
       />
-      {showCount && maxLength && (
+      {showCount && maxLength !== undefined ? (
         <Text variant="caption" style={styles.counter}>
           {`${charCount}/${maxLength}`}
         </Text>
-      )}
+      ) : null}
     </View>
   );
 }

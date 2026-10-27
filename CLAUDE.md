@@ -23,17 +23,18 @@ A production-grade React Native Expo base template designed as a reusable founda
 ## Commands
 
 ```bash
-npm start                  # Start Expo dev server
-npm run ios                # Run on iOS
-npm run android            # Run on Android
-npm run type-check         # TypeScript type checking
-npm run lint               # ESLint
-npm run lint:fix           # Auto-fix ESLint errors
-npm run format             # Prettier format
-npm run format:check       # Check formatting
-npm run validate           # All checks (type-check + lint + format)
-npm test                   # Run tests
-npm run test:coverage      # Coverage report
+yarn install               # Install deps (yarn only; do not use npm)
+yarn start                 # Start Expo dev server
+yarn ios                   # Run on iOS
+yarn android               # Run on Android
+yarn type-check            # TypeScript type checking
+yarn lint                  # ESLint
+yarn lint:fix              # Auto-fix ESLint errors
+yarn format                # Prettier format
+yarn format:check          # Check formatting
+yarn validate              # All checks (type-check + lint + format)
+yarn test                  # Run tests
+yarn test:coverage         # Coverage report
 ```
 
 ## Project Structure

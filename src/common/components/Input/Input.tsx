@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Pressable } from 'react-native';
 import { Icon } from '@/common/components/Icon';
 import { Text } from '@/common/components/Text';
@@ -24,8 +25,11 @@ export function Input({
   rightIcon,
   secureTextEntry,
   style,
+  onFocus,
+  onBlur,
   ...rest
 }: InputProps) {
+  const { t } = useTranslation();
   const [focused, setFocused] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
 
@@ -43,7 +47,7 @@ export function Input({
     <Pressable
       onPress={() => setPasswordVisible((prev) => !prev)}
       accessibilityRole="button"
-      accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}
+      accessibilityLabel={passwordVisible ? t('common.hidePassword') : t('common.showPassword')}
       hitSlop={8}
     >
       <Icon name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} variant="muted" size={20} />
@@ -65,16 +69,16 @@ export function Input({
           secureTextEntry={shouldObscure}
           accessibilityLabel={label}
           accessibilityState={{ disabled }}
+          uniProps={(theme) => ({ placeholderTextColor: theme.colors.text.muted })}
+          {...rest}
           onFocus={(e) => {
             setFocused(true);
-            rest.onFocus?.(e);
+            onFocus?.(e);
           }}
           onBlur={(e) => {
             setFocused(false);
-            rest.onBlur?.(e);
+            onBlur?.(e);
           }}
-          uniProps={(theme) => ({ placeholderTextColor: theme.colors.text.muted })}
-          {...rest}
         />
         {passwordToggle ?? rightIcon}
       </View>

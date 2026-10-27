@@ -81,7 +81,7 @@ export function FoodChatScreen() {
                   {t('chat.thinking')}
                 </Text>
               </View>
-            ) : null
+            ) : undefined
           }
         />
         <View style={styles.composer}>

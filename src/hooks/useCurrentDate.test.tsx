@@ -15,21 +15,21 @@ describe('useCurrentDate', () => {
     jest.restoreAllMocks();
   });
 
-  it('updates to the next calendar day while the app stays open', () => {
+  it('updates to the next calendar day while the app stays open', async () => {
     jest.setSystemTime(new Date(2026, 3, 14, 23, 59, 30));
 
-    const { result } = renderHook(() => useCurrentDate());
+    const { result } = await renderHook(() => useCurrentDate());
 
     expect(result.current.getDate()).toBe(14);
 
-    act(() => {
+    await act(() => {
       jest.advanceTimersByTime(31_500);
     });
 
     expect(result.current.getDate()).toBe(15);
   });
 
-  it('refreshes the current day when the app becomes active again', () => {
+  it('refreshes the current day when the app becomes active again', async () => {
     jest.setSystemTime(new Date(2026, 3, 14, 8, 0, 0));
 
     const listeners: Array<(status: AppStateStatus) => void> = [];
@@ -41,9 +41,9 @@ describe('useCurrentDate', () => {
       } as NativeEventSubscription;
     });
 
-    const { result } = renderHook(() => useCurrentDate());
+    const { result } = await renderHook(() => useCurrentDate());
 
-    act(() => {
+    await act(() => {
       jest.setSystemTime(new Date(2026, 3, 15, 8, 0, 0));
       listeners.forEach((listener) => listener('active'));
     });

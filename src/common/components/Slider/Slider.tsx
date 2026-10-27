@@ -1,7 +1,14 @@
 import { useMemo, useRef, useState } from 'react';
-import { PanResponder, View, type LayoutChangeEvent } from 'react-native';
+import {
+  PanResponder,
+  View,
+  type AccessibilityActionEvent,
+  type LayoutChangeEvent,
+} from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import type { SliderProps } from './Slider.types';
+
+const ACCESSIBILITY_ACTIONS = [{ name: 'increment' }, { name: 'decrement' }];
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -60,6 +67,16 @@ export function Slider({
     setWidth(event.nativeEvent.layout.width);
   };
 
+  // Screen readers adjust "adjustable" elements through increment/decrement actions.
+  const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
+    const direction = event.nativeEvent.actionName === 'increment' ? 1 : -1;
+    const nextValue = clamp(value + direction * step, minimumValue, maximumValue);
+
+    if (nextValue !== value) {
+      onValueChange(Number(nextValue.toFixed(2)));
+    }
+  };
+
   return (
     <View
       style={styles.hitArea}
@@ -67,6 +84,8 @@ export function Slider({
       accessibilityRole="adjustable"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: minimumValue, max: maximumValue, now: value }}
+      accessibilityActions={ACCESSIBILITY_ACTIONS}
+      onAccessibilityAction={handleAccessibilityAction}
       {...panResponder.panHandlers}
     >
       <View style={styles.track} pointerEvents="none">

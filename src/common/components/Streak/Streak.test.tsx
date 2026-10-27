@@ -1,20 +1,24 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { render, screen } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
+import type * as ReactNative from 'react-native';
 import { Streak } from './Streak';
 import { STREAK_STATUS } from './Streak.constants';
 
-jest.mock('@/common/components/Text', () => ({
-  Text: ({ children }: { children: ReactNode }) => <>{children}</>,
-}));
+jest.mock('@/common/components/Text', () => {
+  const { Text: NativeText } = jest.requireActual<typeof ReactNative>('react-native');
+  return {
+    Text: ({ children }: { children: ReactNode }) => <NativeText>{children}</NativeText>,
+  };
+});
 
 jest.mock('@/common/components/Icon', () => ({
   Icon: () => null,
 }));
 
 describe('Streak', () => {
-  it('renders weekly streak states with labels', () => {
-    render(
+  it('renders weekly streak states with labels', async () => {
+    await render(
       <Streak
         title="This week"
         subtitle="Keep it going"

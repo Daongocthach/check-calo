@@ -5,10 +5,12 @@ import {
   Pressable,
   View,
   type LayoutChangeEvent,
+  type ViewInstance,
   type ViewStyle,
 } from 'react-native';
 import { Icon } from '@/common/components/Icon';
 import { Text } from '@/common/components/Text';
+import { hs } from '@/theme/metrics';
 import { styles } from './Menu.styles';
 import type { MenuProps } from './Menu.types';
 
@@ -36,7 +38,7 @@ interface AnchorLayout {
  * ```
  */
 export function Menu({ visible, onDismiss, anchor, items }: MenuProps) {
-  const anchorRef = useRef<View>(null);
+  const anchorRef = useRef<ViewInstance>(null);
   const [anchorLayout, setAnchorLayout] = useState<AnchorLayout | null>(null);
   const [menuHeight, setMenuHeight] = useState(0);
 
@@ -60,7 +62,7 @@ export function Menu({ visible, onDismiss, anchor, items }: MenuProps) {
     menuTop = showBelow
       ? anchorLayout.pageY + anchorLayout.height + 4
       : anchorLayout.pageY - menuHeight - 4;
-    menuLeft = Math.min(anchorLayout.pageX, screenWidth - 280);
+    menuLeft = Math.min(anchorLayout.pageX, screenWidth - hs(280) - 8);
     menuLeft = Math.max(menuLeft, 8);
   }
 

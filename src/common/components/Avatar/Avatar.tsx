@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Icon } from '@/common/components/Icon';
 import { Text } from '@/common/components/Text';
@@ -16,6 +17,7 @@ import type { AvatarProps } from './Avatar.types';
  * ```
  */
 export function Avatar({ source, initials, icon, size = 'md', accessibilityLabel }: AvatarProps) {
+  const { t } = useTranslation();
   const dimension = AVATAR_SIZES[size];
   const fontSize = dimension * 0.4;
 
@@ -63,7 +65,7 @@ export function Avatar({ source, initials, icon, size = 'md', accessibilityLabel
     <View
       style={styles.container}
       accessibilityRole="image"
-      accessibilityLabel={accessibilityLabel ?? 'User avatar'}
+      accessibilityLabel={accessibilityLabel ?? t('common.userAvatar')}
     >
       <Icon name="person" variant="onBrand" size={dimension * 0.5} />
     </View>

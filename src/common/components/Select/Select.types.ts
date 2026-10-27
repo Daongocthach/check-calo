@@ -1,5 +1,5 @@
+import type { ImageProps } from 'expo-image';
 import type { ReactNode } from 'react';
-import type { ImageSourcePropType } from 'react-native';
 import type { IconProps } from '@/common/components/Icon';
 import type { ComponentSize } from '@/common/components/shared.types';
 
@@ -10,7 +10,7 @@ export interface SelectOption {
   /** Display text for this option. */
   label: string;
   /** Optional leading image displayed with this option. */
-  iconSource?: ImageSourcePropType;
+  iconSource?: ImageProps['source'];
   /** Optional leading icon displayed with this option. */
   iconName?: IconProps['name'];
   /** Unique value associated with this option. */
@@ -23,6 +23,8 @@ export interface SelectOption {
 
 /** Props for the {@link Select} component. */
 export interface SelectProps {
+  /** Accessible name for the select trigger. */
+  accessibilityLabel?: string;
   /** The currently selected option value. */
   value: string;
   /** Callback fired with the new value when an option is selected. */
@@ -57,7 +59,7 @@ export interface SelectProps {
   readOnly?: boolean;
   /** Size variant controlling the select dimensions. Defaults to `'md'`. */
   size?: ComponentSize;
-  /** Optional bottom sheet snap points. Defaults to `['40%', '60%']`. */
+  /** Optional bottom sheet snap points. Defaults to `['50%', '70%']`. */
   snapPoints?: Array<string | number>;
   /** Optional custom trigger content rendered instead of the default select UI. */
   children?: ReactNode;

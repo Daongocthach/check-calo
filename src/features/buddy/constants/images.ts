@@ -1,4 +1,4 @@
-import type { ImageSourcePropType } from 'react-native';
+import type { ImageProps } from 'expo-image';
 import type { BuddyLevel } from '../types';
 
 /**
@@ -7,4 +7,4 @@ import type { BuddyLevel } from '../types';
  * To use real art, drop a transparent PNG in `assets/buddy/` and register it, e.g.
  *   3: require('../../../../assets/buddy/level-3.png'),
  */
-export const BUDDY_IMAGES: Partial<Record<BuddyLevel, ImageSourcePropType>> = {};
+export const BUDDY_IMAGES: Partial<Record<BuddyLevel, ImageProps['source']>> = {};

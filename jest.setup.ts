@@ -19,6 +19,10 @@ jest.mock('react-native-mmkv', () => ({
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 
+// Mock react-native-unistyles (and its Nitro native modules), then register app themes
+require('react-native-unistyles/mocks');
+require('./src/theme/unistyles');
+
 // Mock expo-router
 jest.mock('expo-router', () => ({
   useRouter: () => ({

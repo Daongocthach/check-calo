@@ -18,6 +18,7 @@ export function Switch({
   disabled = false,
   size = 'md',
   label,
+  accessibilityLabel,
 }: SwitchProps) {
   styles.useVariants({ size, disabled });
 
@@ -34,7 +35,7 @@ export function Switch({
           onValueChange={onValueChange}
           disabled={disabled}
           accessibilityRole="switch"
-          accessibilityLabel={label}
+          accessibilityLabel={accessibilityLabel ?? label}
           accessibilityState={{ checked: value, disabled }}
           uniProps={(theme) => {
             let thumbColor = theme.colors.background.surface;

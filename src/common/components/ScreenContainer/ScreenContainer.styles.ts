@@ -29,7 +29,7 @@ export const styles = StyleSheet.create((theme, rt) => ({
     paddingTop: rt.insets.top,
   },
   edgeBottom: {
-    paddingBottom: rt.insets.bottom + theme.metrics.spacing.p4,
+    paddingBottom: rt.insets.bottom + theme.metrics.spacingV.p16,
   },
 }));
 

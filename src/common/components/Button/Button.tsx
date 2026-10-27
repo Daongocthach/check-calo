@@ -42,9 +42,15 @@ export function Button({
   rightIcon,
   labelStyle,
   style,
+  onPressIn,
+  onPressOut,
   ...rest
 }: ButtonProps) {
-  const { animatedStyle, onPressIn, onPressOut } = useAnimatedPress();
+  const {
+    animatedStyle,
+    onPressIn: animatePressIn,
+    onPressOut: animatePressOut,
+  } = useAnimatedPress();
 
   styles.useVariants({
     variant,
@@ -55,14 +61,20 @@ export function Button({
 
   return (
     <AnimatedPressable
-      style={[styles.container, animatedStyle, style as object]}
-      disabled={disabled || loading}
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
       accessibilityRole="button"
       accessibilityLabel={title}
-      accessibilityState={{ disabled: disabled || loading, busy: loading }}
       {...rest}
+      style={[styles.container, animatedStyle, style as object]}
+      disabled={disabled || loading}
+      onPressIn={(event) => {
+        animatePressIn();
+        onPressIn?.(event);
+      }}
+      onPressOut={(event) => {
+        animatePressOut();
+        onPressOut?.(event);
+      }}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
     >
       {loading ? (
         <UniActivityIndicator

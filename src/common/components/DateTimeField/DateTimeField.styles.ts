@@ -76,7 +76,4 @@ export const styles = StyleSheet.create((theme) => ({
     borderTopWidth: 1,
     borderTopColor: theme.colors.border.subtle,
   },
-  bottomSafeArea: {
-    backgroundColor: theme.colors.background.modal,
-  },
 }));

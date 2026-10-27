@@ -239,13 +239,7 @@ export default function NotificationSettingsScreen() {
   );
 
   return (
-    <ScreenContainer
-      scrollable
-      padded
-      edges={['bottom']}
-      tabBarAware
-      title={t('profileTab.reminders')}
-    >
+    <ScreenContainer scrollable padded edges={['bottom']} title={t('profileTab.reminders')}>
       <View style={styles.screen}>
         <Card variant="filled" style={styles.settingsCard}>
           <View style={styles.headerRow}>
@@ -256,6 +250,7 @@ export default function NotificationSettingsScreen() {
               value={calorieRemindersEnabledStorage.value ?? defaultReminderSettings.enabled}
               onValueChange={handleReminderToggle}
               disabled={isUpdatingReminders}
+              accessibilityLabel={t('profileScreen.reminders.toggleLabel')}
             />
           </View>
 

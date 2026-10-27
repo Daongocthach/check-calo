@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native-unistyles';
 import { vs } from '@/theme/metrics';
 
-export const styles = StyleSheet.create((theme) => ({
+export const styles = StyleSheet.create((theme, rt) => ({
   container: {
     position: 'absolute',
     bottom: 0,
@@ -15,6 +15,7 @@ export const styles = StyleSheet.create((theme) => ({
     borderTopWidth: 1,
     borderColor: theme.colors.border.subtle,
     paddingTop: vs(10),
+    paddingBottom: rt.insets.bottom + vs(8),
     paddingHorizontal: theme.metrics.spacing.p8,
     shadowColor: theme.colors.shadow.color,
     shadowOffset: { width: 0, height: -4 },

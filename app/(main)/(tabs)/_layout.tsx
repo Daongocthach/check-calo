@@ -16,7 +16,11 @@ export default function TabLayout() {
           sceneStyle: { backgroundColor: 'transparent' },
         }}
       >
-        <Tabs.Screen name="index" options={{ title: t('tabs.home') }} />
+        {/* The dashboard has its own navigation (menu, streak) and a bottom composer. */}
+        <Tabs.Screen
+          name="index"
+          options={{ title: t('tabs.home'), tabBarStyle: styles.hiddenTabBar }}
+        />
         <Tabs.Screen name="progress" options={{ title: t('tabs.progress') }} />
         <Tabs.Screen name="achievements" options={{ title: t('tabs.achievements') }} />
         <Tabs.Screen name="profile" options={{ title: t('tabs.profile') }} />
@@ -30,6 +34,9 @@ export default function TabLayout() {
 const styles = StyleSheet.create((theme, rt) => ({
   container: {
     flex: 1,
+  },
+  hiddenTabBar: {
+    display: 'none',
   },
   statusBarCover: {
     position: 'absolute',

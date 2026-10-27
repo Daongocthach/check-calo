@@ -87,13 +87,7 @@ export default function SupportScreen() {
   }, [isSavingImage, t]);
 
   return (
-    <ScreenContainer
-      scrollable
-      padded={false}
-      edges={['bottom']}
-      tabBarAware
-      title={t('supportScreen.title')}
-    >
+    <ScreenContainer scrollable padded={false} edges={['bottom']} title={t('supportScreen.title')}>
       <View style={styles.screen}>
         <View style={styles.content}>
           <View style={styles.hero}>

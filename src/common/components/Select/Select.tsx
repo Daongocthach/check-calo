@@ -1,8 +1,8 @@
+import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { Image } from 'expo-image';
-import { useCallback, useMemo, useRef } from 'react';
-import { FlatList, Keyboard, Pressable, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Keyboard, Pressable, View } from 'react-native';
 import type { ListRenderItem } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/common/components/Icon';
 import { SearchBar } from '@/common/components/SearchBar';
 import { Text } from '@/common/components/Text';
@@ -29,6 +29,7 @@ import type { SelectOption, SelectProps } from './Select.types';
  * ```
  */
 export function Select({
+  accessibilityLabel,
   value,
   onChange,
   options,
@@ -52,8 +53,8 @@ export function Select({
 }: SelectProps) {
   const { openSheet, closeSheet } = useAppBottomSheet();
   const pendingValueRef = useRef<string | null>(null);
+  const isSheetOpenRef = useRef(false);
   const resolvedSnapPoints = useMemo(() => snapPoints ?? ['50%', '70%'], [snapPoints]);
-  const insets = useSafeAreaInsets();
   const isInteractionDisabled = disabled || readOnly;
 
   styles.useVariants({ size, error: !!error, disabled, triggerVariant });
@@ -71,6 +72,7 @@ export function Select({
   );
 
   const handleDismiss = useCallback(() => {
+    isSheetOpenRef.current = false;
     const optionValue = pendingValueRef.current;
     pendingValueRef.current = null;
 
@@ -103,10 +105,15 @@ export function Select({
         <Pressable
           onPress={() => handleSelect(item.value)}
           disabled={item.disabled || readOnly}
-          style={[styles.option, isSelected && styles.optionSelected]}
+          style={[
+            styles.option,
+            isSelected && styles.optionSelected,
+            item.disabled && styles.optionDisabled,
+          ]}
           accessibilityRole="radio"
+          accessibilityLabel={item.label}
           accessibilityState={{
-            selected: isSelected,
+            checked: isSelected,
             disabled: item.disabled || readOnly,
           }}
         >
@@ -173,10 +180,9 @@ export function Select({
             />
           </View>
         ) : null}
-        <View style={[styles.footerSafeArea, { paddingBottom: insets.bottom }]} />
       </View>
     );
-  }, [insets.bottom, isLoadingMore]);
+  }, [isLoadingMore]);
 
   const renderEmpty = useCallback(() => {
     if (!emptyText || isSearching) {
@@ -205,7 +211,7 @@ export function Select({
             />
           </View>
         ) : null}
-        <FlatList
+        <BottomSheetFlatList
           data={options}
           keyExtractor={(item: SelectOption) => item.value}
           renderItem={renderItem}
@@ -235,17 +241,40 @@ export function Select({
     ]
   );
 
+  const presentSheet = useCallback(() => {
+    openSheet(sheetContent, {
+      snapPoints: resolvedSnapPoints,
+      containerVariant: 'none',
+      enablePanDownToClose: true,
+      onDismiss: handleDismiss,
+    });
+  }, [handleDismiss, openSheet, resolvedSnapPoints, sheetContent]);
+
   const handleOpen = useCallback(() => {
     if (!isInteractionDisabled) {
       Keyboard.dismiss();
-      openSheet(sheetContent, {
-        snapPoints: resolvedSnapPoints,
-        containerVariant: 'none',
-        enablePanDownToClose: true,
-        onDismiss: handleDismiss,
-      });
+      isSheetOpenRef.current = true;
+      presentSheet();
     }
-  }, [handleDismiss, isInteractionDisabled, openSheet, resolvedSnapPoints, sheetContent]);
+  }, [isInteractionDisabled, presentSheet]);
+
+  // The provider renders a snapshot of the content, so push search text, results and paging
+  // state to the sheet while it is open.
+  useEffect(() => {
+    if (isSheetOpenRef.current) {
+      presentSheet();
+    }
+  }, [presentSheet]);
+
+  // Don't leave this select's options open for a screen that is gone.
+  useEffect(
+    () => () => {
+      if (isSheetOpenRef.current) {
+        closeSheet();
+      }
+    },
+    [closeSheet]
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -258,6 +287,7 @@ export function Select({
         onPress={handleOpen}
         disabled={isInteractionDisabled}
         accessibilityRole="combobox"
+        accessibilityLabel={accessibilityLabel ?? label ?? displayText}
         accessibilityState={{ expanded: false, disabled: isInteractionDisabled }}
         style={styles.trigger}
       >

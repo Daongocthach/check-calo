@@ -12,4 +12,6 @@ export interface SwitchProps {
   size?: ComponentSize;
   /** Optional text label displayed beside the switch. */
   label?: string;
+  /** Accessible name when the visible label is rendered outside the switch. */
+  accessibilityLabel?: string;
 }

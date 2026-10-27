@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -25,6 +26,7 @@ export function ProgressBar({
   indeterminate = false,
   accessibilityLabel,
 }: ProgressBarProps) {
+  const { t } = useTranslation();
   const translateX = useSharedValue(-1);
 
   styles.useVariants({ size, colorScheme });
@@ -50,7 +52,7 @@ export function ProgressBar({
     <View
       style={styles.track}
       accessibilityRole="progressbar"
-      accessibilityLabel={accessibilityLabel ?? 'Progress'}
+      accessibilityLabel={accessibilityLabel ?? t('common.progress')}
       accessibilityValue={{ min: 0, max: 100, now: indeterminate ? undefined : clampedValue }}
     >
       {indeterminate ? (

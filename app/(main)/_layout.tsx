@@ -1,9 +1,12 @@
 import { Stack } from 'expo-router';
 
+export const unstable_settings = {
+  anchor: '(tabs)',
+};
+
 export default function MainLayout() {
   return (
     <Stack
-      initialRouteName="(tabs)"
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: 'transparent' },

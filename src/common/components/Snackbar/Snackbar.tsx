@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -33,6 +33,16 @@ export function Snackbar({
 }: SnackbarProps) {
   const translateY = useSharedValue(100);
   const [mounted, setMounted] = useState(false);
+  // Read through a ref so an inline `onDismiss` doesn't restart the auto-dismiss timer.
+  const onDismissRef = useRef(onDismiss);
+
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+  }, [onDismiss]);
+
+  const notifyDismiss = useCallback(() => {
+    onDismissRef.current();
+  }, []);
 
   styles.useVariants({ variant });
 
@@ -44,7 +54,7 @@ export function Snackbar({
         translateY.value = withTiming(100, { duration: 250 }, (finished) => {
           if (finished) {
             runOnJS(setMounted)(false);
-            runOnJS(onDismiss)();
+            runOnJS(notifyDismiss)();
           }
         });
       }, duration);
@@ -54,7 +64,7 @@ export function Snackbar({
       if (finished) runOnJS(setMounted)(false);
     });
     return undefined;
-  }, [visible, duration, onDismiss, translateY]);
+  }, [visible, duration, notifyDismiss, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -63,7 +73,11 @@ export function Snackbar({
   if (!mounted) return null;
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
+    <Animated.View
+      style={[styles.container, animatedStyle]}
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
+    >
       <Text variant="bodySmall" weight="medium" style={styles.messageText}>
         {message}
       </Text>

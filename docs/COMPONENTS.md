@@ -896,16 +896,19 @@ Dropdown picker with label, placeholder, error state, and three sizes.
 
 **Props**
 
-| Prop          | Type                      | Default     | Description           |
-| ------------- | ------------------------- | ----------- | --------------------- |
-| `value`       | `string`                  | required    | Selected option value |
-| `onChange`    | `(value: string) => void` | required    | Selection handler     |
-| `options`     | `SelectOption[]`          | required    | Array of options      |
-| `label`       | `string`                  | `undefined` | Label above picker    |
-| `placeholder` | `string`                  | `undefined` | Placeholder text      |
-| `error`       | `string`                  | `undefined` | Error message         |
-| `disabled`    | `boolean`                 | `false`     | Disabled state        |
-| `size`        | `'sm' \| 'md' \| 'lg'`    | `'md'`      | Picker height         |
+| Prop                 | Type                      | Default                   | Description                                              |
+| -------------------- | ------------------------- | ------------------------- | -------------------------------------------------------- |
+| `value`              | `string`                  | required                  | Selected option value                                    |
+| `onChange`           | `(value: string) => void` | required                  | Selection handler                                        |
+| `options`            | `SelectOption[]`          | required                  | Array of options                                         |
+| `label`              | `string`                  | `undefined`               | Label above picker                                       |
+| `placeholder`        | `string`                  | `undefined`               | Placeholder text                                         |
+| `error`              | `string`                  | `undefined`               | Error message                                            |
+| `disabled`           | `boolean`                 | `false`                   | Disabled state                                           |
+| `size`               | `'sm' \| 'md' \| 'lg'`    | `'md'`                    | Picker height                                            |
+| `accessibilityLabel` | `string`                  | `label ?? selected label` | Screen reader name for the trigger                       |
+| `children`           | `ReactNode`               | `undefined`               | Custom trigger content (replaces the default trigger UI) |
+| `triggerVariant`     | `'plain'`                 | `undefined`               | Strips the default trigger chrome; pair with `children`  |
 
 **SelectOption Shape**
 

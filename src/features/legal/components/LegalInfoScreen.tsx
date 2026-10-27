@@ -212,13 +212,7 @@ function AboutScreenContent() {
   const router = useRouter();
 
   return (
-    <ScreenContainer
-      scrollable
-      padded={false}
-      edges={['bottom']}
-      tabBarAware
-      title={t('settings.about')}
-    >
+    <ScreenContainer scrollable padded={false} edges={['bottom']} title={t('settings.about')}>
       <View style={styles.aboutScreen}>
         <View style={styles.aboutHero}>
           <LeafBadge />
@@ -265,7 +259,6 @@ function LegalDocumentScreen({ type }: { type: Exclude<LegalScreenType, 'about'>
       scrollable
       padded={false}
       edges={['bottom']}
-      tabBarAware
       title={type === 'terms' ? t('settings.terms') : t('settings.privacy')}
     >
       <View style={styles.documentScreen}>
