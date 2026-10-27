@@ -2,6 +2,7 @@ import { getDatabase } from '@/services/database/sqlite';
 import { formatDateKey, nowIsoString } from '@/utils/date';
 import { createEntityId } from '@/utils/id';
 import type { FoodEntryInput } from '../types';
+import { NUTRIENT_SQL, toNutrientParams } from '../utils/nutrients';
 import { getFoodEntryById, mapFoodEntry } from './foodEntryRepositoryCore';
 import type { FoodEntryRow } from './foodEntryRepositoryCore';
 import { deleteFoodEntryFromCloud, syncFoodEntryToCloud } from './foodEntrySync';
@@ -46,13 +47,14 @@ export async function createFoodEntry(input: FoodEntryInput) {
         protein_grams,
         carbs_grams,
         fat_grams,
+        ${NUTRIENT_SQL.columns},
         notes,
         image_uri,
         thumbnail_uri,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${NUTRIENT_SQL.placeholders}, ?, ?, ?, ?, ?);
     `,
     [
       id,
@@ -66,6 +68,7 @@ export async function createFoodEntry(input: FoodEntryInput) {
       input.proteinGrams,
       input.carbsGrams,
       input.fatGrams,
+      ...toNutrientParams(input),
       input.notes ?? null,
       input.imageUri ?? null,
       input.thumbnailUri ?? null,
@@ -113,6 +116,7 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
         protein_grams = ?,
         carbs_grams = ?,
         fat_grams = ?,
+        ${NUTRIENT_SQL.assignments},
         notes = ?,
         image_uri = ?,
         thumbnail_uri = ?,
@@ -130,6 +134,7 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
       input.proteinGrams,
       input.carbsGrams,
       input.fatGrams,
+      ...toNutrientParams(input),
       input.notes ?? null,
       input.imageUri ?? null,
       input.thumbnailUri ?? null,

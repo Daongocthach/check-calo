@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Icon, Text } from '@/common/components';
+import { NUTRIENT_UNIT_KEYS, NUTRIENTS } from '../../constants';
 import type { ChatFoodItem } from '../../services/foodAnalyzer';
+import { formatNutrientAmount } from '../../utils/format';
+import { sumNutrients } from '../../utils/nutrients';
 
 export interface FoodResultCardProps {
   items: ChatFoodItem[];
@@ -37,6 +40,15 @@ export function FoodResultCard({
     { key: 'carbs', value: sum(items, 'carbsGrams') },
     { key: 'fat', value: sum(items, 'fatGrams') },
   ] as const;
+  const nutrientTotals = sumNutrients(items);
+  const nutrientSummary = NUTRIENTS.flatMap((nutrient) => {
+    const value = nutrientTotals[nutrient.key];
+    const unit = t(NUTRIENT_UNIT_KEYS[nutrient.unit]);
+
+    return value === null
+      ? []
+      : [`${t(`nutrients.${nutrient.key}`)} ${formatNutrientAmount(value, nutrient.unit)} ${unit}`];
+  }).join(' · ');
 
   return (
     <View style={styles.card}>
@@ -76,6 +88,11 @@ export function FoodResultCard({
             </View>
           ))}
         </View>
+        {nutrientSummary ? (
+          <Text variant="caption" color="secondary">
+            {nutrientSummary}
+          </Text>
+        ) : null}
         {isLogged ? (
           <View style={styles.logged}>
             <Icon name="checkmark-circle" size={18} color={theme.colors.brand.primary} />

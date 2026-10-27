@@ -8,3 +8,12 @@ export function formatTime(value: string | Date, language: string) {
 export function roundNumber(value: number) {
   return Math.round(Number.isFinite(value) ? value : 0);
 }
+
+/** Grams keep one decimal (2.5 g fiber), milligrams are whole numbers. */
+export function formatNutrientAmount(value: number, unit: 'g' | 'mg') {
+  if (unit === 'mg' || Number.isInteger(value)) {
+    return String(Math.round(value));
+  }
+
+  return value.toFixed(1);
+}

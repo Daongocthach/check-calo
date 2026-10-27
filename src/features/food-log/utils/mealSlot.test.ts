@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { FoodEntry } from '../types';
 import { getMealSlot, groupEntriesByMealSlot } from './mealSlot';
+import { EMPTY_NUTRIENTS } from './nutrients';
 
 function entry(
   id: string,
@@ -18,6 +19,7 @@ function entry(
     proteinGrams: 0,
     carbsGrams: 0,
     fatGrams: 0,
+    ...EMPTY_NUTRIENTS,
     notes: null,
     imageUri,
     consumedAt,

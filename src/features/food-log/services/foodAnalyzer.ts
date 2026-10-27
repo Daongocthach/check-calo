@@ -1,6 +1,8 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import { env } from '@/config/env';
 import { supabase } from '@/integrations/supabase';
+import type { NutrientKey, NutrientValues } from '../types';
+import { pickNutrients } from '../utils/nutrients';
 
 interface ReceiptImagePayload {
   base64: string;
@@ -20,7 +22,7 @@ interface InvokeParserResponse {
   message?: string;
 }
 
-interface ChatFoodItemPayload {
+interface ChatFoodItemPayload extends Partial<Record<NutrientKey, number | null>> {
   name?: string | null;
   quantityLabel?: string | null;
   quantityGrams?: number | null;
@@ -73,7 +75,7 @@ export type FoodAnalysisResult =
       assistantMessage: string | null;
     };
 
-export interface ChatFoodItem {
+export interface ChatFoodItem extends NutrientValues {
   name: string;
   quantityLabel: string;
   quantityGrams: number | null;
@@ -81,6 +83,8 @@ export interface ChatFoodItem {
   proteinGrams: number;
   carbsGrams: number;
   fatGrams: number;
+  /** Set when the item came from a barcode scan rather than the AI. */
+  barcode?: string | null;
 }
 
 export type ChatIntent = 'log' | 'suggest' | 'answer' | 'unsupported';
@@ -139,13 +143,15 @@ function buildChatPrompt(context: ChatAnalysisContext) {
     'You are "Check AI", a friendly nutrition assistant inside a calorie tracking app.',
     'The user chats to log what they ate, optionally with a food photo, or asks for meal ideas.',
     'Return ONLY valid JSON with this exact schema:',
-    '{"intent":"log|suggest|answer|unsupported","reply":string,"items":[{"name":string,"quantityLabel":string,"quantityGrams":number|null,"calories":number,"proteinGrams":number,"carbsGrams":number,"fatGrams":number}],"mealTime":"breakfast|lunch|dinner|snack"|null,"followUps":string[]}',
+    '{"intent":"log|suggest|answer|unsupported","reply":string,"items":[{"name":string,"quantityLabel":string,"quantityGrams":number|null,"calories":number,"proteinGrams":number,"carbsGrams":number,"fatGrams":number,"fiberGrams":number|null,"sugarGrams":number|null,"saturatedFatGrams":number|null,"transFatGrams":number|null,"cholesterolMg":number|null,"sodiumMg":number|null,"potassiumMg":number|null}],"mealTime":"breakfast|lunch|dinner|snack"|null,"followUps":string[]}',
     'Rules:',
     '- intent=log when the user describes or photographs food they ate or are eating. List every food as its own item.',
     '- intent=suggest when the user asks what to eat. Give 1 to 3 concrete dishes as items that fit their request.',
     '- intent=answer for other nutrition questions. items must be [].',
     '- intent=unsupported when the message is unrelated to food or nutrition. items must be [].',
     '- Numbers are totals for the described portion, not per 100g. Round to whole numbers.',
+    '- fiberGrams, sugarGrams (total sugars), saturatedFatGrams, transFatGrams are grams and may have one decimal; cholesterolMg, sodiumMg, potassiumMg are milligrams.',
+    '- Estimate these nutrients like the macros; use null only when you cannot estimate one at all. Count sodium from sauces, broth and seasoning (e.g. nước mắm, nước dùng, mì gói seasoning).',
     '- mealTime is set only when the user says which meal or time of day it was (e.g. "sáng nay" = breakfast); otherwise null.',
     '- For intent=log, the user still confirms in the app, so never say the food was already saved; invite them to add it.',
     '- quantityLabel is a short human portion such as "1 tô", "2 lát", "1 bowl".',
@@ -255,6 +261,7 @@ function toChatFoodItem(item: ChatFoodItemPayload): ChatFoodItem | null {
     proteinGrams: Math.round(toSafeNumber(item.proteinGrams)),
     carbsGrams: Math.round(toSafeNumber(item.carbsGrams)),
     fatGrams: Math.round(toSafeNumber(item.fatGrams)),
+    ...pickNutrients(item),
   };
 }
 

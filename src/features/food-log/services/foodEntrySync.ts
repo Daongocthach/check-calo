@@ -1,6 +1,8 @@
 import { env } from '@/config/env';
 import { supabase } from '@/integrations/supabase';
 import { getDatabase } from '@/services/database/sqlite';
+import { pickNutrientColumns } from '../utils/nutrients';
+import type { FoodEntryRow } from './foodEntryRepositoryCore';
 
 function hasSupabaseConfiguration() {
   return Boolean(env.supabaseUrl && env.supabaseAnonKey);
@@ -18,8 +20,7 @@ export async function syncFoodEntryToCloud(entryId: string) {
   if (!userId) return false;
 
   const database = await getDatabase();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const row = await database.getFirstAsync<any>(
+  const row = await database.getFirstAsync<Omit<FoodEntryRow, 'is_recent'>>(
     'SELECT * FROM food_entries WHERE id = ? LIMIT 1;',
     [entryId]
   );
@@ -38,6 +39,7 @@ export async function syncFoodEntryToCloud(entryId: string) {
     protein_grams: row.protein_grams,
     carbs_grams: row.carbs_grams,
     fat_grams: row.fat_grams,
+    ...pickNutrientColumns(row),
     notes: row.notes,
     image_uri: row.image_uri,
     thumbnail_uri: row.thumbnail_uri,

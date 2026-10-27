@@ -1,4 +1,5 @@
-import type { FoodEntry, FoodEntryInput } from '../types';
+import type { FoodEntry, FoodEntryInput, NutrientValues } from '../types';
+import { pickNutrients } from '../utils/nutrients';
 import { createFoodEntry, deleteFoodEntry, updateFoodEntry } from './foodEntryRepository';
 import { getFoodEntryById } from './foodEntryRepositoryCore';
 import { deleteOrphanedFoodEntryAssets, persistFoodEntryAssetsLocally } from './foodImageStorage';
@@ -8,7 +9,7 @@ import {
 } from './foodImageSyncQueue';
 import { upsertRecentFoodFromInput } from './recentFoodRepository';
 
-export interface LogFoodItemInput {
+export interface LogFoodItemInput extends Partial<NutrientValues> {
   name: string;
   quantityLabel: string;
   quantityGrams: number | null;
@@ -40,6 +41,7 @@ function toEntryInput(
     proteinGrams: item.proteinGrams,
     carbsGrams: item.carbsGrams,
     fatGrams: item.fatGrams,
+    ...pickNutrients(item),
     notes: item.notes ?? null,
     imageUri: assets?.imageUri ?? null,
     thumbnailUri: assets?.thumbnailUri ?? null,
@@ -76,6 +78,7 @@ export async function logFoodItems(items: LogFoodItemInput[], options: LogFoodOp
       proteinGrams: item.proteinGrams,
       carbsGrams: item.carbsGrams,
       fatGrams: item.fatGrams,
+      ...pickNutrients(item),
       notes: item.notes ?? null,
       imageUri: assets?.imageUri ?? null,
       thumbnailUri: assets?.thumbnailUri ?? null,

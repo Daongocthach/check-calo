@@ -34,6 +34,7 @@
       "kg": "kg",
       "kcal": "kcal",
       "gram": "g",
+      "milligram": "mg",
       "day": "day"
     },
     "aiQuotaExceeded": "You have reached today's AI limit. Please try again tomorrow.",
@@ -168,6 +169,24 @@
           "who": {
             "title": "World Health Organization.",
             "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          }
+        }
+      },
+      "nutrients": {
+        "title": "Nutrient Daily References",
+        "description": "Daily reference amounts for fiber, sugar, saturated fat, trans fat, cholesterol, sodium and potassium follow the FDA Daily Values; sugar and trans fat limits follow WHO guidelines.",
+        "references": {
+          "fda": {
+            "title": "U.S. Food and Drug Administration.",
+            "citation": "Daily Value on the Nutrition and Supplement Facts Labels."
+          },
+          "whoSugars": {
+            "title": "World Health Organization.",
+            "citation": "Guideline: Sugars intake for adults and children. Geneva: World Health Organization; 2015."
+          },
+          "whoFats": {
+            "title": "World Health Organization.",
+            "citation": "Saturated fatty acid and trans-fatty acid intake for adults and children: WHO guideline. Geneva: World Health Organization; 2023."
           }
         }
       },
@@ -546,6 +565,21 @@
     "carbs": "Carbs",
     "protein": "Protein",
     "fat": "Fat"
+  },
+  "nutrients": {
+    "title": "Nutrient details",
+    "fiberGrams": "Fiber",
+    "sugarGrams": "Sugar",
+    "saturatedFatGrams": "Saturated fat",
+    "transFatGrams": "Trans fat",
+    "cholesterolMg": "Cholesterol",
+    "sodiumMg": "Sodium",
+    "potassiumMg": "Potassium",
+    "unknown": "—",
+    "emptyHint": "No detailed data for this food yet. Tap edit to enter values from the nutrition label.",
+    "dailyValueHint": "% of the daily reference for a 2,000 kcal diet. Aim to reach it for fiber and potassium; keep the others below it.",
+    "showDetails": "Show nutrient details",
+    "hideDetails": "Hide nutrient details"
   },
   "mealSlots": {
     "breakfast": "Breakfast",

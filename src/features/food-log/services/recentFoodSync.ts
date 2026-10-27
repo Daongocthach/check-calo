@@ -1,6 +1,8 @@
 import { env } from '@/config/env';
 import { supabase } from '@/integrations/supabase';
 import { getDatabase } from '@/services/database/sqlite';
+import { pickNutrientColumns } from '../utils/nutrients';
+import type { RecentFoodRow } from './foodEntryRepositoryCore';
 import { ensureRemoteImage } from './foodImageStorage';
 
 function hasSupabaseConfiguration() {
@@ -19,8 +21,7 @@ export async function syncRecentFoodToCloud(recentId: string) {
   if (!userId) return false;
 
   const database = await getDatabase();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const row = await database.getFirstAsync<any>(
+  const row = await database.getFirstAsync<RecentFoodRow>(
     'SELECT * FROM recent_foods WHERE id = ? LIMIT 1;',
     [recentId]
   );
@@ -44,6 +45,7 @@ export async function syncRecentFoodToCloud(recentId: string) {
     protein_grams: row.protein_grams,
     carbs_grams: row.carbs_grams,
     fat_grams: row.fat_grams,
+    ...pickNutrientColumns(row),
     notes: row.notes,
     image_uri: remoteImageUri,
     thumbnail_uri: remoteThumbnailUri,

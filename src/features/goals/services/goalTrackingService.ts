@@ -1,5 +1,10 @@
 import { listDailyNutritionSummaries } from '@/features/food-log/services/dailySummaryService';
 import type { NutritionTrendPoint } from '@/features/food-log/types';
+import {
+  NUTRIENT_SQL,
+  nutrientsFromColumns,
+  type NutrientColumnValues,
+} from '@/features/food-log/utils/nutrients';
 import { syncCurrentUserLeaderboardProfile } from '@/features/leaderboard/services/leaderboardService';
 import { getUserProfile } from '@/features/profile/services/profileRepository';
 import type { UserProfile } from '@/features/profile/types';
@@ -49,7 +54,7 @@ interface AchievementUnlockRow {
   updated_at: string;
 }
 
-interface GoalTrackingDailyTotalsRow {
+interface GoalTrackingDailyTotalsRow extends NutrientColumnValues {
   entry_date: string;
   consumed_calories: number | null;
   protein_grams: number | null;
@@ -219,7 +224,8 @@ async function listSummariesBetween(
         COALESCE(SUM(total_calories), 0) AS consumed_calories,
         COALESCE(SUM(protein_grams), 0) AS protein_grams,
         COALESCE(SUM(carbs_grams), 0) AS carbs_grams,
-        COALESCE(SUM(fat_grams), 0) AS fat_grams
+        COALESCE(SUM(fat_grams), 0) AS fat_grams,
+        ${NUTRIENT_SQL.sums}
       FROM food_entries
       WHERE entry_date >= ? AND entry_date <= ?
       GROUP BY entry_date
@@ -252,6 +258,7 @@ async function listSummariesBetween(
       proteinGrams: totals?.protein_grams ?? 0,
       carbsGrams: totals?.carbs_grams ?? 0,
       fatGrams: totals?.fat_grams ?? 0,
+      nutrients: nutrientsFromColumns(totals ?? {}),
     });
 
     cursor.setDate(cursor.getDate() + 1);

@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Text } from '@/common/components';
-import { CalorieGauge, MacroProgress } from '@/features/food-log/components';
+import { Icon, Text } from '@/common/components';
+import { CalorieGauge, MacroProgress, NutrientList } from '@/features/food-log/components';
 import { MACRO_KEYS } from '@/features/food-log/constants';
 import type { DailyNutritionSummary } from '@/features/food-log/types';
+import { EMPTY_NUTRIENTS } from '@/features/food-log/utils/nutrients';
 import type { UserProfile } from '@/features/profile/types';
 import { hs } from '@/theme/metrics';
 
@@ -15,6 +17,7 @@ export interface DailyProgressCardProps {
 
 export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) {
   const { t } = useTranslation();
+  const [showNutrients, setShowNutrients] = useState(false);
   const consumed = Math.round(summary?.consumedCalories ?? 0);
   const target = Math.round(summary?.calorieTarget ?? profile?.dailyCalorieTarget ?? 0);
   const macros = {
@@ -47,6 +50,18 @@ export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) 
           />
         ))}
       </View>
+      <Pressable
+        style={styles.toggle}
+        onPress={() => setShowNutrients((value) => !value)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showNutrients }}
+      >
+        <Text variant="bodySmall" weight="semibold" color="secondary">
+          {t(showNutrients ? 'nutrients.hideDetails' : 'nutrients.showDetails')}
+        </Text>
+        <Icon name={showNutrients ? 'chevron-up' : 'chevron-down'} variant="secondary" size={16} />
+      </Pressable>
+      {showNutrients ? <NutrientList values={summary?.nutrients ?? EMPTY_NUTRIENTS} /> : null}
     </View>
   );
 }
@@ -67,6 +82,12 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  toggle: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p4,
   },
   macros: {
     flexDirection: 'row',

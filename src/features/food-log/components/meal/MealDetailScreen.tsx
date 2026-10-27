@@ -18,8 +18,10 @@ import { toast } from '@/utils/toast';
 import { useMealDetail } from '../../hooks/useMealDetail';
 import { formatTime } from '../../utils/format';
 import { getMealSlot } from '../../utils/mealSlot';
+import { hasAnyNutrient } from '../../utils/nutrients';
 import { FoodImagePreview } from '../FoodImagePreview';
 import { MacroRings } from '../MacroRings';
+import { NutrientList } from '../NutrientList';
 import { MealEditForm } from './MealEditForm';
 
 export interface MealDetailScreenProps {
@@ -144,6 +146,17 @@ export function MealDetailScreen({ entryId }: MealDetailScreenProps) {
           <Text variant="caption" color="tertiary">
             {t('mealDetail.ringsHint')}
           </Text>
+        </View>
+        <View style={styles.card}>
+          <Text variant="body" weight="bold">
+            {t('nutrients.title')}
+          </Text>
+          {hasAnyNutrient(entry) ? null : (
+            <Text variant="bodySmall" color="secondary">
+              {t('nutrients.emptyHint')}
+            </Text>
+          )}
+          <NutrientList values={entry} />
         </View>
         <Button
           title={t('mealDetail.deleteAction')}

@@ -64,6 +64,31 @@ export const HEALTH_INFORMATION_SOURCE_SECTIONS = [
     ],
   },
   {
+    key: 'nutrients',
+    references: [
+      {
+        key: 'fda',
+        titleKey: 'healthInformationSourcesScreen.sections.nutrients.references.fda.title',
+        citationKey: 'healthInformationSourcesScreen.sections.nutrients.references.fda.citation',
+        url: 'https://www.fda.gov/food/nutrition-facts-label/daily-value-nutrition-and-supplement-facts-labels',
+      },
+      {
+        key: 'whoSugars',
+        titleKey: 'healthInformationSourcesScreen.sections.nutrients.references.whoSugars.title',
+        citationKey:
+          'healthInformationSourcesScreen.sections.nutrients.references.whoSugars.citation',
+        url: 'https://www.who.int/publications/i/item/9789241549028',
+      },
+      {
+        key: 'whoFats',
+        titleKey: 'healthInformationSourcesScreen.sections.nutrients.references.whoFats.title',
+        citationKey:
+          'healthInformationSourcesScreen.sections.nutrients.references.whoFats.citation',
+        url: 'https://www.who.int/publications/i/item/9789240073630',
+      },
+    ],
+  },
+  {
     key: 'weightManagement',
     references: [
       {

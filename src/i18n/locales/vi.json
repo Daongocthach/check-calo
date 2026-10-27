@@ -34,6 +34,7 @@
       "kg": "kg",
       "kcal": "kcal",
       "gram": "g",
+      "milligram": "mg",
       "day": "ngày"
     },
     "aiQuotaExceeded": "Bạn đã đạt giới hạn AI hôm nay. Hãy thử lại vào ngày mai.",
@@ -168,6 +169,24 @@
           "who": {
             "title": "World Health Organization.",
             "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          }
+        }
+      },
+      "nutrients": {
+        "title": "Mức Tham Khảo Vi Chất Mỗi Ngày",
+        "description": "Mức tham khảo mỗi ngày cho chất xơ, đường, chất béo bão hòa, chất béo trans, cholesterol, natri và kali theo Giá trị hằng ngày (Daily Value) của FDA; giới hạn đường và chất béo trans theo hướng dẫn của WHO.",
+        "references": {
+          "fda": {
+            "title": "U.S. Food and Drug Administration.",
+            "citation": "Daily Value on the Nutrition and Supplement Facts Labels."
+          },
+          "whoSugars": {
+            "title": "World Health Organization.",
+            "citation": "Guideline: Sugars intake for adults and children. Geneva: World Health Organization; 2015."
+          },
+          "whoFats": {
+            "title": "World Health Organization.",
+            "citation": "Saturated fatty acid and trans-fatty acid intake for adults and children: WHO guideline. Geneva: World Health Organization; 2023."
           }
         }
       },
@@ -546,6 +565,21 @@
     "carbs": "Carb",
     "protein": "Protein",
     "fat": "Chất béo"
+  },
+  "nutrients": {
+    "title": "Dinh dưỡng chi tiết",
+    "fiberGrams": "Chất xơ",
+    "sugarGrams": "Đường",
+    "saturatedFatGrams": "Chất béo bão hòa",
+    "transFatGrams": "Chất béo trans",
+    "cholesterolMg": "Cholesterol",
+    "sodiumMg": "Natri",
+    "potassiumMg": "Kali",
+    "unknown": "—",
+    "emptyHint": "Món này chưa có dữ liệu chi tiết. Bấm sửa để nhập theo nhãn dinh dưỡng.",
+    "dailyValueHint": "% so với mức tham khảo mỗi ngày cho chế độ ăn 2.000 kcal. Chất xơ và kali nên ăn đủ; các chất còn lại nên giữ dưới mức này.",
+    "showDetails": "Xem chi tiết dinh dưỡng",
+    "hideDetails": "Ẩn chi tiết dinh dưỡng"
   },
   "mealSlots": {
     "breakfast": "Bữa sáng",

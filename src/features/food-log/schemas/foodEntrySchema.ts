@@ -12,6 +12,19 @@ const numberField = z
     }
   );
 
+/** Empty means unknown, which is kept apart from 0. */
+const optionalNumberField = z
+  .string()
+  .trim()
+  .refine(
+    (value) =>
+      !value ||
+      (Number.isFinite(Number(value.replace(',', '.'))) && Number(value.replace(',', '.')) >= 0),
+    {
+      message: 'validation.numberInvalid',
+    }
+  );
+
 export const foodEntryFormSchema = z.object({
   name: z.string().trim().min(1, 'validation.required'),
   quantityLabel: z.string().trim(),
@@ -19,6 +32,13 @@ export const foodEntryFormSchema = z.object({
   proteinGrams: numberField,
   carbsGrams: numberField,
   fatGrams: numberField,
+  fiberGrams: optionalNumberField,
+  sugarGrams: optionalNumberField,
+  saturatedFatGrams: optionalNumberField,
+  transFatGrams: optionalNumberField,
+  cholesterolMg: optionalNumberField,
+  sodiumMg: optionalNumberField,
+  potassiumMg: optionalNumberField,
   notes: z.string(),
 });
 
@@ -26,4 +46,8 @@ export type FoodEntryFormValues = z.infer<typeof foodEntryFormSchema>;
 
 export function parseFormNumber(value: string) {
   return Math.round(Number(value.replace(',', '.')));
+}
+
+export function parseOptionalFormNumber(value: string) {
+  return value.trim() ? Number(value.replace(',', '.')) : null;
 }

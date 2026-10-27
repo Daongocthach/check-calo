@@ -7,6 +7,19 @@ export type SyncQueueEntityType =
 export type SyncQueueOperation = 'create' | 'update' | 'delete' | 'upload';
 export type SyncQueueStatus = 'pending' | 'processing' | 'done' | 'failed';
 
+/** Nutrients tracked beyond calories and macros. Grams unless the key ends in `Mg`. */
+export type NutrientKey =
+  | 'fiberGrams'
+  | 'sugarGrams'
+  | 'saturatedFatGrams'
+  | 'transFatGrams'
+  | 'cholesterolMg'
+  | 'sodiumMg'
+  | 'potassiumMg';
+
+/** `null` means unknown (not estimated or not on the label), which is different from 0. */
+export type NutrientValues = Record<NutrientKey, number | null>;
+
 export interface DailyNutritionSummary {
   date: string;
   calorieTarget: number;
@@ -16,13 +29,15 @@ export interface DailyNutritionSummary {
   proteinGrams: number;
   carbsGrams: number;
   fatGrams: number;
+  /** Sum of the known values that day; `null` when no entry had the nutrient. */
+  nutrients: NutrientValues;
 }
 
 export interface NutritionTrendPoint extends DailyNutritionSummary {
   label: string;
 }
 
-export interface FoodEntryInput {
+export interface FoodEntryInput extends Partial<NutrientValues> {
   barcode?: string | null;
   mealName: string;
   quantityLabel: string;
@@ -38,7 +53,7 @@ export interface FoodEntryInput {
   entryDate?: string;
 }
 
-export interface FoodEntry extends FoodEntryInput {
+export interface FoodEntry extends Omit<FoodEntryInput, NutrientKey>, NutrientValues {
   id: string;
   consumedAt: string;
   entryDate: string;
@@ -48,7 +63,7 @@ export interface FoodEntry extends FoodEntryInput {
   isRecent: boolean;
 }
 
-export interface RecentFood {
+export interface RecentFood extends NutrientValues {
   id: string;
   sourceEntryId: string | null;
   barcode: string | null;

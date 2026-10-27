@@ -3,8 +3,9 @@ import { getDailyCalorieGoalState } from '@/features/profile/utils/calorie';
 import { getDatabase } from '@/services/database/sqlite';
 import { formatDateKey } from '@/utils/date';
 import type { DailyNutritionSummary, NutritionTrendPoint } from '../types';
+import { NUTRIENT_SQL, nutrientsFromColumns, type NutrientColumnValues } from '../utils/nutrients';
 
-interface DailyTotalsRow {
+interface DailyTotalsRow extends NutrientColumnValues {
   entry_date: string;
   consumed_calories: number | null;
   protein_grams: number | null;
@@ -22,18 +23,14 @@ export async function getDailyNutritionSummary(
     'SELECT calorie_target FROM daily_calorie_targets WHERE date = ? LIMIT 1;',
     [normalizedDate]
   );
-  const totals = await database.getFirstAsync<{
-    consumed_calories: number | null;
-    protein_grams: number | null;
-    carbs_grams: number | null;
-    fat_grams: number | null;
-  }>(
+  const totals = await database.getFirstAsync<Omit<DailyTotalsRow, 'entry_date'>>(
     `
       SELECT
         COALESCE(SUM(total_calories), 0) AS consumed_calories,
         COALESCE(SUM(protein_grams), 0) AS protein_grams,
         COALESCE(SUM(carbs_grams), 0) AS carbs_grams,
-        COALESCE(SUM(fat_grams), 0) AS fat_grams
+        COALESCE(SUM(fat_grams), 0) AS fat_grams,
+        ${NUTRIENT_SQL.sums}
       FROM food_entries
       WHERE entry_date = ?;
     `,
@@ -56,6 +53,7 @@ export async function getDailyNutritionSummary(
     proteinGrams,
     carbsGrams,
     fatGrams,
+    nutrients: nutrientsFromColumns(totals ?? {}),
   };
 }
 
@@ -85,7 +83,8 @@ export async function listDailyNutritionSummaries(
         COALESCE(SUM(total_calories), 0) AS consumed_calories,
         COALESCE(SUM(protein_grams), 0) AS protein_grams,
         COALESCE(SUM(carbs_grams), 0) AS carbs_grams,
-        COALESCE(SUM(fat_grams), 0) AS fat_grams
+        COALESCE(SUM(fat_grams), 0) AS fat_grams,
+        ${NUTRIENT_SQL.sums}
       FROM food_entries
       WHERE entry_date >= ? AND entry_date <= ?
       GROUP BY entry_date
@@ -121,6 +120,7 @@ export async function listDailyNutritionSummaries(
       proteinGrams,
       carbsGrams,
       fatGrams,
+      nutrients: nutrientsFromColumns(totals ?? {}),
     });
 
     cursor.setDate(cursor.getDate() + 1);

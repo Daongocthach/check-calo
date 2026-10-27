@@ -6,8 +6,11 @@ import { getDatabase } from '@/services/database/sqlite';
 import { formatDateKey } from '@/utils/date';
 import { getItem, setItem } from '@/utils/storage';
 import { STORAGE_KEYS } from '@/utils/storage/constants';
+import { NUTRIENT_SQL, nutrientsFromColumns, toNutrientParams } from '../utils/nutrients';
+import type { NutrientColumnValues } from '../utils/nutrients';
 
-interface SupabaseFoodEntryRow {
+/** Nutrient columns are absent until the cloud migration that adds them has run. */
+interface SupabaseFoodEntryRow extends Partial<NutrientColumnValues> {
   id: string;
   user_id: string;
   entry_date: string;
@@ -27,7 +30,7 @@ interface SupabaseFoodEntryRow {
   updated_at: string;
 }
 
-interface SupabaseRecentFoodRow {
+interface SupabaseRecentFoodRow extends Partial<NutrientColumnValues> {
   id: string;
   user_id: string;
   source_entry_id: string | null;
@@ -104,13 +107,14 @@ async function upsertFoodEntryFromCloudRow(
         protein_grams,
         carbs_grams,
         fat_grams,
+        ${NUTRIENT_SQL.columns},
         notes,
         image_uri,
         thumbnail_uri,
         barcode,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${NUTRIENT_SQL.placeholders}, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         user_id = excluded.user_id,
         entry_date = excluded.entry_date,
@@ -122,6 +126,7 @@ async function upsertFoodEntryFromCloudRow(
         protein_grams = excluded.protein_grams,
         carbs_grams = excluded.carbs_grams,
         fat_grams = excluded.fat_grams,
+        ${NUTRIENT_SQL.excluded},
         notes = excluded.notes,
         image_uri = excluded.image_uri,
         thumbnail_uri = excluded.thumbnail_uri,
@@ -141,6 +146,7 @@ async function upsertFoodEntryFromCloudRow(
       row.protein_grams,
       row.carbs_grams,
       row.fat_grams,
+      ...toNutrientParams(nutrientsFromColumns(row)),
       toNullableString(row.notes),
       toNullableString(row.image_uri),
       toNullableString(row.thumbnail_uri),
@@ -167,13 +173,14 @@ async function upsertRecentFoodFromCloudRow(
         protein_grams,
         carbs_grams,
         fat_grams,
+        ${NUTRIENT_SQL.columns},
         notes,
         image_uri,
         thumbnail_uri,
         barcode,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ${NUTRIENT_SQL.placeholders}, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         source_entry_id = excluded.source_entry_id,
         name = excluded.name,
@@ -183,6 +190,7 @@ async function upsertRecentFoodFromCloudRow(
         protein_grams = excluded.protein_grams,
         carbs_grams = excluded.carbs_grams,
         fat_grams = excluded.fat_grams,
+        ${NUTRIENT_SQL.excluded},
         notes = excluded.notes,
         image_uri = excluded.image_uri,
         thumbnail_uri = excluded.thumbnail_uri,
@@ -200,6 +208,7 @@ async function upsertRecentFoodFromCloudRow(
       row.protein_grams,
       row.carbs_grams,
       row.fat_grams,
+      ...toNutrientParams(nutrientsFromColumns(row)),
       toNullableString(row.notes),
       toNullableString(row.image_uri),
       toNullableString(row.thumbnail_uri),

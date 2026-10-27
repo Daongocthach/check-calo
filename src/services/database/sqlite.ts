@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 14;
+const DATABASE_VERSION = 15;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -488,6 +488,26 @@ async function runVersion14Migration(database: SQLite.SQLiteDatabase) {
   `);
 }
 
+// Nullable so entries logged before this version read as "unknown" instead of 0.
+const NUTRIENT_COLUMN_DEFINITIONS = [
+  'fiber_grams REAL',
+  'sugar_grams REAL',
+  'saturated_fat_grams REAL',
+  'trans_fat_grams REAL',
+  'cholesterol_mg REAL',
+  'sodium_mg REAL',
+  'potassium_mg REAL',
+];
+
+async function runVersion15Migration(database: SQLite.SQLiteDatabase) {
+  for (const tableName of ['food_entries', 'recent_foods', 'food_products']) {
+    for (const columnDefinition of NUTRIENT_COLUMN_DEFINITIONS) {
+      const [columnName] = columnDefinition.split(' ');
+      await addColumnIfMissing(database, tableName, columnName, columnDefinition);
+    }
+  }
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -547,6 +567,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 14) {
     await runVersion14Migration(database);
+  }
+
+  if (currentVersion < 15) {
+    await runVersion15Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {

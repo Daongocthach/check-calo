@@ -1,8 +1,9 @@
 import { getDatabase } from '@/services/database/sqlite';
 import { nowIsoString } from '@/utils/date';
 import type { FoodEntry, RecentFood } from '../types';
+import { nutrientsFromColumns, type NutrientColumnValues } from '../utils/nutrients';
 
-export interface FoodEntryRow {
+export interface FoodEntryRow extends NutrientColumnValues {
   id: string;
   barcode: string | null;
   entry_date: string;
@@ -22,7 +23,7 @@ export interface FoodEntryRow {
   is_recent: number;
 }
 
-export interface RecentFoodRow {
+export interface RecentFoodRow extends NutrientColumnValues {
   id: string;
   source_entry_id: string | null;
   barcode: string | null;
@@ -53,6 +54,7 @@ export function mapFoodEntry(row: FoodEntryRow): FoodEntry {
     proteinGrams: row.protein_grams,
     carbsGrams: row.carbs_grams,
     fatGrams: row.fat_grams,
+    ...nutrientsFromColumns(row),
     notes: row.notes,
     imageUri: row.image_uri,
     thumbnailUri: row.thumbnail_uri,
@@ -74,6 +76,7 @@ export function mapRecentFood(row: RecentFoodRow): RecentFood {
     proteinGrams: row.protein_grams,
     carbsGrams: row.carbs_grams,
     fatGrams: row.fat_grams,
+    ...nutrientsFromColumns(row),
     notes: row.notes,
     imageUri: row.image_uri,
     thumbnailUri: row.thumbnail_uri,

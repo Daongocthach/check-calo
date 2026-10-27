@@ -2,7 +2,8 @@ import { getDatabase } from '@/services/database/sqlite';
 import { nowIsoString } from '@/utils/date';
 import { createEntityId } from '@/utils/id';
 import type { PageRequest, PaginatedResult } from '@/utils/pagination';
-import type { FoodEntryInput, RecentFood } from '../types';
+import type { FoodEntryInput, NutrientValues, RecentFood } from '../types';
+import { NUTRIENT_SQL, pickNutrients, toNutrientParams } from '../utils/nutrients';
 import { createFoodEntry } from './foodEntryRepository';
 import { getFoodEntryById, mapRecentFood } from './foodEntryRepositoryCore';
 import type { RecentFoodRow } from './foodEntryRepositoryCore';
@@ -172,13 +173,14 @@ export async function toggleRecentFoodEntry(entryId: string) {
         protein_grams,
         carbs_grams,
         fat_grams,
+        ${NUTRIENT_SQL.columns},
         notes,
         image_uri,
         thumbnail_uri,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${NUTRIENT_SQL.placeholders}, ?, ?, ?, ?, ?);
     `,
     [
       id,
@@ -191,6 +193,7 @@ export async function toggleRecentFoodEntry(entryId: string) {
       entry.proteinGrams,
       entry.carbsGrams,
       entry.fatGrams,
+      ...toNutrientParams(entry),
       entry.notes ?? null,
       entry.imageUri ?? null,
       entry.thumbnailUri ?? entry.imageUri ?? null,
@@ -225,7 +228,8 @@ export async function updateRecentFood(
     | 'notes'
     | 'imageUri'
     | 'thumbnailUri'
-  >
+  > &
+    Partial<NutrientValues>
 ) {
   const database = await getDatabase();
   const now = nowIsoString();
@@ -242,6 +246,7 @@ export async function updateRecentFood(
         protein_grams = ?,
         carbs_grams = ?,
         fat_grams = ?,
+        ${NUTRIENT_SQL.assignments},
         notes = ?,
         image_uri = ?,
         thumbnail_uri = ?,
@@ -257,6 +262,7 @@ export async function updateRecentFood(
       input.proteinGrams,
       input.carbsGrams,
       input.fatGrams,
+      ...toNutrientParams(input),
       input.notes ?? null,
       input.imageUri ?? null,
       input.thumbnailUri ?? input.imageUri ?? null,
@@ -284,7 +290,8 @@ export async function upsertRecentFoodFromInput(
     | 'notes'
     | 'imageUri'
     | 'thumbnailUri'
-  >
+  > &
+    Partial<NutrientValues>
 ) {
   const database = await getDatabase();
   const existingRecent = await database.getFirstAsync<{ id: string }>(
@@ -314,13 +321,14 @@ export async function upsertRecentFoodFromInput(
         protein_grams,
         carbs_grams,
         fat_grams,
+        ${NUTRIENT_SQL.columns},
         notes,
         image_uri,
         thumbnail_uri,
         created_at,
         updated_at
       )
-      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ${NUTRIENT_SQL.placeholders}, ?, ?, ?, ?, ?);
     `,
     [
       recentId,
@@ -332,6 +340,7 @@ export async function upsertRecentFoodFromInput(
       input.proteinGrams,
       input.carbsGrams,
       input.fatGrams,
+      ...toNutrientParams(input),
       input.notes ?? null,
       input.imageUri ?? null,
       input.thumbnailUri ?? input.imageUri ?? null,
@@ -366,6 +375,7 @@ export async function createFoodEntryFromRecent(
     proteinGrams: recent.proteinGrams,
     carbsGrams: recent.carbsGrams,
     fatGrams: recent.fatGrams,
+    ...pickNutrients(recent),
     notes: overrides?.notes ?? recent.notes,
     imageUri: recent.imageUri,
     thumbnailUri: recent.thumbnailUri,
