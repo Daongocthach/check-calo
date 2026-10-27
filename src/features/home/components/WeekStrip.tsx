@@ -148,9 +148,11 @@ const styles = StyleSheet.create((theme) => ({
   page: (width: number) => ({
     width,
     flexDirection: 'row',
-    justifyContent: 'space-between',
   }),
+  // Equal cells (not space-between) leave half a gap at each page edge, so while swiping the last
+  // day of one week and the first day of the next sit as far apart as neighbouring days.
   day: {
+    flex: 1,
     alignItems: 'center',
     gap: theme.metrics.spacingV.p4,
   },
