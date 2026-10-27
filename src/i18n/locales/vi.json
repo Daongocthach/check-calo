@@ -66,19 +66,17 @@
   },
   "home": {
     "subtitle": "Hôm nay của bạn thế nào rồi",
-    "greeting": "Chào {{name}} 👋",
+    "greeting": "Chào {{name}}",
     "streakLabel": "Chuỗi {{count}} ngày",
     "openMenu": "Mở trang cá nhân",
-    "previousWeek": "Tuần trước",
-    "nextWeek": "Tuần sau",
+    "pickDate": "Chọn ngày",
     "goToToday": "Về hôm nay",
     "dailyProgress": "Tiến độ hôm nay",
     "caloriesLabel": "Calo",
     "gaugeMin": "0%",
     "gaugeMax": "100%",
     "emptyTitle": "Chưa ghi món nào",
-    "emptySubtitle": "Kể cho Check AI bạn đã ăn gì, hoặc chụp ảnh bữa ăn.",
-    "emptyAction": "Ghi bữa ăn"
+    "emptySubtitle": "Kể cho Check AI bạn đã ăn gì, hoặc chụp ảnh bữa ăn."
   },
   "supportScreen": {
     "title": "Ủng hộ phát triển app",
@@ -558,6 +556,7 @@
     "subtitle": "Hỏi gì về bữa ăn hôm nay?",
     "placeholder": "Hôm nay bạn ăn gì?",
     "send": "Gửi",
+    "voiceInput": "Nhập bằng giọng nói",
     "attachPhoto": "Đính kèm ảnh",
     "attachTitle": "Thêm ảnh món ăn",
     "takePhoto": "Chụp ảnh",

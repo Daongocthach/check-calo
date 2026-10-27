@@ -12,12 +12,6 @@ export function getWeekDays(date: Date) {
   });
 }
 
-export function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
-
 export function isSameDay(left: Date, right: Date) {
   return (
     left.getFullYear() === right.getFullYear() &&

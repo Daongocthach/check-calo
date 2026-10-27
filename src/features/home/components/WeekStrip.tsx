@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { IconButton, Text } from '@/common/components';
+import { Text } from '@/common/components';
 import { formatDateKey } from '@/utils/date';
-import { addDays, isSameDay } from '../utils/week';
+import { isSameDay } from '../utils/week';
+import { MonthYearSelector } from './MonthYearSelector';
 
 export interface WeekStripProps {
   weekDays: Date[];
@@ -20,40 +21,12 @@ export function WeekStrip({
   loggedDateKeys,
   onSelect,
 }: WeekStripProps) {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
-  const monthTitle = selectedDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
-  const isCurrentWeek = weekDays.some((day) => isSameDay(day, today));
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant="h3" weight="bold" style={styles.title}>
-          {monthTitle}
-        </Text>
-        <IconButton
-          icon="chevron-back"
-          variant="ghost"
-          size="sm"
-          onPress={() => onSelect(addDays(selectedDate, -7))}
-          accessibilityLabel={t('home.previousWeek')}
-        />
-        <IconButton
-          icon="chevron-forward"
-          variant="ghost"
-          size="sm"
-          disabled={isCurrentWeek}
-          onPress={() => onSelect(addDays(selectedDate, 7))}
-          accessibilityLabel={t('home.nextWeek')}
-        />
-        <IconButton
-          icon="today-outline"
-          variant="outline"
-          size="sm"
-          onPress={() => onSelect(today)}
-          accessibilityLabel={t('home.goToToday')}
-        />
-      </View>
+      <MonthYearSelector selectedDate={selectedDate} today={today} onSelect={onSelect} />
       <View style={styles.days}>
         {weekDays.map((day) => {
           const isSelected = isSameDay(day, selectedDate);
@@ -74,6 +47,7 @@ export function WeekStrip({
                 style={[
                   styles.weekdayBubble,
                   isLogged ? styles.weekdayLogged : styles.weekdayEmpty,
+                  isFuture && styles.weekdayFuture,
                   isSelected && styles.weekdaySelected,
                 ]}
               >
@@ -100,15 +74,6 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     gap: theme.metrics.spacingV.p12,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p4,
-  },
-  title: {
-    flex: 1,
-    textTransform: 'capitalize',
-  },
   days: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -131,6 +96,9 @@ const styles = StyleSheet.create((theme) => ({
   weekdayEmpty: {
     borderStyle: 'dashed',
     borderColor: theme.colors.border.strong,
+  },
+  weekdayFuture: {
+    borderColor: 'transparent',
   },
   weekdayLogged: {
     borderColor: theme.colors.brand.primary,

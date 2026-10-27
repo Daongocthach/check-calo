@@ -17,9 +17,9 @@ export function MacroProgress({ macro, value, target }: MacroProgressProps) {
 
   return (
     <View style={styles.container}>
-      <Text variant="bodySmall" weight="semibold">
+      <Text variant="body" weight="bold">
         {Math.round(value)}
-        <Text variant="caption" color="tertiary">
+        <Text variant="bodySmall" color="tertiary">
           {` / ${Math.round(target)}`}
         </Text>
       </Text>

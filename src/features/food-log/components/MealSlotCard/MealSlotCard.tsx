@@ -22,7 +22,7 @@ export function MealSlotCard({ group, onPress }: MealSlotCardProps) {
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={t(`mealSlots.${group.slot}`)}
+      accessibilityLabel={`${t(`mealSlots.${group.slot}`)}: ${names}`}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <Image
@@ -40,9 +40,6 @@ export function MealSlotCard({ group, onPress }: MealSlotCardProps) {
             {formatTime(group.firstConsumedAt, i18n.language)}
           </Text>
         </View>
-        <Text variant="caption" color="secondary" numberOfLines={1}>
-          {names}
-        </Text>
         <View style={styles.row}>
           <Text variant="h3" weight="bold">
             {group.totalCalories}
@@ -60,9 +57,9 @@ export function MealSlotCard({ group, onPress }: MealSlotCardProps) {
 const styles = StyleSheet.create((theme) => ({
   card: {
     flex: 1,
+    padding: theme.metrics.spacing.p8,
     borderRadius: theme.metrics.borderRadius.xl,
     backgroundColor: theme.colors.background.surface,
-    overflow: 'hidden',
     shadowColor: theme.colors.shadow.color,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -75,9 +72,12 @@ const styles = StyleSheet.create((theme) => ({
   image: {
     width: '100%',
     aspectRatio: 1.15,
+    borderRadius: theme.metrics.borderRadius.lg,
   },
   body: {
-    padding: theme.metrics.spacing.p12,
+    paddingHorizontal: theme.metrics.spacing.p4,
+    paddingTop: theme.metrics.spacingV.p12,
+    paddingBottom: theme.metrics.spacingV.p4,
     gap: theme.metrics.spacingV.p4,
   },
   row: {

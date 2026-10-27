@@ -79,6 +79,14 @@ export function ChatComposer({
             style={[styles.input, styles.inputFlex]}
           />
         )}
+        {onPressField ? (
+          <IconButton
+            icon="mic-outline"
+            variant="ghost"
+            onPress={onPressField}
+            accessibilityLabel={t('chat.voiceInput')}
+          />
+        ) : null}
         <Pressable
           onPress={onPressField ?? onSubmit}
           disabled={!onPressField && !canSend}

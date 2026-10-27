@@ -66,19 +66,17 @@
   },
   "home": {
     "subtitle": "Here's your day so far",
-    "greeting": "Hi {{name}} 👋",
+    "greeting": "Hi {{name}}",
     "streakLabel": "{{count}}-day streak",
     "openMenu": "Open profile",
-    "previousWeek": "Previous week",
-    "nextWeek": "Next week",
+    "pickDate": "Pick a date",
     "goToToday": "Go to today",
     "dailyProgress": "Daily progress",
     "caloriesLabel": "Calories",
     "gaugeMin": "0%",
     "gaugeMax": "100%",
     "emptyTitle": "Nothing logged yet",
-    "emptySubtitle": "Tell Check AI what you ate, or snap a photo of your meal.",
-    "emptyAction": "Log a meal"
+    "emptySubtitle": "Tell Check AI what you ate, or snap a photo of your meal."
   },
   "supportScreen": {
     "title": "Support the app",
@@ -558,6 +556,7 @@
     "subtitle": "Ask anything about today's meals",
     "placeholder": "What did you eat today?",
     "send": "Send",
+    "voiceInput": "Voice input",
     "attachPhoto": "Attach a photo",
     "attachTitle": "Add a food photo",
     "takePhoto": "Take photo",

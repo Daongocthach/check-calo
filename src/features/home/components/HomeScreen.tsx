@@ -4,7 +4,6 @@ import { StyleSheet } from 'react-native-unistyles';
 import { ChatComposer } from '@/features/food-log/components';
 import { useAttachFoodPhoto } from '@/features/food-log/hooks/useAttachFoodPhoto';
 import type { MealSlotGroup } from '@/features/food-log/utils/mealSlot';
-import { useBottomPadding } from '@/hooks';
 import { formatDateKey } from '@/utils/date';
 import { useHomeScreen } from '../hooks/useHomeScreen';
 import { DailyProgressCard } from './DailyProgressCard';
@@ -14,7 +13,6 @@ import { WeekStrip } from './WeekStrip';
 
 export function HomeScreen() {
   const router = useRouter();
-  const bottomPadding = useBottomPadding();
   const home = useHomeScreen();
   const attachPhoto = useAttachFoodPhoto();
   const displayName = home.profile?.displayName.trim() || '';
@@ -67,13 +65,9 @@ export function HomeScreen() {
           onSelect={home.setSelectedDate}
         />
         <DailyProgressCard summary={home.summary} profile={home.profile} />
-        <MealsGrid
-          groups={home.mealGroups}
-          onGroupPress={handleGroupPress}
-          onAddPress={() => openChat()}
-        />
+        <MealsGrid groups={home.mealGroups} onGroupPress={handleGroupPress} />
       </ScrollView>
-      <View style={[styles.composer, styles.composerBottom(bottomPadding)]}>
+      <View style={styles.composer}>
         <ChatComposer
           value=""
           onPressField={() => openChat()}
@@ -86,7 +80,7 @@ export function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create((theme, rt) => ({
   container: {
     flex: 1,
   },
@@ -101,8 +95,7 @@ const styles = StyleSheet.create((theme) => ({
   composer: {
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingTop: theme.metrics.spacingV.p8,
+    // No tab bar on the dashboard: the composer sits directly above the home indicator.
+    paddingBottom: Math.max(rt.insets.bottom, theme.metrics.spacingV.p12),
   },
-  composerBottom: (bottomPadding: number) => ({
-    paddingBottom: bottomPadding - theme.metrics.spacingV.p8,
-  }),
 }));

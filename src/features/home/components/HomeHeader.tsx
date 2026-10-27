@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Avatar, Icon, IconButton, Text } from '@/common/components';
+import { Avatar, Icon, Text } from '@/common/components';
 
 export interface HomeHeaderProps {
   displayName: string;
@@ -28,7 +28,7 @@ export function HomeHeader({ displayName, streak, onStreakPress, onMenuPress }: 
         <Text variant="h3" weight="bold" numberOfLines={1}>
           {t('home.greeting', { name: displayName })}
         </Text>
-        <Text variant="bodySmall" color="secondary">
+        <Text variant="bodySmall" color="secondary" numberOfLines={1}>
           {t('home.subtitle')}
         </Text>
       </View>
@@ -36,23 +36,25 @@ export function HomeHeader({ displayName, streak, onStreakPress, onMenuPress }: 
         onPress={onStreakPress}
         accessibilityRole="button"
         accessibilityLabel={t('home.streakLabel', { count: streak })}
-        style={styles.streakButton}
+        style={styles.action}
       >
-        <Icon name="flame" variant="accent" size={22} />
+        <Icon name="flame" variant="accent" sizeVariant="md" />
         {streak > 0 ? (
-          <View style={styles.streakBadge}>
-            <Text variant="caption" color="inverse">
+          <View style={styles.badge}>
+            <Text variant="caption" weight="bold" color="inverse">
               {streak}
             </Text>
           </View>
         ) : null}
       </Pressable>
-      <IconButton
-        icon="menu"
-        variant="outline"
+      <Pressable
         onPress={onMenuPress}
+        accessibilityRole="button"
         accessibilityLabel={t('home.openMenu')}
-      />
+        style={styles.action}
+      >
+        <Icon name="menu" sizeVariant="md" />
+      </Pressable>
     </View>
   );
 }
@@ -63,23 +65,26 @@ const styles = StyleSheet.create((theme, rt) => ({
     alignItems: 'center',
     gap: theme.metrics.spacing.p12,
     paddingTop: rt.insets.top + theme.metrics.spacingV.p8,
-    paddingBottom: theme.metrics.spacingV.p12,
+    paddingBottom: theme.metrics.spacingV.p8,
   },
   textWrap: {
     flex: 1,
     minWidth: 0,
   },
-  streakButton: {
+  action: {
     width: theme.metrics.spacing.p44,
     height: theme.metrics.spacing.p44,
     borderRadius: theme.metrics.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border.subtle,
+    shadowColor: theme.colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: theme.colors.shadow.elevationSmall,
   },
-  streakBadge: {
+  badge: {
     position: 'absolute',
     top: -theme.metrics.spacing.p4,
     right: -theme.metrics.spacing.p4,
@@ -90,5 +95,7 @@ const styles = StyleSheet.create((theme, rt) => ({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.state.error,
+    borderWidth: 1.5,
+    borderColor: theme.colors.background.surface,
   },
 }));
