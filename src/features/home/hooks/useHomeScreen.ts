@@ -36,7 +36,6 @@ export function useHomeScreen() {
     today,
     selectedDate,
     setSelectedDate,
-    weekDays,
     loggedDateKeys,
     profile: profile.data,
     isProfileMissing: !profile.isLoading && !profile.error && profile.data === null,

@@ -58,7 +58,6 @@ export function HomeScreen() {
           onMenuPress={() => router.push('/profile')}
         />
         <WeekStrip
-          weekDays={home.weekDays}
           selectedDate={home.selectedDate}
           today={home.today}
           loggedDateKeys={home.loggedDateKeys}
