@@ -65,6 +65,7 @@ export const darkColors: ThemeColors = {
 
   overlay: {
     modal: 'rgba(2, 3, 8, 0.8)',
+    scrim: 'rgba(2, 3, 8, 0.94)',
     pressed: 'rgba(129, 140, 248, 0.16)',
     hover: 'rgba(129, 140, 248, 0.08)',
     focus: 'rgba(125, 217, 255, 0.22)',

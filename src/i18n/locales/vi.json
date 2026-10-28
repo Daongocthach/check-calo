@@ -311,9 +311,6 @@
     "streakHistory": "Lịch sử duy trì",
     "previousMonth": "Tháng trước",
     "nextMonth": "Tháng sau",
-    "longestStreak": "Chuỗi dài nhất",
-    "days_one": "{{count}} ngày",
-    "days_other": "{{count}} ngày",
     "legendOnTarget": "Đạt mục tiêu",
     "legendLogged": "Có ghi món",
     "badges": "Huy hiệu",
@@ -651,7 +648,7 @@
     "headerTitle": "Bắt đầu",
     "editTitle": "Sửa hồ sơ",
     "title": "Chào mừng đến với Check Calo! 👋",
-    "subtitle": "Hãy cho mình biết một chút về bạn để Buddy xây dựng kế hoạch phù hợp nhất.",
+    "subtitle": "Hãy cho mình biết một chút về bạn để {{name}} xây dựng kế hoạch phù hợp nhất.",
     "basicInfo": "Thông tin cơ bản",
     "displayName": "Tên hiển thị",
     "displayNamePlaceholder": "Tên của bạn",
@@ -723,21 +720,22 @@
   },
   "buddy": {
     "title": "Thú cưng",
-    "subtitle": "Cùng Buddy chinh phục thành tích mỗi ngày",
+    "subtitle": "Cùng {{name}} chinh phục thành tích mỗi ngày",
+    "rename": "Đổi tên thú cưng",
+    "renameLabel": "Đổi tên {{name}}",
+    "namePlaceholder": "Tên thú cưng",
     "levelTitle": "Cấp độ {{level}} - {{stage}}",
     "levelShort": "Cấp {{level}}",
     "stages": {
       "baby": "Baby",
       "junior": "Junior",
       "teen": "Teen",
-      "buddy": "Buddy",
+      "buddy": "Pro",
       "master": "Master"
     },
     "progressToNext": "Tiến độ: {{percent}}% · còn {{points}} điểm",
     "maxLevel": "Đã đạt cấp cao nhất!",
-    "keepItUp": "Giữ vững phong độ nhé!",
-    "keepItUpHint": "Bạn đang làm rất tốt. Buddy lớn lên mỗi khi bạn ghi món và đạt mục tiêu.",
-    "journey": "Hành trình phát triển của Buddy",
+    "journey": "Hành trình phát triển của {{name}}",
     "howToEarn": "Cách nhận điểm",
     "earnedSoFar": "Đã nhận {{points}} điểm",
     "rules": {
@@ -755,7 +753,7 @@
       }
     },
     "nextReward": "Phần thưởng cấp tiếp theo",
-    "nextRewardHint": "Đạt {{points}} điểm để Buddy tiến hoá thành {{stage}}"
+    "nextRewardHint": "Đạt {{points}} điểm để {{name}} tiến hoá thành {{stage}}"
   },
   "profileTab": {
     "title": "Hồ sơ",

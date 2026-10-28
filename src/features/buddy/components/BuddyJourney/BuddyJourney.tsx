@@ -1,15 +1,21 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Icon, Text } from '@/common/components';
 import { hs } from '@/theme/metrics';
 import { BUDDY_LEVELS } from '../../constants/levels';
-import type { BuddyLevel } from '../../types';
+import type { BuddyLevel, BuddyLevelDefinition } from '../../types';
 import { BuddyMascot } from '../BuddyMascot';
+import { BuddyPreview } from '../BuddyPreview';
 
-/** Horizontal row of all five growth stages with reached/current/locked states. */
+/**
+ * Horizontal row of all five growth stages with reached/current/locked states. Tapping a stage
+ * opens it full screen.
+ */
 export function BuddyJourney({ currentLevel }: { currentLevel: BuddyLevel }) {
   const { t } = useTranslation();
+  const [previewLevel, setPreviewLevel] = useState<BuddyLevelDefinition | null>(null);
 
   return (
     <View style={styles.row}>
@@ -19,7 +25,16 @@ export function BuddyJourney({ currentLevel }: { currentLevel: BuddyLevel }) {
         const locked = level.level > currentLevel;
 
         return (
-          <View key={level.level} style={styles.item}>
+          <Pressable
+            key={level.level}
+            onPress={() => setPreviewLevel(level)}
+            accessibilityRole="button"
+            accessibilityLabel={t('buddy.levelTitle', {
+              level: level.level,
+              stage: t(`buddy.stages.${level.stage}`),
+            })}
+            style={styles.item}
+          >
             <View style={[styles.avatar, isCurrent && styles.avatarCurrent]}>
               <BuddyMascot level={level.level} size={hs(48)} locked={locked} />
               {reached ? (
@@ -39,9 +54,14 @@ export function BuddyJourney({ currentLevel }: { currentLevel: BuddyLevel }) {
             <Text variant="caption" weight="semibold" color={isCurrent ? 'link' : 'secondary'}>
               {t(`buddy.stages.${level.stage}`)}
             </Text>
-          </View>
+          </Pressable>
         );
       })}
+      <BuddyPreview
+        level={previewLevel}
+        locked={previewLevel ? previewLevel.level > currentLevel : false}
+        onClose={() => setPreviewLevel(null)}
+      />
     </View>
   );
 }

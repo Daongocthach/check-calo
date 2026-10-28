@@ -20,6 +20,7 @@ export const STORAGE_KEYS = {
   },
   profile: {
     bmiProfile: 'profile_bmi_data',
+    petName: 'profile_pet_name',
   },
   app: {
     lastVersion: 'app_last_version',

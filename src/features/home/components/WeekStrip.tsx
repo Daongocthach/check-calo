@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, View } from 'react-native';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Icon, Text } from '@/common/components';
-import type { IconProps } from '@/common/components';
+import { Text } from '@/common/components';
+import { DayStatusBubble } from '@/features/achievements';
 import type { DayStatus } from '@/features/achievements/types';
 import { formatDateKey } from '@/utils/date';
 import { addDays, getWeekStart, getWeekStarts, isSameDay } from '../utils/week';
@@ -78,12 +78,6 @@ export function WeekStrip({ selectedDate, today, dayStatuses, onSelect }: WeekSt
         if (isFuture) {
           dateColor = 'tertiary';
         }
-        let textColor: 'inverse' | 'tertiary' | 'primary' = 'primary';
-        if (isSelected) {
-          textColor = 'inverse';
-        } else if (isFuture) {
-          textColor = 'tertiary';
-        }
 
         return (
           <Pressable
@@ -95,33 +89,12 @@ export function WeekStrip({ selectedDate, today, dayStatuses, onSelect }: WeekSt
             accessibilityState={{ selected: isSelected, disabled: isFuture }}
             style={styles.day}
           >
-            <View>
-              <View
-                style={[
-                  styles.weekdayBubble,
-                  status === 'empty' || isFuture ? styles.weekdayEmpty : styles.weekdayLogged,
-                  isSelected && styles.weekdaySelected,
-                ]}
-              >
-                <Text variant="caption" weight="semibold" color={textColor}>
-                  {weekday}
-                </Text>
-              </View>
-              {status === 'empty' || isFuture ? null : (
-                <View
-                  style={[
-                    styles.statusBadge,
-                    status === 'on_target' ? styles.badgeOnTarget : styles.badgeLogged,
-                  ]}
-                >
-                  <Icon
-                    name={STATUS_ICONS[status].name}
-                    variant={STATUS_ICONS[status].variant}
-                    size={10}
-                  />
-                </View>
-              )}
-            </View>
+            <DayStatusBubble
+              label={weekday}
+              status={status}
+              future={isFuture}
+              selected={isSelected}
+            />
             <Text
               variant="bodySmall"
               weight={isSelected || isToday ? 'bold' : 'medium'}
@@ -165,14 +138,6 @@ export function WeekStrip({ selectedDate, today, dayStatuses, onSelect }: WeekSt
   );
 }
 
-const STATUS_ICONS: Record<
-  Exclude<DayStatus, 'empty'>,
-  { name: IconProps['name']; variant: NonNullable<IconProps['variant']> }
-> = {
-  on_target: { name: 'checkmark', variant: 'onBrand' },
-  off_target: { name: 'flame', variant: 'accent' },
-};
-
 const styles = StyleSheet.create((theme) => ({
   container: {
     gap: theme.metrics.spacingV.p12,
@@ -189,47 +154,5 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     alignItems: 'center',
     gap: theme.metrics.spacingV.p8,
-  },
-  weekdayBubble: {
-    width: theme.metrics.spacing.p32,
-    height: theme.metrics.spacing.p32,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
-  weekdayEmpty: {
-    borderStyle: 'dashed',
-    borderColor: theme.colors.border.strong,
-  },
-  // iOS keeps a previous dashed style unless solid is set explicitly.
-  weekdayLogged: {
-    borderStyle: 'solid',
-    borderColor: theme.colors.brand.primary,
-    backgroundColor: theme.colors.background.surface,
-  },
-  weekdaySelected: {
-    borderStyle: 'solid',
-    borderColor: theme.colors.brand.primary,
-    backgroundColor: theme.colors.brand.primary,
-  },
-  // Sits on the bubble's top-right edge so the weekday stays readable.
-  statusBadge: {
-    position: 'absolute',
-    top: -theme.metrics.spacing.p4,
-    right: -theme.metrics.spacing.p4,
-    width: theme.metrics.spacing.p16,
-    height: theme.metrics.spacing.p16,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: theme.colors.background.surface,
-  },
-  badgeOnTarget: {
-    backgroundColor: theme.colors.state.success,
-  },
-  badgeLogged: {
-    backgroundColor: theme.colors.state.warningBg,
   },
 }));

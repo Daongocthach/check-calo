@@ -60,6 +60,8 @@ export interface StateColors {
 
 export interface OverlayColors {
   modal: string;
+  /** Near-opaque backdrop for full-screen media such as image previews. */
+  scrim: string;
   pressed: string;
   hover: string;
   focus: string;

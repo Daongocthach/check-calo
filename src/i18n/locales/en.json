@@ -57,7 +57,7 @@
   "drawer": {
     "open": "Open menu",
     "dashboard": "Dashboard",
-    "buddy": "Buddy",
+    "buddy": "Pet",
     "profile": "Profile",
     "settings": "Settings"
   },
@@ -311,9 +311,6 @@
     "streakHistory": "Streak history",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
-    "longestStreak": "Longest streak",
-    "days_one": "{{count}} day",
-    "days_other": "{{count}} days",
     "legendOnTarget": "On target",
     "legendLogged": "Logged",
     "badges": "Badges",
@@ -651,7 +648,7 @@
     "headerTitle": "Getting started",
     "editTitle": "Edit profile",
     "title": "Welcome to Check Calo! 👋",
-    "subtitle": "Tell Buddy a little about you to build a plan that fits.",
+    "subtitle": "Tell {{name}} a little about you to build a plan that fits.",
     "basicInfo": "Basic info",
     "displayName": "Display name",
     "displayNamePlaceholder": "Your name",
@@ -722,22 +719,23 @@
     }
   },
   "buddy": {
-    "title": "Buddy",
-    "subtitle": "Grow Buddy with every healthy day",
+    "title": "Pet",
+    "subtitle": "Grow {{name}} with every healthy day",
+    "rename": "Rename your pet",
+    "renameLabel": "Rename {{name}}",
+    "namePlaceholder": "Pet name",
     "levelTitle": "Level {{level}} - {{stage}}",
     "levelShort": "Lv {{level}}",
     "stages": {
       "baby": "Baby",
       "junior": "Junior",
       "teen": "Teen",
-      "buddy": "Buddy",
+      "buddy": "Pro",
       "master": "Master"
     },
     "progressToNext": "{{percent}}% · {{points}} points to next level",
     "maxLevel": "Max level reached!",
-    "keepItUp": "Keep it up!",
-    "keepItUpHint": "You're doing really well. Buddy grows as you log and hit your goals.",
-    "journey": "Buddy's growth journey",
+    "journey": "{{name}}'s growth journey",
     "howToEarn": "How to earn points",
     "earnedSoFar": "{{points}} points earned so far",
     "rules": {
@@ -755,7 +753,7 @@
       }
     },
     "nextReward": "Next level reward",
-    "nextRewardHint": "Reach {{points}} points to evolve into {{stage}}"
+    "nextRewardHint": "Reach {{points}} points for {{name}} to evolve into {{stage}}"
   },
   "profileTab": {
     "title": "Profile",

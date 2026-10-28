@@ -6,6 +6,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { StyleSheet } from 'react-native-unistyles';
 import { Button, FormField, Icon, Input, Loading, ScreenHeader, Text } from '@/common/components';
 import { BuddyMascot } from '@/features/buddy/components/BuddyMascot';
+import { useBuddyName } from '@/features/buddy/hooks/useBuddyName';
 import { useFoodEntryRefreshStore } from '@/features/food-log/stores/useFoodEntryRefreshStore';
 import { hs } from '@/theme/metrics';
 import { toast } from '@/utils/toast';
@@ -33,6 +34,7 @@ const ACTIVITIES = ['sedentary', 'light', 'moderate', 'active'] as const;
 
 export function OnboardingScreen() {
   const { t } = useTranslation();
+  const { name: buddyName } = useBuddyName();
   const router = useRouter();
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const { form, plan, isLoading, hasExistingProfile, submit } = useProfileForm();
@@ -82,7 +84,7 @@ export function OnboardingScreen() {
               {t('onboarding.title')}
             </Text>
             <Text variant="bodySmall" color="secondary">
-              {t('onboarding.subtitle')}
+              {t('onboarding.subtitle', { name: buddyName })}
             </Text>
           </View>
           <BuddyMascot level={2} size={hs(96)} />
