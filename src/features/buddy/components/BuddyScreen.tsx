@@ -60,7 +60,7 @@ export function BuddyScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.hero}>
-          <BuddyMascot level={progress.current.level} size={hs(170)} />
+          <BuddyMascot level={progress.current.level} size={hs(170)} animated />
           <Text variant="h2" weight="bold" align="center">
             {t('buddy.levelTitle', {
               level: progress.current.level,

@@ -1,4 +1,17 @@
 import { Image } from 'expo-image';
+import { useEffect } from 'react';
+import { Pressable } from 'react-native';
+import Animated, {
+  Easing,
+  cancelAnimation,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 import { StyleSheet } from 'react-native-unistyles';
 import { BUDDY_IMAGES } from '../../constants/images';
@@ -11,6 +24,8 @@ export interface BuddyMascotProps {
   size?: number;
   /** Greyed-out look for levels not reached yet. */
   locked?: boolean;
+  /** Idle breathing, a squash-and-stretch on tap and a pop-in when the level changes. */
+  animated?: boolean;
 }
 
 type Palette = (typeof BUDDY_PALETTE)[keyof typeof BUDDY_PALETTE];
@@ -162,11 +177,7 @@ function MascotSvg({
   );
 }
 
-/**
- * Buddy mascot for a level. Uses registered artwork from `BUDDY_IMAGES` when available,
- * otherwise draws the SVG placeholder.
- */
-export function BuddyMascot({ level, size = 120, locked = false }: BuddyMascotProps) {
+function MascotArt({ level, size, locked }: Required<Omit<BuddyMascotProps, 'animated'>>) {
   const imageSource = BUDDY_IMAGES[level];
 
   if (imageSource) {
@@ -188,6 +199,86 @@ export function BuddyMascot({ level, size = 120, locked = false }: BuddyMascotPr
   );
 }
 
+/**
+ * Buddy mascot for a level. Uses registered artwork from `BUDDY_IMAGES` when available,
+ * otherwise draws the SVG placeholder.
+ */
+export function BuddyMascot({
+  level,
+  size = 120,
+  locked = false,
+  animated = false,
+}: BuddyMascotProps) {
+  const reduceMotion = useReducedMotion();
+  const isAnimated = animated && !locked && !reduceMotion;
+  const breath = useSharedValue(0);
+  const squash = useSharedValue(0);
+  const pop = useSharedValue(1);
+
+  useEffect(() => {
+    if (!isAnimated) {
+      cancelAnimation(breath);
+      breath.value = 0;
+      return;
+    }
+
+    breath.value = withRepeat(
+      withTiming(1, { duration: BREATH_DURATION, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true
+    );
+
+    return () => cancelAnimation(breath);
+  }, [isAnimated, breath]);
+
+  useEffect(() => {
+    if (!isAnimated) {
+      return;
+    }
+
+    pop.value = POP_FROM;
+    pop.value = withSpring(1, POP_SPRING);
+  }, [isAnimated, level, pop]);
+
+  // The spring overshoots below zero, so the squash turns into a short stretch before settling.
+  const motionStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: -BREATH_LIFT * breath.value },
+      { scaleX: pop.value * (1 + SQUASH_WIDEN * squash.value) },
+      { scaleY: pop.value * (1 + BREATH_SCALE * breath.value - SQUASH_FLATTEN * squash.value) },
+    ],
+  }));
+
+  const handlePress = () => {
+    squash.value = withSequence(
+      withTiming(1, { duration: SQUASH_DURATION }),
+      withSpring(0, SQUASH_SPRING)
+    );
+  };
+
+  const art = <MascotArt level={level} size={size} locked={locked} />;
+
+  if (!isAnimated) {
+    return art;
+  }
+
+  return (
+    <Pressable onPress={handlePress} accessible={false}>
+      <Animated.View style={[styles.motion, motionStyle]}>{art}</Animated.View>
+    </Pressable>
+  );
+}
+
+const BREATH_DURATION = 1800;
+const BREATH_LIFT = 2;
+const BREATH_SCALE = 0.03;
+const SQUASH_DURATION = 90;
+const SQUASH_WIDEN = 0.08;
+const SQUASH_FLATTEN = 0.14;
+const SQUASH_SPRING = { damping: 6, stiffness: 220 };
+const POP_FROM = 0.8;
+const POP_SPRING = { damping: 9, stiffness: 160 };
+
 const styles = StyleSheet.create(() => ({
   image: (size: number) => ({
     width: size,
@@ -195,5 +286,9 @@ const styles = StyleSheet.create(() => ({
   }),
   locked: {
     opacity: 0.45,
+  },
+  motion: {
+    // Breathe and squash from the feet, not the middle.
+    transformOrigin: 'bottom',
   },
 }));
