@@ -17,6 +17,7 @@ interface UserProfileRow {
   height_cm: number;
   weight_kg: number;
   monthly_weight_loss_kg: number;
+  target_weight_kg: number | null;
   activity_level: UserProfile['activityLevel'];
   activity_factor: number;
   bmi: number;
@@ -38,6 +39,7 @@ function mapProfile(row: UserProfileRow): UserProfile {
     heightCm: row.height_cm,
     weightKg: row.weight_kg,
     monthlyWeightGoalKg: row.monthly_weight_loss_kg,
+    targetWeightKg: row.target_weight_kg,
     activityLevel: row.activity_level,
     activityFactor: row.activity_factor,
     bmi: row.bmi,
@@ -79,6 +81,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
         height_cm,
         weight_kg,
         monthly_weight_loss_kg,
+        target_weight_kg,
         activity_level,
         activity_factor,
         bmi,
@@ -90,7 +93,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
         created_at,
         updated_at
       )
-      VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         display_name = excluded.display_name,
         gender = excluded.gender,
@@ -98,6 +101,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
         height_cm = excluded.height_cm,
         weight_kg = excluded.weight_kg,
         monthly_weight_loss_kg = excluded.monthly_weight_loss_kg,
+        target_weight_kg = excluded.target_weight_kg,
         activity_level = excluded.activity_level,
         activity_factor = excluded.activity_factor,
         bmi = excluded.bmi,
@@ -115,6 +119,7 @@ export async function upsertUserProfile(profile: UserProfileInput) {
       profile.heightCm,
       profile.weightKg,
       profile.monthlyWeightGoalKg,
+      profile.targetWeightKg,
       profile.activityLevel,
       activityFactor,
       bmi,
@@ -129,6 +134,20 @@ export async function upsertUserProfile(profile: UserProfileInput) {
   );
 
   return getUserProfile();
+}
+
+/** The editable part of a saved profile, e.g. to save it again with a new weight. */
+export function toUserProfileInput(profile: UserProfile): UserProfileInput {
+  return {
+    displayName: profile.displayName,
+    gender: profile.gender,
+    age: profile.age,
+    heightCm: profile.heightCm,
+    weightKg: profile.weightKg,
+    monthlyWeightGoalKg: profile.monthlyWeightGoalKg,
+    targetWeightKg: profile.targetWeightKg,
+    activityLevel: profile.activityLevel,
+  };
 }
 
 export async function deleteUserProfile() {

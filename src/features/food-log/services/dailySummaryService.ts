@@ -147,8 +147,12 @@ export async function listLoggedDailyStatuses(
       {
         date: summary.date,
         status:
-          getDailyCalorieGoalState(profile, summary.calorieTarget, summary.consumedCalories) ===
-          'on_target'
+          getDailyCalorieGoalState(
+            profile,
+            summary.calorieTarget,
+            summary.consumedCalories,
+            summary.date
+          ) === 'on_target'
             ? 'success'
             : 'failed',
       },

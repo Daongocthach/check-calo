@@ -61,7 +61,11 @@ export function ProfileScreen() {
         </Pressable>
 
         {goals.todaySummary ? (
-          <GoalTrackingCard goalTracking={goals.snapshot} todaySummary={goals.todaySummary} />
+          <GoalTrackingCard
+            goalTracking={goals.snapshot}
+            todaySummary={goals.todaySummary}
+            profile={profile}
+          />
         ) : null}
 
         <SettingsGroup title={t('profileTab.goals')}>

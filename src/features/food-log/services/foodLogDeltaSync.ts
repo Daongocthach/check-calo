@@ -57,6 +57,9 @@ interface CloudProfileRow {
   weight_kg: number | null;
   desired_weight_kg: number | null;
   activity_level: string | null;
+  /** Null for profiles last saved by an app version without weight goals. */
+  monthly_weight_goal_kg?: number | null;
+  target_weight_kg?: number | null;
 }
 
 interface NutritionDeltaSyncResult {
@@ -433,6 +436,10 @@ export async function syncUserProfileFromCloud() {
 
   const existingProfile = await getUserProfile();
   const monthlyWeightGoalKg = existingProfile?.monthlyWeightGoalKg ?? 0;
+  // Older app versions only stored desired_weight_kg, derived from the monthly rate.
+  const legacyMonthlyWeightGoalKg = data.desired_weight_kg
+    ? Math.round((((data.weight_kg - data.desired_weight_kg) * 30) / 42) * 10) / 10
+    : monthlyWeightGoalKg;
 
   const input: UserProfileInput = {
     displayName: data.display_name ?? '',
@@ -440,9 +447,14 @@ export async function syncUserProfileFromCloud() {
     age: data.age,
     heightCm: data.height_cm,
     weightKg: data.weight_kg,
-    monthlyWeightGoalKg: data.desired_weight_kg
-      ? Math.round((((data.weight_kg - data.desired_weight_kg) * 30) / 42) * 10) / 10
-      : monthlyWeightGoalKg,
+    monthlyWeightGoalKg:
+      data.monthly_weight_goal_kg === null || data.monthly_weight_goal_kg === undefined
+        ? legacyMonthlyWeightGoalKg
+        : Number(data.monthly_weight_goal_kg),
+    targetWeightKg:
+      data.target_weight_kg === null || data.target_weight_kg === undefined
+        ? (existingProfile?.targetWeightKg ?? null)
+        : Number(data.target_weight_kg),
     activityLevel: data.activity_level as ActivityLevel,
   };
 
@@ -470,6 +482,8 @@ export async function syncUserProfileToCloud(profile: UserProfileInput) {
         ? profile.weightKg - (profile.monthlyWeightGoalKg * 42) / 30
         : null,
       activity_level: profile.activityLevel,
+      monthly_weight_goal_kg: profile.monthlyWeightGoalKg,
+      target_weight_kg: profile.targetWeightKg,
     })
     .eq('user_id', userId);
 

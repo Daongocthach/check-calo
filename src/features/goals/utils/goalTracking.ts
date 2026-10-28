@@ -40,7 +40,8 @@ export function formatWeightGoalTitle(
 export function getGoalCycleDayProgress(
   goalProgress: Pick<WeightGoalProgress, 'goal' | 'unit'>
 ): { current: number; target: number } | null {
-  if (goalProgress.unit === 'days') {
+  // Only legacy calorie goals run in fixed 30-day cycles.
+  if (goalProgress.unit !== 'kcal') {
     return null;
   }
 

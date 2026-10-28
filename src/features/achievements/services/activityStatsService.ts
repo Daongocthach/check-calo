@@ -24,8 +24,12 @@ export function getDayStatus(summary: NutritionTrendPoint, profile: UserProfile 
     return 'empty';
   }
 
-  return getDailyCalorieGoalState(profile, summary.calorieTarget, summary.consumedCalories) ===
-    'on_target'
+  return getDailyCalorieGoalState(
+    profile,
+    summary.calorieTarget,
+    summary.consumedCalories,
+    summary.date
+  ) === 'on_target'
     ? 'on_target'
     : 'off_target';
 }

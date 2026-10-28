@@ -7,6 +7,10 @@ export interface WeightGoal {
   targetKg: number | null;
   targetKcalDelta: number;
   targetDays: number;
+  /** Null on goals created before weight tracking; those still measure calories. */
+  startWeightKg: number | null;
+  targetWeightKg: number | null;
+  monthlyRateKg: number | null;
   status: WeightGoalStatus;
   startedAt: string;
   completedAt: string | null;
@@ -22,8 +26,32 @@ export interface WeightGoalProgress {
   remainingValue: number;
   consumedCalories: number;
   targetCalories: number;
-  unit: 'kcal' | 'days';
+  /** `kg` for weight goals; maintain weight goals count `days` like legacy ones. */
+  unit: 'kcal' | 'days' | 'kg';
   completed: boolean;
+  /** Weight goals only; null on legacy calorie goals. */
+  weight: WeightGoalWeightProgress | null;
+}
+
+export interface WeightGoalWeightProgress {
+  startKg: number;
+  targetKg: number;
+  /** Average of the latest week of weigh-ins since the goal started. */
+  currentKg: number;
+  /** Signed change since the start, positive in the goal's direction. */
+  changeKg: number;
+  /** YYYY-MM-DD the goal should be reached at its planned rate. */
+  expectedEndDate: string;
+  /** Maintain goals: whether the current weight is still within the band. */
+  withinBand: boolean;
+}
+
+export interface WeightLog {
+  /** YYYY-MM-DD; one weigh-in per day. */
+  date: string;
+  weightKg: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type AchievementKey =

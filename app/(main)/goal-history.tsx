@@ -26,6 +26,12 @@ function formatGoalHistoryDateRange(
   return `${startedAt} - ${endedAt}`;
 }
 
+const GOAL_PROGRESS_KEYS = {
+  days: 'goalTracking.progressDays',
+  kcal: 'goalTracking.progressKcal',
+  kg: 'goalTracking.progressKg',
+} as const satisfies Record<WeightGoalProgress['unit'], string>;
+
 function getGoalStatusLabelKey(status: WeightGoalStatus) {
   switch (status) {
     case 'completed':
@@ -83,15 +89,10 @@ export default function GoalHistoryScreen() {
 
                     <View style={styles.historyMetrics}>
                       <Text variant="bodySmall" color="secondary">
-                        {goalItem.unit === 'days'
-                          ? t('goalTracking.progressDays', {
-                              current: goalItem.progressValue,
-                              target: goalItem.targetValue,
-                            })
-                          : t('goalTracking.progressKcal', {
-                              current: goalItem.progressValue,
-                              target: goalItem.targetValue,
-                            })}
+                        {t(GOAL_PROGRESS_KEYS[goalItem.unit], {
+                          current: goalItem.progressValue,
+                          target: goalItem.targetValue,
+                        })}
                       </Text>
                       {goalCycleProgress ? (
                         <Text variant="bodySmall" color="secondary">

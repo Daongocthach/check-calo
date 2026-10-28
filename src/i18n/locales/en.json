@@ -273,23 +273,10 @@
   "goalTracking": {
     "profileTitle": "Goal progress",
     "planTitle": "Plan: {{goal}}",
-    "currentProgress": "Current progress: {{current}}/{{target}} days",
     "progressKcal": "{{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} days",
-    "calorieDeficitLabel": "Calorie deficit",
-    "remainingDeficitLabel": "Remaining deficit",
-    "calorieDifferenceLabel": "Calorie difference",
     "statusLabel": "Status",
-    "calorieSurplusLabel": "Calorie surplus",
-    "remainingToTargetLabel": "Remaining to target",
-    "weightEquivalent": "({{value}} kg)",
-    "balanceStatus": {
-      "slightDeficit": "Slight deficit",
-      "balanced": "Balanced",
-      "slightSurplus": "Slight surplus"
-    },
     "startDate": "Start: {{value}}",
-    "endDate": "End: {{value}}",
     "goalNames": {
       "loseWithValue": "Lose {{value}} kg",
       "gainWithValue": "Gain {{value}} kg",
@@ -305,6 +292,35 @@
     "history": {
       "subtitle": "Goals you completed or changed midway.",
       "empty": "You do not have any goal history yet."
+    },
+    "progressKg": "{{current}} / {{target}} kg",
+    "weightRoute": "{{start}} {{unit}} → {{target}} {{unit}}",
+    "maintainRoute": "Stay around {{value}} {{unit}} (±{{band}} {{unit}})",
+    "currentWeightLabel": "Current",
+    "lostLabel": "Lost",
+    "gainedLabel": "Gained",
+    "remainingWeightLabel": "To go",
+    "driftLabel": "Change",
+    "bandHint": "Keep within ±{{value}} kg",
+    "withinBand": "On track",
+    "outsideBand": "Off range",
+    "expectedDate": "Expected: {{value}}",
+    "reachedTitle": "Reached: {{goal}}",
+    "reachedHint": "Great work! Set a new goal to keep going.",
+    "newGoalAction": "Set a new goal",
+    "today": {
+      "label": "Today {{consumed}} / {{target}} {{unit}}",
+      "remaining": "{{value}} kcal left",
+      "onTarget": "On target",
+      "over": "{{value}} kcal over"
+    },
+    "weighIn": {
+      "action": "Log today's weight",
+      "title": "Today's weight (kg)",
+      "message": "Weigh yourself in the morning before eating for the steadiest numbers.",
+      "placeholder": "e.g. 65.5",
+      "invalid": "Enter a weight between 25 and 250 kg",
+      "saved": "Weight saved"
     }
   },
   "achievements": {
@@ -715,8 +731,13 @@
     "saveSuccess": "Profile saved",
     "healthSources": "How we calculate this",
     "validation": {
-      "age": "Enter an age between 10 and 100"
-    }
+      "age": "Enter an age between 10 and 100",
+      "targetWeight": "Pick a target below your weight to lose, or above it to gain"
+    },
+    "targetWeight": "Target weight",
+    "expectedDate": "You could get there around {{value}}",
+    "targetBmiWarning": "This target is below a healthy BMI (18.5). Consider checking with a health professional.",
+    "planRange": "Eating {{min}}–{{max}} kcal a day counts as on target"
   },
   "buddy": {
     "title": "Pet",

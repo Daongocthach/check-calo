@@ -75,6 +75,7 @@ const NUTRITION_TABLES = [
   'daily_calorie_targets',
   'user_profile',
   'weight_goals',
+  'weight_logs',
   'achievement_unlocks',
   'food_products',
   'app_device',
@@ -87,6 +88,7 @@ const SYNCED_NUTRITION_TABLES = [
   'meals',
   'recent_foods',
   'food_entries',
+  'weight_logs',
 ] as const;
 
 async function clearLocalNutritionTables(tables: readonly string[] = NUTRITION_TABLES) {
@@ -137,6 +139,7 @@ export async function resetCloudNutritionData() {
     'meals',
     'meal_items',
     'meal_images',
+    'weight_logs',
     'profiles',
   ] as const;
 

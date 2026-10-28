@@ -10,9 +10,10 @@ import { useBuddyName } from '@/features/buddy/hooks/useBuddyName';
 import { useFoodEntryRefreshStore } from '@/features/food-log/stores/useFoodEntryRefreshStore';
 import { hs } from '@/theme/metrics';
 import { toast } from '@/utils/toast';
-import { useProfileForm } from '../../hooks/useProfileForm';
+import { getTargetWeightBounds, useProfileForm } from '../../hooks/useProfileForm';
 import type { ProfileFormValues } from '../../schemas/profileSchema';
 import { getBmiCategory } from '../../utils/bmi';
+import { calculateBmi } from '../../utils/calorie';
 import { MetricSliderCard } from './MetricSliderCard';
 import { ChoiceTile, OptionPill, SectionCard } from './OnboardingParts';
 
@@ -32,14 +33,28 @@ const RATES: ProfileFormValues['monthlyRateKg'][] = [0.5, 1, 2];
 
 const ACTIVITIES = ['sedentary', 'light', 'moderate', 'active'] as const;
 
+const HEALTHY_MIN_BMI = 18.5;
+
+function formatPlanDate(dateKey: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(
+    new Date(`${dateKey}T00:00:00`)
+  );
+}
+
 export function OnboardingScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { name: buddyName } = useBuddyName();
   const router = useRouter();
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const { form, plan, isLoading, hasExistingProfile, submit } = useProfileForm();
   const { control, watch, formState } = form;
   const goalMode = watch('goalMode');
+  const weightKg = watch('weightKg');
+  const heightCm = watch('heightCm');
+  const targetWeightKg = watch('targetWeightKg');
+  const targetBounds = getTargetWeightBounds(goalMode, weightKg);
+  const targetBelowHealthyBmi =
+    goalMode === 'lose' && calculateBmi(heightCm, targetWeightKg) < HEALTHY_MIN_BMI;
   const bmiCategory = getBmiCategory(plan.bmi);
   const macroPercent = (grams: number, kcalPerGram: number) =>
     plan.dailyCalories > 0 ? Math.round(((grams * kcalPerGram) / plan.dailyCalories) * 100) : 0;
@@ -213,6 +228,34 @@ export function OnboardingScreen() {
                   </View>
                 )}
               />
+              <Controller
+                control={control}
+                name="targetWeightKg"
+                render={({ field }) => (
+                  <View style={styles.row}>
+                    <MetricSliderCard
+                      label={t('onboarding.targetWeight')}
+                      unit={t('common.units.kg')}
+                      value={field.value}
+                      min={targetBounds.min}
+                      max={targetBounds.max}
+                      onChange={field.onChange}
+                    />
+                  </View>
+                )}
+              />
+              {plan.expectedEndDate ? (
+                <Text variant="caption" color="secondary">
+                  {t('onboarding.expectedDate', {
+                    value: formatPlanDate(plan.expectedEndDate, i18n.language),
+                  })}
+                </Text>
+              ) : null}
+              {targetBelowHealthyBmi ? (
+                <Text variant="caption" style={styles.warningText}>
+                  {t('onboarding.targetBmiWarning')}
+                </Text>
+              ) : null}
             </>
           ) : null}
           <Text variant="label">{t('onboarding.activity')}</Text>
@@ -282,6 +325,12 @@ export function OnboardingScreen() {
               </View>
             ))}
           </View>
+          <Text variant="caption" color="secondary" align="center">
+            {t('onboarding.planRange', {
+              min: plan.calorieRange.min.toLocaleString(),
+              max: plan.calorieRange.max.toLocaleString(),
+            })}
+          </Text>
         </SectionCard>
 
         <Button
@@ -348,6 +397,9 @@ const styles = StyleSheet.create((theme, rt) => ({
     padding: theme.metrics.spacing.p12,
     borderRadius: theme.metrics.borderRadius.lg,
     backgroundColor: theme.colors.state.successBg,
+  },
+  warningText: {
+    color: theme.colors.state.warning,
   },
   bmiCardWarning: {
     backgroundColor: theme.colors.state.warningBg,

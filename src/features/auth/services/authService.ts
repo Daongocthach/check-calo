@@ -11,6 +11,7 @@ import {
   resetLocalNutritionDataForLogin,
 } from '@/features/food-log/services/localDataReset';
 import { useFoodEntryRefreshStore } from '@/features/food-log/stores/useFoodEntryRefreshStore';
+import { pullWeightLogsFromCloud } from '@/features/goals/services/weightLogSync';
 import { supabase } from '@/integrations/supabase';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { STORAGE_KEYS, removeItem, setItem } from '@/utils/storage';
@@ -74,6 +75,7 @@ export async function loginSyncCloudData() {
   removeItem(STORAGE_KEYS.app.nutritionDeltaMealItemsCursor);
 
   await syncUserProfileFromCloud();
+  await pullWeightLogsFromCloud();
   await syncFoodEntriesDeltaFromSupabase();
   await syncRecentFoodsDeltaFromSupabase();
   useFoodEntryRefreshStore.getState().markFoodEntriesChanged();

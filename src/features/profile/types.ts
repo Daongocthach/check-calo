@@ -10,6 +10,8 @@ export interface UserProfileInput {
   weightKg: number;
   // Positive = lose weight, zero = maintain, negative = gain weight.
   monthlyWeightGoalKg: number;
+  /** Null when maintaining, or for profiles saved before target weights existed. */
+  targetWeightKg: number | null;
   activityLevel: ActivityLevel;
 }
 

@@ -273,23 +273,10 @@
   "goalTracking": {
     "profileTitle": "Tiến độ kế hoạch",
     "planTitle": "Kế hoạch: {{goal}}",
-    "currentProgress": "Tiến độ hiện tại: {{current}}/{{target}} ngày",
     "progressKcal": "{{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} ngày",
-    "calorieDeficitLabel": "Thâm hụt",
-    "remainingDeficitLabel": "Còn thiếu",
-    "calorieDifferenceLabel": "Chênh lệch calories",
     "statusLabel": "Trạng thái",
-    "calorieSurplusLabel": "Dư calories",
-    "remainingToTargetLabel": "Còn tới mục tiêu",
-    "weightEquivalent": "({{value}} kg)",
-    "balanceStatus": {
-      "slightDeficit": "Thâm hụt nhẹ",
-      "balanced": "Cân bằng",
-      "slightSurplus": "Dư nhẹ"
-    },
     "startDate": "Bắt đầu: {{value}}",
-    "endDate": "Kết thúc: {{value}}",
     "goalNames": {
       "loseWithValue": "Giảm {{value}} kg",
       "gainWithValue": "Tăng {{value}} kg",
@@ -305,6 +292,35 @@
     "history": {
       "subtitle": "Các mục tiêu bạn đã hoàn thành hoặc đổi giữa chừng.",
       "empty": "Bạn chưa có lịch sử kế hoạch nào."
+    },
+    "progressKg": "{{current}} / {{target}} kg",
+    "weightRoute": "{{start}} {{unit}} → {{target}} {{unit}}",
+    "maintainRoute": "Giữ quanh {{value}} {{unit}} (±{{band}} {{unit}})",
+    "currentWeightLabel": "Hiện tại",
+    "lostLabel": "Đã giảm",
+    "gainedLabel": "Đã tăng",
+    "remainingWeightLabel": "Còn lại",
+    "driftLabel": "Chênh lệch",
+    "bandHint": "Giữ trong ±{{value}} kg",
+    "withinBand": "Đúng hướng",
+    "outsideBand": "Ngoài khoảng",
+    "expectedDate": "Dự kiến: {{value}}",
+    "reachedTitle": "Đã đạt: {{goal}}",
+    "reachedHint": "Tuyệt vời! Đặt mục tiêu mới để tiếp tục nhé.",
+    "newGoalAction": "Đặt mục tiêu mới",
+    "today": {
+      "label": "Hôm nay {{consumed}} / {{target}} {{unit}}",
+      "remaining": "Còn {{value}} kcal",
+      "onTarget": "Đạt mục tiêu",
+      "over": "Vượt {{value}} kcal"
+    },
+    "weighIn": {
+      "action": "Cân hôm nay",
+      "title": "Cân nặng hôm nay (kg)",
+      "message": "Nên cân vào buổi sáng, trước khi ăn, để số liệu ổn định nhất.",
+      "placeholder": "VD: 65.5",
+      "invalid": "Nhập cân nặng từ 25 đến 250 kg",
+      "saved": "Đã lưu cân nặng"
     }
   },
   "achievements": {
@@ -715,8 +731,13 @@
     "saveSuccess": "Đã lưu hồ sơ",
     "healthSources": "Cách chúng tôi tính toán",
     "validation": {
-      "age": "Nhập tuổi từ 10 đến 100"
-    }
+      "age": "Nhập tuổi từ 10 đến 100",
+      "targetWeight": "Khi giảm cân, mục tiêu phải thấp hơn cân hiện tại; khi tăng thì cao hơn"
+    },
+    "targetWeight": "Cân nặng mục tiêu",
+    "expectedDate": "Dự kiến đạt vào khoảng {{value}}",
+    "targetBmiWarning": "Cân mục tiêu này thấp hơn mức BMI khỏe mạnh (18.5). Bạn nên hỏi ý kiến chuyên gia.",
+    "planRange": "Mỗi ngày ăn trong khoảng {{min}}–{{max}} kcal là đạt"
   },
   "buddy": {
     "title": "Thú cưng",

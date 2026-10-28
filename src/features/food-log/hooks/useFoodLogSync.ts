@@ -1,12 +1,14 @@
 import NetInfo from '@react-native-community/netinfo';
 import { useEffect } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
+import { syncWeightLogs } from '@/features/goals/services/weightLogSync';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { processPendingFoodEntryImageSyncQueue } from '../services/foodImageSyncQueue';
 import {
   syncFoodEntriesDeltaFromSupabase,
   syncRecentFoodsDeltaFromSupabase,
 } from '../services/foodLogDeltaSync';
+import { useFoodEntryRefreshStore } from '../stores/useFoodEntryRefreshStore';
 
 function handleSyncError(error: unknown) {
   if (__DEV__) {
@@ -18,6 +20,13 @@ function runNutritionSync() {
   processPendingFoodEntryImageSyncQueue().catch(handleSyncError);
   syncFoodEntriesDeltaFromSupabase().catch(handleSyncError);
   syncRecentFoodsDeltaFromSupabase().catch(handleSyncError);
+  syncWeightLogs()
+    .then((changedCount) => {
+      if (changedCount > 0) {
+        useFoodEntryRefreshStore.getState().markFoodEntriesChanged();
+      }
+    })
+    .catch(handleSyncError);
 }
 
 export function useFoodLogSync() {

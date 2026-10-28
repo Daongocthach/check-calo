@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 15;
+const DATABASE_VERSION = 16;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -508,6 +508,23 @@ async function runVersion15Migration(database: SQLite.SQLiteDatabase) {
   }
 }
 
+async function runVersion16Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(database, 'user_profile', 'target_weight_kg', 'target_weight_kg REAL');
+  await addColumnIfMissing(database, 'weight_goals', 'start_weight_kg', 'start_weight_kg REAL');
+  await addColumnIfMissing(database, 'weight_goals', 'target_weight_kg', 'target_weight_kg REAL');
+  await addColumnIfMissing(database, 'weight_goals', 'monthly_rate_kg', 'monthly_rate_kg REAL');
+
+  await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS weight_logs (
+      log_date TEXT PRIMARY KEY NOT NULL,
+      weight_kg REAL NOT NULL,
+      synced INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -571,6 +588,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 15) {
     await runVersion15Migration(database);
+  }
+
+  if (currentVersion < 16) {
+    await runVersion16Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {
