@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useActivityStats } from '@/features/achievements/hooks/useActivityStats';
+import { getDayStatus } from '@/features/achievements/services/activityStatsService';
+import type { DayStatus } from '@/features/achievements/types';
 import { useDevToolsStore } from '@/features/dev-tools';
 import { useDayFoodLog } from '@/features/food-log/hooks/useDayFoodLog';
 import { useFoodLogQuery } from '@/features/food-log/hooks/useFoodLogQuery';
@@ -26,21 +28,19 @@ export function useHomeScreen() {
     listDailyNutritionSummaries(weekStartKey, weekEndKey)
   );
 
-  const loggedDateKeys = useMemo(
-    () =>
-      new Set(
-        (forceEmptyDiary ? [] : (week.data ?? []))
-          .filter((summary) => summary.consumedCalories > 0)
-          .map((summary) => summary.date)
-      ),
-    [forceEmptyDiary, week.data]
-  );
+  const dayStatuses = useMemo(() => {
+    const statuses: Record<string, DayStatus> = {};
+    for (const summary of forceEmptyDiary ? [] : (week.data ?? [])) {
+      statuses[summary.date] = getDayStatus(summary, profile.data ?? null);
+    }
+    return statuses;
+  }, [forceEmptyDiary, profile.data, week.data]);
 
   return {
     today,
     selectedDate,
     setSelectedDate,
-    loggedDateKeys,
+    dayStatuses,
     profile: profile.data,
     isProfileMissing: !profile.isLoading && !profile.error && profile.data === null,
     summary: forceEmptyDiary ? null : (day.data?.summary ?? null),

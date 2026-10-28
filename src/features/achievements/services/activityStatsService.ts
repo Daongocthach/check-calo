@@ -18,7 +18,8 @@ function reachesRatio(value: number, target: number, ratio: number) {
   return target > 0 && value >= target * ratio;
 }
 
-function getDayStatus(summary: NutritionTrendPoint, profile: UserProfile | null): DayStatus {
+/** Goal met (within the calorie goal), logged but off the goal, or nothing logged. */
+export function getDayStatus(summary: NutritionTrendPoint, profile: UserProfile | null): DayStatus {
   if (summary.consumedCalories <= 0) {
     return 'empty';
   }

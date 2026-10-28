@@ -62,7 +62,7 @@ export function HomeScreen() {
         <WeekStrip
           selectedDate={home.selectedDate}
           today={home.today}
-          loggedDateKeys={home.loggedDateKeys}
+          dayStatuses={home.dayStatuses}
           onSelect={home.setSelectedDate}
         />
         <DailyProgressCard summary={home.summary} profile={home.profile} />

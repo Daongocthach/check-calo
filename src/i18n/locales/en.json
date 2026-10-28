@@ -74,6 +74,11 @@
     "changeAvatar": "Change avatar",
     "pickDate": "Pick a date",
     "goToToday": "Go to today",
+    "dayStatus": {
+      "on_target": "Goal met",
+      "off_target": "Logged",
+      "empty": "Nothing logged"
+    },
     "dailyProgress": "Daily progress",
     "caloriesLabel": "Calories",
     "gaugeMin": "0%",

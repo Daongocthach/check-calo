@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, View } from 'react-native';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Text } from '@/common/components';
+import { Icon, Text } from '@/common/components';
+import type { IconProps } from '@/common/components';
+import type { DayStatus } from '@/features/achievements/types';
 import { formatDateKey } from '@/utils/date';
 import { addDays, getWeekStart, getWeekStarts, isSameDay } from '../utils/week';
 import { MonthYearSelector } from './MonthYearSelector';
@@ -14,12 +16,13 @@ const WEEKS_BACK = 104;
 export interface WeekStripProps {
   selectedDate: Date;
   today: Date;
-  loggedDateKeys: Set<string>;
+  /** Status per date key (YYYY-MM-DD); missing days count as empty. */
+  dayStatuses: Record<string, DayStatus>;
   onSelect: (date: Date) => void;
 }
 
-export function WeekStrip({ selectedDate, today, loggedDateKeys, onSelect }: WeekStripProps) {
-  const { i18n } = useTranslation();
+export function WeekStrip({ selectedDate, today, dayStatuses, onSelect }: WeekStripProps) {
+  const { t, i18n } = useTranslation();
   const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
   const listRef = useRef<FlatList<Date>>(null);
   const visibleIndexRef = useRef(-1);
@@ -36,10 +39,7 @@ export function WeekStrip({ selectedDate, today, loggedDateKeys, onSelect }: Wee
   );
   const selectedWeekKey = formatDateKey(getWeekStart(selectedDate));
   const selectedIndex = weeks.findIndex((week) => formatDateKey(week) === selectedWeekKey);
-  const extraData = useMemo(
-    () => ({ selectedDate, loggedDateKeys }),
-    [selectedDate, loggedDateKeys]
-  );
+  const extraData = useMemo(() => ({ selectedDate, dayStatuses }), [selectedDate, dayStatuses]);
 
   // Follow selections made elsewhere (date picker, "today" button).
   useEffect(() => {
@@ -68,9 +68,16 @@ export function WeekStrip({ selectedDate, today, loggedDateKeys, onSelect }: Wee
       {Array.from({ length: 7 }, (_, offset) => {
         const day = addDays(item, offset);
         const isSelected = isSameDay(day, selectedDate);
-        const isFuture = day > today && !isSameDay(day, today);
-        const isLogged = loggedDateKeys.has(formatDateKey(day));
+        const isToday = isSameDay(day, today);
+        const isFuture = day > today && !isToday;
+        const status = dayStatuses[formatDateKey(day)] ?? 'empty';
         const weekday = day.toLocaleDateString(locale, { weekday: 'narrow' });
+        const label = day.toLocaleDateString(locale, { weekday: 'long', day: 'numeric' });
+        // Today keeps the plain layout and is marked by a brand-coloured date.
+        let dateColor: 'link' | 'tertiary' | 'primary' = isToday ? 'link' : 'primary';
+        if (isFuture) {
+          dateColor = 'tertiary';
+        }
         let textColor: 'inverse' | 'tertiary' | 'primary' = 'primary';
         if (isSelected) {
           textColor = 'inverse';
@@ -84,24 +91,41 @@ export function WeekStrip({ selectedDate, today, loggedDateKeys, onSelect }: Wee
             disabled={isFuture}
             onPress={() => onSelect(day)}
             accessibilityRole="button"
+            accessibilityLabel={isFuture ? label : `${label}, ${t(`home.dayStatus.${status}`)}`}
             accessibilityState={{ selected: isSelected, disabled: isFuture }}
             style={styles.day}
           >
-            <View
-              style={[
-                styles.weekdayBubble,
-                isLogged ? styles.weekdayLogged : styles.weekdayEmpty,
-                isSelected && styles.weekdaySelected,
-              ]}
-            >
-              <Text variant="caption" weight="semibold" color={textColor}>
-                {weekday}
-              </Text>
+            <View>
+              <View
+                style={[
+                  styles.weekdayBubble,
+                  status === 'empty' || isFuture ? styles.weekdayEmpty : styles.weekdayLogged,
+                  isSelected && styles.weekdaySelected,
+                ]}
+              >
+                <Text variant="caption" weight="semibold" color={textColor}>
+                  {weekday}
+                </Text>
+              </View>
+              {status === 'empty' || isFuture ? null : (
+                <View
+                  style={[
+                    styles.statusBadge,
+                    status === 'on_target' ? styles.badgeOnTarget : styles.badgeLogged,
+                  ]}
+                >
+                  <Icon
+                    name={STATUS_ICONS[status].name}
+                    variant={STATUS_ICONS[status].variant}
+                    size={10}
+                  />
+                </View>
+              )}
             </View>
             <Text
               variant="bodySmall"
-              weight={isSelected ? 'bold' : 'medium'}
-              color={isFuture ? 'tertiary' : 'primary'}
+              weight={isSelected || isToday ? 'bold' : 'medium'}
+              color={dateColor}
             >
               {day.getDate()}
             </Text>
@@ -141,20 +165,30 @@ export function WeekStrip({ selectedDate, today, loggedDateKeys, onSelect }: Wee
   );
 }
 
+const STATUS_ICONS: Record<
+  Exclude<DayStatus, 'empty'>,
+  { name: IconProps['name']; variant: NonNullable<IconProps['variant']> }
+> = {
+  on_target: { name: 'checkmark', variant: 'onBrand' },
+  off_target: { name: 'flame', variant: 'accent' },
+};
+
 const styles = StyleSheet.create((theme) => ({
   container: {
     gap: theme.metrics.spacingV.p12,
   },
+  // Top padding keeps the status badge from being clipped by the list.
   page: (width: number) => ({
     width,
     flexDirection: 'row',
+    paddingTop: theme.metrics.spacingV.p8,
   }),
   // Equal cells (not space-between) leave half a gap at each page edge, so while swiping the last
   // day of one week and the first day of the next sit as far apart as neighbouring days.
   day: {
     flex: 1,
     alignItems: 'center',
-    gap: theme.metrics.spacingV.p4,
+    gap: theme.metrics.spacingV.p8,
   },
   weekdayBubble: {
     width: theme.metrics.spacing.p32,
@@ -168,13 +202,34 @@ const styles = StyleSheet.create((theme) => ({
     borderStyle: 'dashed',
     borderColor: theme.colors.border.strong,
   },
+  // iOS keeps a previous dashed style unless solid is set explicitly.
   weekdayLogged: {
+    borderStyle: 'solid',
     borderColor: theme.colors.brand.primary,
-    backgroundColor: theme.colors.background.section,
+    backgroundColor: theme.colors.background.surface,
   },
   weekdaySelected: {
     borderStyle: 'solid',
     borderColor: theme.colors.brand.primary,
     backgroundColor: theme.colors.brand.primary,
+  },
+  // Sits on the bubble's top-right edge so the weekday stays readable.
+  statusBadge: {
+    position: 'absolute',
+    top: -theme.metrics.spacing.p4,
+    right: -theme.metrics.spacing.p4,
+    width: theme.metrics.spacing.p16,
+    height: theme.metrics.spacing.p16,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: theme.colors.background.surface,
+  },
+  badgeOnTarget: {
+    backgroundColor: theme.colors.state.success,
+  },
+  badgeLogged: {
+    backgroundColor: theme.colors.state.warningBg,
   },
 }));

@@ -74,6 +74,11 @@
     "changeAvatar": "Đổi ảnh đại diện",
     "pickDate": "Chọn ngày",
     "goToToday": "Về hôm nay",
+    "dayStatus": {
+      "on_target": "Đạt mục tiêu",
+      "off_target": "Đã ghi",
+      "empty": "Chưa ghi"
+    },
     "dailyProgress": "Tiến độ hôm nay",
     "caloriesLabel": "Calo",
     "gaugeMin": "0%",
