@@ -241,7 +241,7 @@ function AboutScreenContent() {
             title={t('legal.about.ctaAction')}
             size="sm"
             rightIcon={<Icon name="chevron-forward-outline" variant="onBrand" size={16} />}
-            onPress={() => router.push('/welcome')}
+            onPress={() => router.push('/goal-edit')}
             style={styles.aboutButton}
           />
         </View>

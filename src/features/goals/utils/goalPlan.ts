@@ -2,6 +2,7 @@ import {
   calculateDailyCalorieTarget,
   calculateMaintenanceCalorieTarget,
   getMaxDailyDeficit,
+  getWeightGoalMode,
   MAX_SURPLUS_KCAL,
   type BodyStats,
 } from '@/features/profile/utils/calorie';
@@ -26,7 +27,7 @@ const MIN_MONTHLY_RATE_KG: Record<Exclude<WeightGoalMode, 'maintain'>, number> =
   gain: 0.25,
 };
 /** Lightest and heaviest target weights the sliders offer. */
-const TARGET_WEIGHT_LIMITS = { min: 25, max: 160 };
+export const TARGET_WEIGHT_LIMITS = { min: 25, max: 160 };
 /** The default plan runs at this share of the fastest rate. */
 const DEFAULT_PACE_SHARE = 0.6;
 
@@ -74,21 +75,27 @@ export function getMaxWeeklyRateKg(body: BodyStats, mode: WeightGoalMode) {
 }
 
 /**
- * Target weights reachable within the longest goal: at least 1 kg away, at most a year at
- * the fastest rate. Whole kilograms, matching the slider.
+ * Target weights reachable within the longest goal: the nearest whole kilogram past the
+ * current weight (70 when at 70.3 and losing), at most a year at the fastest rate.
  */
 export function getTargetWeightBounds(body: BodyStats, mode: WeightGoalMode) {
-  const currentKg = Math.round(body.weightKg);
-
   if (mode === 'maintain') {
+    const currentKg = Math.round(body.weightKg);
     return { min: currentKg, max: currentKg };
   }
 
   const reachKg = Math.max(1, Math.floor(getMaxWeeklyRateKg(body, mode) * MAX_GOAL_WEEKS));
+  const nearestKg = mode === 'lose' ? Math.ceil(body.weightKg) - 1 : Math.floor(body.weightKg) + 1;
 
   return mode === 'lose'
-    ? { min: Math.max(TARGET_WEIGHT_LIMITS.min, currentKg - reachKg), max: currentKg - 1 }
-    : { min: currentKg + 1, max: Math.min(TARGET_WEIGHT_LIMITS.max, currentKg + reachKg) };
+    ? {
+        min: Math.max(TARGET_WEIGHT_LIMITS.min, Math.round(body.weightKg) - reachKg),
+        max: nearestKg,
+      }
+    : {
+        min: nearestKg,
+        max: Math.min(TARGET_WEIGHT_LIMITS.max, Math.round(body.weightKg) + reachKg),
+      };
 }
 
 /** How many weeks the change may take: between the fastest and the slowest sensible rate. */
@@ -185,5 +192,80 @@ export function planForDuration(
     }),
     maintenanceCalories,
     pace: getGoalPace(weeklyRateKg, bounds.maxWeeklyRateKg),
+  };
+}
+
+/** What the goal planner edits: the direction, the target weight and how long to take. */
+export interface GoalDraft {
+  mode: WeightGoalMode;
+  targetWeightKg: number;
+  weeks: number;
+}
+
+/** A starting target for the slider: about 5% lighter, or 3 kg heavier, within reach. */
+export function suggestTargetWeight(body: BodyStats, mode: WeightGoalMode) {
+  const { min, max } = getTargetWeightBounds(body, mode);
+
+  if (mode === 'maintain') {
+    return min;
+  }
+
+  const suggested =
+    mode === 'gain'
+      ? Math.round(body.weightKg) + 3
+      : Math.round(body.weightKg - Math.max(1, body.weightKg * 0.05));
+
+  return Math.min(max, Math.max(min, suggested));
+}
+
+/** Pulls a draft back within reach after the mode or the body changes. */
+export function normalizeGoalDraft(body: BodyStats, draft: GoalDraft): GoalDraft {
+  if (draft.mode === 'maintain') {
+    return { mode: 'maintain', targetWeightKg: Math.round(body.weightKg), weeks: 0 };
+  }
+
+  const { min, max } = getTargetWeightBounds(body, draft.mode);
+  const targetWeightKg =
+    draft.targetWeightKg >= min && draft.targetWeightKg <= max && min <= max
+      ? draft.targetWeightKg
+      : suggestTargetWeight(body, draft.mode);
+  const bounds = getGoalDurationBounds(body, targetWeightKg);
+  const weeks = draft.weeks > 0 ? clampWeeks(bounds, draft.weeks) : getDefaultWeeks(bounds);
+
+  return { mode: draft.mode, targetWeightKg, weeks };
+}
+
+/** The draft a saved plan corresponds to, e.g. to prefill the planner. */
+export function draftFromPlan(
+  body: BodyStats,
+  monthlyWeightGoalKg: number,
+  targetWeightKg: number | null
+): GoalDraft {
+  const mode = getWeightGoalMode(monthlyWeightGoalKg);
+  const target = normalizeGoalDraft(body, {
+    mode,
+    targetWeightKg: targetWeightKg === null ? Number.NaN : Math.round(targetWeightKg),
+    weeks: 0,
+  }).targetWeightKg;
+
+  if (mode === 'maintain') {
+    return { mode, targetWeightKg: target, weeks: 0 };
+  }
+
+  return {
+    mode,
+    targetWeightKg: target,
+    weeks: getWeeksForMonthlyRate(getGoalDurationBounds(body, target), monthlyWeightGoalKg),
+  };
+}
+
+/** The profile's goal fields for a draft. */
+export function planFromDraft(body: BodyStats, draft: GoalDraft) {
+  const normalized = normalizeGoalDraft(body, draft);
+  const plan = planForDuration(body, normalized.targetWeightKg, normalized.weeks);
+
+  return {
+    monthlyWeightGoalKg: plan.monthlyWeightGoalKg,
+    targetWeightKg: normalized.mode === 'maintain' ? null : normalized.targetWeightKg,
   };
 }

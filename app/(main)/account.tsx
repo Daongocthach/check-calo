@@ -72,14 +72,14 @@ export default function AccountScreen() {
     );
   }, [user?.createdAt, t]);
 
-  // Account is pushed from Profile; after logout or deletion return there.
+  // Account is pushed from Settings; after logout or deletion return there.
   const returnToProfile = useCallback(() => {
     if (router.canGoBack()) {
       router.back();
       return;
     }
 
-    router.replace('/profile');
+    router.replace('/settings');
   }, [router]);
 
   const handleSwitchAccount = useCallback(() => {

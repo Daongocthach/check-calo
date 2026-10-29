@@ -58,8 +58,8 @@
     "open": "Mở menu",
     "dashboard": "Tổng quan",
     "buddy": "Thú cưng",
-    "profile": "Hồ sơ",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "goal": "Mục tiêu"
   },
   "language": {
     "label": "Ngôn ngữ",
@@ -81,10 +81,9 @@
     },
     "dailyProgress": "Tiến độ hôm nay",
     "caloriesLabel": "Calo",
-    "gaugeMin": "0%",
-    "gaugeMax": "100%",
     "emptyTitle": "Chưa ghi món nào",
-    "emptySubtitle": "Kể cho Check AI bạn đã ăn gì, hoặc chụp ảnh bữa ăn."
+    "emptySubtitle": "Kể cho Check AI bạn đã ăn gì, hoặc chụp ảnh bữa ăn.",
+    "rangeLabel": "Khoảng đạt {{min}}–{{max}} kcal"
   },
   "supportScreen": {
     "title": "Ủng hộ phát triển app",
@@ -278,8 +277,8 @@
     "statusLabel": "Trạng thái",
     "startDate": "Bắt đầu: {{value}}",
     "goalNames": {
-      "loseWithValue": "Giảm {{value}} kg",
-      "gainWithValue": "Tăng {{value}} kg",
+      "loseWithValue": "Giảm {{value, number}} kg",
+      "gainWithValue": "Tăng {{value, number}} kg",
       "maintainWithValue": "Giữ cân {{value}} ngày",
       "maintainWithOneMonth": "Giữ cân",
       "maintainWithMonths": "Giữ cân {{value}} tháng"
@@ -287,7 +286,7 @@
     "status": {
       "active": "Đang thực hiện",
       "completed": "Hoàn thành",
-      "cancelled": "Đã hủy"
+      "cancelled": "Đã dừng"
     },
     "history": {
       "subtitle": "Các mục tiêu bạn đã hoàn thành hoặc đổi giữa chừng.",
@@ -321,6 +320,18 @@
       "placeholder": "VD: 65.5",
       "invalid": "Nhập cân nặng từ 25 đến 250 kg",
       "saved": "Đã lưu cân nặng"
+    },
+    "transition": {
+      "title_one": "Giai đoạn chuyển tiếp · còn {{count}} ngày",
+      "title_other": "Giai đoạn chuyển tiếp · còn {{count}} ngày",
+      "hint": "Ăn khoảng {{kcal}} kcal (mức duy trì). Cân có thể tăng 1–2 kg vài ngày đầu do nước, không phải mỡ."
+    },
+    "suggestion": {
+      "underweight": "BMI của bạn đang dưới 18,5. Nên chuyển sang giữ hoặc tăng cân.",
+      "stale": "Đã hơn một tháng bạn chưa cân. Bắt đầu lại từ cân hiện tại để tiến độ chính xác hơn?",
+      "regained": "Cân đang đi ngược mục tiêu hơn 2 kg. Bắt đầu lại từ cân hiện tại?",
+      "changeGoal": "Đổi mục tiêu",
+      "restart": "Bắt đầu lại"
     }
   },
   "achievements": {
@@ -527,7 +538,7 @@
   },
   "settingsScreen": {
     "title": "Cài đặt",
-    "subtitle": "Nhắc nhở, hiển thị và quyền riêng tư",
+    "subtitle": "Tài khoản, thông tin cá nhân và hiển thị",
     "general": "Chung",
     "healthAndPrivacy": "Sức khoẻ & quyền riêng tư"
   },
@@ -662,7 +673,6 @@
   },
   "onboarding": {
     "headerTitle": "Bắt đầu",
-    "editTitle": "Sửa hồ sơ",
     "title": "Chào mừng đến với Check Calo! 👋",
     "subtitle": "Hãy cho mình biết một chút về bạn để {{name}} xây dựng kế hoạch phù hợp nhất.",
     "basicInfo": "Thông tin cơ bản",
@@ -712,9 +722,6 @@
         "description": "Tăng cơ, tăng cân lành mạnh"
       }
     },
-    "loseRate": "Tốc độ giảm cân mong muốn",
-    "gainRate": "Tốc độ tăng cân mong muốn",
-    "ratePerMonth": "{{value}} kg / tháng",
     "activity": "Mức độ vận động",
     "activities": {
       "sedentary": "Ít vận động",
@@ -727,17 +734,20 @@
     "planKcalHint": "Mục tiêu calo",
     "planPercent": "{{value}}% tổng calo",
     "startAction": "Bắt đầu hành trình",
-    "saveAction": "Lưu thay đổi",
     "saveSuccess": "Đã lưu hồ sơ",
     "healthSources": "Cách chúng tôi tính toán",
     "validation": {
-      "age": "Nhập tuổi từ 10 đến 100",
-      "targetWeight": "Khi giảm cân, mục tiêu phải thấp hơn cân hiện tại; khi tăng thì cao hơn"
+      "age": "Nhập tuổi từ 10 đến 100"
     },
     "targetWeight": "Cân nặng mục tiêu",
-    "expectedDate": "Dự kiến đạt vào khoảng {{value}}",
     "targetBmiWarning": "Cân mục tiêu này thấp hơn mức BMI khỏe mạnh (18.5). Bạn nên hỏi ý kiến chuyên gia.",
-    "planRange": "Mỗi ngày ăn trong khoảng {{min}}–{{max}} kcal là đạt"
+    "planRange": "Mỗi ngày ăn trong khoảng {{min}}–{{max}} kcal là đạt",
+    "step": "Bước {{current}}/{{total}} · {{title}}",
+    "steps": {
+      "about": "Về bạn",
+      "goal": "Mục tiêu",
+      "plan": "Kế hoạch"
+    }
   },
   "buddy": {
     "title": "Thú cưng",
@@ -777,14 +787,8 @@
     "nextRewardHint": "Đạt {{points}} điểm để {{name}} tiến hoá thành {{stage}}"
   },
   "profileTab": {
-    "title": "Hồ sơ",
-    "subtitle": "Chỉ số cơ thể, mục tiêu và tài khoản",
     "guest": "Khách",
     "guestAccount": "Tài khoản khách · dữ liệu lưu trên máy",
-    "profileSummary": "{{kcal}} kcal/ngày · {{weight}} kg",
-    "profileEmpty": "Thiết lập hồ sơ",
-    "restart": "Bắt đầu lại",
-    "restartHint": "Nhập lại chỉ số cơ thể và mục tiêu",
     "reminders": "Nhắc nhở",
     "appearance": "Giao diện",
     "language": "Ngôn ngữ",
@@ -799,9 +803,7 @@
     "resetMessage": "Nhật ký, mục tiêu và hồ sơ trên máy này và trên cloud sẽ bị xoá vĩnh viễn.",
     "resetConfirm": "Xoá",
     "version": "Phiên bản {{version}}",
-    "goals": "Mục tiêu",
-    "account": "Tài khoản",
-    "editProfile": "Chỉnh sửa hồ sơ"
+    "account": "Tài khoản"
   },
   "devTools": {
     "group": "Nhà phát triển",
@@ -839,5 +841,57 @@
     "destructiveAlert": "Alert xoá",
     "alertTitle": "Alert mẫu",
     "sampleMessage": "Đây là nội dung mẫu để kiểm tra giao diện."
+  },
+  "personalInfo": {
+    "title": "Thông tin cá nhân",
+    "saved": "Đã lưu thông tin",
+    "heightInvalid": "Nhập chiều cao từ 100 đến 230 cm"
+  },
+  "goalPlanner": {
+    "maintainHint": "Ăn khoảng {{kcal}} kcal mỗi ngày để giữ cân.",
+    "duration": "Thời gian muốn đạt đích",
+    "weeks_one": "{{count}} tuần",
+    "weeks_other": "{{count}} tuần",
+    "months": "~{{value}} tháng",
+    "fastest_one": "{{count}} tuần (nhanh nhất)",
+    "fastest_other": "{{count}} tuần (nhanh nhất)",
+    "slowest_one": "{{count}} tuần (chậm nhất)",
+    "slowest_other": "{{count}} tuần (chậm nhất)",
+    "kcal": "kcal/ngày",
+    "ratePerWeek": "kg/tuần",
+    "paceLabel": "Nhịp",
+    "pace": {
+      "gentle": "Nhẹ nhàng",
+      "moderate": "Vừa phải",
+      "fast": "Nhanh"
+    },
+    "endDate": "Dự kiến đạt đích: {{value}}",
+    "stageHint": "Đây là mức xa nhất trong 12 tháng. Muốn đi xa hơn, hãy đạt chặng này rồi đặt chặng tiếp theo."
+  },
+  "goalEdit": {
+    "title": "Đổi mục tiêu",
+    "saved": "Đã cập nhật mục tiêu",
+    "restart": "Tính lại từ hôm nay",
+    "restartHint": "Cân bắt đầu là cân hiện tại; mục tiêu đang chạy được lưu vào lịch sử.",
+    "confirmTitle": "Đổi sang {{mode}}?",
+    "confirmMessage": "Mục tiêu hiện tại sẽ dừng và được lưu vào lịch sử. Calo mỗi ngày: {{from}} → {{to}} kcal.",
+    "confirmAction": "Đổi mục tiêu",
+    "transition_one": "Ăn duy trì {{count}} tuần trước ({{kcal}} kcal/ngày)",
+    "transition_other": "Ăn duy trì {{count}} tuần trước ({{kcal}} kcal/ngày)",
+    "transitionHint": "Cho cơ thể làm quen trước khi đổi hướng; cân có thể tăng nhẹ do nước. Sau đó calo chuyển sang {{kcal}} kcal/ngày."
+  },
+  "goalScreen": {
+    "title": "Mục tiêu",
+    "subtitle": "Tiến độ, cân nặng và kế hoạch",
+    "manage": "Kế hoạch",
+    "changeGoal": "Đổi mục tiêu",
+    "changeGoalHint": "Cân đích, thời gian hoặc hướng đi",
+    "reachedTitle": "Đã đạt: {{goal}}!",
+    "reachedMessage": "Tuyệt vời! Kế hoạch đã chuyển sang giữ cân để bạn giữ vững kết quả.",
+    "keepMaintaining": "Giữ cân"
+  },
+  "goalSummary": {
+    "route": "Hiện tại {{current}} {{unit}} · đích {{target}} {{unit}}",
+    "maintain": "Giữ quanh {{current}} {{unit}}"
   }
 }

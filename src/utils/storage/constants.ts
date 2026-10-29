@@ -34,5 +34,6 @@ export const STORAGE_KEYS = {
     nutritionDeltaMealItemsCursor: 'nutrition_delta_food_entries_cursor_meal_items',
     supportPromptDismissed: 'support_prompt_dismissed',
     goalRangeRulesSince: 'goal_range_rules_since',
+    celebratedGoalId: 'celebrated_goal_id',
   },
 } as const;

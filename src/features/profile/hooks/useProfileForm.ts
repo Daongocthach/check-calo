@@ -1,19 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import type { WeightGoalMode } from '@/features/goals/types';
-import { estimateGoalEndDate } from '@/features/goals/utils/weightGoal';
-import { formatDateKey } from '@/utils/date';
+import { planFromDraft, type GoalDraft } from '@/features/goals/utils/goalPlan';
 import { profileFormSchema, type ProfileFormValues } from '../schemas/profileSchema';
-import { getUserProfile } from '../services/profileRepository';
 import { saveProfile } from '../services/profileService';
-import type { UserProfile, UserProfileInput } from '../types';
+import type { UserProfileInput } from '../types';
 import {
   calculateBmi,
   calculateDailyCalorieTarget,
   calculateMacroTargets,
   getCalorieRange,
-  getWeightGoalMode,
+  type BodyStats,
   type CalorieRange,
 } from '../utils/calorie';
 
@@ -23,67 +19,36 @@ const DEFAULT_VALUES: ProfileFormValues = {
   gender: 'male',
   heightCm: 170,
   weightKg: 65,
-  goalMode: 'lose',
-  monthlyRateKg: 1,
-  targetWeightKg: 60,
   activityLevel: 'moderate',
+  goalMode: 'lose',
+  targetWeightKg: 62,
+  weeks: 0,
 };
 
-/** Target weight slider bounds: below the current weight to lose, above it to gain. */
-export function getTargetWeightBounds(goalMode: WeightGoalMode, weightKg: number) {
-  return goalMode === 'gain'
-    ? { min: Math.round(weightKg) + 1, max: 160 }
-    : { min: 25, max: Math.round(weightKg) - 1 };
-}
+/** The body stats the plan is sized for; an unfinished age counts as 25. */
+export function toBodyStats(values: ProfileFormValues): BodyStats {
+  const age = Number(values.age);
 
-/** A starting target for the slider: about 5% lighter, or 3 kg heavier. */
-function suggestTargetWeight(goalMode: WeightGoalMode, weightKg: number) {
-  return goalMode === 'gain'
-    ? Math.round(weightKg) + 3
-    : Math.round(weightKg - Math.max(1, weightKg * 0.05));
-}
-
-function toRate(monthlyWeightGoalKg: number): ProfileFormValues['monthlyRateKg'] {
-  const absolute = Math.abs(monthlyWeightGoalKg);
-  if (absolute >= 2) return 2;
-  if (absolute >= 1) return 1;
-  return 0.5;
-}
-
-function fromProfile(profile: UserProfile): ProfileFormValues {
   return {
-    displayName: profile.displayName,
-    age: String(profile.age),
-    gender: profile.gender,
-    heightCm: Math.round(profile.heightCm),
-    // Not rounded: saving without touching the slider must keep a weigh-in like 70.4 kg.
-    weightKg: profile.weightKg,
-    goalMode: getWeightGoalMode(profile.monthlyWeightGoalKg),
-    monthlyRateKg: toRate(profile.monthlyWeightGoalKg),
-    targetWeightKg: Math.round(
-      profile.targetWeightKg ??
-        suggestTargetWeight(getWeightGoalMode(profile.monthlyWeightGoalKg), profile.weightKg)
-    ),
-    activityLevel: profile.activityLevel,
+    gender: values.gender,
+    age: Number.isInteger(age) && age > 0 ? age : 25,
+    heightCm: values.heightCm,
+    weightKg: values.weightKg,
+    activityLevel: values.activityLevel,
   };
 }
 
-function toMonthlyGoal(goalMode: WeightGoalMode, rate: number) {
-  if (goalMode === 'maintain') return 0;
-  // Positive = lose weight, negative = gain weight (see UserProfileInput).
-  return goalMode === 'lose' ? rate : -rate;
+export function toGoalDraft(values: ProfileFormValues): GoalDraft {
+  return { mode: values.goalMode, targetWeightKg: values.targetWeightKg, weeks: values.weeks };
 }
 
 export function toProfileInput(values: ProfileFormValues): UserProfileInput {
+  const body = toBodyStats(values);
+
   return {
+    ...body,
     displayName: values.displayName.trim(),
-    gender: values.gender,
-    age: Number(values.age) || 0,
-    heightCm: values.heightCm,
-    weightKg: values.weightKg,
-    monthlyWeightGoalKg: toMonthlyGoal(values.goalMode, values.monthlyRateKg),
-    targetWeightKg: values.goalMode === 'maintain' ? null : values.targetWeightKg,
-    activityLevel: values.activityLevel,
+    ...planFromDraft(body, toGoalDraft(values)),
   };
 }
 
@@ -95,78 +60,26 @@ export interface ProfilePlan {
   fatGrams: number;
   /** Daily calories that still count as on target. */
   calorieRange: CalorieRange;
-  /** YYYY-MM-DD the target weight is reached at the chosen rate; null when maintaining. */
-  expectedEndDate: string | null;
 }
 
+/** The first-run form: body stats, then the goal, then the resulting plan. */
 export function useProfileForm() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasExistingProfile, setHasExistingProfile] = useState(false);
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: DEFAULT_VALUES,
     mode: 'onChange',
   });
-  const { reset, watch, getValues, setValue } = form;
-  const goalMode = watch('goalMode');
-  const weightKg = watch('weightKg');
-
-  useEffect(() => {
-    let active = true;
-
-    void getUserProfile()
-      .then((profile) => {
-        if (!active) return;
-        if (profile) {
-          reset(fromProfile(profile));
-          setHasExistingProfile(true);
-        }
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [reset]);
-
-  // Keep the target on the right side of the current weight as mode or weight change.
-  useEffect(() => {
-    if (goalMode === 'maintain') {
-      return;
-    }
-
-    const { min, max } = getTargetWeightBounds(goalMode, weightKg);
-    const target = getValues('targetWeightKg');
-
-    if (target < min || target > max) {
-      setValue('targetWeightKg', suggestTargetWeight(goalMode, weightKg), {
-        shouldValidate: true,
-      });
-    }
-  }, [goalMode, weightKg, getValues, setValue]);
-
-  const input = toProfileInput(watch());
-  const planInput = { ...input, age: input.age > 0 ? input.age : 25 };
-  const macros = calculateMacroTargets(planInput);
-  const dailyCalories = calculateDailyCalorieTarget(planInput);
+  const values = form.watch();
+  const input = toProfileInput(values);
+  const macros = calculateMacroTargets(input);
+  const dailyCalories = calculateDailyCalorieTarget(input);
   const plan: ProfilePlan = {
     bmi: Number(calculateBmi(input.heightCm, input.weightKg).toFixed(1)),
     dailyCalories,
     proteinGrams: macros.proteinTargetGrams,
     carbsGrams: macros.carbsTargetGrams,
     fatGrams: macros.fatTargetGrams,
-    calorieRange: getCalorieRange(planInput, dailyCalories),
-    expectedEndDate:
-      input.targetWeightKg === null
-        ? null
-        : estimateGoalEndDate(
-            formatDateKey(new Date()),
-            input.weightKg,
-            input.targetWeightKg,
-            input.monthlyWeightGoalKg
-          ),
+    calorieRange: getCalorieRange(input, dailyCalories),
   };
 
   /** Resolves `true` after saving, `false` when validation fails. */
@@ -185,5 +98,5 @@ export function useProfileForm() {
       )();
     });
 
-  return { form, plan, isLoading, hasExistingProfile, submit };
+  return { form, plan, submit };
 }

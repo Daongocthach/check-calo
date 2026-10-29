@@ -49,7 +49,7 @@ app/                       # Expo Router file-based routing
 ├── +not-found.tsx
 ├── (auth)/               # Login, register, forgot/reset password — one modal over the app
 └── (main)/                # Stack: the drawer plus detail screens (chat, meal, reminders, legal…)
-    └── (drawer)/          # Drawer: Dashboard (index), Buddy, Profile, Settings (thin routes)
+    └── (drawer)/          # Drawer: Dashboard (index), Goal, Buddy, Settings (thin routes)
 ```
 
 ## Key Patterns

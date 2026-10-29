@@ -5,16 +5,16 @@ type IconName = ComponentProps<typeof Icon>['name'];
 
 export interface DrawerRouteItem {
   /** Route name inside `app/(main)/(drawer)`. */
-  name: 'index' | 'buddy' | 'profile' | 'settings';
-  labelKey: 'drawer.dashboard' | 'drawer.buddy' | 'drawer.profile' | 'drawer.settings';
+  name: 'index' | 'goal' | 'buddy' | 'settings';
+  labelKey: 'drawer.dashboard' | 'drawer.goal' | 'drawer.buddy' | 'drawer.settings';
   icon: IconName;
   activeIcon: IconName;
 }
 
 export const DRAWER_ROUTES: readonly DrawerRouteItem[] = [
   { name: 'index', labelKey: 'drawer.dashboard', icon: 'home-outline', activeIcon: 'home' },
+  { name: 'goal', labelKey: 'drawer.goal', icon: 'flag-outline', activeIcon: 'flag' },
   { name: 'buddy', labelKey: 'drawer.buddy', icon: 'paw-outline', activeIcon: 'paw' },
-  { name: 'profile', labelKey: 'drawer.profile', icon: 'person-outline', activeIcon: 'person' },
   {
     name: 'settings',
     labelKey: 'drawer.settings',

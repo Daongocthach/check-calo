@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import { ChatComposer } from '@/features/food-log/components';
 import { useAttachFoodPhoto } from '@/features/food-log/hooks/useAttachFoodPhoto';
 import type { MealSlotGroup } from '@/features/food-log/utils/mealSlot';
+import { GoalSummaryCard } from '@/features/goals/components/GoalSummaryCard';
 import { useOpenDrawer } from '@/features/navigation';
 import { formatDateKey } from '@/utils/date';
 import { useHomeScreen } from '../hooks/useHomeScreen';
@@ -66,6 +67,7 @@ export function HomeScreen() {
           onSelect={home.setSelectedDate}
         />
         <DailyProgressCard summary={home.summary} profile={home.profile} />
+        <GoalSummaryCard profile={home.profile} />
         <MealsGrid groups={home.mealGroups} onGroupPress={handleGroupPress} />
       </ScrollView>
       <View style={styles.composer}>

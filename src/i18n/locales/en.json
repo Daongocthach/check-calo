@@ -58,8 +58,8 @@
     "open": "Open menu",
     "dashboard": "Dashboard",
     "buddy": "Pet",
-    "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "goal": "Goal"
   },
   "language": {
     "label": "Language",
@@ -81,10 +81,9 @@
     },
     "dailyProgress": "Daily progress",
     "caloriesLabel": "Calories",
-    "gaugeMin": "0%",
-    "gaugeMax": "100%",
     "emptyTitle": "Nothing logged yet",
-    "emptySubtitle": "Tell Check AI what you ate, or snap a photo of your meal."
+    "emptySubtitle": "Tell Check AI what you ate, or snap a photo of your meal.",
+    "rangeLabel": "On target at {{min}}–{{max}} kcal"
   },
   "supportScreen": {
     "title": "Support the app",
@@ -278,8 +277,8 @@
     "statusLabel": "Status",
     "startDate": "Start: {{value}}",
     "goalNames": {
-      "loseWithValue": "Lose {{value}} kg",
-      "gainWithValue": "Gain {{value}} kg",
+      "loseWithValue": "Lose {{value, number}} kg",
+      "gainWithValue": "Gain {{value, number}} kg",
       "maintainWithValue": "Maintain for {{value}} days",
       "maintainWithOneMonth": "Maintain for 1 month",
       "maintainWithMonths": "Maintain for {{value}} months"
@@ -287,7 +286,7 @@
     "status": {
       "active": "Active",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Stopped"
     },
     "history": {
       "subtitle": "Goals you completed or changed midway.",
@@ -321,6 +320,18 @@
       "placeholder": "e.g. 65.5",
       "invalid": "Enter a weight between 25 and 250 kg",
       "saved": "Weight saved"
+    },
+    "transition": {
+      "title_one": "Transition · {{count}} day left",
+      "title_other": "Transition · {{count}} days left",
+      "hint": "Eat about {{kcal}} kcal (maintenance). The scale may rise 1–2 kg in the first days from water, not fat."
+    },
+    "suggestion": {
+      "underweight": "Your BMI is under 18.5. Consider maintaining or gaining instead.",
+      "stale": "No weigh-ins for over a month. Start over from your current weight for accurate progress?",
+      "regained": "Your weight has moved over 2 kg away from the goal. Start over from your current weight?",
+      "changeGoal": "Change goal",
+      "restart": "Start over"
     }
   },
   "achievements": {
@@ -527,7 +538,7 @@
   },
   "settingsScreen": {
     "title": "Settings",
-    "subtitle": "Reminders, display and privacy",
+    "subtitle": "Account, personal info and display",
     "general": "General",
     "healthAndPrivacy": "Health & privacy"
   },
@@ -662,7 +673,6 @@
   },
   "onboarding": {
     "headerTitle": "Getting started",
-    "editTitle": "Edit profile",
     "title": "Welcome to Check Calo! 👋",
     "subtitle": "Tell {{name}} a little about you to build a plan that fits.",
     "basicInfo": "Basic info",
@@ -712,9 +722,6 @@
         "description": "Build mass healthily"
       }
     },
-    "loseRate": "How fast do you want to lose?",
-    "gainRate": "How fast do you want to gain?",
-    "ratePerMonth": "{{value}} kg / month",
     "activity": "Activity level",
     "activities": {
       "sedentary": "Mostly sitting",
@@ -727,17 +734,20 @@
     "planKcalHint": "Calorie target",
     "planPercent": "{{value}}% of kcal",
     "startAction": "Start my journey",
-    "saveAction": "Save changes",
     "saveSuccess": "Profile saved",
     "healthSources": "How we calculate this",
     "validation": {
-      "age": "Enter an age between 10 and 100",
-      "targetWeight": "Pick a target below your weight to lose, or above it to gain"
+      "age": "Enter an age between 10 and 100"
     },
     "targetWeight": "Target weight",
-    "expectedDate": "You could get there around {{value}}",
     "targetBmiWarning": "This target is below a healthy BMI (18.5). Consider checking with a health professional.",
-    "planRange": "Eating {{min}}–{{max}} kcal a day counts as on target"
+    "planRange": "Eating {{min}}–{{max}} kcal a day counts as on target",
+    "step": "Step {{current}} of {{total}} · {{title}}",
+    "steps": {
+      "about": "About you",
+      "goal": "Goal",
+      "plan": "Plan"
+    }
   },
   "buddy": {
     "title": "Pet",
@@ -777,14 +787,8 @@
     "nextRewardHint": "Reach {{points}} points for {{name}} to evolve into {{stage}}"
   },
   "profileTab": {
-    "title": "Profile",
-    "subtitle": "Your body metrics, goals and account",
     "guest": "Guest",
     "guestAccount": "Guest account · data stays on this device",
-    "profileSummary": "{{kcal}} kcal/day · {{weight}} kg",
-    "profileEmpty": "Set up your profile",
-    "restart": "Start over",
-    "restartHint": "Redo your body metrics and goal",
     "reminders": "Reminders",
     "appearance": "Appearance",
     "language": "Language",
@@ -799,9 +803,7 @@
     "resetMessage": "This permanently removes your diary, goals and profile on this device and in the cloud.",
     "resetConfirm": "Delete",
     "version": "Version {{version}}",
-    "goals": "Goals",
-    "account": "Account",
-    "editProfile": "Edit profile"
+    "account": "Account"
   },
   "devTools": {
     "group": "Developer",
@@ -839,5 +841,57 @@
     "destructiveAlert": "Destructive alert",
     "alertTitle": "Sample alert",
     "sampleMessage": "This is a sample message for checking the layout."
+  },
+  "personalInfo": {
+    "title": "Personal info",
+    "saved": "Saved",
+    "heightInvalid": "Enter a height from 100 to 230 cm"
+  },
+  "goalPlanner": {
+    "maintainHint": "Eat about {{kcal}} kcal a day to hold your weight.",
+    "duration": "Time to reach the target",
+    "weeks_one": "{{count}} week",
+    "weeks_other": "{{count}} weeks",
+    "months": "~{{value}} months",
+    "fastest_one": "{{count}} week (fastest)",
+    "fastest_other": "{{count}} weeks (fastest)",
+    "slowest_one": "{{count}} week (slowest)",
+    "slowest_other": "{{count}} weeks (slowest)",
+    "kcal": "kcal/day",
+    "ratePerWeek": "kg/week",
+    "paceLabel": "Pace",
+    "pace": {
+      "gentle": "Gentle",
+      "moderate": "Moderate",
+      "fast": "Fast"
+    },
+    "endDate": "Expected to reach it: {{value}}",
+    "stageHint": "This is as far as 12 months allow. To go further, reach this stage and then set the next one."
+  },
+  "goalEdit": {
+    "title": "Change goal",
+    "saved": "Goal updated",
+    "restart": "Start over from today",
+    "restartHint": "Your current weight becomes the start; the running goal moves to history.",
+    "confirmTitle": "Switch to {{mode}}?",
+    "confirmMessage": "Your current goal stops and moves to history. Daily calories: {{from}} → {{to}} kcal.",
+    "confirmAction": "Change goal",
+    "transition_one": "Eat at maintenance for {{count}} week first ({{kcal}} kcal/day)",
+    "transition_other": "Eat at maintenance for {{count}} weeks first ({{kcal}} kcal/day)",
+    "transitionHint": "Lets your body adjust before changing direction; the scale may rise a little from water. Then calories move to {{kcal}} kcal/day."
+  },
+  "goalScreen": {
+    "title": "Goal",
+    "subtitle": "Progress, weight and plan",
+    "manage": "Plan",
+    "changeGoal": "Change goal",
+    "changeGoalHint": "Target weight, duration or direction",
+    "reachedTitle": "Reached: {{goal}}!",
+    "reachedMessage": "Well done! Your plan now switches to maintaining, so you keep the result.",
+    "keepMaintaining": "Maintain"
+  },
+  "goalSummary": {
+    "route": "Now {{current}} {{unit}} · target {{target}} {{unit}}",
+    "maintain": "Holding around {{current}} {{unit}}"
   }
 }

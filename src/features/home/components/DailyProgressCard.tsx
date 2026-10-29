@@ -8,6 +8,7 @@ import { MACRO_KEYS } from '@/features/food-log/constants';
 import type { DailyNutritionSummary } from '@/features/food-log/types';
 import { EMPTY_NUTRIENTS } from '@/features/food-log/utils/nutrients';
 import type { UserProfile } from '@/features/profile/types';
+import { getCalorieRange, getDailyCalorieGoalState } from '@/features/profile/utils/calorie';
 import { hs } from '@/theme/metrics';
 
 export interface DailyProgressCardProps {
@@ -16,10 +17,20 @@ export interface DailyProgressCardProps {
 }
 
 export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [showNutrients, setShowNutrients] = useState(false);
   const consumed = Math.round(summary?.consumedCalories ?? 0);
   const target = Math.round(summary?.calorieTarget ?? profile?.dailyCalorieTarget ?? 0);
+  // Judged the same way as the week strip and the goal card: by the day's own plan.
+  const range = getCalorieRange(profile, target, summary?.goalMode);
+  const state = getDailyCalorieGoalState(
+    profile,
+    target,
+    summary?.consumedCalories ?? 0,
+    summary?.date,
+    summary?.goalMode
+  );
+  const numberFormat = new Intl.NumberFormat(i18n.language);
   const macros = {
     carbs: { value: summary?.carbsGrams ?? 0, target: profile?.carbsTargetGrams ?? 0 },
     protein: { value: summary?.proteinGrams ?? 0, target: profile?.proteinTargetGrams ?? 0 },
@@ -39,7 +50,21 @@ export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) 
           </Text>
         </Text>
       </View>
-      <CalorieGauge consumed={consumed} target={target} width={hs(250)} />
+      <CalorieGauge
+        consumed={consumed}
+        target={target}
+        range={range}
+        state={state}
+        width={hs(250)}
+      />
+      {target > 0 ? (
+        <Text variant="caption" color="secondary" align="center">
+          {t('home.rangeLabel', {
+            min: numberFormat.format(range.min),
+            max: numberFormat.format(range.max),
+          })}
+        </Text>
+      ) : null}
       <View style={styles.macros}>
         {MACRO_KEYS.map((key) => (
           <MacroProgress

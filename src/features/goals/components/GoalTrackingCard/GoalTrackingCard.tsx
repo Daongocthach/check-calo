@@ -9,9 +9,14 @@ import type { DailyNutritionSummary } from '@/features/food-log/types';
 import type { GoalTrackingSnapshot, WeightGoalProgress } from '@/features/goals/types';
 import { formatWeightGoalTitle } from '@/features/goals/utils/goalTracking';
 import type { UserProfile } from '@/features/profile/types';
-import { getDailyCalorieGoalState } from '@/features/profile/utils/calorie';
+import {
+  calculateMaintenanceCalorieTarget,
+  getDailyCalorieGoalState,
+  isInTransition,
+} from '@/features/profile/utils/calorie';
+import { formatDateKey } from '@/utils/date';
 import GoalArrowImage from '../../../../../assets/goal-arrow.png';
-import { MAINTAIN_BAND_KG } from '../../utils/weightGoal';
+import { daysBetween, getGoalSuggestion, MAINTAIN_BAND_KG } from '../../utils/weightGoal';
 import { WeighInDialog } from '../WeighInDialog';
 
 interface GoalTrackingCardProps {
@@ -56,7 +61,8 @@ function formatSignedKg(value: number, locale: string) {
 }
 
 function formatDate(value: string | Date, locale: string) {
-  const date = typeof value === 'string' ? new Date(`${value.slice(0, 10)}T00:00:00`) : value;
+  // Local calendar day: an ISO timestamp's first ten characters are the UTC date.
+  const date = typeof value === 'string' ? new Date(`${formatDateKey(value)}T00:00:00`) : value;
 
   return new Intl.DateTimeFormat(locale, {
     day: '2-digit',
@@ -191,6 +197,68 @@ function WeightMetrics({ progress }: { progress: WeightGoalProgress }) {
   );
 }
 
+/** The maintenance phase after switching direction: what to eat and why the scale may rise. */
+function TransitionNotice({ profile }: { profile: UserProfile }) {
+  const { t, i18n } = useTranslation();
+  const daysLeft = profile.transitionUntil
+    ? daysBetween(formatDateKey(new Date()), profile.transitionUntil)
+    : 0;
+
+  return (
+    <View style={styles.notice}>
+      <Text variant="bodySmall" weight="bold">
+        {t('goalTracking.transition.title', { count: daysLeft })}
+      </Text>
+      <Text variant="caption" color="secondary">
+        {t('goalTracking.transition.hint', {
+          kcal: formatNumber(calculateMaintenanceCalorieTarget(profile), i18n.language),
+        })}
+      </Text>
+    </View>
+  );
+}
+
+/** Suggests changing course: losing while underweight, a month without weigh-ins, or a regain. */
+function GoalSuggestionNotice({
+  progress,
+  profile,
+}: {
+  progress: WeightGoalProgress;
+  profile: UserProfile;
+}) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const suggestion = getGoalSuggestion(progress, profile.bmi, formatDateKey(new Date()));
+
+  if (!suggestion) {
+    return null;
+  }
+
+  return (
+    <View style={styles.notice}>
+      <Text variant="caption" color="secondary">
+        {t(`goalTracking.suggestion.${suggestion}`)}
+      </Text>
+      <Button
+        title={t(
+          suggestion === 'underweight'
+            ? 'goalTracking.suggestion.changeGoal'
+            : 'goalTracking.suggestion.restart'
+        )}
+        variant="ghost"
+        size="sm"
+        onPress={() =>
+          router.push(
+            suggestion === 'underweight'
+              ? '/goal-edit'
+              : { pathname: '/goal-edit', params: { restart: '1' } }
+          )
+        }
+      />
+    </View>
+  );
+}
+
 export function GoalTrackingCard({ goalTracking, todaySummary, profile }: GoalTrackingCardProps) {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
@@ -199,6 +267,8 @@ export function GoalTrackingCard({ goalTracking, todaySummary, profile }: GoalTr
   const activeGoal = goalTracking?.activeGoal ?? null;
   const reachedGoal = activeGoal ? null : (goalTracking?.latestCompletedGoal ?? null);
   const shownGoal = activeGoal ?? reachedGoal;
+  // Between directions the goal waits for the maintenance phase to end.
+  const transitioning = profile !== null && isInTransition(profile);
   const progressPercent = Math.min(100, Math.max(0, Math.round(shownGoal?.progressPercent ?? 0)));
   const weight = shownGoal?.weight ?? null;
   const goalTitle = shownGoal
@@ -256,7 +326,11 @@ export function GoalTrackingCard({ goalTracking, todaySummary, profile }: GoalTr
         </View>
       </View>
 
-      {activeGoal ? <WeightMetrics progress={activeGoal} /> : null}
+      {activeGoal && transitioning && profile ? <TransitionNotice profile={profile} /> : null}
+      {activeGoal && !transitioning ? <WeightMetrics progress={activeGoal} /> : null}
+      {activeGoal && !transitioning && profile ? (
+        <GoalSuggestionNotice progress={activeGoal} profile={profile} />
+      ) : null}
 
       <TodayCalories todaySummary={todaySummary} profile={profile} />
 
@@ -282,7 +356,7 @@ export function GoalTrackingCard({ goalTracking, todaySummary, profile }: GoalTr
           size="sm"
           fullWidth
           leftIcon={<Icon name="flag-outline" variant="onBrand" size={16} />}
-          onPress={() => router.push('/welcome')}
+          onPress={() => router.push('/goal-edit')}
         />
       ) : (
         <Button
@@ -374,6 +448,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   todayOver: {
     color: theme.colors.state.warning,
+  },
+  notice: {
+    gap: theme.metrics.spacingV.p4,
+    padding: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.lg,
+    backgroundColor: theme.colors.background.section,
   },
   footer: {
     flexDirection: 'row',

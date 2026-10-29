@@ -1,12 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 import type { BodyStats } from '@/features/profile/utils/calorie';
 import {
+  draftFromPlan,
   getDefaultWeeks,
   getGoalDurationBounds,
   getMaxWeeklyRateKg,
   getTargetWeightBounds,
   getWeeksForMonthlyRate,
+  normalizeGoalDraft,
   planForDuration,
+  planFromDraft,
+  suggestTargetWeight,
 } from './goalPlan';
 
 function body(overrides: Partial<BodyStats> = {}): BodyStats {
@@ -71,6 +75,11 @@ describe('getTargetWeightBounds', () => {
     expect(getTargetWeightBounds(body(), 'gain')).toEqual({ min: 61, max: 75 });
   });
 
+  it('offers the nearest whole kilogram past a decimal weight', () => {
+    expect(getTargetWeightBounds(body({ weightKg: 70.3 }), 'lose').max).toBe(70);
+    expect(getTargetWeightBounds(body({ weightKg: 70.3 }), 'gain').min).toBe(71);
+  });
+
   it('keeps every offered target within the longest goal', () => {
     const { min } = getTargetWeightBounds(body(), 'lose');
 
@@ -117,5 +126,45 @@ describe('default and prefilled weeks', () => {
 
   it('turns a saved monthly rate back into weeks', () => {
     expect(getWeeksForMonthlyRate(getGoalDurationBounds(body(), 55), 1)).toBe(21);
+  });
+});
+
+describe('goal drafts', () => {
+  it('suggests a target about 5% lighter or 3 kg heavier', () => {
+    expect(suggestTargetWeight(body(), 'lose')).toBe(57);
+    expect(suggestTargetWeight(body(), 'gain')).toBe(63);
+  });
+
+  it('replaces a target on the wrong side after switching direction', () => {
+    expect(normalizeGoalDraft(body(), { mode: 'gain', targetWeightKg: 55, weeks: 20 })).toEqual({
+      mode: 'gain',
+      targetWeightKg: 63,
+      weeks: 20,
+    });
+  });
+
+  it('fills in default weeks for a new target', () => {
+    expect(normalizeGoalDraft(body(), { mode: 'lose', targetWeightKg: 55, weeks: 0 }).weeks).toBe(
+      21
+    );
+  });
+
+  it('round-trips a saved plan', () => {
+    const draft = { mode: 'lose' as const, targetWeightKg: 55, weeks: 20 };
+    const plan = planFromDraft(body(), draft);
+
+    expect(plan).toEqual({ monthlyWeightGoalKg: 1.07, targetWeightKg: 55 });
+    expect(draftFromPlan(body(), plan.monthlyWeightGoalKg, plan.targetWeightKg)).toEqual(draft);
+  });
+
+  it('prefills a target for profiles saved without one', () => {
+    expect(draftFromPlan(body(), 1, null).targetWeightKg).toBe(57);
+  });
+
+  it('saves no target when maintaining', () => {
+    expect(planFromDraft(body(), { mode: 'maintain', targetWeightKg: 60, weeks: 0 })).toEqual({
+      monthlyWeightGoalKg: 0,
+      targetWeightKg: null,
+    });
   });
 });

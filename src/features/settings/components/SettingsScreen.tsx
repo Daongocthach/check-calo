@@ -10,8 +10,10 @@ import { useFoodEntryRefreshStore } from '@/features/food-log/stores/useFoodEntr
 import { DrawerMenuButton } from '@/features/navigation';
 import { useBottomPadding } from '@/hooks';
 import { appAlert } from '@/providers/app-alert';
+import { useAuthStore } from '@/providers/auth/authStore';
 import { toast } from '@/utils/toast';
 import { usePreferences } from '../hooks/usePreferences';
+import { PersonalInfoGroup } from './PersonalInfoGroup';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
 
 export function SettingsScreen() {
@@ -22,6 +24,8 @@ export function SettingsScreen() {
   const preferences = usePreferences();
   const devModeEnabled = useDevToolsStore((state) => state.enabled);
   const setDevModeEnabled = useDevToolsStore((state) => state.setEnabled);
+  const user = useAuthStore((state) => state.user);
+  const isAnonymous = !user || user.isAnonymous;
 
   const themeOptions = [
     { label: t('header.themeSystem'), value: 'system' },
@@ -65,8 +69,30 @@ export function SettingsScreen() {
       />
       <ScrollView
         contentContainerStyle={[styles.content, styles.bottom(bottomPadding)]}
+        // Edit dialogs get touches through this ScrollView; without this the first tap on
+        // their buttons only dismisses the keyboard.
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        <SettingsGroup title={t('profileTab.account')}>
+          {isAnonymous ? (
+            <SettingsRow
+              icon="log-in-outline"
+              title={t('profileTab.signIn')}
+              subtitle={t('profileTab.signInHint')}
+              onPress={() => router.push('/login')}
+            />
+          ) : null}
+          <SettingsRow
+            icon="person-circle-outline"
+            title={t('accountScreen.title')}
+            subtitle={isAnonymous ? t('profileTab.guestAccount') : user?.email}
+            onPress={() => router.push('/account')}
+          />
+        </SettingsGroup>
+
+        <PersonalInfoGroup />
+
         <SettingsGroup title={t('settingsScreen.general')}>
           <SettingsRow
             icon="notifications-outline"
