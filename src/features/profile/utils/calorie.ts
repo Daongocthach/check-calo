@@ -1,4 +1,5 @@
 import type { WeightGoalMode } from '@/features/goals/types';
+import { formatDateKey } from '@/utils/date';
 import { ACTIVITY_LEVEL_FACTORS } from '../constants';
 import type { ActivityLevel, DayPlan, Gender, UserProfile, UserProfileInput } from '../types';
 import { usesLegacyGoalRules } from './goalRules';
@@ -106,8 +107,11 @@ export function getMaxDailyDeficit(profile: BodyStats) {
   );
 }
 
-export function calculateMacroTargets(profile: UserProfileInput) {
-  const dailyCalorieTarget = calculateDailyCalorieTarget(profile);
+/** Macro targets for the goal's calories, or for `dailyCalorieTarget` when given. */
+export function calculateMacroTargets(
+  profile: UserProfileInput,
+  dailyCalorieTarget: number = calculateDailyCalorieTarget(profile)
+) {
   const goalMode = getWeightGoalMode(profile.monthlyWeightGoalKg);
   const heightInMeters = profile.heightCm / 100;
   const referenceWeightKg = Math.min(
@@ -144,11 +148,19 @@ export function getWeightGoalMode(monthlyWeightGoalKg: number): WeightGoalMode {
   return 'maintain';
 }
 
-/** Today's plan from the saved profile. */
+/** Whether the day falls in the maintenance phase before the goal's calories apply. */
+export function isInTransition(
+  profile: Pick<UserProfile, 'transitionUntil'>,
+  dateKey: string = formatDateKey(new Date())
+) {
+  return profile.transitionUntil !== null && formatDateKey(dateKey) < profile.transitionUntil;
+}
+
+/** Today's plan from the saved profile; a transition day is judged as maintaining. */
 export function getProfileDayPlan(profile: UserProfile): DayPlan {
   return {
     calorieTarget: profile.dailyCalorieTarget,
-    goalMode: getWeightGoalMode(profile.monthlyWeightGoalKg),
+    goalMode: isInTransition(profile) ? 'maintain' : getWeightGoalMode(profile.monthlyWeightGoalKg),
   };
 }
 

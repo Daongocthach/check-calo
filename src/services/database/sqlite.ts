@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 17;
+const DATABASE_VERSION = 18;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -556,6 +556,11 @@ async function runVersion17Migration(database: SQLite.SQLiteDatabase) {
   );
 }
 
+/** Last day of the maintenance phase after switching between losing and gaining. */
+async function runVersion18Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(database, 'user_profile', 'transition_until', 'transition_until TEXT');
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -627,6 +632,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 17) {
     await runVersion17Migration(database);
+  }
+
+  if (currentVersion < 18) {
+    await runVersion18Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {

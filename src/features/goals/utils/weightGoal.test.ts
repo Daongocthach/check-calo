@@ -4,6 +4,7 @@ import {
   calculateTrendWeight,
   calculateWeightGoalProgress,
   estimateGoalEndDate,
+  getGoalSuggestion,
 } from './weightGoal';
 
 function log(date: string, weightKg: number): WeightLog {
@@ -68,6 +69,20 @@ describe('calculateWeightGoalProgress', () => {
     expect(progress.weight?.expectedEndDate).toBe('2026-05-31');
   });
 
+  it('uses the stored plan length when the plan was edited mid-way', () => {
+    const progress = calculateWeightGoalProgress(goal({ targetDays: 100 }), [], '2026-01-02');
+
+    expect(progress.weight?.expectedEndDate).toBe('2026-04-11');
+  });
+
+  it('shows no progress before a goal that starts after a transition', () => {
+    const later = goal({ startedAt: '2026-01-15T00:00:00' });
+    const progress = calculateWeightGoalProgress(later, [log('2026-01-05', 78)], '2026-01-05');
+
+    expect(progress.progressValue).toBe(0);
+    expect(progress.weight?.lastWeighInDate).toBeNull();
+  });
+
   it('starts from the start weight before any weigh-in', () => {
     const progress = calculateWeightGoalProgress(goal({}), [], '2026-01-02');
 
@@ -111,5 +126,29 @@ describe('calculateWeightGoalProgress', () => {
 
     expect(progress.completed).toBe(false);
     expect(progress.weight?.withinBand).toBe(false);
+  });
+});
+
+describe('getGoalSuggestion', () => {
+  const healthyBmi = 24;
+
+  it('suggests stopping a loss goal when underweight', () => {
+    const progress = calculateWeightGoalProgress(goal({}), [log('2026-01-05', 79)], '2026-01-05');
+
+    expect(getGoalSuggestion(progress, 18, '2026-01-05')).toBe('underweight');
+    expect(getGoalSuggestion(progress, healthyBmi, '2026-01-05')).toBeNull();
+  });
+
+  it('suggests restarting after a month without weigh-ins', () => {
+    const progress = calculateWeightGoalProgress(goal({}), [log('2026-01-05', 79)], '2026-02-04');
+
+    expect(getGoalSuggestion(progress, healthyBmi, '2026-02-03')).toBeNull();
+    expect(getGoalSuggestion(progress, healthyBmi, '2026-02-04')).toBe('stale');
+  });
+
+  it('suggests restarting after regaining 2 kg', () => {
+    const progress = calculateWeightGoalProgress(goal({}), [log('2026-01-20', 82)], '2026-01-20');
+
+    expect(getGoalSuggestion(progress, healthyBmi, '2026-01-20')).toBe('regained');
   });
 });

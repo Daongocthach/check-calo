@@ -3,7 +3,11 @@ import type { NutritionTrendPoint } from '@/features/food-log/types';
 import { syncCurrentUserLeaderboardProfile } from '@/features/leaderboard/services/leaderboardService';
 import { getUserProfile } from '@/features/profile/services/profileRepository';
 import type { UserProfile } from '@/features/profile/types';
-import { getDailyCalorieGoalState, getWeightGoalMode } from '@/features/profile/utils/calorie';
+import {
+  getDailyCalorieGoalState,
+  getWeightGoalMode,
+  isInTransition,
+} from '@/features/profile/utils/calorie';
 import { getDatabase } from '@/services/database/sqlite';
 import { formatDateKey, nowIsoString } from '@/utils/date';
 import { createEntityId } from '@/utils/id';
@@ -17,10 +21,18 @@ import type {
   WeightGoalStatus,
   WeightLog,
 } from '../types';
-import { calculateWeightGoalProgress, MAINTAIN_GOAL_DAYS, roundKg } from '../utils/weightGoal';
+import {
+  addDays,
+  calculateTrendWeight,
+  calculateWeightGoalProgress,
+  daysBetween,
+  MAINTAIN_GOAL_DAYS,
+  roundKg,
+} from '../utils/weightGoal';
 import { listWeightLogs } from './weightLogRepository';
 
 const KCAL_PER_KG = 7700;
+const DAYS_PER_MONTH = 30;
 const DEFAULT_TARGET_KG = 1;
 const MAINTENANCE_TOLERANCE_KCAL = 100;
 
@@ -315,28 +327,63 @@ function getPlannedTargetWeightKg(mode: WeightGoalMode, profile: UserProfile) {
     : profile.weightKg + fallbackChangeKg;
 }
 
-function buildGoalInsert(mode: WeightGoalMode, profile: UserProfile): WeightGoalPreset {
-  const startWeightKg = roundKg(profile.weightKg);
-  const targetWeightKg = roundKg(getPlannedTargetWeightKg(mode, profile));
-  const targetKg = mode === 'maintain' ? null : roundKg(Math.abs(startWeightKg - targetWeightKg));
+/** Days the change takes at the monthly rate; a month for maintain goals. */
+function getPlannedDays(
+  mode: WeightGoalMode,
+  fromKg: number,
+  targetWeightKg: number,
+  monthlyRateKg: number
+) {
+  if (mode === 'maintain') {
+    return MAINTAIN_GOAL_DAYS;
+  }
+
+  const rate = Math.abs(monthlyRateKg);
+  return rate > 0 ? Math.ceil((Math.abs(fromKg - targetWeightKg) / rate) * DAYS_PER_MONTH) : 0;
+}
+
+/**
+ * Where a new goal starts: the last week's average weigh-in, so one day's water swing does
+ * not set it. Falls back to the profile weight when that average is already past the target.
+ */
+function getStartWeightKg(mode: WeightGoalMode, profile: UserProfile, logs: WeightLog[]) {
+  const trendKg = calculateTrendWeight(logs, addDays(formatDateKey(new Date()), -6));
+  const targetKg = getPlannedTargetWeightKg(mode, profile);
+
+  if (
+    trendKg === null ||
+    (mode === 'lose' && trendKg <= targetKg) ||
+    (mode === 'gain' && trendKg >= targetKg)
+  ) {
+    return profile.weightKg;
+  }
+
+  return trendKg;
+}
+
+function buildGoalInsert(
+  mode: WeightGoalMode,
+  profile: UserProfile,
+  startWeightKg: number
+): WeightGoalPreset {
+  const roundedStartKg = roundKg(startWeightKg);
+  const targetWeightKg =
+    mode === 'maintain' ? roundedStartKg : roundKg(getPlannedTargetWeightKg(mode, profile));
+  const targetKg = mode === 'maintain' ? null : roundKg(Math.abs(roundedStartKg - targetWeightKg));
+  const monthlyRateKg = Math.abs(profile.monthlyWeightGoalKg);
 
   return {
     targetKg,
     targetKcalDelta: targetKg ? Math.round(targetKg * KCAL_PER_KG) : 0,
-    targetDays: mode === 'maintain' ? MAINTAIN_GOAL_DAYS : 0,
-    startWeightKg,
+    targetDays: getPlannedDays(mode, roundedStartKg, targetWeightKg, monthlyRateKg),
+    startWeightKg: roundedStartKg,
     targetWeightKg,
-    monthlyRateKg: Math.abs(profile.monthlyWeightGoalKg),
+    monthlyRateKg,
   };
 }
 
-/** A new weigh-in keeps the goal; a new mode, target weight or rate means a new goal. */
-function isSameGoalPlan(
-  goal: WeightGoalRow,
-  mode: WeightGoalMode,
-  preset: WeightGoalPreset,
-  profile: UserProfile
-) {
+/** Whether a goal already follows the profile's mode, target weight and rate. */
+function followsProfilePlan(goal: WeightGoalRow, mode: WeightGoalMode, profile: UserProfile) {
   if (goal.start_weight_kg === null || goal.mode !== mode) {
     return false;
   }
@@ -347,15 +394,17 @@ function isSameGoalPlan(
 
   const sameTarget =
     profile.targetWeightKg === null ||
-    (goal.target_weight_kg !== null && roundKg(goal.target_weight_kg) === preset.targetWeightKg);
+    (goal.target_weight_kg !== null &&
+      roundKg(goal.target_weight_kg) === roundKg(profile.targetWeightKg));
 
-  return sameTarget && goal.monthly_rate_kg === preset.monthlyRateKg;
+  return sameTarget && goal.monthly_rate_kg === Math.abs(profile.monthlyWeightGoalKg);
 }
 
 async function insertWeightGoal(
   database: Awaited<ReturnType<typeof getDatabase>>,
   mode: WeightGoalMode,
   preset: WeightGoalPreset,
+  startedAt: string,
   now: string
 ) {
   await database.runAsync(
@@ -386,14 +435,14 @@ async function insertWeightGoal(
       preset.startWeightKg,
       preset.targetWeightKg,
       preset.monthlyRateKg,
-      now,
+      startedAt,
       now,
       now,
     ]
   );
 }
 
-async function startWeightGoal(mode: WeightGoalMode, preset: WeightGoalPreset) {
+async function startWeightGoal(mode: WeightGoalMode, preset: WeightGoalPreset, startedAt: string) {
   const database = await getDatabase();
   const now = nowIsoString();
   const existingActiveGoal = await getActiveWeightGoalRow();
@@ -410,37 +459,129 @@ async function startWeightGoal(mode: WeightGoalMode, preset: WeightGoalPreset) {
       );
     }
 
-    await insertWeightGoal(database, mode, preset, now);
+    await insertWeightGoal(database, mode, preset, startedAt, now);
   });
 }
 
 /**
- * Starts a goal from the profile's plan unless the active goal already follows it. A
- * reached weight target is not restarted until the user picks a new plan.
+ * A new target weight or rate in the same direction edits the running goal: its start stays,
+ * and its length becomes the days so far plus the rest at the new rate.
  */
-export async function syncActiveGoalToProfile(profile: UserProfile) {
+async function updateGoalPlan(goal: WeightGoalRow, profile: UserProfile, logs: WeightLog[]) {
+  if (goal.mode === 'maintain' || profile.targetWeightKg === null) {
+    return;
+  }
+
+  if (followsProfilePlan(goal, goal.mode, profile)) {
+    return;
+  }
+
+  const startDate = formatDateKey(goal.started_at);
+  const startKg = goal.start_weight_kg ?? profile.weightKg;
+  const currentKg = calculateTrendWeight(logs, startDate) ?? startKg;
+  const targetWeightKg = roundKg(profile.targetWeightKg);
+  const monthlyRateKg = Math.abs(profile.monthlyWeightGoalKg);
+  const targetKg = roundKg(Math.abs(startKg - targetWeightKg));
+  const elapsedDays = Math.max(0, daysBetween(startDate, formatDateKey(new Date())));
+  const database = await getDatabase();
+
+  await database.runAsync(
+    `
+      UPDATE weight_goals
+      SET target_weight_kg = ?,
+        monthly_rate_kg = ?,
+        target_kg = ?,
+        target_kcal_delta = ?,
+        target_days = ?,
+        updated_at = ?
+      WHERE id = ?;
+    `,
+    [
+      targetWeightKg,
+      monthlyRateKg,
+      targetKg,
+      Math.round(targetKg * KCAL_PER_KG),
+      elapsedDays + getPlannedDays(goal.mode, currentKg, targetWeightKg, monthlyRateKg),
+      nowIsoString(),
+      goal.id,
+    ]
+  );
+}
+
+export interface GoalSyncOptions {
+  /** Start over from the current weight even when the direction stays the same. */
+  restart?: boolean;
+}
+
+/**
+ * Keeps the active goal in line with the profile. The same direction edits the running goal;
+ * a new direction, or `restart`, starts a new one. A reached weight target is not restarted
+ * until the user picks a new plan. After switching between losing and gaining, the new goal
+ * starts when the maintenance phase ends.
+ */
+export async function syncActiveGoalToProfile(
+  profile: UserProfile,
+  { restart = false }: GoalSyncOptions = {}
+) {
   const activeGoal = await getActiveWeightGoalRow();
   const mode = getWeightGoalMode(profile.monthlyWeightGoalKg);
-  const preset = buildGoalInsert(mode, profile);
+  const logs = await listWeightLogs();
 
-  if (activeGoal) {
-    if (!isSameGoalPlan(activeGoal, mode, preset, profile)) {
-      await startWeightGoal(mode, preset);
+  if (activeGoal && !restart && activeGoal.start_weight_kg !== null && activeGoal.mode === mode) {
+    await updateGoalPlan(activeGoal, profile, logs);
+    return;
+  }
+
+  if (!activeGoal && !restart && mode !== 'maintain') {
+    const latestCompletedGoal = await getLatestCompletedWeightGoalRow();
+
+    if (latestCompletedGoal && followsProfilePlan(latestCompletedGoal, mode, profile)) {
+      return;
     }
+  }
+
+  const startedAt =
+    profile.transitionUntil && isInTransition(profile)
+      ? new Date(`${profile.transitionUntil}T00:00:00`).toISOString()
+      : nowIsoString();
+
+  await startWeightGoal(
+    mode,
+    buildGoalInsert(mode, profile, getStartWeightKg(mode, profile, logs)),
+    startedAt
+  );
+}
+
+/** When the maintenance phase ends, the goal starts from the weight reached by then. */
+export async function rebaselineActiveGoal(profile: UserProfile) {
+  const activeGoal = await getActiveWeightGoalRow();
+
+  if (!activeGoal || activeGoal.start_weight_kg === null || activeGoal.mode === 'maintain') {
     return;
   }
 
-  const latestCompletedGoal = await getLatestCompletedWeightGoalRow();
+  const preset = buildGoalInsert(
+    activeGoal.mode,
+    profile,
+    getStartWeightKg(activeGoal.mode, profile, await listWeightLogs())
+  );
+  const database = await getDatabase();
 
-  if (
-    mode !== 'maintain' &&
-    latestCompletedGoal &&
-    isSameGoalPlan(latestCompletedGoal, mode, preset, profile)
-  ) {
-    return;
-  }
-
-  await startWeightGoal(mode, preset);
+  await database.runAsync(
+    `
+      UPDATE weight_goals
+      SET start_weight_kg = ?, target_kg = ?, target_kcal_delta = ?, target_days = ?, updated_at = ?
+      WHERE id = ?;
+    `,
+    [
+      preset.startWeightKg,
+      preset.targetKg,
+      preset.targetKcalDelta,
+      preset.targetDays,
+      nowIsoString(),
+      activeGoal.id,
+    ]
+  );
 }
 
 async function getGoalProgress(

@@ -44,6 +44,8 @@ export interface WeightGoalWeightProgress {
   expectedEndDate: string;
   /** Maintain goals: whether the current weight is still within the band. */
   withinBand: boolean;
+  /** YYYY-MM-DD of the latest weigh-in since the goal started; null when none. */
+  lastWeighInDate: string | null;
 }
 
 export interface WeightLog {

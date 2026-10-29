@@ -7,6 +7,7 @@ import {
   calculateMacroTargets,
   calculateMaintenanceCalorieTarget,
   getActivityFactor,
+  isInTransition,
 } from '../utils/calorie';
 
 interface UserProfileRow {
@@ -26,6 +27,7 @@ interface UserProfileRow {
   protein_target_grams: number;
   carbs_target_grams: number;
   fat_target_grams: number;
+  transition_until: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -48,6 +50,7 @@ function mapProfile(row: UserProfileRow): UserProfile {
     proteinTargetGrams: row.protein_target_grams,
     carbsTargetGrams: row.carbs_target_grams,
     fatTargetGrams: row.fat_target_grams,
+    transitionUntil: row.transition_until ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -62,14 +65,23 @@ export async function getUserProfile() {
   return row ? mapProfile(row) : null;
 }
 
+/** Saves the profile; during a transition the daily targets stay at maintenance. */
 export async function upsertUserProfile(profile: UserProfileInput) {
   const database = await getDatabase();
   const now = nowIsoString();
+  const existing = await database.getFirstAsync<Pick<UserProfileRow, 'transition_until'>>(
+    'SELECT transition_until FROM user_profile WHERE id = 1 LIMIT 1;'
+  );
   const bmi = Number(calculateBmi(profile.heightCm, profile.weightKg).toFixed(1));
   const maintenanceCalorieTarget = calculateMaintenanceCalorieTarget(profile);
-  const dailyCalorieTarget = calculateDailyCalorieTarget(profile);
+  const dailyCalorieTarget = isInTransition({ transitionUntil: existing?.transition_until ?? null })
+    ? maintenanceCalorieTarget
+    : calculateDailyCalorieTarget(profile);
   const activityFactor = getActivityFactor(profile.activityLevel);
-  const { proteinTargetGrams, carbsTargetGrams, fatTargetGrams } = calculateMacroTargets(profile);
+  const { proteinTargetGrams, carbsTargetGrams, fatTargetGrams } = calculateMacroTargets(
+    profile,
+    dailyCalorieTarget
+  );
 
   await database.runAsync(
     `
@@ -148,6 +160,13 @@ export function toUserProfileInput(profile: UserProfile): UserProfileInput {
     targetWeightKg: profile.targetWeightKg,
     activityLevel: profile.activityLevel,
   };
+}
+
+/** Starts (YYYY-MM-DD end date) or ends (null) the maintenance phase; save the profile after. */
+export async function setTransitionUntil(dateKey: string | null) {
+  const database = await getDatabase();
+
+  await database.runAsync('UPDATE user_profile SET transition_until = ? WHERE id = 1;', [dateKey]);
 }
 
 export async function deleteUserProfile() {

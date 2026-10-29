@@ -2,17 +2,16 @@ import { useFoodLogQuery } from '@/features/food-log/hooks/useFoodLogQuery';
 import { listDailyNutritionSummaries } from '@/features/food-log/services/dailySummaryService';
 import { useCurrentDate } from '@/hooks';
 import { formatDateKey } from '@/utils/date';
-import { syncGoalTracking } from '../services/goalTrackingService';
+import { refreshGoalTracking } from '../services/goalLifecycle';
 
 /** The active weight goal, its history and today's summary, shared by Profile and Goal history. */
 export function useGoalTracking() {
   const today = useCurrentDate();
   const query = useFoodLogQuery(`goal-tracking:${formatDateKey(today)}`, async () => {
-    const [snapshot, todaySummaries] = await Promise.all([
-      syncGoalTracking(),
-      listDailyNutritionSummaries(today, today),
-    ]);
-    return { snapshot, todaySummary: todaySummaries[0] ?? null };
+    // Goals first: ending a transition or reaching a target changes today's plan.
+    const snapshot = await refreshGoalTracking();
+    const [todaySummary] = await listDailyNutritionSummaries(today, today);
+    return { snapshot, todaySummary: todaySummary ?? null };
   });
 
   return {

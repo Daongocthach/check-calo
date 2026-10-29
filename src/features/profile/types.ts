@@ -26,6 +26,11 @@ export interface UserProfile extends UserProfileInput {
   proteinTargetGrams: number;
   carbsTargetGrams: number;
   fatTargetGrams: number;
+  /**
+   * YYYY-MM-DD the maintenance phase ends after switching between losing and gaining; the
+   * goal's calories apply from that day. Null outside a transition.
+   */
+  transitionUntil: string | null;
   createdAt: string;
   updatedAt: string;
 }

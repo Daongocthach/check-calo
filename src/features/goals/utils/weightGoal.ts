@@ -75,11 +75,14 @@ export function calculateWeightGoalProgress(
   const startKg = goal.startWeightKg ?? 0;
   const targetKg = goal.targetWeightKg ?? startKg;
   const currentKg = calculateTrendWeight(logs, startDate) ?? startKg;
-  const expectedEndDate = estimateGoalEndDate(
-    startDate,
-    startKg,
-    targetKg,
-    goal.monthlyRateKg ?? 0
+  // A plan edited mid-way stores its length; older goals derive it from the rate.
+  const expectedEndDate =
+    goal.mode !== 'maintain' && goal.targetDays > 0
+      ? addDays(startDate, goal.targetDays)
+      : estimateGoalEndDate(startDate, startKg, targetKg, goal.monthlyRateKg ?? 0);
+  const lastWeighInDate = logs.reduce<string | null>(
+    (latest, log) => (log.date >= startDate && (!latest || log.date > latest) ? log.date : latest),
+    null
   );
   const base = { goal, consumedCalories: 0, targetCalories: 0 };
 
@@ -89,15 +92,10 @@ export function calculateWeightGoalProgress(
       Math.max(1, daysBetween(startDate, todayKey) + 1)
     );
     const withinBand = Math.abs(currentKg - startKg) <= MAINTAIN_BAND_KG;
-    const lastWeighIn = logs.reduce<string | null>(
-      (latest, log) =>
-        log.date >= startDate && (!latest || log.date > latest) ? log.date : latest,
-      null
-    );
     // A weigh-in in the final week proves the weight held, not just the start value.
     const weighedInFinalWeek =
-      lastWeighIn !== null &&
-      lastWeighIn >= addDays(startDate, MAINTAIN_GOAL_DAYS - WEIGHT_TREND_DAYS);
+      lastWeighInDate !== null &&
+      lastWeighInDate >= addDays(startDate, MAINTAIN_GOAL_DAYS - WEIGHT_TREND_DAYS);
 
     return {
       ...base,
@@ -114,6 +112,7 @@ export function calculateWeightGoalProgress(
         changeKg: roundKg(currentKg - startKg),
         expectedEndDate,
         withinBand,
+        lastWeighInDate,
       },
     };
   }
@@ -138,6 +137,38 @@ export function calculateWeightGoalProgress(
       changeKg,
       expectedEndDate,
       withinBand: true,
+      lastWeighInDate,
     },
   };
+}
+
+/** Why the goal card suggests a change: losing while underweight, gone quiet, or regained. */
+export type GoalSuggestion = 'underweight' | 'stale' | 'regained';
+
+const UNDERWEIGHT_BMI = 18.5;
+const STALE_WEIGH_IN_DAYS = 30;
+const REGAINED_KG = 2;
+
+export function getGoalSuggestion(
+  progress: WeightGoalProgress,
+  bmi: number,
+  todayKey: string
+): GoalSuggestion | null {
+  const { goal, weight } = progress;
+
+  if (!weight) {
+    return null;
+  }
+
+  if (goal.mode === 'lose' && bmi < UNDERWEIGHT_BMI) {
+    return 'underweight';
+  }
+
+  const lastSeen = weight.lastWeighInDate ?? formatDateKey(goal.startedAt);
+
+  if (daysBetween(lastSeen, todayKey) >= STALE_WEIGH_IN_DAYS) {
+    return 'stale';
+  }
+
+  return goal.mode !== 'maintain' && weight.changeKg <= -REGAINED_KG ? 'regained' : null;
 }
