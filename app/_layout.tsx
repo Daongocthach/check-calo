@@ -70,6 +70,11 @@ function AppContent() {
     let active = true;
 
     const checkForAppUpdate = async () => {
+      // expo-updates rejects checks in development builds.
+      if (__DEV__ || !Updates.isEnabled) {
+        return;
+      }
+
       try {
         const update = await Updates.checkForUpdateAsync();
 

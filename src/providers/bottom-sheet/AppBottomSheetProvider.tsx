@@ -20,7 +20,8 @@ import { BackHandler, Keyboard, Pressable, View } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { IconButton } from '@/common/components';
+// Imported directly, not via the barrel: Select and DateTimeField import this provider.
+import { IconButton } from '@/common/components/IconButton';
 
 export interface OpenSheetOptions {
   /**

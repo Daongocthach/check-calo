@@ -251,15 +251,6 @@ export async function syncFoodEntriesDeltaFromSupabase(
     const cursorMap = cursorResult.success ? (cursorResult.data ?? {}) : {};
     const cursor = cursorMap[userId] ?? null;
 
-    if (__DEV__) {
-      console.warn('[DeltaSync] Query params:', {
-        userId,
-        cursor,
-        cursorFallback: cursor ?? '1970-01-01T00:00:00.000Z',
-        pageSize: FOOD_ENTRIES_SYNC_PAGE_SIZE,
-      });
-    }
-
     const { data, error } = await supabase
       .from('food_entries')
       .select('*')
@@ -268,23 +259,6 @@ export async function syncFoodEntriesDeltaFromSupabase(
       .order('updated_at', { ascending: true })
       .order('id', { ascending: true })
       .limit(FOOD_ENTRIES_SYNC_PAGE_SIZE);
-
-    if (__DEV__) {
-      console.warn('[DeltaSync] Result:', {
-        error: error?.message ?? null,
-        rowCount: data?.length ?? 0,
-        firstRow: data?.[0]
-          ? { id: data[0].id, entry_date: data[0].entry_date, updated_at: data[0].updated_at }
-          : null,
-        lastRow: data?.length
-          ? {
-              id: data[data.length - 1].id,
-              entry_date: data[data.length - 1].entry_date,
-              updated_at: data[data.length - 1].updated_at,
-            }
-          : null,
-      });
-    }
 
     if (error || !data) {
       return { syncedCount: 0, lastCursor: cursor };
