@@ -8,6 +8,8 @@ const DAYS_PER_MONTH = 30;
 const MAINTENANCE_TOLERANCE_KCAL = 100;
 /** A deficit never goes beyond this share of maintenance calories. */
 const MAX_DEFICIT_RATIO = 0.25;
+/** A surplus above this mostly turns into fat. */
+export const MAX_SURPLUS_KCAL = 500;
 /** Lowest daily target a weight-loss plan may set, before the BMR check. */
 const MIN_DAILY_CALORIES: Record<Gender, number> = {
   male: 1500,
@@ -38,6 +40,8 @@ export interface CalorieRange {
 }
 
 type BodyProfile = Pick<UserProfileInput, 'gender' | 'age' | 'heightCm' | 'weightKg'>;
+/** Everything the calorie math needs except the goal. */
+export type BodyStats = BodyProfile & Pick<UserProfileInput, 'activityLevel'>;
 
 export function getActivityFactor(activityLevel: ActivityLevel) {
   return ACTIVITY_LEVEL_FACTORS[activityLevel];
@@ -60,7 +64,7 @@ export function calculateBmr(profile: BodyProfile) {
   return baseBmr + genderAdjustment[profile.gender];
 }
 
-export function calculateMaintenanceCalorieTarget(profile: UserProfileInput) {
+export function calculateMaintenanceCalorieTarget(profile: BodyStats) {
   return Math.round(calculateBmr(profile) * getActivityFactor(profile.activityLevel));
 }
 
@@ -82,11 +86,24 @@ export function calculateDailyCalorieTarget(profile: UserProfileInput) {
   );
 
   if (goalMode === 'gain') {
-    return maintenanceCalories + dailyAdjustment;
+    return maintenanceCalories + Math.min(dailyAdjustment, MAX_SURPLUS_KCAL);
   }
 
   const deficit = Math.min(dailyAdjustment, Math.round(maintenanceCalories * MAX_DEFICIT_RATIO));
   return Math.max(getCalorieFloor(profile), maintenanceCalories - deficit);
+}
+
+/** The largest daily deficit a weight-loss plan may use: a share of maintenance, above the floor. */
+export function getMaxDailyDeficit(profile: BodyStats) {
+  const maintenanceCalories = calculateMaintenanceCalorieTarget(profile);
+
+  return Math.max(
+    0,
+    Math.min(
+      Math.round(maintenanceCalories * MAX_DEFICIT_RATIO),
+      maintenanceCalories - getCalorieFloor(profile)
+    )
+  );
 }
 
 export function calculateMacroTargets(profile: UserProfileInput) {

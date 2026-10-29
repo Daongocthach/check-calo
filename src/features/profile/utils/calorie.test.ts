@@ -34,6 +34,10 @@ describe('calculateDailyCalorieTarget', () => {
     expect(calculateDailyCalorieTarget(profile({ monthlyWeightGoalKg: -1 }))).toBe(2968);
   });
 
+  it('caps the surplus at 500 kcal', () => {
+    expect(calculateDailyCalorieTarget(profile({ monthlyWeightGoalKg: -2 }))).toBe(3211);
+  });
+
   it('never drops below the calorie floor', () => {
     const small = profile({
       gender: 'female',
