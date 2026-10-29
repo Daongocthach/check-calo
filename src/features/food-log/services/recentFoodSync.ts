@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase';
 import { getDatabase } from '@/services/database/sqlite';
 import { pickNutrientColumns } from '../utils/nutrients';
 import type { RecentFoodRow } from './foodEntryRepositoryCore';
-import { ensureRemoteImage } from './foodImageStorage';
+import { deleteOrphanedFoodEntryAssets, ensureRemoteImage } from './foodImageStorage';
 
 function hasSupabaseConfiguration() {
   return Boolean(env.supabaseUrl && env.supabaseAnonKey);
@@ -15,7 +15,64 @@ async function getAuthenticatedUserId() {
   return data.user.id;
 }
 
-export async function syncRecentFoodToCloud(recentId: string) {
+const pendingSyncs = new Map<string, Promise<boolean>>();
+
+/**
+ * Pushes a recent food to the cloud. Syncs for the same id run one after another so a
+ * second call sees the remote image URIs written back by the first instead of uploading again.
+ */
+export function syncRecentFoodToCloud(recentId: string) {
+  const previous = pendingSyncs.get(recentId) ?? Promise.resolve(true);
+  const next = previous.catch(() => false).then(() => pushRecentFoodToCloud(recentId));
+  const clear = () => {
+    if (pendingSyncs.get(recentId) === next) pendingSyncs.delete(recentId);
+  };
+
+  pendingSyncs.set(recentId, next);
+  void next.then(clear, clear);
+
+  return next;
+}
+
+/**
+ * Points the local row at the uploaded copies so later syncs skip the upload, then drops
+ * local files nothing references anymore. Only replaces a URI the row still holds.
+ */
+async function storeRemoteImageUris(
+  row: RecentFoodRow,
+  remoteImageUri: string | null,
+  remoteThumbnailUri: string | null
+) {
+  const imageChanged = remoteImageUri !== row.image_uri;
+  const thumbnailChanged = remoteThumbnailUri !== row.thumbnail_uri;
+
+  if (!imageChanged && !thumbnailChanged) return;
+
+  const database = await getDatabase();
+
+  await database.withTransactionAsync(async () => {
+    if (imageChanged) {
+      await database.runAsync(
+        'UPDATE recent_foods SET image_uri = ? WHERE id = ? AND image_uri IS ?;',
+        [remoteImageUri, row.id, row.image_uri]
+      );
+    }
+
+    if (thumbnailChanged) {
+      await database.runAsync(
+        'UPDATE recent_foods SET thumbnail_uri = ? WHERE id = ? AND thumbnail_uri IS ?;',
+        [remoteThumbnailUri, row.id, row.thumbnail_uri]
+      );
+    }
+  });
+
+  await deleteOrphanedFoodEntryAssets(
+    imageChanged ? row.image_uri : null,
+    thumbnailChanged ? row.thumbnail_uri : null
+  );
+}
+
+async function pushRecentFoodToCloud(recentId: string) {
   if (!hasSupabaseConfiguration()) return false;
   const userId = await getAuthenticatedUserId();
   if (!userId) return false;
@@ -33,6 +90,8 @@ export async function syncRecentFoodToCloud(recentId: string) {
     row.thumbnail_uri === row.image_uri
       ? remoteImageUri
       : await ensureRemoteImage(row.thumbnail_uri, row.id, 'recent-foods-thumbs');
+
+  await storeRemoteImageUris(row, remoteImageUri, remoteThumbnailUri);
 
   const { error } = await supabase.from('recent_foods').upsert({
     id: row.id,
