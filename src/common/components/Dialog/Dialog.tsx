@@ -86,6 +86,7 @@ export function Dialog({
                         variant={action.variant ?? 'ghost'}
                         size="sm"
                         onPress={action.onPress}
+                        loading={action.loading}
                       />
                     ))}
                   </View>
@@ -105,6 +106,7 @@ export function Dialog({
                     variant={action.variant ?? 'ghost'}
                     size="sm"
                     onPress={action.onPress}
+                    loading={action.loading}
                   />
                 ))}
               </View>

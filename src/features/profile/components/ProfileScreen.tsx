@@ -32,6 +32,9 @@ export function ProfileScreen() {
       />
       <ScrollView
         contentContainerStyle={[styles.content, styles.bottom(bottomPadding)]}
+        // Dialogs rendered inside (weigh-in) get touches through this ScrollView; without this the
+        // first tap on their buttons only dismisses the keyboard.
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <Pressable

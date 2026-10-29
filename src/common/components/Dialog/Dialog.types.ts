@@ -10,6 +10,8 @@ export interface DialogAction {
   onPress: () => void;
   /** Button visual variant. Defaults to `'ghost'` when rendered. */
   variant?: ButtonVariant;
+  /** Shows a spinner and blocks presses while the action runs. Defaults to `false`. */
+  loading?: boolean;
 }
 
 /** Props for the {@link Dialog} component. */

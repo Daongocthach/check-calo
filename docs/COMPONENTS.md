@@ -1089,11 +1089,12 @@ Modal dialog with title, message, action buttons, and three sizes.
 
 **DialogAction Shape**
 
-| Field     | Type            | Default   | Description         |
-| --------- | --------------- | --------- | ------------------- |
-| `label`   | `string`        | required  | Button label        |
-| `onPress` | `() => void`    | required  | Press handler       |
-| `variant` | `ButtonVariant` | `'ghost'` | Button visual style |
+| Field     | Type            | Default   | Description                            |
+| --------- | --------------- | --------- | -------------------------------------- |
+| `label`   | `string`        | required  | Button label                           |
+| `onPress` | `() => void`    | required  | Press handler                          |
+| `variant` | `ButtonVariant` | `'ghost'` | Button visual style                    |
+| `loading` | `boolean`       | `false`   | Spinner and blocked presses while busy |
 
 **Usage**
 

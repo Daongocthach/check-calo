@@ -14,7 +14,7 @@ interface WeighInDialogProps {
 
 /** Asks for today's weight and saves it as the day's weigh-in. */
 export function WeighInDialog({ visible, onDismiss, initialWeightKg }: WeighInDialogProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | undefined>();
@@ -22,10 +22,18 @@ export function WeighInDialog({ visible, onDismiss, initialWeightKg }: WeighInDi
 
   useEffect(() => {
     if (visible) {
-      setDraft(initialWeightKg ? String(initialWeightKg) : '');
+      // Locale decimal separator, matching the decimal-pad key (a comma in Vietnamese).
+      setDraft(
+        initialWeightKg
+          ? new Intl.NumberFormat(i18n.language, {
+              maximumFractionDigits: 1,
+              useGrouping: false,
+            }).format(initialWeightKg)
+          : ''
+      );
       setError(undefined);
     }
-  }, [visible, initialWeightKg]);
+  }, [visible, initialWeightKg, i18n.language]);
 
   const save = async () => {
     const weightKg = parseWeightInput(draft);
@@ -69,6 +77,7 @@ export function WeighInDialog({ visible, onDismiss, initialWeightKg }: WeighInDi
             void save();
           },
           variant: 'primary',
+          loading: isSaving,
         },
       ]}
     >

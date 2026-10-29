@@ -56,7 +56,8 @@ function fromProfile(profile: UserProfile): ProfileFormValues {
     age: String(profile.age),
     gender: profile.gender,
     heightCm: Math.round(profile.heightCm),
-    weightKg: Math.round(profile.weightKg),
+    // Not rounded: saving without touching the slider must keep a weigh-in like 70.4 kg.
+    weightKg: profile.weightKg,
     goalMode: getWeightGoalMode(profile.monthlyWeightGoalKg),
     monthlyRateKg: toRate(profile.monthlyWeightGoalKg),
     targetWeightKg: Math.round(

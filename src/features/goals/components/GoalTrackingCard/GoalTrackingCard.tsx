@@ -175,7 +175,12 @@ function WeightMetrics({ progress }: { progress: WeightGoalProgress }) {
       <View style={styles.divider} />
       <GoalMetric
         label={t(mode === 'lose' ? 'goalTracking.lostLabel' : 'goalTracking.gainedLabel')}
-        value={`${formatSignedKg(weight.changeKg, i18n.language)} ${kg}`}
+        value={`${
+          // The label already says the direction; only a move the wrong way gets a sign.
+          weight.changeKg < 0
+            ? formatSignedKg(weight.changeKg, i18n.language)
+            : formatKg(weight.changeKg, i18n.language)
+        } ${kg}`}
       />
       <View style={styles.divider} />
       <GoalMetric
