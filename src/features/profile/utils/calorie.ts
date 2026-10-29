@@ -1,6 +1,6 @@
 import type { WeightGoalMode } from '@/features/goals/types';
 import { ACTIVITY_LEVEL_FACTORS } from '../constants';
-import type { ActivityLevel, Gender, UserProfileInput } from '../types';
+import type { ActivityLevel, DayPlan, Gender, UserProfile, UserProfileInput } from '../types';
 import { usesLegacyGoalRules } from './goalRules';
 
 const KCAL_PER_KG = 7700;
@@ -144,12 +144,23 @@ export function getWeightGoalMode(monthlyWeightGoalKg: number): WeightGoalMode {
   return 'maintain';
 }
 
-/** Calories that count as on target for a day, around that day's target. */
+/** Today's plan from the saved profile. */
+export function getProfileDayPlan(profile: UserProfile): DayPlan {
+  return {
+    calorieTarget: profile.dailyCalorieTarget,
+    goalMode: getWeightGoalMode(profile.monthlyWeightGoalKg),
+  };
+}
+
+/**
+ * Calories that count as on target for a day, around that day's target. `goalMode` is the
+ * goal the day was planned under; the profile's current goal by default.
+ */
 export function getCalorieRange(
   profile: UserProfileInput | null | undefined,
-  calorieTarget: number
+  calorieTarget: number,
+  goalMode: WeightGoalMode = getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0)
 ): CalorieRange {
-  const goalMode = getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0);
   const { below, above } = CALORIE_RANGE_KCAL[goalMode];
   // A manual target may sit under the floor; the range still has to contain it.
   const floor =
@@ -188,20 +199,18 @@ export function getDailyCalorieGoalState(
   profile: UserProfileInput | null | undefined,
   calorieTarget: number,
   consumedCalories: number,
-  dateKey?: string
+  dateKey?: string,
+  goalMode: WeightGoalMode = getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0)
 ): DailyCalorieGoalState {
   if (calorieTarget <= 0) {
     return 'below_target';
   }
 
   if (dateKey && usesLegacyGoalRules(dateKey)) {
-    return getLegacyDailyCalorieGoalState(
-      getWeightGoalMode(profile?.monthlyWeightGoalKg ?? 0),
-      consumedCalories - calorieTarget
-    );
+    return getLegacyDailyCalorieGoalState(goalMode, consumedCalories - calorieTarget);
   }
 
-  const range = getCalorieRange(profile, calorieTarget);
+  const range = getCalorieRange(profile, calorieTarget, goalMode);
 
   if (consumedCalories < range.min) {
     return 'below_target';

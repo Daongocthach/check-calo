@@ -28,7 +28,8 @@ export function getDayStatus(summary: NutritionTrendPoint, profile: UserProfile 
     profile,
     summary.calorieTarget,
     summary.consumedCalories,
-    summary.date
+    summary.date,
+    summary.goalMode
   ) === 'on_target'
     ? 'on_target'
     : 'off_target';

@@ -93,6 +93,12 @@ describe('getDailyCalorieGoalState', () => {
     expect(getDailyCalorieGoalState(losing, 2198, 2400)).toBe('above_target');
   });
 
+  it('judges a day by the goal it was planned under, not the current one', () => {
+    // Logged while losing at 2198 kcal; the profile has since switched to gaining.
+    expect(getDailyCalorieGoalState(gaining, 2198, 2050, '2099-01-01', 'lose')).toBe('on_target');
+    expect(getDailyCalorieGoalState(gaining, 2198, 2050, '2099-01-01')).toBe('below_target');
+  });
+
   it('flags eating far over the target when gaining', () => {
     expect(getDailyCalorieGoalState(gaining, 2968, 2800)).toBe('below_target');
     expect(getDailyCalorieGoalState(gaining, 2968, 3200)).toBe('on_target');

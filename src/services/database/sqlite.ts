@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'check-calo.db';
-const DATABASE_VERSION = 16;
+const DATABASE_VERSION = 17;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -525,6 +525,37 @@ async function runVersion16Migration(database: SQLite.SQLiteDatabase) {
   `);
 }
 
+/**
+ * Days keep the target and goal they were logged under. Days already logged are frozen at
+ * the current profile, which is what they were judged by until now.
+ */
+async function runVersion17Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(database, 'daily_calorie_targets', 'goal_mode', 'goal_mode TEXT');
+
+  const now = new Date().toISOString();
+  await database.runAsync(
+    `
+      INSERT OR IGNORE INTO daily_calorie_targets
+        (date, calorie_target, source, goal_mode, created_at, updated_at)
+      SELECT DISTINCT
+        food_entries.entry_date,
+        user_profile.daily_calorie_target,
+        'profile',
+        CASE
+          WHEN user_profile.monthly_weight_loss_kg > 0 THEN 'lose'
+          WHEN user_profile.monthly_weight_loss_kg < 0 THEN 'gain'
+          ELSE 'maintain'
+        END,
+        ?,
+        ?
+      FROM food_entries
+      JOIN user_profile ON user_profile.id = 1
+      WHERE food_entries.entry_date IS NOT NULL;
+    `,
+    [now, now]
+  );
+}
+
 export async function initializeDatabase() {
   const database = await getDatabase();
   const versionRow = await database.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
@@ -592,6 +623,10 @@ export async function initializeDatabase() {
 
   if (currentVersion < 16) {
     await runVersion16Migration(database);
+  }
+
+  if (currentVersion < 17) {
+    await runVersion17Migration(database);
   }
 
   if (currentVersion < DATABASE_VERSION) {

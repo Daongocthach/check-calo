@@ -98,8 +98,8 @@ function TodayCalories({
   profile: UserProfile | null;
 }) {
   const { t, i18n } = useTranslation();
-  const { consumedCalories, calorieTarget } = todaySummary;
-  const state = getDailyCalorieGoalState(profile, calorieTarget, consumedCalories);
+  const { consumedCalories, calorieTarget, date, goalMode } = todaySummary;
+  const state = getDailyCalorieGoalState(profile, calorieTarget, consumedCalories, date, goalMode);
   const kcal = t('common.units.kcal');
   let statusLabel = t('goalTracking.today.onTarget');
 

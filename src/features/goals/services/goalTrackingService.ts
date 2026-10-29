@@ -1,10 +1,5 @@
 import { listDailyNutritionSummaries } from '@/features/food-log/services/dailySummaryService';
 import type { NutritionTrendPoint } from '@/features/food-log/types';
-import {
-  NUTRIENT_SQL,
-  nutrientsFromColumns,
-  type NutrientColumnValues,
-} from '@/features/food-log/utils/nutrients';
 import { syncCurrentUserLeaderboardProfile } from '@/features/leaderboard/services/leaderboardService';
 import { getUserProfile } from '@/features/profile/services/profileRepository';
 import type { UserProfile } from '@/features/profile/types';
@@ -60,14 +55,6 @@ interface AchievementUnlockRow {
   unlocked_at: string;
   created_at: string;
   updated_at: string;
-}
-
-interface GoalTrackingDailyTotalsRow extends NutrientColumnValues {
-  entry_date: string;
-  consumed_calories: number | null;
-  protein_grams: number | null;
-  carbs_grams: number | null;
-  fat_grams: number | null;
 }
 
 function mapWeightGoal(row: WeightGoalRow): WeightGoal {
@@ -194,7 +181,8 @@ function getStreakFromSummaries(summaries: NutritionTrendPoint[], profile: UserP
       profile,
       summary.calorieTarget,
       summary.consumedCalories,
-      dateKey
+      dateKey,
+      summary.goalMode
     );
 
     if (goalState !== 'on_target') {
@@ -208,74 +196,11 @@ function getStreakFromSummaries(summaries: NutritionTrendPoint[], profile: UserP
   return streak;
 }
 
-async function listSummariesBetween(
-  startedAt: string,
-  endedAt?: string | null
-): Promise<NutritionTrendPoint[]> {
-  const database = await getDatabase();
-  const profile = await getUserProfile();
-  const rangeEnd = endedAt ?? new Date().toISOString();
-  const normalizedStartDate = formatDateKey(startedAt);
-  const normalizedEndDate = formatDateKey(rangeEnd);
-  const overrideRows = await database.getAllAsync<{
-    date: string;
-    calorie_target: number;
-  }>(
-    `
-      SELECT date, calorie_target
-      FROM daily_calorie_targets
-      WHERE date >= ? AND date <= ?;
-    `,
-    [normalizedStartDate, normalizedEndDate]
+function listSummariesBetween(startedAt: string, endedAt?: string | null) {
+  return listDailyNutritionSummaries(
+    formatDateKey(startedAt),
+    formatDateKey(endedAt ?? new Date().toISOString())
   );
-  const totalRows = await database.getAllAsync<GoalTrackingDailyTotalsRow>(
-    `
-      SELECT
-        entry_date,
-        COALESCE(SUM(total_calories), 0) AS consumed_calories,
-        COALESCE(SUM(protein_grams), 0) AS protein_grams,
-        COALESCE(SUM(carbs_grams), 0) AS carbs_grams,
-        COALESCE(SUM(fat_grams), 0) AS fat_grams,
-        ${NUTRIENT_SQL.sums}
-      FROM food_entries
-      WHERE entry_date >= ? AND entry_date <= ?
-      GROUP BY entry_date
-      ORDER BY entry_date ASC;
-    `,
-    [normalizedStartDate, normalizedEndDate]
-  );
-
-  const overrideMap = new Map(overrideRows.map((row) => [row.date, row.calorie_target]));
-  const totalsMap = new Map(totalRows.map((row) => [row.entry_date, row]));
-  const summaries: NutritionTrendPoint[] = [];
-  const cursor = new Date(`${normalizedStartDate}T00:00:00`);
-  const finalDate = new Date(`${normalizedEndDate}T00:00:00`);
-
-  while (cursor <= finalDate) {
-    const dateKey = formatDateKey(cursor);
-    const totals = totalsMap.get(dateKey);
-    const calorieTarget = overrideMap.get(dateKey) ?? profile?.dailyCalorieTarget ?? 0;
-
-    summaries.push({
-      date: dateKey,
-      label: dateKey,
-      calorieTarget,
-      consumedCalories: totals?.consumed_calories ?? 0,
-      remainingCalories: calorieTarget - (totals?.consumed_calories ?? 0),
-      progressPercent:
-        calorieTarget > 0
-          ? Math.min(100, Math.round(((totals?.consumed_calories ?? 0) / calorieTarget) * 100))
-          : 0,
-      proteinGrams: totals?.protein_grams ?? 0,
-      carbsGrams: totals?.carbs_grams ?? 0,
-      fatGrams: totals?.fat_grams ?? 0,
-      nutrients: nutrientsFromColumns(totals ?? {}),
-    });
-
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  return summaries;
 }
 
 async function getActiveWeightGoalRow() {

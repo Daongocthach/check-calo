@@ -1,3 +1,5 @@
+import type { WeightGoalMode } from '@/features/goals/types';
+
 export type SyncQueueEntityType =
   | 'meal'
   | 'meal_item'
@@ -23,6 +25,8 @@ export type NutrientValues = Record<NutrientKey, number | null>;
 export interface DailyNutritionSummary {
   date: string;
   calorieTarget: number;
+  /** The goal the day is judged by: the one it was logged under. */
+  goalMode: WeightGoalMode;
   consumedCalories: number;
   remainingCalories: number;
   progressPercent: number;

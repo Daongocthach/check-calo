@@ -5,6 +5,8 @@ import { pushPendingWeightLogs } from '@/features/goals/services/weightLogSync';
 import { syncCurrentUserLeaderboardProfile } from '@/features/leaderboard/services/leaderboardService';
 import { formatDateKey } from '@/utils/date';
 import type { UserProfileInput } from '../types';
+import { getProfileDayPlan } from '../utils/calorie';
+import { recordDailyTarget } from './dailyTargetRepository';
 import { upsertUserProfile } from './profileRepository';
 
 /** A weight typed into the profile counts as today's weigh-in when it differs from the last. */
@@ -24,6 +26,8 @@ export async function saveProfile(input: UserProfileInput) {
   const profile = await upsertUserProfile(input);
 
   if (profile) {
+    // Today follows the new plan; earlier days keep theirs.
+    await recordDailyTarget(getProfileDayPlan(profile));
     await recordProfileWeight(profile.weightKg);
     await syncActiveGoalToProfile(profile);
     await syncCurrentUserLeaderboardProfile(profile, 0, 0);

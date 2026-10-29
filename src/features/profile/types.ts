@@ -1,3 +1,5 @@
+import type { WeightGoalMode } from '@/features/goals/types';
+
 export type Gender = 'male' | 'female' | 'other';
 
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
@@ -34,4 +36,10 @@ export interface DailyTargetOverride {
   source: 'profile' | 'manual';
   createdAt: string;
   updatedAt: string;
+}
+
+/** The calorie target and goal a day is judged by. */
+export interface DayPlan {
+  calorieTarget: number;
+  goalMode: WeightGoalMode;
 }
