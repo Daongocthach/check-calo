@@ -1,5 +1,5 @@
 import { Redirect, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
@@ -27,6 +27,7 @@ import { getUserProfile } from '../../services/profileRepository';
 import { getBmiCategory } from '../../utils/bmi';
 import { MetricSliderCard } from './MetricSliderCard';
 import { OptionPill, SectionCard } from './OnboardingParts';
+import { PlanStep } from './PlanStep';
 
 const GENDERS = [
   { value: 'male', icon: 'male' },
@@ -48,16 +49,17 @@ export function OnboardingScreen() {
   const { form, plan, submit } = useProfileForm();
   const { control, watch, setValue, trigger, formState } = form;
   const [step, setStep] = useState(0);
+  const [planReady, setPlanReady] = useState(false);
+  const markPlanReady = useCallback(() => setPlanReady(true), []);
   const values = watch();
   const bmiCategory = getBmiCategory(plan.bmi);
-  const macroPercent = (grams: number, kcalPerGram: number) =>
-    plan.dailyCalories > 0 ? Math.round(((grams * kcalPerGram) / plan.dailyCalories) * 100) : 0;
 
   const goNext = async () => {
     if (step === 0 && !(await trigger(['displayName', 'age']))) {
       return;
     }
 
+    setPlanReady(false);
     setStep((current) => Math.min(STEPS.length - 1, current + 1));
   };
 
@@ -244,106 +246,61 @@ export function OnboardingScreen() {
 
         {step === 2 ? (
           <>
-            <SectionCard icon="sparkles" title={t('onboarding.plan')}>
-              <View style={styles.row}>
-                {[
-                  {
-                    key: 'kcal',
-                    icon: 'flame' as const,
-                    value: plan.dailyCalories.toLocaleString(),
-                    label: t('onboarding.planKcal'),
-                    hint: t('onboarding.planKcalHint'),
-                  },
-                  {
-                    key: 'protein',
-                    icon: 'leaf-outline' as const,
-                    value: `${plan.proteinGrams}g`,
-                    label: t('macros.protein'),
-                    hint: t('onboarding.planPercent', {
-                      value: macroPercent(plan.proteinGrams, 4),
-                    }),
-                  },
-                  {
-                    key: 'fat',
-                    icon: 'water-outline' as const,
-                    value: `${plan.fatGrams}g`,
-                    label: t('macros.fat'),
-                    hint: t('onboarding.planPercent', { value: macroPercent(plan.fatGrams, 9) }),
-                  },
-                  {
-                    key: 'carbs',
-                    icon: 'nutrition' as const,
-                    value: `${plan.carbsGrams}g`,
-                    label: t('macros.carbs'),
-                    hint: t('onboarding.planPercent', {
-                      value: macroPercent(plan.carbsGrams, 4),
-                    }),
-                  },
-                ].map((item) => (
-                  <View key={item.key} style={styles.planItem}>
-                    <Icon name={item.icon} variant="accent" size={18} />
-                    <Text variant="body" weight="bold">
-                      {item.value}
-                    </Text>
-                    <Text variant="caption">{item.label}</Text>
-                    <Text variant="caption" color="tertiary" align="center">
-                      {item.hint}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-              <Text variant="caption" color="secondary" align="center">
-                {t('onboarding.planRange', {
-                  min: plan.calorieRange.min.toLocaleString(),
-                  max: plan.calorieRange.max.toLocaleString(),
-                })}
-              </Text>
-            </SectionCard>
-            <Button
-              title={t('onboarding.healthSources')}
-              variant="ghost"
-              size="sm"
-              onPress={() => router.push('/health-sources')}
+            <PlanStep
+              body={toBodyStats(values)}
+              draft={toGoalDraft(values)}
+              plan={plan}
+              onReady={markPlanReady}
             />
+            {planReady ? (
+              <Button
+                title={t('onboarding.healthSources')}
+                variant="ghost"
+                size="sm"
+                onPress={() => router.push('/health-sources')}
+              />
+            ) : null}
           </>
         ) : null}
 
-        <View style={styles.actions}>
-          {step > 0 ? (
+        {step !== 2 || planReady ? (
+          <View style={styles.actions}>
+            {step > 0 ? (
+              <View style={styles.flex}>
+                <Button
+                  title={t('common.back')}
+                  variant="outline"
+                  size="lg"
+                  fullWidth
+                  onPress={() => setStep((current) => current - 1)}
+                />
+              </View>
+            ) : null}
             <View style={styles.flex}>
-              <Button
-                title={t('common.back')}
-                variant="outline"
-                size="lg"
-                fullWidth
-                onPress={() => setStep((current) => current - 1)}
-              />
+              {step < STEPS.length - 1 ? (
+                <Button
+                  title={t('common.next')}
+                  size="lg"
+                  fullWidth
+                  onPress={() => {
+                    void goNext();
+                  }}
+                />
+              ) : (
+                <Button
+                  title={t('onboarding.startAction')}
+                  leftIcon={<Icon name="rocket-outline" variant="onBrand" size={18} />}
+                  size="lg"
+                  fullWidth
+                  loading={formState.isSubmitting}
+                  onPress={() => {
+                    void handleSubmit();
+                  }}
+                />
+              )}
             </View>
-          ) : null}
-          <View style={styles.flex}>
-            {step < STEPS.length - 1 ? (
-              <Button
-                title={t('common.next')}
-                size="lg"
-                fullWidth
-                onPress={() => {
-                  void goNext();
-                }}
-              />
-            ) : (
-              <Button
-                title={t('onboarding.startAction')}
-                leftIcon={<Icon name="rocket-outline" variant="onBrand" size={18} />}
-                size="lg"
-                fullWidth
-                loading={formState.isSubmitting}
-                onPress={() => {
-                  void handleSubmit();
-                }}
-              />
-            )}
           </View>
-        </View>
+        ) : null}
       </KeyboardAwareScrollView>
     </View>
   );
@@ -412,13 +369,5 @@ const styles = StyleSheet.create((theme, rt) => ({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.background.surface,
-  },
-  planItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: theme.metrics.spacingV.p4,
-    paddingVertical: theme.metrics.spacingV.p8,
-    borderRadius: theme.metrics.borderRadius.lg,
-    backgroundColor: theme.colors.background.surfaceAlt,
   },
 }));
