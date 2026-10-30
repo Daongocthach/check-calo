@@ -64,7 +64,6 @@ export function SettingsScreen() {
       <ScreenHeader
         title={t('settingsScreen.title')}
         subtitle={t('settingsScreen.subtitle')}
-        showBack={false}
         right={<DrawerMenuButton />}
       />
       <ScrollView

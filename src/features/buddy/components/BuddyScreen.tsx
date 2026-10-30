@@ -69,7 +69,6 @@ export function BuddyScreen() {
       <ScreenHeader
         title={t('buddy.title')}
         subtitle={t('buddy.subtitle', { name })}
-        showBack={false}
         right={<DrawerMenuButton />}
       />
       <ScrollView
@@ -88,7 +87,9 @@ export function BuddyScreen() {
             <Text variant="h2" weight="bold" numberOfLines={1}>
               {name}
             </Text>
-            <Icon name="pencil" variant="brand" size={18} />
+            <View style={styles.editBadge}>
+              <Icon name="create-outline" variant="brand" size={16} />
+            </View>
           </Pressable>
           <Text variant="body" weight="semibold" color="secondary" align="center">
             {t('buddy.levelTitle', {
@@ -216,6 +217,14 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     gap: theme.metrics.spacing.p8,
     maxWidth: '100%',
+  },
+  editBadge: {
+    width: theme.metrics.spacing.p28,
+    height: theme.metrics.spacing.p28,
+    borderRadius: theme.metrics.borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background.section,
   },
   progressWrap: {
     alignSelf: 'stretch',
