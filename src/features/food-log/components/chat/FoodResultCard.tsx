@@ -33,7 +33,7 @@ export function FoodResultCard({
   isSaving,
   onLog,
 }: FoodResultCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
   const totals = [
     { key: 'protein', value: sum(items, 'proteinGrams') },
@@ -47,7 +47,9 @@ export function FoodResultCard({
 
     return value === null
       ? []
-      : [`${t(`nutrients.${nutrient.key}`)} ${formatNutrientAmount(value, nutrient.unit)} ${unit}`];
+      : [
+          `${t(`nutrients.${nutrient.key}`)} ${formatNutrientAmount(value, nutrient.unit, i18n.language)} ${unit}`,
+        ];
   }).join(' · ');
 
   return (

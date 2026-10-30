@@ -24,7 +24,7 @@ function getBarScheme(nutrient: NutrientDefinition, percent: number): ColorSchem
  * reference value. Unknown values show a dash instead of 0.
  */
 export function NutrientList({ values }: NutrientListProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <View style={styles.container}>
@@ -42,7 +42,7 @@ export function NutrientList({ values }: NutrientListProps) {
               <Text variant="bodySmall" weight="semibold">
                 {value === null
                   ? t('nutrients.unknown')
-                  : `${formatNutrientAmount(value, nutrient.unit)} ${unit}`}
+                  : `${formatNutrientAmount(value, nutrient.unit, i18n.language)} ${unit}`}
               </Text>
               <Text variant="caption" color="tertiary" align="right" style={styles.percent}>
                 {value === null ? '' : `${percent}%`}

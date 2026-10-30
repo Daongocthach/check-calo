@@ -23,12 +23,15 @@ export interface MealEditFormProps {
 
 type NutrientFormValues = Pick<FoodEntryFormValues, NutrientKey>;
 
-function toNutrientFormValues(entry: FoodEntry) {
+function toNutrientFormValues(entry: FoodEntry, language: string) {
   const values: Partial<NutrientFormValues> = {};
 
   for (const nutrient of NUTRIENTS) {
     const value = entry[nutrient.key];
-    values[nutrient.key] = value === null ? '' : formatNutrientAmount(value, nutrient.unit);
+    values[nutrient.key] =
+      value === null
+        ? ''
+        : formatNutrientAmount(value, nutrient.unit, language, { grouping: false });
   }
 
   return values;
@@ -45,7 +48,7 @@ function parseNutrientFormValues(values: NutrientFormValues) {
 }
 
 export function MealEditForm({ entry, onCancel, onSubmit }: MealEditFormProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     control,
     handleSubmit,
@@ -59,7 +62,7 @@ export function MealEditForm({ entry, onCancel, onSubmit }: MealEditFormProps) {
       proteinGrams: String(Math.round(entry.proteinGrams)),
       carbsGrams: String(Math.round(entry.carbsGrams)),
       fatGrams: String(Math.round(entry.fatGrams)),
-      ...toNutrientFormValues(entry),
+      ...toNutrientFormValues(entry, i18n.language),
       notes: entry.notes ?? '',
     },
   });
