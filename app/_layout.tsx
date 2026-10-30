@@ -1,4 +1,3 @@
-import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -24,10 +23,6 @@ import { CameraProvider } from '@/providers/camera';
 import { initializeDatabase } from '@/services/database/sqlite';
 import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
 import { handleSystemThemeChange } from '@/theme/themeManager';
-import InterBold from '../assets/fonts/Inter-Bold.ttf';
-import InterMedium from '../assets/fonts/Inter-Medium.ttf';
-import InterRegular from '../assets/fonts/Inter-Regular.ttf';
-import InterSemiBold from '../assets/fonts/Inter-SemiBold.ttf';
 
 export const unstable_settings = {
   anchor: '(main)',
@@ -148,12 +143,6 @@ function AppContent() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({
-    'Inter-Regular': InterRegular,
-    'Inter-Medium': InterMedium,
-    'Inter-SemiBold': InterSemiBold,
-    'Inter-Bold': InterBold,
-  });
   const [databaseReady, setDatabaseReady] = useState(false);
 
   useEffect(() => {
@@ -188,12 +177,12 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if ((fontsLoaded || fontError) && databaseReady) {
+    if (databaseReady) {
       void SplashScreen.hideAsync();
     }
-  }, [databaseReady, fontsLoaded, fontError]);
+  }, [databaseReady]);
 
-  if ((!fontsLoaded && !fontError) || !databaseReady) {
+  if (!databaseReady) {
     return null;
   }
 
