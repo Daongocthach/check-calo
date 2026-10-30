@@ -10,7 +10,7 @@ export interface RecentFoodsBarProps {
   disabled?: boolean;
 }
 
-/** Horizontal row of recently logged foods; tapping one logs it again. */
+/** Horizontal row of logged foods; tapping one logs it again without asking the AI. */
 export function RecentFoodsBar({ foods, onSelect, disabled = false }: RecentFoodsBarProps) {
   const { t } = useTranslation();
 

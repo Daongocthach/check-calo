@@ -12,6 +12,7 @@ import { useAttachFoodPhoto } from '../../hooks/useAttachFoodPhoto';
 import { useFoodChat, type ChatMessage } from '../../hooks/useFoodChat';
 import { useRecentFoods } from '../../hooks/useRecentFoods';
 import type { RecentFood } from '../../types';
+import { matchesFoodSearch } from '../../utils/foodSearch';
 import { ChatComposer } from '../ChatComposer';
 import { ChatMessageItem } from './ChatMessageItem';
 import { RecentFoodsBar } from './RecentFoodsBar';
@@ -26,9 +27,9 @@ export function FoodChatScreen() {
   const openCamera = useOpenCamera();
   const openImageLibrary = useOpenImageLibrary();
   const openBarcodeScanner = useOpenQrScanner();
-  const recentFoods = useRecentFoods();
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const [draft, setDraft] = useState(params.message ?? '');
+  const recentFoods = useRecentFoods(draft);
   const [imageUri, setImageUri] = useState<string | null>(params.imageUri ?? null);
   const lastMessage = chat.messages[chat.messages.length - 1];
 
@@ -76,6 +77,10 @@ export function FoodChatScreen() {
     try {
       await chat.logRecent(food);
       toast.success(t('chat.loggedToast'));
+      // The text was only a search for this food; a longer message keeps its other foods.
+      if (matchesFoodSearch(food.name, draft)) {
+        setDraft('');
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('errors.generic'));
     }
@@ -147,7 +152,7 @@ export function FoodChatScreen() {
         />
         <View style={styles.composer}>
           <RecentFoodsBar
-            foods={recentFoods.data ?? []}
+            foods={recentFoods}
             onSelect={(food) => {
               void handleRecent(food);
             }}
