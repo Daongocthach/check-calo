@@ -27,6 +27,34 @@ Deploy the function:
 supabase functions deploy gemini-food-parser
 ```
 
+## Usage limits
+
+Each call goes through `consume_ai_quota()` (migration `20261030000001_add_ai_quota_limits.sql`),
+which only counts the call when every limit still has room. Anonymous (guest) users are free to
+create, so they get a lower quota plus per-network and app-wide caps.
+
+| Secret                       | Default | Limit                                               |
+| ---------------------------- | ------- | --------------------------------------------------- |
+| `AI_USER_DAILY_LIMIT`        | 30      | `food_photo` calls per signed-up user per day       |
+| `AI_GUEST_DAILY_LIMIT`       | 10      | `food_photo` calls per guest per day                |
+| `AI_REVIEW_DAILY_LIMIT`      | 10      | `home_review` calls per user per day (older builds) |
+| `AI_GUEST_IP_DAILY_LIMIT`    | 100     | guest calls per network (hashed IP) per day         |
+| `AI_GUEST_TOTAL_DAILY_LIMIT` | 3000    | guest calls across the app per day                  |
+| `AI_TOTAL_DAILY_LIMIT`       | 20000   | all calls across the app per day                    |
+
+Change one without redeploying the app:
+
+```bash
+supabase secrets set AI_GUEST_DAILY_LIMIT=15
+```
+
+A blocked call returns 429 with an `error` starting with `Daily AI usage limit reached` (installed
+app versions match on that text) and a `code`: `user_limit`, `guest_limit`, `ip_limit`,
+`guest_total_limit` or `total_limit`. Days follow the database clock (UTC).
+
+Also set a quota and a budget alert on the Gemini API key in Google Cloud; that is the cap that
+holds even if these counters are bypassed.
+
 If you want local development:
 
 ```bash
