@@ -92,7 +92,7 @@ describe('planForDuration', () => {
     const plan = planForDuration(body(), 55, 20);
 
     expect(plan.weeklyRateKg).toBe(0.25);
-    expect(plan.monthlyWeightGoalKg).toBe(1.07);
+    expect(plan.monthlyWeightGoalKg).toBe(1.0714);
     expect(plan.maintenanceCalories).toBe(1772);
     expect(plan.dailyCalories).toBe(1497);
     expect(plan.pace).toBe('moderate');
@@ -101,8 +101,16 @@ describe('planForDuration', () => {
   it('stores a gain as a negative monthly goal', () => {
     const plan = planForDuration(body(), 63, 20);
 
-    expect(plan.monthlyWeightGoalKg).toBe(-0.64);
-    expect(plan.dailyCalories).toBe(1772 + 164);
+    expect(plan.monthlyWeightGoalKg).toBe(-0.6429);
+    expect(plan.dailyCalories).toBe(1772 + 165);
+  });
+
+  it('keeps the monthly rate precise enough to land on the chosen day', () => {
+    for (const weeks of [22, 25, 28, 42]) {
+      const plan = planForDuration(body(), 55, weeks);
+
+      expect(Math.round((5 / plan.monthlyWeightGoalKg) * 30)).toBe(weeks * 7);
+    }
   });
 
   it('clamps weeks outside the allowed range', () => {
@@ -153,7 +161,7 @@ describe('goal drafts', () => {
     const draft = { mode: 'lose' as const, targetWeightKg: 55, weeks: 20 };
     const plan = planFromDraft(body(), draft);
 
-    expect(plan).toEqual({ monthlyWeightGoalKg: 1.07, targetWeightKg: 55 });
+    expect(plan).toEqual({ monthlyWeightGoalKg: 1.0714, targetWeightKg: 55 });
     expect(draftFromPlan(body(), plan.monthlyWeightGoalKg, plan.targetWeightKg)).toEqual(draft);
   });
 

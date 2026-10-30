@@ -339,7 +339,7 @@ function getPlannedDays(
   }
 
   const rate = Math.abs(monthlyRateKg);
-  return rate > 0 ? Math.ceil((Math.abs(fromKg - targetWeightKg) / rate) * DAYS_PER_MONTH) : 0;
+  return rate > 0 ? Math.round((Math.abs(fromKg - targetWeightKg) / rate) * DAYS_PER_MONTH) : 0;
 }
 
 /**

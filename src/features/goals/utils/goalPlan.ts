@@ -176,7 +176,9 @@ export function planForDuration(
 
   const clampedWeeks = clampWeeks(bounds, weeks);
   const weeklyRateKg = bounds.changeKg / clampedWeeks;
-  const monthlyRateKg = Math.round(((weeklyRateKg * DAYS_PER_MONTH) / DAYS_PER_WEEK) * 100) / 100;
+  // Four decimals keep the planned days on the chosen weeks, even for a year-long plan.
+  const monthlyRateKg =
+    Math.round(((weeklyRateKg * DAYS_PER_MONTH) / DAYS_PER_WEEK) * 10000) / 10000;
   const monthlyWeightGoalKg = bounds.mode === 'lose' ? monthlyRateKg : -monthlyRateKg;
 
   return {
