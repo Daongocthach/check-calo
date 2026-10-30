@@ -2,7 +2,6 @@ import { Redirect, useRouter } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { ChatComposer } from '@/features/food-log/components';
-import { useAttachFoodPhoto } from '@/features/food-log/hooks/useAttachFoodPhoto';
 import type { MealSlotGroup } from '@/features/food-log/utils/mealSlot';
 import { GoalSummaryCard } from '@/features/goals/components/GoalSummaryCard';
 import { useOpenDrawer } from '@/features/navigation';
@@ -16,20 +15,8 @@ import { WeekStrip } from './WeekStrip';
 export function HomeScreen() {
   const router = useRouter();
   const home = useHomeScreen();
-  const attachPhoto = useAttachFoodPhoto();
   const openDrawer = useOpenDrawer();
   const displayName = home.profile?.displayName.trim() || '';
-
-  const openChat = (imageUri?: string) => {
-    router.push({ pathname: '/chat', params: imageUri ? { imageUri } : {} });
-  };
-
-  const handleAttach = async () => {
-    const imageUri = await attachPhoto();
-    if (imageUri) {
-      openChat(imageUri);
-    }
-  };
 
   const handleGroupPress = (group: MealSlotGroup) => {
     if (group.entries.length === 1) {
@@ -71,13 +58,7 @@ export function HomeScreen() {
         <MealsGrid groups={home.mealGroups} onGroupPress={handleGroupPress} />
       </ScrollView>
       <View style={styles.composer}>
-        <ChatComposer
-          value=""
-          onPressField={() => openChat()}
-          onAttachPress={() => {
-            void handleAttach();
-          }}
-        />
+        <ChatComposer value="" onPressField={() => router.push('/chat')} />
       </View>
       {/* The header scrolls with the content; keep it from showing through the status bar. */}
       <View style={styles.statusBarCover} pointerEvents="none" />

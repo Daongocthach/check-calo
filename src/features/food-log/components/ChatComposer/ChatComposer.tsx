@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { type ComponentRef, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, TextInput, View } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
@@ -10,14 +10,16 @@ export interface ChatComposerProps {
   value: string;
   onChangeText?: (value: string) => void;
   onSubmit?: () => void;
-  onAttachPress: () => void;
-  /** When set the field is not editable and tapping it calls this instead (Home shortcut). */
+  /**
+   * When set the field is not editable and tapping it, or "+", calls this instead (Home
+   * shortcut). Otherwise "+" focuses the field, which shows the photo and barcode buttons.
+   */
   onPressField?: () => void;
   imageUri?: string | null;
   onRemoveImage?: () => void;
   disabled?: boolean;
   autoFocus?: boolean;
-  /** When set, the expanded composer shows direct camera / library / barcode buttons instead of "+". */
+  /** Camera / library / barcode buttons shown while the composer is expanded. */
   onCameraPress?: () => void;
   onLibraryPress?: () => void;
   onBarcodePress?: () => void;
@@ -28,7 +30,6 @@ export function ChatComposer({
   value,
   onChangeText,
   onSubmit,
-  onAttachPress,
   onPressField,
   imageUri,
   onRemoveImage,
@@ -41,6 +42,7 @@ export function ChatComposer({
   const { t } = useTranslation();
   const { theme } = useUnistyles();
   const [focused, setFocused] = useState(false);
+  const inputRef = useRef<ComponentRef<typeof TextInput>>(null);
   const canSend = !disabled && (value.trim().length > 0 || Boolean(imageUri));
   // The editable field grows into a taller card while typing; the Home shortcut stays a pill.
   const expanded = !onPressField && (focused || value.length > 0);
@@ -49,13 +51,11 @@ export function ChatComposer({
     <IconButton
       icon="add"
       variant="ghost"
-      onPress={onAttachPress}
+      onPress={onPressField ?? (() => inputRef.current?.focus())}
       disabled={disabled}
       accessibilityLabel={t('chat.attachPhoto')}
     />
   );
-
-  const hasQuickActions = Boolean(onCameraPress || onLibraryPress || onBarcodePress);
 
   const quickActions = (
     <View style={styles.quickActions}>
@@ -136,6 +136,7 @@ export function ChatComposer({
             </Pressable>
           ) : (
             <TextInput
+              ref={inputRef}
               value={value}
               onChangeText={onChangeText}
               onSubmitEditing={onSubmit}
@@ -163,7 +164,7 @@ export function ChatComposer({
         </View>
         {expanded ? (
           <View style={styles.actions}>
-            {hasQuickActions ? quickActions : attachButton}
+            {quickActions}
             {sendButton}
           </View>
         ) : null}

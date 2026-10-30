@@ -8,7 +8,6 @@ import { IconButton, ScreenHeader, Text } from '@/common/components';
 import { getDevFakeBarcode } from '@/features/dev-tools';
 import { useOpenCamera, useOpenImageLibrary, useOpenQrScanner } from '@/providers/camera';
 import { toast } from '@/utils/toast';
-import { useAttachFoodPhoto } from '../../hooks/useAttachFoodPhoto';
 import { useFoodChat, type ChatMessage } from '../../hooks/useFoodChat';
 import { useRecentFoods } from '../../hooks/useRecentFoods';
 import type { RecentFood } from '../../types';
@@ -23,7 +22,6 @@ export function FoodChatScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ imageUri?: string; message?: string }>();
   const chat = useFoodChat();
-  const attachPhoto = useAttachFoodPhoto();
   const openCamera = useOpenCamera();
   const openImageLibrary = useOpenImageLibrary();
   const openBarcodeScanner = useOpenQrScanner();
@@ -43,13 +41,6 @@ export function FoodChatScreen() {
     setDraft('');
     setImageUri(null);
     void chat.sendMessage(text, pendingImage);
-  };
-
-  const handleAttach = async () => {
-    const uri = await attachPhoto();
-    if (uri) {
-      setImageUri(uri);
-    }
   };
 
   const handleCamera = async () => {
@@ -162,9 +153,6 @@ export function FoodChatScreen() {
             value={draft}
             onChangeText={setDraft}
             onSubmit={() => handleSend()}
-            onAttachPress={() => {
-              void handleAttach();
-            }}
             onCameraPress={() => {
               void handleCamera();
             }}
