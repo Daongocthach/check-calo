@@ -30,13 +30,13 @@ supabase functions deploy gemini-food-parser
 ## Usage limits
 
 Each call goes through `consume_ai_quota()` (migration `20261030000001_add_ai_quota_limits.sql`),
-which only counts the call when every limit still has room. Anonymous (guest) users are free to
-create, so they get a lower quota plus per-network and app-wide caps.
+which only counts the call when every limit still has room. Guests get the same quota as signed-up
+users, but anonymous users are free to create, so guests also share per-network and app-wide caps.
 
 | Secret                       | Default | Limit                                               |
 | ---------------------------- | ------- | --------------------------------------------------- |
 | `AI_USER_DAILY_LIMIT`        | 30      | `food_photo` calls per signed-up user per day       |
-| `AI_GUEST_DAILY_LIMIT`       | 10      | `food_photo` calls per guest per day                |
+| `AI_GUEST_DAILY_LIMIT`       | 30      | `food_photo` calls per guest per day                |
 | `AI_REVIEW_DAILY_LIMIT`      | 10      | `home_review` calls per user per day (older builds) |
 | `AI_GUEST_IP_DAILY_LIMIT`    | 100     | guest calls per network (hashed IP) per day         |
 | `AI_GUEST_TOTAL_DAILY_LIMIT` | 3000    | guest calls across the app per day                  |

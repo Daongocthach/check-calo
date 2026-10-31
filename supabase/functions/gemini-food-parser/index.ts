@@ -61,7 +61,7 @@ function readLimit(name: string, fallback: number) {
 // Daily limits, overridable with Edge Function secrets without a redeploy of the app.
 const limits = {
   userFoodPhoto: readLimit('AI_USER_DAILY_LIMIT', 30),
-  guestFoodPhoto: readLimit('AI_GUEST_DAILY_LIMIT', 10),
+  guestFoodPhoto: readLimit('AI_GUEST_DAILY_LIMIT', 30),
   homeReview: readLimit('AI_REVIEW_DAILY_LIMIT', 10),
   guestPerIp: readLimit('AI_GUEST_IP_DAILY_LIMIT', 100),
   guestTotal: readLimit('AI_GUEST_TOTAL_DAILY_LIMIT', 3000),
