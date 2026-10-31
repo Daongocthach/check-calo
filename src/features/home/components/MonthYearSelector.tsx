@@ -4,8 +4,6 @@ import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { DateTimeField, Icon, Text } from '@/common/components';
 import type { DateTimeFieldHandle, IconProps } from '@/common/components';
-import { BuddySticker } from '@/features/buddy';
-import { hs } from '@/theme/metrics';
 import { formatDateKey } from '@/utils/date';
 import { isSameDay } from '../utils/week';
 
@@ -20,10 +18,18 @@ interface SquareButtonProps {
   icon: IconProps['name'];
   accessibilityLabel: string;
   disabled?: boolean;
+  /** Small count in the top-right corner; hidden when 0 or missing. */
+  badge?: number;
   onPress: () => void;
 }
 
-function SquareButton({ icon, accessibilityLabel, disabled = false, onPress }: SquareButtonProps) {
+function SquareButton({
+  icon,
+  accessibilityLabel,
+  disabled = false,
+  badge,
+  onPress,
+}: SquareButtonProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -38,6 +44,13 @@ function SquareButton({ icon, accessibilityLabel, disabled = false, onPress }: S
       ]}
     >
       <Icon name={icon} sizeVariant="sm" variant="secondary" />
+      {badge ? (
+        <View style={styles.badge}>
+          <Text variant="caption" weight="bold" color="inverse">
+            {badge}
+          </Text>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -63,21 +76,14 @@ export function MonthYearSelector({
       <Text variant="h3" weight="semibold" numberOfLines={1} style={styles.title}>
         {`${monthLabel} ${selectedDate.getFullYear()}`}
       </Text>
-      {streak > 0 ? (
-        <View
-          style={styles.streak}
-          accessible
-          accessibilityLabel={t('home.streakLabel', { count: streak })}
-        >
-          <BuddySticker pose="fire" size={hs(28)} />
-          <Text variant="bodySmall" weight="bold">
-            {streak}
-          </Text>
-        </View>
-      ) : null}
       <SquareButton
         icon="calendar-outline"
-        accessibilityLabel={t('home.pickDate')}
+        accessibilityLabel={
+          streak > 0
+            ? `${t('home.pickDate')}, ${t('home.streakLabel', { count: streak })}`
+            : t('home.pickDate')
+        }
+        badge={streak}
         onPress={() => pickerRef.current?.present()}
       />
       <SquareButton
@@ -119,16 +125,19 @@ const styles = StyleSheet.create((theme) => ({
     borderWidth: 1,
     borderColor: theme.colors.border.subtle,
   },
-  streak: {
-    flexDirection: 'row',
+  badge: {
+    position: 'absolute',
+    top: -theme.metrics.spacing.p8,
+    right: -theme.metrics.spacing.p8,
     alignItems: 'center',
-    height: theme.metrics.spacing.p36,
-    paddingLeft: theme.metrics.spacing.p4,
-    paddingRight: theme.metrics.spacing.p12,
-    borderRadius: theme.metrics.borderRadius.md,
-    backgroundColor: theme.colors.background.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border.subtle,
+    minWidth: theme.metrics.spacing.p20,
+    height: theme.metrics.spacing.p20,
+    paddingHorizontal: theme.metrics.spacing.p4,
+    borderRadius: theme.metrics.borderRadius.full,
+    justifyContent: 'center',
+    backgroundColor: theme.colors.icon.accent,
+    borderWidth: 1.5,
+    borderColor: theme.colors.background.app,
   },
   pressed: {
     opacity: 0.7,

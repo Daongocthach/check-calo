@@ -1,6 +1,5 @@
 import type { ImageProps } from 'expo-image';
 import CelebrateImage from '../../../../assets/mascot/celebrate.webp';
-import FireImage from '../../../../assets/mascot/fire.webp';
 import NoodlesImage from '../../../../assets/mascot/noodles.webp';
 import StretchImage from '../../../../assets/mascot/stretch.webp';
 
@@ -11,7 +10,6 @@ import StretchImage from '../../../../assets/mascot/stretch.webp';
  */
 export const MASCOT_IMAGES = {
   celebrate: CelebrateImage,
-  fire: FireImage,
   noodles: NoodlesImage,
   stretch: StretchImage,
 } satisfies Record<string, ImageProps['source']>;
