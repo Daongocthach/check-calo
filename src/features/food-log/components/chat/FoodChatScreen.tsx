@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
@@ -10,6 +10,7 @@ import { useOpenCamera, useOpenImageLibrary, useOpenQrScanner } from '@/provider
 import { toast } from '@/utils/toast';
 import { useFoodChat, type ChatMessage } from '../../hooks/useFoodChat';
 import { useRecentFoods } from '../../hooks/useRecentFoods';
+import { useVoiceInput } from '../../hooks/useVoiceInput';
 import type { RecentFood } from '../../types';
 import { matchesFoodSearch } from '../../utils/foodSearch';
 import { ChatComposer } from '../ChatComposer';
@@ -20,7 +21,7 @@ export function FoodChatScreen() {
   const { t } = useTranslation();
   const { theme, rt } = useUnistyles();
   const router = useRouter();
-  const params = useLocalSearchParams<{ imageUri?: string; message?: string }>();
+  const params = useLocalSearchParams<{ imageUri?: string; message?: string; voice?: string }>();
   const chat = useFoodChat();
   const openCamera = useOpenCamera();
   const openImageLibrary = useOpenImageLibrary();
@@ -30,13 +31,43 @@ export function FoodChatScreen() {
   const recentFoods = useRecentFoods(draft);
   const [imageUri, setImageUri] = useState<string | null>(params.imageUri ?? null);
   const lastMessage = chat.messages[chat.messages.length - 1];
+  // Dictated text goes after whatever was typed before the mic was tapped.
+  const draftBeforeVoiceRef = useRef('');
+  const voice = useVoiceInput(
+    useCallback((transcript: string) => {
+      const before = draftBeforeVoiceRef.current;
+      setDraft(before ? `${before} ${transcript}` : transcript);
+    }, [])
+  );
+  const startVoice = voice.start;
+  const voiceRequestedRef = useRef(params.voice === '1');
 
   useEffect(() => {
     const timer = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 80);
     return () => clearTimeout(timer);
   }, [chat.messages.length, chat.isSending]);
 
+  // Home's mic opens the chat already listening.
+  useEffect(() => {
+    if (voiceRequestedRef.current) {
+      voiceRequestedRef.current = false;
+      draftBeforeVoiceRef.current = '';
+      void startVoice();
+    }
+  }, [startVoice]);
+
+  const toggleVoice = () => {
+    if (voice.isListening) {
+      voice.stop();
+      return;
+    }
+
+    draftBeforeVoiceRef.current = draft.trim();
+    void voice.start();
+  };
+
   const handleSend = (text = draft) => {
+    voice.cancel();
     const pendingImage = imageUri;
     setDraft('');
     setImageUri(null);
@@ -164,6 +195,8 @@ export function FoodChatScreen() {
             }}
             imageUri={imageUri}
             onRemoveImage={() => setImageUri(null)}
+            onMicPress={voice.isAvailable ? toggleVoice : undefined}
+            listening={voice.isListening}
             disabled={chat.isSending}
             autoFocus={!params.imageUri}
           />

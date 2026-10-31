@@ -23,6 +23,10 @@ export interface ChatComposerProps {
   onCameraPress?: () => void;
   onLibraryPress?: () => void;
   onBarcodePress?: () => void;
+  /** Shows a mic beside send; the Home shortcut's mic falls back to `onPressField`. */
+  onMicPress?: () => void;
+  /** While dictating, the mic turns into a stop button and the field says it is listening. */
+  listening?: boolean;
 }
 
 /** Pill input "What did you eat today?" with photo attach and send buttons. */
@@ -38,6 +42,8 @@ export function ChatComposer({
   onCameraPress,
   onLibraryPress,
   onBarcodePress,
+  onMicPress,
+  listening = false,
 }: ChatComposerProps) {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
@@ -45,7 +51,7 @@ export function ChatComposer({
   const inputRef = useRef<ComponentRef<typeof TextInput>>(null);
   const canSend = !disabled && (value.trim().length > 0 || Boolean(imageUri));
   // The editable field grows into a taller card while typing; the Home shortcut stays a pill.
-  const expanded = !onPressField && (focused || value.length > 0);
+  const expanded = !onPressField && (focused || listening || value.length > 0);
 
   const attachButton = (
     <IconButton
@@ -88,6 +94,17 @@ export function ChatComposer({
       ) : null}
     </View>
   );
+
+  const micButton = onMicPress ? (
+    <IconButton
+      icon={listening ? 'stop-circle' : 'mic-outline'}
+      variant="ghost"
+      color={listening ? theme.colors.state.error : undefined}
+      onPress={onMicPress}
+      disabled={disabled}
+      accessibilityLabel={listening ? t('voice.stop') : t('chat.voiceInput')}
+    />
+  ) : null;
 
   const sendButton = (
     <Pressable
@@ -144,7 +161,7 @@ export function ChatComposer({
               onBlur={() => setFocused(false)}
               editable={!disabled}
               autoFocus={autoFocus}
-              placeholder={t('chat.placeholder')}
+              placeholder={listening ? t('voice.listening') : t('chat.placeholder')}
               placeholderTextColor={theme.colors.text.tertiary}
               returnKeyType="send"
               submitBehavior="submit"
@@ -156,7 +173,7 @@ export function ChatComposer({
             <IconButton
               icon="mic-outline"
               variant="ghost"
-              onPress={onPressField}
+              onPress={onMicPress ?? onPressField}
               accessibilityLabel={t('chat.voiceInput')}
             />
           ) : null}
@@ -165,7 +182,10 @@ export function ChatComposer({
         {expanded ? (
           <View style={styles.actions}>
             {quickActions}
-            {sendButton}
+            <View style={styles.trailingActions}>
+              {micButton}
+              {sendButton}
+            </View>
           </View>
         ) : null}
       </Animated.View>
@@ -209,6 +229,11 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'space-between',
   },
   quickActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p4,
+  },
+  trailingActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.metrics.spacing.p4,

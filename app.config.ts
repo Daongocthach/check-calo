@@ -97,6 +97,15 @@ const config: ExpoConfig = {
           'CheckCalo requires photo library access to select food photos for calorie estimation and meal tracking.',
       },
     ],
+    [
+      'expo-speech-recognition',
+      {
+        microphonePermission:
+          'CheckCalo uses the microphone so you can say what you ate instead of typing it.',
+        speechRecognitionPermission:
+          'CheckCalo turns what you say into text in the chat so you can log meals by voice.',
+      },
+    ],
     'expo-sqlite',
     [
       'expo-build-properties',

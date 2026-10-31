@@ -64,6 +64,11 @@ const PRIVACY_ITEMS: LegalItem[] = [
     bodyKey: 'legal.privacy.items.sharing.body',
   },
   {
+    icon: 'mic-outline',
+    titleKey: 'legal.privacy.items.voice.title',
+    bodyKey: 'legal.privacy.items.voice.body',
+  },
+  {
     icon: 'lock-closed-outline',
     titleKey: 'legal.privacy.items.security.title',
     bodyKey: 'legal.privacy.items.security.body',

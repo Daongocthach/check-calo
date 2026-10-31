@@ -58,7 +58,11 @@ export function HomeScreen() {
         <MealsGrid groups={home.mealGroups} onGroupPress={handleGroupPress} />
       </ScrollView>
       <View style={styles.composer}>
-        <ChatComposer value="" onPressField={() => router.push('/chat')} />
+        <ChatComposer
+          value=""
+          onPressField={() => router.push('/chat')}
+          onMicPress={() => router.push({ pathname: '/chat', params: { voice: '1' } })}
+        />
       </View>
       {/* The header scrolls with the content; keep it from showing through the status bar. */}
       <View style={styles.statusBarCover} pointerEvents="none" />

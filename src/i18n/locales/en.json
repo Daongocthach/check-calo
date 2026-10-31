@@ -490,6 +490,10 @@
           "title": "Information sharing",
           "body": "We do not sell or share personal data with third parties unless required by law or with your consent."
         },
+        "voice": {
+          "title": "Voice input",
+          "body": "When you speak in the chat, your phone's speech service (Apple or Google) turns it into text. The audio may be sent to that service for recognition; Check Calo only keeps the text you send."
+        },
         "security": {
           "title": "Data security",
           "body": "We use reasonable technical and organizational measures to protect your information from unauthorized access."
@@ -649,6 +653,12 @@
       "logBreakfast": "I had a bowl of beef pho for breakfast",
       "suggestDinner": "Suggest a high-protein dinner under 700 kcal"
     }
+  },
+  "voice": {
+    "listening": "Listening…",
+    "stop": "Stop listening",
+    "permissionDenied": "Allow microphone and speech recognition in Settings to speak your meals.",
+    "failed": "Couldn't hear that. Try again or type it."
   },
   "mealDetail": {
     "title": "Meal details",
