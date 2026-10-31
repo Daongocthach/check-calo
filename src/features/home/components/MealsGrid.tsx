@@ -26,7 +26,7 @@ export function MealsGrid({ entries, onEntryPress }: MealsGridProps) {
   if (entries.length === 0) {
     return (
       <View style={styles.empty}>
-        <BuddySticker pose="noodles" size={hs(72)} />
+        <BuddySticker pose="noodles" size={hs(120)} />
         <Text variant="body" weight="semibold" align="center">
           {t('home.emptyTitle')}
         </Text>

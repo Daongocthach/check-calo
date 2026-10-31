@@ -5,7 +5,7 @@ import type { MascotPose } from '../../constants/mascot';
 
 export interface BuddyStickerProps {
   pose: MascotPose;
-  /** Rendered width and height in points. Keep it at or below ~85pt; the artwork is 256px. */
+  /** Rendered width and height in points. The artwork is 256px, so above ~85pt it softens on @3x. */
   size: number;
 }
 
