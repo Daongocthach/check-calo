@@ -2,41 +2,47 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Chip, ProgressBar, ScreenContainer, Text } from '@/common/components';
-import { formatWholeNumber } from '@/features/food-log/utils/format';
+import { formatDayDate, formatWholeNumber } from '@/features/food-log/utils/format';
 import { useGoalTracking } from '@/features/goals/hooks/useGoalTracking';
-import type { WeightGoalProgress, WeightGoalStatus } from '@/features/goals/types';
+import type { WeightGoal, WeightGoalProgress } from '@/features/goals/types';
 import { formatWeightGoalTitle } from '@/features/goals/utils/goalTracking';
-
-function formatGoalHistoryDateRange(
-  goalProgress: Pick<WeightGoalProgress, 'goal'>,
-  locale: string
-) {
-  const formatter = new Intl.DateTimeFormat(locale, {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-  const startedAt = formatter.format(new Date(goalProgress.goal.startedAt));
-  const endedAt = formatter.format(
-    new Date(goalProgress.goal.completedAt ?? goalProgress.goal.updatedAt)
-  );
-
-  return `${startedAt} - ${endedAt}`;
-}
+import { formatDateKey } from '@/utils/date';
 
 const GOAL_PROGRESS_KEYS = {
-  days: 'goalTracking.progressDays',
+  days: 'goalTracking.progressMaintainDays',
   kcal: 'goalTracking.progressKcal',
 } as const satisfies Record<WeightGoalProgress['unit'], string>;
 
-function getGoalStatusLabelKey(status: WeightGoalStatus) {
-  switch (status) {
+/** How a goal stopped; maintaining has no end to miss, so changing the goal just ends it. */
+function getGoalEnding(goal: Pick<WeightGoal, 'mode' | 'status'>) {
+  if (goal.status === 'cancelled' && goal.mode === 'maintain') {
+    return 'ended' as const;
+  }
+
+  return goal.status;
+}
+
+function getGoalStatusLabelKey(goal: Pick<WeightGoal, 'mode' | 'status'>) {
+  switch (getGoalEnding(goal)) {
     case 'completed':
       return 'goalTracking.status.completed' as const;
     case 'cancelled':
       return 'goalTracking.status.cancelled' as const;
+    case 'ended':
+      return 'goalTracking.status.ended' as const;
     default:
       return 'goalTracking.status.active' as const;
+  }
+}
+
+function getGoalPeriodKey(goal: Pick<WeightGoal, 'mode' | 'status'>) {
+  switch (getGoalEnding(goal)) {
+    case 'completed':
+      return 'goalTracking.history.period.completed' as const;
+    case 'ended':
+      return 'goalTracking.history.period.ended' as const;
+    default:
+      return 'goalTracking.history.period.cancelled' as const;
   }
 }
 
@@ -72,13 +78,19 @@ export default function GoalHistoryScreen() {
                         {formatWeightGoalTitle(t, goalItem.goal)}
                       </Text>
                       <Text variant="bodySmall" color="secondary">
-                        {formatGoalHistoryDateRange(goalItem, i18n.language)}
+                        {t(getGoalPeriodKey(goalItem.goal), {
+                          start: formatDayDate(
+                            formatDateKey(goalItem.goal.startedAt),
+                            i18n.language
+                          ),
+                          end: formatDayDate(
+                            formatDateKey(goalItem.goal.endedAt ?? goalItem.goal.updatedAt),
+                            i18n.language
+                          ),
+                        })}
                       </Text>
                     </View>
-                    <Chip
-                      label={t(getGoalStatusLabelKey(goalItem.goal.status))}
-                      variant="outline"
-                    />
+                    <Chip label={t(getGoalStatusLabelKey(goalItem.goal))} variant="outline" />
                   </View>
 
                   <View style={styles.historyMetrics}>

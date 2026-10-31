@@ -14,6 +14,8 @@ export interface WeightGoal {
   status: WeightGoalStatus;
   startedAt: string;
   completedAt: string | null;
+  /** When the goal stopped: reached, changed for another or ended. Null while active. */
+  endedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,11 +26,16 @@ export interface WeightGoalProgress {
   targetValue: number;
   progressPercent: number;
   remainingValue: number;
-  /** Calories cut (lose) or added (gain) by the diary; maintain goals count days. */
+  /**
+   * Calories cut (lose) or added (gain) by the diary. Maintain goals count days: on-target
+   * days out of the days the goal has run.
+   */
   unit: 'kcal' | 'days';
   completed: boolean;
-  /** YYYY-MM-DD the goal should finish by its plan. */
-  expectedEndDate: string;
+  /** YYYY-MM-DD the goal should finish by its plan; null for maintain goals, which never end. */
+  expectedEndDate: string | null;
+  /** Maintain goals: on-target days over the last week (or since the start); null otherwise. */
+  recent: { onTargetDays: number; days: number } | null;
 }
 
 export interface WeightLog {

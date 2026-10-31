@@ -8,6 +8,11 @@ export function formatWeightGoalTitle(
   goal: Pick<WeightGoal, 'mode' | 'targetKg' | 'targetDays'>
 ) {
   if (goal.mode === 'maintain') {
+    // Maintain goals no longer have a length; older ones ran a set number of days.
+    if (goal.targetDays <= 0) {
+      return t('goalTracking.goalNames.maintain');
+    }
+
     if (goal.targetDays >= 30 && goal.targetDays % 30 === 0) {
       const months = goal.targetDays / 30;
       return t(

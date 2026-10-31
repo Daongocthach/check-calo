@@ -102,6 +102,14 @@
         "gain": "Còn cần tăng",
         "maintain": "Còn lại"
       },
+      "maintainRecent_one": "Hôm nay",
+      "maintainRecent_other": "{{count}} ngày qua",
+      "maintainOnTarget": "{{value}} ngày đúng mức",
+      "maintainTotal": "Tổng ngày đúng mức",
+      "maintainSince": "Giữ cân từ",
+      "milestoneTitle": "{{value}} ngày giữ cân đúng mức!",
+      "milestoneMessage": "Bạn đã ăn trong khoảng calo cho phép {{value}} ngày kể từ khi bắt đầu giữ cân. Cứ đều đặn như vậy nhé!",
+      "milestoneAction": "Tiếp tục",
       "changeGoal": "Đổi mục tiêu",
       "reachedTitle": "Đã đạt: {{goal}}!",
       "reachedMessage": "Tuyệt vời! Kế hoạch đã chuyển sang giữ cân. Đặt mục tiêu tiếp theo để cập nhật cân nặng và kế hoạch mới.",
@@ -315,8 +323,9 @@
   },
   "goalTracking": {
     "progressKcal": "{{current}} / {{target}} kcal",
-    "progressDays": "{{current}} / {{target}} ngày",
+    "progressMaintainDays": "{{current}} / {{target}} ngày đúng mức",
     "goalNames": {
+      "maintain": "Giữ cân",
       "loseWithValue": "Giảm {{value, number}} kg",
       "gainWithValue": "Tăng {{value, number}} kg",
       "maintainWithValue": "Giữ cân {{value}} ngày",
@@ -326,11 +335,17 @@
     "status": {
       "active": "Đang thực hiện",
       "completed": "Hoàn thành",
-      "cancelled": "Đã dừng"
+      "cancelled": "Đã dừng",
+      "ended": "Đã kết thúc"
     },
     "history": {
       "subtitle": "Các mục tiêu bạn đã hoàn thành hoặc đổi giữa chừng.",
-      "empty": "Bạn chưa có lịch sử kế hoạch nào."
+      "empty": "Bạn chưa có lịch sử kế hoạch nào.",
+      "period": {
+        "completed": "Bắt đầu {{start}} · Hoàn thành {{end}}",
+        "cancelled": "Bắt đầu {{start}} · Dừng {{end}}",
+        "ended": "Bắt đầu {{start}} · Kết thúc {{end}}"
+      }
     },
     "today": {
       "remaining": "Còn {{value}} kcal",

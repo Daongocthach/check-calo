@@ -37,5 +37,6 @@ export const STORAGE_KEYS = {
     supportPromptDismissed: 'support_prompt_dismissed',
     goalRangeRulesSince: 'goal_range_rules_since',
     celebratedGoalId: 'celebrated_goal_id',
+    celebratedMaintainMilestone: 'celebrated_maintain_milestone',
   },
 } as const;

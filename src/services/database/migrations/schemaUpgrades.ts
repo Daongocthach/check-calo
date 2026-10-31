@@ -312,3 +312,17 @@ export async function runVersion17Migration(database: SQLite.SQLiteDatabase) {
 export async function runVersion18Migration(database: SQLite.SQLiteDatabase) {
   await addColumnIfMissing(database, 'user_profile', 'transition_until', 'transition_until TEXT');
 }
+
+/**
+ * When a goal stopped, whether reached, changed or ended. Goals that already stopped only
+ * kept it as their completion or last update time.
+ */
+export async function runVersion19Migration(database: SQLite.SQLiteDatabase) {
+  await addColumnIfMissing(database, 'weight_goals', 'ended_at', 'ended_at TEXT');
+
+  await database.execAsync(`
+    UPDATE weight_goals
+    SET ended_at = COALESCE(completed_at, updated_at)
+    WHERE status != 'active' AND ended_at IS NULL;
+  `);
+}

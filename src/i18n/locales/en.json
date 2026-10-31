@@ -102,6 +102,14 @@
         "gain": "Still to add",
         "maintain": "Days left"
       },
+      "maintainRecent_one": "Today",
+      "maintainRecent_other": "Last {{count}} days",
+      "maintainOnTarget": "{{value}} days on target",
+      "maintainTotal": "Days on target",
+      "maintainSince": "Maintaining since",
+      "milestoneTitle": "{{value}} days on target!",
+      "milestoneMessage": "You've eaten within your range on {{value}} days since you started maintaining. Keep it steady!",
+      "milestoneAction": "Keep going",
       "changeGoal": "Change goal",
       "reachedTitle": "Reached: {{goal}}!",
       "reachedMessage": "Great work! Your plan has switched to maintaining. Set your next goal to update your weight and plan.",
@@ -315,8 +323,9 @@
   },
   "goalTracking": {
     "progressKcal": "{{current}} / {{target}} kcal",
-    "progressDays": "{{current}} / {{target}} days",
+    "progressMaintainDays": "{{current}} / {{target}} days on target",
     "goalNames": {
+      "maintain": "Maintain weight",
       "loseWithValue": "Lose {{value, number}} kg",
       "gainWithValue": "Gain {{value, number}} kg",
       "maintainWithValue": "Maintain for {{value}} days",
@@ -326,11 +335,17 @@
     "status": {
       "active": "Active",
       "completed": "Completed",
-      "cancelled": "Stopped"
+      "cancelled": "Stopped",
+      "ended": "Ended"
     },
     "history": {
       "subtitle": "Goals you completed or changed midway.",
-      "empty": "You do not have any goal history yet."
+      "empty": "You do not have any goal history yet.",
+      "period": {
+        "completed": "Started {{start}} · Completed {{end}}",
+        "cancelled": "Started {{start}} · Stopped {{end}}",
+        "ended": "Started {{start}} · Ended {{end}}"
+      }
     },
     "today": {
       "remaining": "{{value}} kcal left",

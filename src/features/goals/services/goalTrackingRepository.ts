@@ -21,6 +21,7 @@ interface WeightGoalRow {
   status: WeightGoalStatus;
   started_at: string;
   completed_at: string | null;
+  ended_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -65,6 +66,7 @@ function mapWeightGoal(row: WeightGoalRow): WeightGoal {
     status: row.status,
     startedAt: row.started_at,
     completedAt: row.completed_at,
+    endedAt: row.ended_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -118,7 +120,7 @@ export async function listHistoricalWeightGoals() {
       FROM weight_goals
       WHERE status != 'active'
       ORDER BY
-        CASE WHEN completed_at IS NOT NULL THEN completed_at ELSE updated_at END DESC,
+        COALESCE(ended_at, completed_at, updated_at) DESC,
         started_at DESC;
     `
   );
@@ -139,10 +141,10 @@ export async function replaceActiveWeightGoal(
     await database.runAsync(
       `
         UPDATE weight_goals
-        SET status = 'cancelled', updated_at = ?
+        SET status = 'cancelled', ended_at = ?, updated_at = ?
         WHERE status = 'active';
       `,
-      [now]
+      [now, now]
     );
 
     await database.runAsync(
@@ -210,10 +212,10 @@ export async function completeWeightGoal(goalId: string) {
   await database.runAsync(
     `
       UPDATE weight_goals
-      SET status = 'completed', completed_at = ?, updated_at = ?
+      SET status = 'completed', completed_at = ?, ended_at = ?, updated_at = ?
       WHERE id = ?;
     `,
-    [now, now, goalId]
+    [now, now, now, goalId]
   );
 
   return now;

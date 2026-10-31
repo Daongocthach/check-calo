@@ -13,13 +13,7 @@ import type {
   WeightLog,
 } from '../types';
 import { calculateGoalProgress, getStreakFromSummaries } from '../utils/goalProgress';
-import {
-  addDays,
-  calculateTrendWeight,
-  daysBetween,
-  MAINTAIN_GOAL_DAYS,
-  roundKg,
-} from '../utils/weightGoal';
+import { addDays, calculateTrendWeight, daysBetween, roundKg } from '../utils/weightGoal';
 import {
   completeWeightGoal,
   getActiveWeightGoal,
@@ -36,13 +30,21 @@ import { listWeightLogs } from './weightLogRepository';
 const KCAL_PER_KG = 7700;
 const DAYS_PER_MONTH = 30;
 const DEFAULT_TARGET_KG = 1;
+/** On-target days of maintaining that unlock its achievement. */
+const FIRST_MAINTAIN_ACHIEVEMENT_DAYS = 30;
 
 async function markGoalCompleted(goal: WeightGoalProgress): Promise<WeightGoalProgress> {
   const completedAt = await completeWeightGoal(goal.goal.id);
 
   return {
     ...goal,
-    goal: { ...goal.goal, status: 'completed', completedAt, updatedAt: completedAt },
+    goal: {
+      ...goal.goal,
+      status: 'completed',
+      completedAt,
+      endedAt: completedAt,
+      updatedAt: completedAt,
+    },
     completed: true,
   };
 }
@@ -53,12 +55,9 @@ async function getGoalProgress(
   endedAt?: string | null
 ): Promise<WeightGoalProgress> {
   const endDateKey = formatDateKey(endedAt ?? new Date());
-  const summaries =
-    goal.mode === 'maintain'
-      ? []
-      : await listDailyNutritionSummaries(formatDateKey(goal.startedAt), endDateKey);
+  const summaries = await listDailyNutritionSummaries(formatDateKey(goal.startedAt), endDateKey);
 
-  return calculateGoalProgress(goal, summaries, profile.maintenanceCalorieTarget, endDateKey);
+  return calculateGoalProgress(goal, summaries, profile, endDateKey);
 }
 
 function getPlannedTargetWeightKg(mode: WeightGoalMode, profile: UserProfile) {
@@ -77,7 +76,7 @@ function getPlannedTargetWeightKg(mode: WeightGoalMode, profile: UserProfile) {
     : profile.weightKg + fallbackChangeKg;
 }
 
-/** Days the change takes at the monthly rate; a month for maintain goals. */
+/** Days the change takes at the monthly rate; maintain goals have no length. */
 function getPlannedDays(
   mode: WeightGoalMode,
   fromKg: number,
@@ -85,7 +84,7 @@ function getPlannedDays(
   monthlyRateKg: number
 ) {
   if (mode === 'maintain') {
-    return MAINTAIN_GOAL_DAYS;
+    return 0;
   }
 
   const rate = Math.abs(monthlyRateKg);
@@ -291,14 +290,16 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
       if (await unlockAchievement('goal_crusher')) {
         achievementKeys.push('goal_crusher');
       }
-
-      if (justCompletedGoal.goal.mode === 'maintain') {
-        if (await unlockAchievement('first_maintain_goal')) {
-          achievementKeys.push('first_maintain_goal');
-        }
-      }
     } else {
       activeGoalSnapshot = progress;
+    }
+
+    if (
+      progress.goal.mode === 'maintain' &&
+      progress.progressValue >= FIRST_MAINTAIN_ACHIEVEMENT_DAYS &&
+      (await unlockAchievement('first_maintain_goal'))
+    ) {
+      achievementKeys.push('first_maintain_goal');
     }
   }
 
@@ -309,15 +310,13 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
     latestCompletedGoal = await getGoalProgress(
       completedGoal,
       profile,
-      completedGoal.completedAt ?? completedGoal.updatedAt
+      completedGoal.endedAt ?? completedGoal.updatedAt
     );
   }
 
   const historicalGoals = await listHistoricalWeightGoals();
   const goalHistory = await Promise.all(
-    historicalGoals.map((goal) =>
-      getGoalProgress(goal, profile, goal.completedAt ?? goal.updatedAt)
-    )
+    historicalGoals.map((goal) => getGoalProgress(goal, profile, goal.endedAt ?? goal.updatedAt))
   );
   const completedGoals = goalHistory.filter((goal) => goal.completed).length;
 
