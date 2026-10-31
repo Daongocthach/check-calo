@@ -9,7 +9,7 @@ import { useCloseAuthFlow } from '@/features/auth/hooks/useCloseAuthFlow';
 import { register } from '@/features/auth/services/authService';
 import { useResponsiveKeyboardLayout, useScreenDimensions } from '@/hooks';
 import { toast } from '@/utils/toast';
-import AppLogo from '../../assets/splash-icon-light.png';
+import AppLogo from '../../assets/app-logo.webp';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

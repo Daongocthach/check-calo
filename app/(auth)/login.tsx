@@ -11,7 +11,7 @@ import { loginAuthenticate, loginSyncCloudData } from '@/features/auth/services/
 import { useResponsiveKeyboardLayout, useScreenDimensions } from '@/hooks';
 import { useAppAlert } from '@/providers/app-alert/AppAlertProvider';
 import { toast } from '@/utils/toast';
-import AppLogo from '../../assets/splash-icon-light.png';
+import AppLogo from '../../assets/app-logo.webp';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

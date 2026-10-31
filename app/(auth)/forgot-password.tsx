@@ -7,7 +7,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import { Button, Input, ScreenContainer, Text } from '@/common/components';
 import { sendPasswordResetEmail } from '@/features/auth/services/authService';
 import { toast } from '@/utils/toast';
-import AppLogo from '../../assets/splash-icon-light.png';
+import AppLogo from '../../assets/app-logo.webp';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
