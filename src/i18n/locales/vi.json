@@ -268,17 +268,27 @@
   "profileScreen": {
     "actionError": "Không thể cập nhật dữ liệu lúc này. Vui lòng thử lại.",
     "reminders": {
-      "toggleLabel": "Bật/tắt thông báo",
-      "subtitle": "Nhắc bạn mở app để cập nhật bữa ăn vào các khung giờ quen thuộc.",
+      "subtitle": "Mỗi nhắc nhở có công tắc riêng. Bạn có thể tự tạo thêm cho bữa phụ hoặc thói quen của mình.",
       "breakfast": "Bữa sáng",
       "lunch": "Bữa trưa",
       "dinner": "Bữa tối",
-      "pickTime": "Chọn giờ nhắc",
+      "mealWindow": "{{start}}–{{end}}",
+      "customTag": "Tự tạo",
+      "addButton": "Thêm nhắc nhở",
+      "limitReached": "Bạn có thể tạo tối đa {{count}} nhắc nhở.",
+      "toggleA11y": "Bật/tắt nhắc {{name}}",
+      "changeTimeA11y": "Đổi giờ nhắc {{name}}",
+      "editA11y": "Sửa nhắc nhở {{name}}",
+      "editor": {
+        "addTitle": "Thêm nhắc nhở",
+        "editTitle": "Sửa nhắc nhở",
+        "nameLabel": "Tên nhắc nhở",
+        "namePlaceholder": "VD: Bữa phụ chiều",
+        "timeLabel": "Giờ nhắc",
+        "defaultName": "Nhắc nhở"
+      },
       "hint": "Bấm thông báo sẽ mở Check AI để bạn ghi món ngay.",
       "permissionDenied": "Bạn chưa cấp quyền thông báo cho ứng dụng.",
-      "enabledSuccess": "Đã bật nhắc nhở cập nhật calories.",
-      "disabledSuccess": "Đã tắt nhắc nhở cập nhật calories.",
-      "updatedSuccess": "Đã cập nhật giờ nhắc.",
       "adjustedToMealWindow": "Giờ nhắc đã được đưa về khung giờ hợp lệ của bữa ăn.",
       "channelName": "Nhắc cập nhật calories",
       "notifications": {
@@ -293,6 +303,9 @@
         "dinner": {
           "title": "Đến giờ cập nhật bữa tối",
           "body": "Chốt lại ngày hôm nay bằng cách ghi nhanh bữa tối của bạn."
+        },
+        "custom": {
+          "body": "Mở app để ghi lại món bạn vừa ăn."
         }
       }
     }

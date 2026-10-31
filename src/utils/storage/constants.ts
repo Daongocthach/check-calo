@@ -8,6 +8,8 @@ export const STORAGE_KEYS = {
     language: 'user_language',
     onboardingCompleted: 'onboarding_completed',
     notificationsEnabled: 'notifications_enabled',
+    calorieReminders: 'calorie_reminders',
+    // Legacy single-switch settings, read once to migrate into `calorieReminders`.
     calorieRemindersEnabled: 'calorie_reminders_enabled',
     calorieReminderBreakfastTime: 'calorie_reminder_breakfast_time',
     calorieReminderLunchTime: 'calorie_reminder_lunch_time',

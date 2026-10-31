@@ -268,17 +268,27 @@
   "profileScreen": {
     "actionError": "Unable to update data right now. Please try again.",
     "reminders": {
-      "toggleLabel": "Turn notifications on/off",
-      "subtitle": "Nudge yourself to open the app and log meals around your usual times.",
+      "subtitle": "Each reminder has its own switch. Add your own for snacks or other habits you want to track.",
       "breakfast": "Breakfast",
       "lunch": "Lunch",
       "dinner": "Dinner",
-      "pickTime": "Choose reminder time",
+      "mealWindow": "{{start}}–{{end}}",
+      "customTag": "Custom",
+      "addButton": "Add reminder",
+      "limitReached": "You can have up to {{count}} reminders.",
+      "toggleA11y": "Turn {{name}} reminder on or off",
+      "changeTimeA11y": "Change {{name}} reminder time",
+      "editA11y": "Edit {{name}} reminder",
+      "editor": {
+        "addTitle": "New reminder",
+        "editTitle": "Edit reminder",
+        "nameLabel": "Name",
+        "namePlaceholder": "e.g. Afternoon snack",
+        "timeLabel": "Remind me at",
+        "defaultName": "Reminder"
+      },
       "hint": "Tapping a reminder opens Check AI so you can log your meal right away.",
       "permissionDenied": "Notifications permission has not been granted to the app.",
-      "enabledSuccess": "Calorie reminders are now on.",
-      "disabledSuccess": "Calorie reminders are now off.",
-      "updatedSuccess": "Reminder time updated.",
       "adjustedToMealWindow": "Reminder time was adjusted to the valid meal window.",
       "channelName": "Calorie reminders",
       "notifications": {
@@ -293,6 +303,9 @@
         "dinner": {
           "title": "Time to log dinner",
           "body": "Wrap up today by logging your dinner in a few taps."
+        },
+        "custom": {
+          "body": "Open the app to log what you just ate."
         }
       }
     }
