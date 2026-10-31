@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { ActivityIndicator, FlatList, View, type ListRenderItemInfo } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { IconButton, ScreenHeader, Text } from '@/common/components';
@@ -40,6 +40,8 @@ export function FoodChatScreen() {
     }, [])
   );
   const startVoice = voice.start;
+  const cancelVoice = voice.cancel;
+  const { sendMessage, logMessageItems, undoLog } = chat;
   const voiceRequestedRef = useRef(params.voice === '1');
 
   useEffect(() => {
@@ -66,13 +68,16 @@ export function FoodChatScreen() {
     void voice.start();
   };
 
-  const handleSend = (text = draft) => {
-    voice.cancel();
-    const pendingImage = imageUri;
-    setDraft('');
-    setImageUri(null);
-    void chat.sendMessage(text, pendingImage);
-  };
+  // Stable while typing, so the chat history does not re-render on each keystroke.
+  const sendText = useCallback(
+    (text: string) => {
+      cancelVoice();
+      setDraft('');
+      setImageUri(null);
+      void sendMessage(text, imageUri);
+    },
+    [cancelVoice, imageUri, sendMessage]
+  );
 
   const handleCamera = async () => {
     const photo = await openCamera();
@@ -95,29 +100,58 @@ export function FoodChatScreen() {
     }
   };
 
-  const handleRecent = async (food: RecentFood) => {
-    try {
+  /** Runs a diary change and toasts the outcome; `false` means nothing changed. */
+  const withToast = useCallback(
+    async (run: () => Promise<boolean>, successKey: 'chat.loggedToast' | 'chat.undoToast') => {
+      try {
+        if (await run()) {
+          toast.success(t(successKey));
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : t('errors.generic'));
+      }
+    },
+    [t]
+  );
+
+  const handleRecent = (food: RecentFood) =>
+    withToast(async () => {
       await chat.logRecent(food);
-      toast.success(t('chat.loggedToast'));
       // The text was only a search for this food; a longer message keeps its other foods.
       if (matchesFoodSearch(food.name, draft)) {
         setDraft('');
       }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t('errors.generic'));
-    }
-  };
+      return true;
+    }, 'chat.loggedToast');
 
-  const handleLog = async (messageId: string, itemIndex?: number) => {
-    try {
-      const logged = await chat.logMessageItems(messageId, itemIndex);
-      if (logged) {
-        toast.success(t('chat.loggedToast'));
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t('errors.generic'));
-    }
-  };
+  const handleLog = useCallback(
+    (messageId: string, itemIndex?: number) => {
+      void withToast(() => logMessageItems(messageId, itemIndex), 'chat.loggedToast');
+    },
+    [logMessageItems, withToast]
+  );
+
+  const handleUndo = useCallback(
+    (messageId: string, itemIndex?: number) => {
+      void withToast(() => undoLog(messageId, itemIndex), 'chat.undoToast');
+    },
+    [undoLog, withToast]
+  );
+
+  const lastMessageId = lastMessage?.id;
+  const renderMessage = useCallback(
+    ({ item }: ListRenderItemInfo<ChatMessage>) => (
+      <ChatMessageItem
+        message={item}
+        savingKey={chat.savingKey}
+        showFollowUps={item.id === lastMessageId && !chat.isSending}
+        onLog={handleLog}
+        onUndo={handleUndo}
+        onFollowUp={sendText}
+      />
+    ),
+    [chat.isSending, chat.savingKey, handleLog, handleUndo, lastMessageId, sendText]
+  );
 
   return (
     <View style={styles.container}>
@@ -150,17 +184,7 @@ export function FoodChatScreen() {
           keyExtractor={(message) => message.id}
           contentContainerStyle={styles.list}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => (
-            <ChatMessageItem
-              message={item}
-              savingKey={chat.savingKey}
-              showFollowUps={item.id === lastMessage?.id && !chat.isSending}
-              onLog={(messageId, itemIndex) => {
-                void handleLog(messageId, itemIndex);
-              }}
-              onFollowUp={(text) => handleSend(text)}
-            />
-          )}
+          renderItem={renderMessage}
           ListFooterComponent={
             chat.isSending ? (
               <View style={styles.typing}>
@@ -183,7 +207,7 @@ export function FoodChatScreen() {
           <ChatComposer
             value={draft}
             onChangeText={setDraft}
-            onSubmit={() => handleSend()}
+            onSubmit={() => sendText(draft)}
             onCameraPress={() => {
               void handleCamera();
             }}

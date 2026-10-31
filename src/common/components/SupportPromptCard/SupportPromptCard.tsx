@@ -6,7 +6,7 @@ import { useUnistyles } from 'react-native-unistyles';
 import { Button } from '@/common/components/Button';
 import { IconButton } from '@/common/components/IconButton';
 import { Text } from '@/common/components/Text';
-import CoffeeIcon from '../../../../assets/coffee.png';
+import CoffeeIcon from '../../../../assets/coffee.webp';
 import { styles } from './SupportPromptCard.styles';
 import type { SupportPromptCardProps } from './SupportPromptCard.types';
 

@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { BlurView } from 'expo-blur';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { StyleProp, TextStyle } from 'react-native';
-import { Pressable, View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
-import { Button } from '@/common/components/Button';
-import { Icon } from '@/common/components/Icon';
+import { Platform, Pressable, View } from 'react-native';
+import Animated, { Easing, FadeIn, FadeOut, Keyframe } from 'react-native-reanimated';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Text } from '@/common/components/Text';
+import { hs, rf, vs } from '@/theme/metrics';
 import {
   appAlert,
   registerAppAlertHandler,
@@ -17,64 +17,59 @@ interface AppAlertProviderProps {
   children: ReactNode;
 }
 
-function getButtonVariant(button: AppAlertButton) {
-  if (button.style === 'cancel') {
-    return 'outline' as const;
-  }
-
-  if (button.style === 'destructive') {
-    return 'secondary' as const;
-  }
-
-  return 'primary' as const;
+interface ShownAlert extends AppAlertPayload {
+  /** Remounts the card when one alert replaces another, so it animates in again. */
+  key: number;
 }
 
-function getButtonIcon(button: AppAlertButton) {
-  if (button.style === 'cancel') {
-    return <Icon name="close" variant="primary" size={16} />;
+const ENTER_DURATION = 220;
+const EXIT_DURATION = 150;
+
+const cardEntering = new Keyframe({
+  0: { opacity: 0, transform: [{ scale: 1.15 }] },
+  100: { opacity: 1, transform: [{ scale: 1 }], easing: Easing.out(Easing.cubic) },
+}).duration(ENTER_DURATION);
+
+/**
+ * Orders actions the way `UIAlertController` does: cancel on the left of a side-by-side pair,
+ * at the bottom of a stack.
+ */
+function orderButtons(buttons: AppAlertButton[]) {
+  const cancel = buttons.find((button) => button.style === 'cancel');
+
+  if (!cancel || buttons.length < 2) {
+    return buttons;
   }
 
-  if (button.style === 'destructive') {
-    return <Icon name="trash-outline" destructive size={16} />;
-  }
+  const rest = buttons.filter((button) => button !== cancel);
 
-  return <Icon name="checkmark" variant="onBrand" size={16} />;
-}
-
-function getButtonLabelStyle(button: AppAlertButton): StyleProp<TextStyle> | undefined {
-  if (button.style === 'destructive') {
-    return styles.destructiveLabel;
-  }
-
-  return undefined;
+  return buttons.length === 2 ? [cancel, ...rest] : [...rest, cancel];
 }
 
 export function AppAlertProvider({ children }: AppAlertProviderProps) {
   const { t } = useTranslation();
-  const [currentAlert, setCurrentAlert] = useState<AppAlertPayload | null>(null);
+  const { theme } = useUnistyles();
+  const [currentAlert, setCurrentAlert] = useState<ShownAlert | null>(null);
+  const alertCount = useRef(0);
 
-  useEffect(() => registerAppAlertHandler(setCurrentAlert), []);
+  useEffect(
+    () =>
+      registerAppAlertHandler((payload) => {
+        alertCount.current += 1;
+        setCurrentAlert({ ...payload, key: alertCount.current });
+      }),
+    []
+  );
 
   const dismiss = () => setCurrentAlert(null);
 
-  const actions = useMemo(() => {
+  const buttons = useMemo(() => {
     const fallbackButtons: AppAlertButton[] = [{ text: String(t('common.ok' as never)) }];
-    const nextButtons: AppAlertButton[] = currentAlert?.buttons?.length
-      ? currentAlert.buttons
-      : fallbackButtons;
 
-    return nextButtons.map((button) => ({
-      text: button.text,
-      variant: getButtonVariant(button),
-      leftIcon: getButtonIcon(button),
-      labelStyle: getButtonLabelStyle(button),
-      onPress: () => {
-        dismiss();
-        button.onPress?.();
-      },
-    }));
+    return orderButtons(currentAlert?.buttons?.length ? currentAlert.buttons : fallbackButtons);
   }, [currentAlert?.buttons, t]);
 
+  const isStacked = buttons.length > 2;
   const dismissOnBackdropPress = currentAlert?.options?.dismissOnBackdropPress ?? true;
 
   return (
@@ -82,37 +77,78 @@ export function AppAlertProvider({ children }: AppAlertProviderProps) {
       {children}
 
       {currentAlert ? (
-        <Pressable
+        <Animated.View
           style={styles.backdrop}
-          onPress={dismissOnBackdropPress ? dismiss : undefined}
-          accessibilityRole="alert"
+          entering={FadeIn.duration(ENTER_DURATION)}
+          exiting={FadeOut.duration(EXIT_DURATION)}
         >
-          <Pressable style={styles.card} onPress={() => {}}>
-            <Text variant="h2" style={styles.title}>
-              {currentAlert.title}
-            </Text>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={dismissOnBackdropPress ? dismiss : undefined}
+            accessible={false}
+          />
 
-            {currentAlert.message ? (
-              <Text variant="bodySmall" style={styles.message}>
-                {currentAlert.message}
-              </Text>
+          <Animated.View
+            key={currentAlert.key}
+            style={styles.card}
+            entering={cardEntering}
+            exiting={FadeOut.duration(EXIT_DURATION)}
+            accessibilityRole="alert"
+          >
+            {Platform.OS === 'ios' ? (
+              <>
+                <BlurView
+                  style={StyleSheet.absoluteFill}
+                  intensity={100}
+                  tint={theme.colors.mode === 'dark' ? 'systemMaterialDark' : 'systemMaterialLight'}
+                />
+                <View style={styles.tint} />
+              </>
             ) : null}
 
-            <View style={styles.actions}>
-              {actions.map((action) => (
-                <Button
-                  key={action.text}
-                  title={action.text}
-                  variant={action.variant}
-                  size="sm"
-                  leftIcon={action.leftIcon}
-                  labelStyle={action.labelStyle}
-                  onPress={action.onPress}
-                />
+            <View style={styles.content}>
+              <Text weight="semibold" align="center" style={styles.title}>
+                {currentAlert.title}
+              </Text>
+
+              {currentAlert.message ? (
+                <Text align="center" style={styles.message}>
+                  {currentAlert.message}
+                </Text>
+              ) : null}
+            </View>
+
+            <View style={styles.actions({ isStacked })}>
+              {buttons.map((button, index) => (
+                <Pressable
+                  key={`${index}-${button.text}`}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.action({ isStacked }),
+                    index > 0 && (isStacked ? styles.stackedDivider : styles.rowDivider),
+                    pressed && styles.actionPressed,
+                  ]}
+                  onPress={() => {
+                    dismiss();
+                    button.onPress?.();
+                  }}
+                >
+                  <Text
+                    align="center"
+                    numberOfLines={1}
+                    weight={button.style === 'cancel' ? 'regular' : 'semibold'}
+                    style={[
+                      styles.actionLabel,
+                      button.style === 'destructive' && styles.destructiveLabel,
+                    ]}
+                  >
+                    {button.text}
+                  </Text>
+                </Pressable>
               ))}
             </View>
-          </Pressable>
-        </Pressable>
+          </Animated.View>
+        </Animated.View>
       ) : null}
     </View>
   );
@@ -131,33 +167,63 @@ const styles = StyleSheet.create((theme) => ({
     zIndex: 1000,
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
-    backgroundColor: theme.colors.overlay.modal,
-    padding: theme.metrics.spacing.p16,
+    backgroundColor: theme.colors.alert.backdrop,
   },
   card: {
-    width: '85%',
-    maxWidth: 420,
-    backgroundColor: theme.colors.background.modal,
-    borderRadius: theme.metrics.borderRadius.xl,
-    padding: theme.metrics.spacing.p24,
-    gap: theme.metrics.spacingV.p12,
+    width: hs(270),
+    maxWidth: '90%',
+    borderRadius: hs(14),
+    overflow: 'hidden' as const,
+    ...(Platform.OS === 'ios' ? {} : { backgroundColor: theme.colors.alert.surfaceSolid }),
+  },
+  tint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: theme.colors.alert.surface,
+  },
+  content: {
+    paddingHorizontal: hs(16),
+    paddingTop: vs(19),
+    paddingBottom: vs(20),
+    gap: vs(4),
   },
   title: {
     color: theme.colors.text.primary,
-    textAlign: 'center' as const,
+    fontSize: rf(17),
+    lineHeight: rf(22),
   },
   message: {
-    color: theme.colors.text.tertiary,
-    textAlign: 'center' as const,
+    color: theme.colors.text.primary,
+    fontSize: rf(13),
+    lineHeight: rf(18),
+  },
+  actions: ({ isStacked }: { isStacked: boolean }) => ({
+    flexDirection: isStacked ? ('column' as const) : ('row' as const),
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: theme.colors.alert.separator,
+  }),
+  action: ({ isStacked }: { isStacked: boolean }) => ({
+    flex: isStacked ? undefined : 1,
+    minHeight: vs(44),
+    justifyContent: 'center' as const,
+    paddingHorizontal: hs(8),
+  }),
+  stackedDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: theme.colors.alert.separator,
+  },
+  rowDivider: {
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: theme.colors.alert.separator,
+  },
+  actionPressed: {
+    backgroundColor: theme.colors.alert.pressed,
+  },
+  actionLabel: {
+    color: theme.colors.alert.action,
+    fontSize: rf(17),
+    lineHeight: rf(22),
   },
   destructiveLabel: {
-    color: theme.colors.state.error,
-  },
-  actions: {
-    flexDirection: 'row' as const,
-    justifyContent: 'flex-end' as const,
-    flexWrap: 'wrap' as const,
-    gap: theme.metrics.spacing.p8,
-    marginTop: theme.metrics.spacingV.p8,
+    color: theme.colors.alert.destructive,
   },
 }));

@@ -181,6 +181,7 @@ Displays user or entity representation as an image, initials, or icon fallback.
 | `initials`           | `string`                               | `undefined` | Fallback text (e.g. "JD") |
 | `icon`               | `ReactNode`                            | `undefined` | Fallback icon node        |
 | `size`               | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'`      | Avatar size               |
+| `tone`               | `'brand' \| 'muted'`                   | `'brand'`   | Frame background          |
 | `accessibilityLabel` | `string`                               | `undefined` | Screen reader label       |
 
 **Size Reference**

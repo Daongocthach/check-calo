@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { planFromDraft, type GoalDraft } from '@/features/goals/utils/goalPlan';
+import { draftFromPlan, planFromDraft, type GoalDraft } from '@/features/goals/utils/goalPlan';
 import { profileFormSchema, type ProfileFormValues } from '../schemas/profileSchema';
-import { saveProfile } from '../services/profileService';
-import type { UserProfileInput } from '../types';
+import { saveProfile, type SaveProfileOptions } from '../services/profileService';
+import type { UserProfile, UserProfileInput } from '../types';
 import {
   calculateBmi,
   calculateDailyCalorieTarget,
@@ -63,10 +63,34 @@ export interface ProfilePlan {
 }
 
 /** The first-run form: body stats, then the goal, then the resulting plan. */
-export function useProfileForm() {
+export function useProfileForm(
+  initialProfile?: UserProfile | null,
+  saveOptions?: SaveProfileOptions
+) {
+  const initialDraft = initialProfile
+    ? draftFromPlan(
+        initialProfile,
+        initialProfile.monthlyWeightGoalKg,
+        initialProfile.targetWeightKg
+      )
+    : null;
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: DEFAULT_VALUES,
+    defaultValues:
+      initialProfile && initialDraft
+        ? {
+            displayName: initialProfile.displayName,
+            age: String(initialProfile.age),
+            gender: initialProfile.gender,
+            heightCm: initialProfile.heightCm,
+            weightKg: initialProfile.weightKg,
+            activityLevel: initialProfile.activityLevel,
+            goalMode: initialDraft.mode,
+            targetWeightKg: initialDraft.targetWeightKg,
+            weeks: initialDraft.weeks,
+          }
+        : DEFAULT_VALUES,
     mode: 'onChange',
   });
   const values = form.watch();
@@ -88,7 +112,7 @@ export function useProfileForm() {
       void form.handleSubmit(
         async (formValues) => {
           try {
-            await saveProfile(toProfileInput(formValues));
+            await saveProfile(toProfileInput(formValues), saveOptions);
             resolve(true);
           } catch (error) {
             reject(error);

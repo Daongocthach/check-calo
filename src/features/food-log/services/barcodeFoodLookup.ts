@@ -1,136 +1,13 @@
-import { env } from '@/config/env';
-import { supabase } from '@/integrations/supabase';
-import { getDatabase } from '@/services/database/sqlite';
-import { nowIsoString } from '@/utils/date';
-import { createEntityId } from '@/utils/id';
-import { NUTRIENTS } from '../constants';
-import type { NutrientKey, NutrientValues } from '../types';
-import {
-  NUTRIENT_SQL,
-  nutrientsFromColumns,
-  pickNutrients,
-  toNutrientColumns,
-  toNutrientParams,
-  type NutrientColumnValues,
-} from '../utils/nutrients';
+import type {
+  BarcodeFoodLookupResult,
+  FoodProductCatalogInput,
+  FoodProductSource,
+} from './barcodeFoodLookup.types';
+import { getLocalFoodProductByBarcode, upsertLocalFoodProduct } from './foodProductRepository';
+import { fetchOpenFoodFactsProduct } from './openFoodFacts';
+import { fetchSupabaseFoodProduct, upsertSupabaseFoodProduct } from './supabaseFoodProducts';
 
-interface OpenFoodFactsProduct {
-  code?: string;
-  product_name?: string;
-  brands?: string;
-  image_front_url?: string;
-  serving_size?: string;
-  quantity?: string;
-  nutriments?: Record<string, number | string | undefined>;
-}
-
-interface OpenFoodFactsResponse {
-  status?: number;
-  product?: OpenFoodFactsProduct;
-}
-
-export interface BarcodeFoodLookupResult {
-  barcode: string;
-  foodName: string;
-  brand: string;
-  quantityLabel: string;
-  quantityGrams: string;
-  calories: string;
-  protein: string;
-  carbs: string;
-  fat: string;
-  notes: string;
-  imageUri?: string;
-  nutrients: NutrientValues;
-  source: 'local' | 'supabase' | 'openfoodfacts';
-}
-
-interface FoodProductRow extends NutrientColumnValues {
-  id: string;
-  barcode: string;
-  name: string;
-  brand: string | null;
-  quantity_label: string;
-  quantity_grams: number | null;
-  total_calories: number;
-  protein_grams: number;
-  carbs_grams: number;
-  fat_grams: number;
-  notes: string | null;
-  image_uri: string | null;
-  source: 'user' | 'openfoodfacts' | 'admin';
-  verified_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-/** Nutrient columns are absent until the cloud migration that adds them has run. */
-interface SupabaseFoodProductRow extends Partial<NutrientColumnValues> {
-  id?: string;
-  barcode: string;
-  name: string;
-  brand: string | null;
-  quantity_label: string;
-  quantity_grams: number | null;
-  calories: number;
-  protein_grams: number;
-  carbs_grams: number;
-  fat_grams: number;
-  image_url: string | null;
-  source: 'user' | 'openfoodfacts' | 'admin';
-  verified_at: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface FoodProductCatalogInput extends Partial<NutrientValues> {
-  barcode: string;
-  name: string;
-  brand?: string | null;
-  quantityLabel: string;
-  quantityGrams?: number | null;
-  totalCalories: number;
-  proteinGrams: number;
-  carbsGrams: number;
-  fatGrams: number;
-  notes?: string | null;
-  imageUri?: string | null;
-  source: 'user' | 'openfoodfacts' | 'admin';
-  verifiedAt?: string | null;
-}
-
-const OPEN_FOOD_FACTS_FIELDS = [
-  'code',
-  'product_name',
-  'brands',
-  'image_front_url',
-  'serving_size',
-  'quantity',
-  'nutriments',
-] as const;
-
-/** Open Food Facts nutriment name and the factor from its gram values to our unit. */
-const OPEN_FOOD_FACTS_NUTRIENTS: Record<NutrientKey, { name: string; factor: number }> = {
-  fiberGrams: { name: 'fiber', factor: 1 },
-  sugarGrams: { name: 'sugars', factor: 1 },
-  saturatedFatGrams: { name: 'saturated-fat', factor: 1 },
-  transFatGrams: { name: 'trans-fat', factor: 1 },
-  cholesterolMg: { name: 'cholesterol', factor: 1000 },
-  sodiumMg: { name: 'sodium', factor: 1000 },
-  potassiumMg: { name: 'potassium', factor: 1000 },
-};
-
-function toCleanString(value: string | undefined) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
-function toRoundedString(value: number | null) {
-  if (value === null || !Number.isFinite(value)) {
-    return '';
-  }
-
-  return Number.isInteger(value) ? String(value) : value.toFixed(1);
-}
+export type { BarcodeFoodLookupResult, FoodProductCatalogInput } from './barcodeFoodLookup.types';
 
 function toOptionalNumber(value: string) {
   if (!value.trim()) {
@@ -141,110 +18,9 @@ function toOptionalNumber(value: string) {
   return Number.isFinite(parsedValue) ? parsedValue : null;
 }
 
-function parseGrams(value: string) {
-  const normalizedValue = value.replace(',', '.');
-  const match = normalizedValue.match(/(\d+(?:\.\d+)?)\s*(g|gram|grams|ml)\b/i);
-
-  if (!match) {
-    return '';
-  }
-
-  const parsedValue = Number(match[1]);
-  return Number.isFinite(parsedValue) ? toRoundedString(parsedValue) : '';
-}
-
-function toNumber(value: number | string | undefined) {
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : null;
-  }
-
-  if (typeof value === 'string' && value.trim().length > 0) {
-    const parsedValue = Number(value);
-    return Number.isFinite(parsedValue) ? parsedValue : null;
-  }
-
-  return null;
-}
-
-function getNutrimentValue(
-  nutriments: Record<string, number | string | undefined> | undefined,
-  servingKey: string,
-  per100gKey: string
-) {
-  if (!nutriments) {
-    return '';
-  }
-
-  const value = toNumber(nutriments[servingKey]) ?? toNumber(nutriments[per100gKey]);
-  return toRoundedString(value);
-}
-
-function getOpenFoodFactsNutrients(
-  nutriments: Record<string, number | string | undefined> | undefined
-): NutrientValues {
-  const values: Partial<Record<NutrientKey, number>> = {};
-
-  for (const { key } of NUTRIENTS) {
-    const { name, factor } = OPEN_FOOD_FACTS_NUTRIENTS[key];
-    const value = nutriments
-      ? (toNumber(nutriments[`${name}_serving`]) ?? toNumber(nutriments[`${name}_100g`]))
-      : null;
-
-    if (value !== null) {
-      values[key] = value * factor;
-    }
-  }
-
-  return pickNutrients(values);
-}
-
-function buildNotes(barcode: string, brands: string) {
-  const noteParts = [brands, barcode].filter(Boolean);
-  return noteParts.join(' • ');
-}
-
-function mapFoodProductRow(
-  row: FoodProductRow,
-  source: BarcodeFoodLookupResult['source']
-): BarcodeFoodLookupResult {
-  return {
-    barcode: row.barcode,
-    foodName: row.name,
-    brand: row.brand ?? '',
-    quantityLabel: row.quantity_label,
-    quantityGrams: toRoundedString(row.quantity_grams),
-    calories: toRoundedString(row.total_calories),
-    protein: toRoundedString(row.protein_grams),
-    carbs: toRoundedString(row.carbs_grams),
-    fat: toRoundedString(row.fat_grams),
-    notes: row.notes ?? buildNotes(row.barcode, row.brand ?? ''),
-    imageUri: row.image_uri ?? undefined,
-    nutrients: nutrientsFromColumns(row),
-    source,
-  };
-}
-
-function mapSupabaseFoodProductRow(row: SupabaseFoodProductRow): BarcodeFoodLookupResult {
-  return {
-    barcode: row.barcode,
-    foodName: row.name,
-    brand: row.brand ?? '',
-    quantityLabel: row.quantity_label,
-    quantityGrams: toRoundedString(row.quantity_grams),
-    calories: toRoundedString(row.calories),
-    protein: toRoundedString(row.protein_grams),
-    carbs: toRoundedString(row.carbs_grams),
-    fat: toRoundedString(row.fat_grams),
-    notes: buildNotes(row.barcode, row.brand ?? ''),
-    imageUri: row.image_url ?? undefined,
-    nutrients: nutrientsFromColumns(row),
-    source: 'supabase',
-  };
-}
-
-function toCatalogInputFromLookup(
+function toCatalogInput(
   lookup: BarcodeFoodLookupResult,
-  source: FoodProductCatalogInput['source']
+  source: FoodProductSource
 ): FoodProductCatalogInput | null {
   if (!lookup.foodName.trim()) {
     return null;
@@ -268,194 +44,24 @@ function toCatalogInputFromLookup(
   };
 }
 
-async function getLocalFoodProductByBarcode(barcode: string) {
-  const database = await getDatabase();
-  const recentRow = await database.getFirstAsync<FoodProductRow>(
-    `
-      SELECT
-        id,
-        barcode,
-        name,
-        NULL AS brand,
-        quantity_label,
-        quantity_grams,
-        total_calories,
-        protein_grams,
-        carbs_grams,
-        fat_grams,
-        ${NUTRIENT_SQL.columns},
-        notes,
-        image_uri,
-        'user' AS source,
-        NULL AS verified_at,
-        created_at,
-        updated_at
-      FROM recent_foods
-      WHERE barcode = ?
-      LIMIT 1;
-    `,
-    [barcode]
-  );
-
-  if (recentRow) {
-    return mapFoodProductRow(recentRow, 'local');
-  }
-
-  const productRow = await database.getFirstAsync<FoodProductRow>(
-    'SELECT * FROM food_products WHERE barcode = ? LIMIT 1;',
-    [barcode]
-  );
-
-  return productRow ? mapFoodProductRow(productRow, 'local') : null;
-}
-
-async function upsertLocalFoodProduct(input: FoodProductCatalogInput) {
-  const database = await getDatabase();
-  const now = nowIsoString();
-  const existing = await database.getFirstAsync<{ id: string; created_at: string }>(
-    'SELECT id, created_at FROM food_products WHERE barcode = ? LIMIT 1;',
-    [input.barcode]
-  );
-
-  await database.runAsync(
-    `
-      INSERT INTO food_products (
-        id,
-        barcode,
-        name,
-        brand,
-        quantity_label,
-        quantity_grams,
-        total_calories,
-        protein_grams,
-        carbs_grams,
-        fat_grams,
-        ${NUTRIENT_SQL.columns},
-        notes,
-        image_uri,
-        source,
-        verified_at,
-        created_at,
-        updated_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${NUTRIENT_SQL.placeholders}, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(barcode) DO UPDATE SET
-        name = excluded.name,
-        brand = excluded.brand,
-        quantity_label = excluded.quantity_label,
-        quantity_grams = excluded.quantity_grams,
-        total_calories = excluded.total_calories,
-        protein_grams = excluded.protein_grams,
-        carbs_grams = excluded.carbs_grams,
-        fat_grams = excluded.fat_grams,
-        ${NUTRIENT_SQL.excluded},
-        notes = excluded.notes,
-        image_uri = excluded.image_uri,
-        source = excluded.source,
-        verified_at = excluded.verified_at,
-        updated_at = excluded.updated_at;
-    `,
-    [
-      existing?.id ?? createEntityId('product'),
-      input.barcode,
-      input.name,
-      input.brand ?? null,
-      input.quantityLabel,
-      input.quantityGrams ?? null,
-      input.totalCalories,
-      input.proteinGrams,
-      input.carbsGrams,
-      input.fatGrams,
-      ...toNutrientParams(input),
-      input.notes ?? null,
-      input.imageUri ?? null,
-      input.source,
-      input.verifiedAt ?? null,
-      existing?.created_at ?? now,
-      now,
-    ]
-  );
-}
-
-async function lookupSupabaseFoodProduct(barcode: string) {
-  if (!env.supabaseUrl || !env.supabaseAnonKey) {
-    return null;
-  }
-
-  const { data, error } = await supabase
-    .from('food_products')
-    .select(
-      `id, barcode, name, brand, quantity_label, quantity_grams, calories, protein_grams, carbs_grams, fat_grams, ${NUTRIENT_SQL.columns}, image_url, source, verified_at, created_at, updated_at`
-    )
-    .eq('barcode', barcode)
-    .maybeSingle<SupabaseFoodProductRow>();
-
-  if (error) {
-    if (__DEV__) {
-      console.warn('[Barcode] Supabase food_products lookup failed', error.message);
-    }
-    return null;
-  }
-
-  if (!data) {
-    return null;
-  }
-
-  const lookup = mapSupabaseFoodProductRow(data);
-  const localInput = toCatalogInputFromLookup(lookup, data.source ?? 'admin');
-
-  if (localInput) {
-    await upsertLocalFoodProduct(localInput);
-  }
-
-  return lookup;
-}
-
+/** Saves a product to the local catalog and, when configured, the shared Supabase catalog. */
 export async function upsertFoodProductCatalog(input: FoodProductCatalogInput) {
-  const trimmedBarcode = input.barcode.trim();
+  const barcode = input.barcode.trim();
+  const name = input.name.trim();
 
-  if (!trimmedBarcode || !input.name.trim()) {
+  if (!barcode || !name) {
     return;
   }
 
-  const normalizedInput = {
-    ...input,
-    barcode: trimmedBarcode,
-    name: input.name.trim(),
-  };
-
+  const normalizedInput = { ...input, barcode, name };
   await upsertLocalFoodProduct(normalizedInput);
-
-  if (!env.supabaseUrl || !env.supabaseAnonKey) {
-    return;
-  }
-
-  const now = new Date().toISOString();
-  const { error } = await supabase.from('food_products').upsert(
-    {
-      barcode: normalizedInput.barcode,
-      name: normalizedInput.name,
-      brand: normalizedInput.brand ?? null,
-      quantity_label: normalizedInput.quantityLabel,
-      quantity_grams: normalizedInput.quantityGrams ?? null,
-      calories: normalizedInput.totalCalories,
-      protein_grams: normalizedInput.proteinGrams,
-      carbs_grams: normalizedInput.carbsGrams,
-      fat_grams: normalizedInput.fatGrams,
-      ...toNutrientColumns(normalizedInput),
-      image_url: normalizedInput.imageUri ?? null,
-      source: normalizedInput.source,
-      verified_at: normalizedInput.verifiedAt ?? null,
-      updated_at: now,
-    },
-    { onConflict: 'barcode' }
-  );
-
-  if (error && __DEV__) {
-    console.warn('[Barcode] Supabase food_products upsert failed', error.message);
-  }
+  await upsertSupabaseFoodProduct(normalizedInput);
 }
 
+/**
+ * Finds a product by barcode: the device first, then the shared catalog, then Open Food Facts.
+ * Remote finds are kept locally so the next scan works offline.
+ */
 export async function lookupFoodByBarcode(
   barcode: string
 ): Promise<BarcodeFoodLookupResult | null> {
@@ -471,58 +77,24 @@ export async function lookupFoodByBarcode(
     return localProduct;
   }
 
-  const supabaseProduct = await lookupSupabaseFoodProduct(trimmedBarcode);
+  const shared = await fetchSupabaseFoodProduct(trimmedBarcode);
 
-  if (supabaseProduct) {
-    return supabaseProduct;
+  if (shared) {
+    const localInput = toCatalogInput(shared.product, shared.source);
+
+    if (localInput) {
+      await upsertLocalFoodProduct(localInput);
+    }
+
+    return shared.product;
   }
 
-  const query = new URLSearchParams({
-    fields: OPEN_FOOD_FACTS_FIELDS.join(','),
-  });
-
-  const response = await fetch(
-    `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(trimmedBarcode)}?${query.toString()}`
-  );
-
-  if (!response.ok) {
-    throw new Error(`Barcode lookup failed with status ${response.status}.`);
-  }
-
-  const payload = (await response.json()) as OpenFoodFactsResponse;
-
-  if (payload.status !== 1 || !payload.product) {
-    return null;
-  }
-
-  const { product } = payload;
-  const brands = toCleanString(product.brands);
-
-  const lookup = {
-    barcode: trimmedBarcode,
-    foodName: toCleanString(product.product_name),
-    brand: brands,
-    quantityLabel: parseGrams(
-      toCleanString(product.serving_size) || toCleanString(product.quantity)
-    ),
-    quantityGrams: parseGrams(
-      toCleanString(product.serving_size) || toCleanString(product.quantity)
-    ),
-    calories: getNutrimentValue(product.nutriments, 'energy-kcal_serving', 'energy-kcal_100g'),
-    protein: getNutrimentValue(product.nutriments, 'proteins_serving', 'proteins_100g'),
-    carbs: getNutrimentValue(product.nutriments, 'carbohydrates_serving', 'carbohydrates_100g'),
-    fat: getNutrimentValue(product.nutriments, 'fat_serving', 'fat_100g'),
-    notes: buildNotes(trimmedBarcode, brands),
-    imageUri: toCleanString(product.image_front_url) || undefined,
-    nutrients: getOpenFoodFactsNutrients(product.nutriments),
-    source: 'openfoodfacts',
-  } satisfies BarcodeFoodLookupResult;
-
-  const catalogInput = toCatalogInputFromLookup(lookup, 'openfoodfacts');
+  const product = await fetchOpenFoodFactsProduct(trimmedBarcode);
+  const catalogInput = product ? toCatalogInput(product, 'openfoodfacts') : null;
 
   if (catalogInput) {
     await upsertFoodProductCatalog(catalogInput);
   }
 
-  return lookup;
+  return product;
 }

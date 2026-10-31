@@ -4,6 +4,9 @@ import { hs } from '@/theme/metrics';
 /** Available avatar size options, ranging from extra-small to extra-large. */
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
+/** Background of the avatar frame: the brand color, or a quiet section tone. */
+export type AvatarTone = 'brand' | 'muted';
+
 /** Props for the {@link Avatar} component. */
 export interface AvatarProps {
   /** Image source to display. Takes priority over initials and icon. */
@@ -14,6 +17,8 @@ export interface AvatarProps {
   icon?: React.ReactNode;
   /** Size of the avatar. Defaults to `'md'`. */
   size?: AvatarSize;
+  /** Background of the frame behind initials or an icon. Defaults to `'brand'`. */
+  tone?: AvatarTone;
   /** Accessibility label for screen readers. */
   accessibilityLabel?: string;
 }

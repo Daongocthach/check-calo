@@ -170,6 +170,10 @@ rncopilot/
 
 ## Code Style Guidelines
 
+### File Length
+
+- TypeScript files stay at or under **500 lines** (`max-lines`); see `CONVENTIONS.md` → File Length.
+
 ### TypeScript
 
 - **Strict mode is on.** No `any` types. Use `unknown` and narrow, or define proper types.

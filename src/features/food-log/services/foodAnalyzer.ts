@@ -113,6 +113,9 @@ function isSupabaseConfigured() {
   return Boolean(env.supabaseUrl && env.supabaseAnonKey);
 }
 
+const VIETNAMESE_MACRO_TERMS_RULE =
+  '- In Vietnamese text, write "đạm", "tinh bột" and "chất béo", never "protein", "carb" or "fat".';
+
 function buildFoodPrompt(userMessage?: string | null) {
   return [
     'You are a nutrition assistant that analyzes food photos for Vietnamese users.',
@@ -127,6 +130,7 @@ function buildFoodPrompt(userMessage?: string | null) {
     '- calories, proteinGrams, carbsGrams, fatGrams must be totals for the visible serving, not per 100g.',
     '- confidence must be a number from 0 to 1.',
     '- notes should briefly explain what was detected or any uncertainty in Vietnamese.',
+    VIETNAMESE_MACRO_TERMS_RULE,
     '- If the image is too unclear or no food is visible, set status=need_more_info and ask a short Vietnamese question.',
     '- If the content is not food-related, set status=unsupported and ask a short Vietnamese explanation.',
     '- Do not include markdown fences or extra commentary.',
@@ -157,6 +161,7 @@ function buildChatPrompt(context: ChatAnalysisContext) {
     '- quantityLabel is a short human portion such as "1 tô", "2 lát", "1 bowl".',
     `- reply is 1 to 2 short sentences in ${replyLanguage}. Item names are in ${replyLanguage}.`,
     `- followUps has up to 3 very short suggested user replies in ${replyLanguage}.`,
+    context.language === 'en' ? null : VIETNAMESE_MACRO_TERMS_RULE,
     '- Do not include markdown fences or extra commentary.',
     context.daySummary ? `Today so far: ${context.daySummary}` : null,
   ]

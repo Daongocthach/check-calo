@@ -148,10 +148,17 @@ export async function updateFoodEntry(entryId: string, input: FoodEntryInput) {
   return getFoodEntryById(entryId);
 }
 
-export async function deleteFoodEntry(entryId: string) {
+export async function deleteFoodEntries(entryIds: string[]) {
+  if (entryIds.length === 0) {
+    return;
+  }
+
   const database = await getDatabase();
-  await database.runAsync('DELETE FROM food_entries WHERE id = ?;', [entryId]);
-  void deleteFoodEntryFromCloud(entryId);
+  await database.runAsync(
+    `DELETE FROM food_entries WHERE id IN (${entryIds.map(() => '?').join(', ')});`,
+    entryIds
+  );
+  entryIds.forEach((entryId) => void deleteFoodEntryFromCloud(entryId));
 }
 
 export async function resetNutritionData() {

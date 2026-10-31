@@ -98,6 +98,10 @@ export function useScreenDimensions() {
 
 ## File Organization and Imports
 
+### File Length
+
+TypeScript files (`.ts`, `.tsx`, including tests and declarations) covered by ESLint must not exceed **500 lines**, counting blank lines and comments. The `max-lines` ESLint rule enforces this limit as an error during `yarn lint` and `yarn validate`. Split larger files along real module boundaries instead of suppressing the rule or compressing code. JSON/localization data, documentation, lockfiles, generated files, and files excluded by ESLint are outside this limit.
+
 ### Path Aliases
 
 Always use path aliases. Never use relative paths that climb more than one level.

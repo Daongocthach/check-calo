@@ -44,7 +44,7 @@ export function useHomeScreen() {
     profile: profile.data,
     isProfileMissing: !profile.isLoading && !profile.error && profile.data === null,
     summary: forceEmptyDiary ? null : (day.data?.summary ?? null),
-    mealGroups: forceEmptyDiary ? [] : (day.data?.mealGroups ?? []),
+    entries: forceEmptyDiary ? [] : (day.data?.entries ?? []),
     isLoading: day.isLoading && !day.data,
     streak: stats.data?.currentStreak ?? 0,
   };

@@ -73,10 +73,10 @@ const config: ExpoConfig = {
         image: './assets/splash-icon-light.png',
         imageWidth: 200,
         resizeMode: 'contain',
-        backgroundColor: '#F6F9E8',
+        backgroundColor: '#E0E7FF',
         dark: {
           image: './assets/splash-icon-light.png',
-          backgroundColor: '#020617',
+          backgroundColor: '#1E1B4B',
         },
       },
     ],

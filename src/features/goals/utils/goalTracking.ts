@@ -1,8 +1,7 @@
 import type { TFunction } from 'i18next';
-import type { WeightGoal, WeightGoalProgress } from '../types';
+import type { WeightGoal } from '../types';
 
 type TranslateFn = TFunction<'translation'>;
-const DEFAULT_GOAL_CYCLE_DAYS = 30;
 
 export function formatWeightGoalTitle(
   t: TranslateFn,
@@ -35,25 +34,4 @@ export function formatWeightGoalTitle(
   return t('goalTracking.goalNames.loseWithValue', {
     value: goal.targetKg ?? 1,
   });
-}
-
-export function getGoalCycleDayProgress(
-  goalProgress: Pick<WeightGoalProgress, 'goal' | 'unit'>
-): { current: number; target: number } | null {
-  // Only legacy calorie goals run in fixed 30-day cycles.
-  if (goalProgress.unit !== 'kcal') {
-    return null;
-  }
-
-  const startedAt = new Date(goalProgress.goal.startedAt);
-  const today = new Date();
-  const startedAtDay = new Date(startedAt.getFullYear(), startedAt.getMonth(), startedAt.getDate());
-  const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const elapsedMs = todayDay.getTime() - startedAtDay.getTime();
-  const elapsedDays = Math.floor(elapsedMs / (1000 * 60 * 60 * 24));
-
-  return {
-    current: Math.min(DEFAULT_GOAL_CYCLE_DAYS, Math.max(1, elapsedDays + 1)),
-    target: DEFAULT_GOAL_CYCLE_DAYS,
-  };
 }

@@ -58,8 +58,7 @@
     "open": "Mở menu",
     "dashboard": "Tổng quan",
     "buddy": "Thú cưng",
-    "settings": "Cài đặt",
-    "goal": "Mục tiêu"
+    "settings": "Cài đặt"
   },
   "language": {
     "label": "Ngôn ngữ",
@@ -71,7 +70,6 @@
     "greeting": "Chào {{name}}",
     "streakLabel": "Chuỗi {{count}} ngày",
     "openMenu": "Mở menu",
-    "changeAvatar": "Đổi ảnh đại diện",
     "pickDate": "Chọn ngày",
     "goToToday": "Về hôm nay",
     "dayStatus": {
@@ -83,7 +81,29 @@
     "caloriesLabel": "Calo",
     "emptyTitle": "Chưa ghi món nào",
     "emptySubtitle": "Kể cho Check AI bạn đã ăn gì, hoặc chụp ảnh bữa ăn.",
-    "rangeLabel": "Khoảng đạt {{min}}–{{max}} kcal"
+    "rangeLabel": "Khoảng đạt {{min}}–{{max}} kcal",
+    "goalSummary": {
+      "title": "Mục tiêu hiện tại",
+      "goal": "Mục tiêu",
+      "progress": "Tiến độ hiện tại",
+      "expectedEnd": "Ước tính hoàn thành",
+      "daysUnit": "ngày",
+      "modes": {
+        "lose": "Giảm cân",
+        "gain": "Tăng cân",
+        "maintain": "Giữ cân"
+      },
+      "remaining": {
+        "lose": "Còn cần giảm",
+        "gain": "Còn cần tăng",
+        "maintain": "Còn lại"
+      },
+      "changeGoal": "Đổi mục tiêu",
+      "reachedTitle": "Đã đạt: {{goal}}!",
+      "reachedMessage": "Tuyệt vời! Kế hoạch đã chuyển sang giữ cân. Đặt mục tiêu tiếp theo để cập nhật cân nặng và kế hoạch mới.",
+      "keepMaintaining": "Giữ cân",
+      "nextGoal": "Mục tiêu tiếp theo"
+    }
   },
   "supportScreen": {
     "title": "Ủng hộ phát triển app",
@@ -109,7 +129,7 @@
     "saveImageModalBody": "Bạn là một phần quan trọng giúp app ngày càng hoàn thiện hơn ❤️",
     "saveImagePermissionDenied": "Bạn đã từ chối quyền truy cập thư viện ảnh.",
     "saveImageFailed": "Không thể lưu ảnh. Vui lòng thử lại.",
-    "thanks": "Cảm ơn bạn rất nhiều! 🙏"
+    "thanks": "Cảm ơn bạn rất nhiều!"
   },
   "homeScreen": {
     "monthStatus": {
@@ -127,31 +147,27 @@
     "sections": {
       "bmi": {
         "title": "Tính Toán BMI (Chỉ Số Khối Cơ Thể)",
-        "description": "BMI được tính từ cân nặng và chiều cao để ước tính tình trạng cân nặng. Chỉ số này chỉ mang tính sàng lọc và không thay thế đánh giá y tế cá nhân.",
+        "description": "BMI được tính bằng cân nặng (kg) chia bình phương chiều cao (m). Ngưỡng phân loại CDC được dẫn dành cho người từ 20 tuổi; người 2–19 tuổi cần đánh giá BMI theo tuổi và giới tính, không áp dụng trực tiếp ngưỡng người lớn.",
         "references": {
           "cdc": {
             "title": "Centers for Disease Control and Prevention.",
-            "citation": "Calculating BMI using the English system and metric system. CDC Growth Chart Training."
+            "citation": "Adult BMI Calculator. Centers for Disease Control and Prevention. For adults aged 20 and older."
           }
         }
       },
       "bmr": {
         "title": "Tính Toán BMR (Tỷ Lệ Trao Đổi Chất Cơ Bản)",
-        "description": "Chúng tôi sử dụng phương trình Mifflin-St Jeor để tính tỷ lệ trao đổi chất cơ bản, được coi là phương pháp chính xác nhất cho người khỏe mạnh.",
+        "description": "Ứng dụng dùng phương trình Mifflin–St Jeor để ước tính năng lượng lúc nghỉ, không phải phép đo chuyển hóa. Với lựa chọn giới tính Khác, hệ số −78 là trung bình hai hệ số của công thức và là quy ước của ứng dụng, chưa được xác thực riêng.",
         "references": {
           "mifflin": {
             "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
             "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
-          },
-          "roza": {
-            "title": "Roza AM, Shizgal HM.",
-            "citation": "The Harris Benedict equation reevaluated: resting energy requirements and the body cell mass. Am J Clin Nutr. 1984;40(1):168-82."
           }
         }
       },
       "activity": {
         "title": "Hệ Số Mức Độ Hoạt Động",
-        "description": "Hệ số hoạt động thể chất được áp dụng vào BMR để ước tính tổng lượng năng lượng tiêu thụ hằng ngày dựa trên nghiên cứu đã được thiết lập.",
+        "description": "Ứng dụng nhân BMR với hệ số 1,2; 1,375; 1,55; 1,725 hoặc 1,9 theo mức vận động. Đây là các hệ số ước tính do ứng dụng lựa chọn; tài liệu bên dưới cung cấp nền tảng về hoạt động và năng lượng, không xác thực riêng bộ hệ số này.",
         "references": {
           "brooks": {
             "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
@@ -165,15 +181,19 @@
       },
       "macros": {
         "title": "Phân Bổ Chất Dinh Dưỡng Đa Lượng",
-        "description": "Tỷ lệ chất dinh dưỡng đa lượng được khuyến nghị dựa trên hướng dẫn dinh dưỡng từ các tổ chức y tế.",
+        "description": "Các nguồn dưới đây cung cấp hướng dẫn dinh dưỡng chung và lượng đạm cho người tập luyện. Ứng dụng chọn đạm 1,6–2 g/kg theo mục tiêu, tối thiểu 60 g; chất béo ít nhất 0,8 g/kg hoặc 25% năng lượng; tinh bột là phần còn lại. Khi BMI trên 25, cân nặng tham chiếu được giới hạn ở BMI 25. Đây là quy tắc lập kế hoạch của ứng dụng, không phải hướng dẫn áp dụng cho mọi người.",
         "references": {
           "dietaryGuidelines": {
             "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
-            "citation": "2020-2025 Dietary Guidelines for Americans. 9th Edition."
+            "citation": "Dietary Guidelines for Americans, 2025–2030. 10th Edition. Current guidance and related resources."
           },
           "who": {
             "title": "World Health Organization.",
             "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          },
+          "protein": {
+            "title": "Jäger R, Kerksick CM, Campbell BI, et al.",
+            "citation": "International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20. Applies to exercising individuals."
           }
         }
       },
@@ -197,7 +217,7 @@
       },
       "weightManagement": {
         "title": "Quản Lý Cân Nặng",
-        "description": "Khuyến nghị giảm cân và tăng cân dựa trên các phương pháp có bằng chứng khoa học để quản lý cân nặng bền vững.",
+        "description": "Ứng dụng ước tính thay đổi cân nặng từ 7.700 kcal/kg; ngày đạt đích chỉ là dự kiến, không phải mô hình động của NIDDK. Các giới hạn thâm hụt 25%, dư tối đa 500 kcal/ngày, ngưỡng calo tối thiểu theo giới tính kết hợp BMR và khoảng calo đạt mục tiêu là quy tắc của ứng dụng, không được các tài liệu này xác thực như một bộ quy tắc chung.",
         "references": {
           "wadden": {
             "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
@@ -206,6 +226,14 @@
           "hall": {
             "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
             "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          },
+          "hallWeight": {
+            "title": "Hall KD.",
+            "citation": "What is the required energy deficit per unit weight loss? Int J Obes (Lond). 2008;32(3):573–576."
+          },
+          "niddk": {
+            "title": "National Institute of Diabetes and Digestive and Kidney Diseases.",
+            "citation": "About the Body Weight Planner. Background on personalized weight-change estimates; the app does not implement this model."
           }
         }
       }
@@ -270,12 +298,8 @@
     }
   },
   "goalTracking": {
-    "profileTitle": "Tiến độ kế hoạch",
-    "planTitle": "Kế hoạch: {{goal}}",
     "progressKcal": "{{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} ngày",
-    "statusLabel": "Trạng thái",
-    "startDate": "Bắt đầu: {{value}}",
     "goalNames": {
       "loseWithValue": "Giảm {{value, number}} kg",
       "gainWithValue": "Tăng {{value, number}} kg",
@@ -292,46 +316,10 @@
       "subtitle": "Các mục tiêu bạn đã hoàn thành hoặc đổi giữa chừng.",
       "empty": "Bạn chưa có lịch sử kế hoạch nào."
     },
-    "progressKg": "{{current}} / {{target}} kg",
-    "weightRoute": "{{start}} {{unit}} → {{target}} {{unit}}",
-    "maintainRoute": "Giữ quanh {{value}} {{unit}} (±{{band}} {{unit}})",
-    "currentWeightLabel": "Hiện tại",
-    "lostLabel": "Đã giảm",
-    "gainedLabel": "Đã tăng",
-    "remainingWeightLabel": "Còn lại",
-    "driftLabel": "Chênh lệch",
-    "bandHint": "Giữ trong ±{{value}} kg",
-    "withinBand": "Đúng hướng",
-    "outsideBand": "Ngoài khoảng",
-    "expectedDate": "Dự kiến: {{value}}",
-    "reachedTitle": "Đã đạt: {{goal}}",
-    "reachedHint": "Tuyệt vời! Đặt mục tiêu mới để tiếp tục nhé.",
-    "newGoalAction": "Đặt mục tiêu mới",
     "today": {
-      "label": "Hôm nay {{consumed}} / {{target}} {{unit}}",
       "remaining": "Còn {{value}} kcal",
       "onTarget": "Đạt mục tiêu",
       "over": "Vượt {{value}} kcal"
-    },
-    "weighIn": {
-      "action": "Cân hôm nay",
-      "title": "Cân nặng hôm nay (kg)",
-      "message": "Nên cân vào buổi sáng, trước khi ăn, để số liệu ổn định nhất.",
-      "placeholder": "VD: 65.5",
-      "invalid": "Nhập cân nặng từ 25 đến 250 kg",
-      "saved": "Đã lưu cân nặng"
-    },
-    "transition": {
-      "title_one": "Giai đoạn chuyển tiếp · còn {{count}} ngày",
-      "title_other": "Giai đoạn chuyển tiếp · còn {{count}} ngày",
-      "hint": "Ăn khoảng {{kcal}} kcal (mức duy trì). Cân có thể tăng 1–2 kg vài ngày đầu do nước, không phải mỡ."
-    },
-    "suggestion": {
-      "underweight": "BMI của bạn đang dưới 18,5. Nên chuyển sang giữ hoặc tăng cân.",
-      "stale": "Đã hơn một tháng bạn chưa cân. Bắt đầu lại từ cân hiện tại để tiến độ chính xác hơn?",
-      "regained": "Cân đang đi ngược mục tiêu hơn 2 kg. Bắt đầu lại từ cân hiện tại?",
-      "changeGoal": "Đổi mục tiêu",
-      "restart": "Bắt đầu lại"
     }
   },
   "achievements": {
@@ -348,7 +336,7 @@
       "streak_14": "14 ngày liên tiếp",
       "streak_30": "30 ngày liên tiếp",
       "on_target_7": "7 ngày không vượt calo",
-      "protein_5": "5 ngày đủ protein",
+      "protein_5": "5 ngày đủ đạm",
       "balanced_7": "7 ngày ăn cân bằng",
       "entries_10": "Ghi 10 món",
       "entries_100": "Ghi 100 món"
@@ -415,8 +403,6 @@
       "heroTitle": "Eat Well,\nLive Well",
       "heroSubtitle": "Ứng dụng theo dõi calo và dinh dưỡng thông minh",
       "heroBody": "Check Calo giúp bạn hiểu cơ thể, kiểm soát calo đã dùng và đạt mục tiêu sức khỏe mỗi ngày.",
-      "ctaTitle": "Bắt đầu hành trình sống khỏe hôm nay!",
-      "ctaAction": "Bắt đầu ngay",
       "features": {
         "tracking": {
           "title": "Theo dõi calo hằng ngày",
@@ -506,7 +492,8 @@
           "title": "Thay đổi chính sách",
           "body": "Chúng tôi có thể cập nhật chính sách này. Mọi thay đổi quan trọng sẽ được thông báo trong ứng dụng."
         }
-      }
+      },
+      "updatedDate": "01/11/2026"
     },
     "help": {
       "title": "Cần hỗ trợ?",
@@ -596,8 +583,8 @@
   },
   "macros": {
     "calories": "Calo",
-    "carbs": "Carb",
-    "protein": "Protein",
+    "carbs": "Tinh bột",
+    "protein": "Đạm",
     "fat": "Chất béo"
   },
   "nutrients": {
@@ -639,8 +626,11 @@
     "addToDiary_one": "Thêm vào nhật ký",
     "addToDiary_other": "Thêm {{count}} món vào nhật ký",
     "addSuggestion": "Thêm vào nhật ký",
-    "logged": "Đã thêm vào nhật ký",
+    "logged": "Đã thêm",
     "loggedToast": "Đã lưu vào nhật ký",
+    "total": "Tổng cộng",
+    "undo": "Hoàn tác",
+    "undoToast": "Đã gỡ khỏi nhật ký",
     "scanBarcode": "Quét mã vạch",
     "recentTitle": "Gần đây",
     "recentChip": "{{name}} · {{calories}} kcal",
@@ -651,7 +641,7 @@
     "barcodeLookupFailed": "Không tra cứu được mã vạch. Kiểm tra kết nối rồi thử lại nhé.",
     "followUps": {
       "logBreakfast": "Sáng nay mình ăn 1 tô phở bò",
-      "suggestDinner": "Gợi ý bữa tối giàu protein dưới 700 calo"
+      "suggestDinner": "Gợi ý bữa tối giàu đạm dưới 700 calo"
     }
   },
   "voice": {
@@ -674,17 +664,16 @@
       "name": "Tên món",
       "quantity": "Khẩu phần",
       "calories": "Calo (kcal)",
-      "protein": "Protein (g)",
-      "carbs": "Carb (g)",
+      "protein": "Đạm (g)",
+      "carbs": "Tinh bột (g)",
       "fat": "Chất béo (g)",
       "notes": "Ghi chú"
     }
   },
   "onboarding": {
     "headerTitle": "Bắt đầu",
-    "title": "Chào mừng đến với Check Calo! 👋",
+    "title": "Chào mừng đến với Check Calo!",
     "subtitle": "Hãy cho mình biết một chút về bạn để {{name}} xây dựng kế hoạch phù hợp nhất.",
-    "basicInfo": "Thông tin cơ bản",
     "displayName": "Tên hiển thị",
     "displayNamePlaceholder": "Tên của bạn",
     "age": "Tuổi",
@@ -694,26 +683,21 @@
       "female": "Nữ",
       "other": "Khác"
     },
-    "bodyMetrics": "Chỉ số cơ thể",
     "height": "Chiều cao",
     "weight": "Cân nặng",
     "bmi": "BMI",
     "bmiCategories": {
       "underweight": {
-        "title": "Thiếu cân",
-        "description": "Ăn đủ chất và tăng sức bền sẽ giúp bạn khoẻ hơn."
+        "title": "Thiếu cân"
       },
       "normal": {
-        "title": "Cân nặng bình thường",
-        "description": "Bạn đang trong vùng cân nặng lý tưởng. Tiếp tục duy trì nhé!"
+        "title": "Bình thường"
       },
       "overweight": {
-        "title": "Thừa cân",
-        "description": "Thâm hụt nhẹ mỗi ngày sẽ đưa bạn về vùng khoẻ mạnh."
+        "title": "Thừa cân"
       },
       "obese": {
-        "title": "Béo phì",
-        "description": "Thay đổi từ từ và bền vững là tốt nhất. Nên hỏi thêm ý kiến bác sĩ."
+        "title": "Béo phì"
       }
     },
     "goal": "Mục tiêu của bạn",
@@ -739,7 +723,6 @@
       "active": "Vận động nhiều"
     },
     "plan": "Kế hoạch dự kiến cho bạn",
-    "startAction": "Bắt đầu hành trình",
     "saveSuccess": "Đã lưu hồ sơ",
     "healthSources": "Cách chúng tôi tính toán",
     "validation": {
@@ -747,7 +730,6 @@
     },
     "targetWeight": "Cân nặng mục tiêu",
     "targetBmiWarning": "Cân mục tiêu này thấp hơn mức BMI khỏe mạnh (18.5). Bạn nên hỏi ý kiến chuyên gia.",
-    "planRange": "Mỗi ngày ăn trong khoảng {{min}}–{{max}} kcal là đạt",
     "planLoading": {
       "title": "Đang lập kế hoạch cho bạn…",
       "bmr": "Đang tính năng lượng cơ bản (BMR)…",
@@ -769,41 +751,33 @@
       "dateMaintain": "Liên tục",
       "dateMaintainHint": "Không có ngày kết thúc"
     },
-    "planExplain": {
-      "title": "Các con số này đến từ đâu",
-      "dailyTitle": "Calo mỗi ngày",
-      "dailyBmr": "Khi nghỉ ngơi, cơ thể bạn đốt khoảng {{bmr}} kcal mỗi ngày (BMR, tính theo công thức Mifflin-St Jeor từ tuổi, giới tính, chiều cao và cân nặng).",
-      "dailyTdee": "Với mức {{activity}}, con số này nhân thêm {{factor}}: khoảng {{tdee}} kcal mỗi ngày là mức giữ nguyên cân nặng.",
-      "dailyLose": "Mỗi ngày ăn ít hơn mức đó {{gap}} kcal, ta có mục tiêu {{kcal}} kcal.",
-      "dailyGain": "Mỗi ngày ăn nhiều hơn mức đó {{gap}} kcal, ta có mục tiêu {{kcal}} kcal.",
-      "dailyMaintain": "Vì bạn muốn giữ cân, mục tiêu chính là mức này.",
-      "weeklyTitle": "Calo mỗi tuần",
-      "weeklyTotal": "{{kcal}} kcal × 7 ngày = {{total}} kcal mỗi tuần.",
-      "weeklyLose": "Khoảng {{perKg}} kcal tương đương 1 kg mỡ, nên thâm hụt {{gap}} kcal mỗi tuần giúp giảm khoảng {{rate}} kg/tuần, nhịp độ {{pace}}.",
-      "weeklyGain": "Khoảng {{perKg}} kcal tạo ra 1 kg, nên dư {{gap}} kcal mỗi tuần giúp tăng khoảng {{rate}} kg/tuần, nhịp độ {{pace}}.",
-      "weeklyMaintain": "Hôm nay ăn nhiều hơn chút thì hôm sau bớt lại, cân nặng vẫn giữ ổn định.",
-      "weeklyFlex": "Tổng cả tuần mới là quan trọng: một bữa ăn quá tay có thể cân bằng lại trong vài ngày sau.",
-      "targetTitle": "Cân nặng mục tiêu",
-      "targetNow": "Hiện tại bạn nặng {{weight}} kg, BMI {{bmi}} ({{category}}).",
-      "targetThen": "Ở {{weight}} kg, BMI của bạn sẽ là {{bmi}} ({{category}}).",
-      "targetMaintain": "Bạn sẽ giữ nguyên cân nặng và BMI này.",
-      "targetHealthy": "BMI từ 18,5 đến 24,9 được xem là vùng khoẻ mạnh với người trưởng thành.",
-      "dateTitle": "Ngày dự kiến",
-      "dateMath": "{{change}} kg với tốc độ {{rate}} kg/tuần mất {{weeks}}, tức khoảng ngày {{date}}.",
-      "dateMaintain": "Giữ cân không có vạch đích: cứ ăn quanh mục tiêu và thỉnh thoảng cân lại.",
-      "dateEstimate": "Đây là ước tính. Cân nặng dao động hằng ngày do nước và muối, nên app theo dõi xu hướng qua các lần cân và điều chỉnh dần.",
-      "macrosTitle": "Đạm, béo và tinh bột",
-      "macrosSplit": "Đạm {{protein}}g ({{proteinPercent}}%) · Béo {{fat}}g ({{fatPercent}}%) · Tinh bột {{carbs}}g ({{carbsPercent}}%) lượng calo mỗi ngày.",
-      "macrosWhy": "Đạm được tính theo cân nặng để giữ cơ và no lâu; chất béo đủ cho nhu cầu thiết yếu, phần còn lại là tinh bột để có năng lượng."
-    },
     "step": "Bước {{current}}/{{total}} · {{title}}",
     "steps": {
-      "about": "Về bạn",
-      "goal": "Mục tiêu",
+      "about": "Thông tin & mục tiêu",
       "plan": "Kế hoạch"
-    }
+    },
+    "createPlan": "Tạo kế hoạch",
+    "start": "Bắt đầu",
+    "goalLabel": "Mục tiêu",
+    "planSummary": {
+      "lose": "Mức duy trì của bạn ~{{tdee}} kcal/ngày, kế hoạch ăn ít hơn {{gap}} kcal.",
+      "gain": "Mức duy trì của bạn ~{{tdee}} kcal/ngày, kế hoạch ăn nhiều hơn {{gap}} kcal.",
+      "maintain": "Mức duy trì của bạn ~{{tdee}} kcal/ngày, ăn quanh mức này là giữ cân.",
+      "macros": "Mỗi ngày: đạm {{protein}}g · chất béo {{fat}}g · tinh bột {{carbs}}g.",
+      "estimate": "Đây là ước tính, app sẽ điều chỉnh dần theo các lần cân."
+    },
+    "weightAndTarget": "Cân nặng / mục tiêu",
+    "calorieAdjustment": {
+      "lose": "Calo cần giảm",
+      "gain": "Calo cần tăng",
+      "maintain": "Chênh lệch calo"
+    },
+    "editTitle": "Cập nhật mục tiêu của bạn",
+    "editSubtitle": "Kiểm tra thông tin và điều chỉnh mục tiêu để {{name}} cập nhật kế hoạch phù hợp với bạn.",
+    "previewUpdate": "Xem kế hoạch mới"
   },
   "buddy": {
+    "openBuddy": "Xem {{name}}",
     "title": "Thú cưng",
     "subtitle": "Cùng {{name}} chinh phục thành tích mỗi ngày",
     "rename": "Đổi tên thú cưng",
@@ -933,19 +907,5 @@
     "transition_one": "Ăn duy trì {{count}} tuần trước ({{kcal}} kcal/ngày)",
     "transition_other": "Ăn duy trì {{count}} tuần trước ({{kcal}} kcal/ngày)",
     "transitionHint": "Cho cơ thể làm quen trước khi đổi hướng; cân có thể tăng nhẹ do nước. Sau đó calo chuyển sang {{kcal}} kcal/ngày."
-  },
-  "goalScreen": {
-    "title": "Mục tiêu",
-    "subtitle": "Tiến độ, cân nặng và kế hoạch",
-    "manage": "Kế hoạch",
-    "changeGoal": "Đổi mục tiêu",
-    "changeGoalHint": "Cân đích, thời gian hoặc hướng đi",
-    "reachedTitle": "Đã đạt: {{goal}}!",
-    "reachedMessage": "Tuyệt vời! Kế hoạch đã chuyển sang giữ cân để bạn giữ vững kết quả.",
-    "keepMaintaining": "Giữ cân"
-  },
-  "goalSummary": {
-    "route": "Hiện tại {{current}} {{unit}} · đích {{target}} {{unit}}",
-    "maintain": "Giữ quanh {{current}} {{unit}}"
   }
 }

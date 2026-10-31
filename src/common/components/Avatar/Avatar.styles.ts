@@ -5,9 +5,12 @@ export const styles = StyleSheet.create((theme) => ({
   container: {
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    backgroundColor: theme.colors.brand.primary,
     overflow: 'hidden' as const,
     variants: {
+      tone: {
+        brand: { backgroundColor: theme.colors.brand.primary },
+        muted: { backgroundColor: theme.colors.background.section },
+      },
       size: {
         xs: {
           width: hs(24),

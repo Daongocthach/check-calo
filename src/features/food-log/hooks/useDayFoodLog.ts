@@ -1,7 +1,6 @@
 import { formatDateKey } from '@/utils/date';
 import { getDailyNutritionSummary } from '../services/dailySummaryService';
 import { listFoodEntriesByDate } from '../services/foodEntryRepository';
-import { groupEntriesByMealSlot } from '../utils/mealSlot';
 import { useFoodLogQuery } from './useFoodLogQuery';
 
 async function loadDayFoodLog(dateKey: string) {
@@ -10,10 +9,10 @@ async function loadDayFoodLog(dateKey: string) {
     listFoodEntriesByDate(dateKey),
   ]);
 
-  return { summary, entries, mealGroups: groupEntriesByMealSlot(entries) };
+  return { summary, entries };
 }
 
-/** Summary, entries and meal-slot groups for one day. */
+/** Summary and entries (newest first) for one day. */
 export function useDayFoodLog(date: Date) {
   const dateKey = formatDateKey(date);
 

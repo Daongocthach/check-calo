@@ -10,6 +10,7 @@ import { isSameDay } from '../utils/week';
 interface MonthYearSelectorProps {
   selectedDate: Date;
   today: Date;
+  streak: number;
   onSelect: (date: Date) => void;
 }
 
@@ -17,10 +18,18 @@ interface SquareButtonProps {
   icon: IconProps['name'];
   accessibilityLabel: string;
   disabled?: boolean;
+  /** Small count in the top-right corner; hidden when 0 or missing. */
+  badge?: number;
   onPress: () => void;
 }
 
-function SquareButton({ icon, accessibilityLabel, disabled = false, onPress }: SquareButtonProps) {
+function SquareButton({
+  icon,
+  accessibilityLabel,
+  disabled = false,
+  badge,
+  onPress,
+}: SquareButtonProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -35,6 +44,13 @@ function SquareButton({ icon, accessibilityLabel, disabled = false, onPress }: S
       ]}
     >
       <Icon name={icon} sizeVariant="sm" variant="secondary" />
+      {badge ? (
+        <View style={styles.badge}>
+          <Text variant="caption" weight="bold" color="inverse">
+            {badge}
+          </Text>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -44,7 +60,12 @@ function parseDateKey(value: string) {
   return new Date(year, month - 1, day);
 }
 
-export function MonthYearSelector({ selectedDate, today, onSelect }: MonthYearSelectorProps) {
+export function MonthYearSelector({
+  selectedDate,
+  today,
+  streak,
+  onSelect,
+}: MonthYearSelectorProps) {
   const { t, i18n } = useTranslation();
   const pickerRef = useRef<DateTimeFieldHandle>(null);
   const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
@@ -57,7 +78,12 @@ export function MonthYearSelector({ selectedDate, today, onSelect }: MonthYearSe
       </Text>
       <SquareButton
         icon="calendar-outline"
-        accessibilityLabel={t('home.pickDate')}
+        accessibilityLabel={
+          streak > 0
+            ? `${t('home.pickDate')}, ${t('home.streakLabel', { count: streak })}`
+            : t('home.pickDate')
+        }
+        badge={streak}
         onPress={() => pickerRef.current?.present()}
       />
       <SquareButton
@@ -98,6 +124,20 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background.surface,
     borderWidth: 1,
     borderColor: theme.colors.border.subtle,
+  },
+  badge: {
+    position: 'absolute',
+    top: -theme.metrics.spacing.p8,
+    right: -theme.metrics.spacing.p8,
+    alignItems: 'center',
+    minWidth: theme.metrics.spacing.p20,
+    height: theme.metrics.spacing.p20,
+    paddingHorizontal: theme.metrics.spacing.p4,
+    borderRadius: theme.metrics.borderRadius.full,
+    justifyContent: 'center',
+    backgroundColor: theme.colors.icon.accent,
+    borderWidth: 1.5,
+    borderColor: theme.colors.background.app,
   },
   pressed: {
     opacity: 0.7,

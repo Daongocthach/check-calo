@@ -1,22 +1,17 @@
-import { Asset } from 'expo-asset';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
-import * as MediaLibrary from 'expo-media-library';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Button, Card, Dialog, Icon, ScreenContainer, Text } from '@/common/components';
+import { StyleSheet } from 'react-native-unistyles';
+import { Card, IconButton, ScreenContainer, Text } from '@/common/components';
+import { hs } from '@/theme/metrics';
 import { toast } from '@/utils/toast';
-import CoffeeStickImage from '../../assets/coffee-stick.png';
-import QrCodeImage from '../../assets/qr-code.png';
+import CoffeeStickImage from '../../assets/coffee-stick.webp';
+import QrCodeImage from '../../assets/qr-code.webp';
 
 export default function SupportScreen() {
   const { t } = useTranslation();
-  const { theme } = useUnistyles();
-  const [isSavingImage, setIsSavingImage] = useState(false);
-  const [saveSuccessVisible, setSaveSuccessVisible] = useState(false);
-
   const copyFields = [
     {
       key: 'account-number',
@@ -46,46 +41,6 @@ export default function SupportScreen() {
     [t]
   );
 
-  const handleSaveImage = useCallback(async () => {
-    if (isSavingImage) {
-      return;
-    }
-
-    setIsSavingImage(true);
-
-    try {
-      const permission = await MediaLibrary.getPermissionsAsync();
-      let hasPermission = permission.status === 'granted';
-
-      if (!hasPermission) {
-        const nextPermission = await MediaLibrary.requestPermissionsAsync();
-        hasPermission = nextPermission.status === 'granted';
-      }
-
-      if (!hasPermission) {
-        toast.error(t('supportScreen.saveImagePermissionDenied'));
-        return;
-      }
-
-      const asset = Asset.fromModule(QrCodeImage);
-      await asset.downloadAsync();
-
-      const imageUri = asset.localUri ?? asset.uri;
-
-      if (!imageUri) {
-        toast.error(t('supportScreen.saveImageFailed'));
-        return;
-      }
-
-      await MediaLibrary.saveToLibraryAsync(imageUri);
-      setSaveSuccessVisible(true);
-    } catch {
-      toast.error(t('supportScreen.saveImageFailed'));
-    } finally {
-      setIsSavingImage(false);
-    }
-  }, [isSavingImage, t]);
-
   return (
     <ScreenContainer scrollable padded={false} edges={['bottom']} title={t('supportScreen.title')}>
       <View style={styles.screen}>
@@ -112,40 +67,28 @@ export default function SupportScreen() {
             </View>
           </View>
 
-          <Button
-            title={isSavingImage ? t('common.loading') : t('supportScreen.saveImageAction')}
-            variant="primary"
-            fullWidth
-            leftIcon={<Icon name="download-outline" size={18} color={theme.colors.brand.onBrand} />}
-            style={styles.copyButton}
-            onPress={() => {
-              void handleSaveImage();
-            }}
-            loading={isSavingImage}
-          />
-
           <Card variant="outlined" style={styles.copyCard}>
-            <View style={styles.copyCardHeader}>
-              <Text variant="bodySmall" weight="semibold" align="center">
-                {t('supportScreen.copySectionTitle')}
-              </Text>
-            </View>
             <View style={styles.copyActions}>
               {copyFields.map((field) => (
-                <Button
-                  key={field.key}
-                  title={field.actionLabel}
-                  variant="outline"
-                  fullWidth
-                  leftIcon={
-                    <Icon name="copy-outline" size={18} color={theme.colors.brand.primary} />
-                  }
-                  style={styles.copyButton}
-                  labelStyle={styles.copyButtonLabel}
-                  onPress={() => {
-                    void handleCopyValue(field.value);
-                  }}
-                />
+                <View key={field.key} style={styles.accountRow}>
+                  <View style={styles.accountText}>
+                    <Text variant="caption" color="secondary">
+                      {field.label}
+                    </Text>
+                    <Text variant="body" weight="semibold" selectable>
+                      {field.value}
+                    </Text>
+                  </View>
+                  <IconButton
+                    icon="copy-outline"
+                    accessibilityLabel={field.actionLabel}
+                    variant="ghost"
+                    size="sm"
+                    onPress={() => {
+                      void handleCopyValue(field.value);
+                    }}
+                  />
+                </View>
               ))}
             </View>
           </Card>
@@ -155,35 +98,6 @@ export default function SupportScreen() {
           </Text>
         </View>
       </View>
-
-      <Dialog
-        visible={saveSuccessVisible}
-        onDismiss={() => setSaveSuccessVisible(false)}
-        size="sm"
-        actions={[
-          {
-            label: t('common.ok'),
-            variant: 'primary',
-            onPress: () => {
-              setSaveSuccessVisible(false);
-            },
-          },
-        ]}
-      >
-        <View style={styles.copyDialogBody}>
-          <View style={styles.copyDialogIcon}>
-            <Text variant="h1" align="center">
-              🎉
-            </Text>
-          </View>
-          <Text variant="body" align="center" weight="semibold">
-            {t('supportScreen.saveImageModalTitle')}
-          </Text>
-          <Text variant="bodySmall" align="center">
-            {t('supportScreen.saveImageModalBody')}
-          </Text>
-        </View>
-      </Dialog>
     </ScreenContainer>
   );
 }
@@ -216,47 +130,25 @@ const styles = StyleSheet.create((theme) => ({
     lineHeight: 20,
   },
   subtitleQrGroup: {
-    gap: theme.metrics.spacing.p8,
+    gap: theme.metrics.spacing.p4,
   },
   copyCard: {
     gap: theme.metrics.spacingV.p12,
     padding: theme.metrics.spacing.p16,
   },
-  copyCardHeader: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  accountRow: { flexDirection: 'row', alignItems: 'center', gap: theme.metrics.spacing.p12 },
+  accountText: { flex: 1, minWidth: 0, gap: theme.metrics.spacingV.p4 },
   copyActions: {
     gap: theme.metrics.spacingV.p8,
   },
   qrWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: theme.metrics.spacingV.p8,
   },
   qrImage: {
     width: '100%',
     aspectRatio: 1,
-    maxWidth: 420,
+    maxWidth: hs(280),
     alignSelf: 'center',
-    borderRadius: theme.metrics.borderRadius.lg,
-    overflow: 'hidden',
-  },
-  copyButton: {
-    borderColor: theme.colors.brand.primary,
-  },
-  copyButtonLabel: {
-    color: theme.colors.brand.primary,
-  },
-  copyDialogBody: {
-    gap: theme.metrics.spacingV.p12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  copyDialogIcon: {
-    width: theme.metrics.spacing.p72,
-    height: theme.metrics.spacing.p72,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 }));

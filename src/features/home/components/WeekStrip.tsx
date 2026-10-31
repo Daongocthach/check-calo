@@ -18,10 +18,12 @@ export interface WeekStripProps {
   today: Date;
   /** Status per date key (YYYY-MM-DD); missing days count as empty. */
   dayStatuses: Record<string, DayStatus>;
+  /** Current logging streak, shown as a badge on the date picker button. */
+  streak: number;
   onSelect: (date: Date) => void;
 }
 
-export function WeekStrip({ selectedDate, today, dayStatuses, onSelect }: WeekStripProps) {
+export function WeekStrip({ selectedDate, today, dayStatuses, streak, onSelect }: WeekStripProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
   const listRef = useRef<FlatList<Date>>(null);
@@ -110,7 +112,12 @@ export function WeekStrip({ selectedDate, today, dayStatuses, onSelect }: WeekSt
 
   return (
     <View style={styles.container}>
-      <MonthYearSelector selectedDate={selectedDate} today={today} onSelect={onSelect} />
+      <MonthYearSelector
+        selectedDate={selectedDate}
+        today={today}
+        streak={streak}
+        onSelect={onSelect}
+      />
       <View onLayout={(event) => setPageWidth(event.nativeEvent.layout.width)}>
         {pageWidth > 0 ? (
           <FlatList

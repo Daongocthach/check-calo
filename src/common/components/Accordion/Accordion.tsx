@@ -10,12 +10,20 @@ import type { AccordionItem, AccordionProps } from './Accordion.types';
 function AccordionSection({
   item,
   isExpanded,
+  isLast,
   onToggle,
 }: {
   item: AccordionItem;
   isExpanded: boolean;
+  isLast: boolean;
   onToggle: () => void;
 }) {
+  // Content mounts on first open, so collapsed sections cost nothing until they are used.
+  const [hasOpened, setHasOpened] = useState(isExpanded);
+  if (isExpanded && !hasOpened) {
+    setHasOpened(true);
+  }
+
   const rotation = useSharedValue(isExpanded ? 1 : 0);
   const contentHeight = useSharedValue(isExpanded ? 1 : 0);
 
@@ -43,7 +51,7 @@ function AccordionSection({
   }, [item.disabled, onToggle]);
 
   return (
-    <View style={[styles.section, item.disabled && styles.sectionDisabled]}>
+    <View style={[!isLast && styles.sectionDivider, item.disabled && styles.sectionDisabled]}>
       <Pressable
         onPress={handleToggle}
         disabled={item.disabled}
@@ -63,7 +71,7 @@ function AccordionSection({
         accessibilityElementsHidden={!isExpanded}
         importantForAccessibility={isExpanded ? 'auto' : 'no-hide-descendants'}
       >
-        {item.content}
+        {hasOpened ? item.content : null}
       </Animated.View>
     </View>
   );
@@ -100,11 +108,12 @@ export function Accordion({ items, multiple = false, defaultExpanded = [] }: Acc
 
   return (
     <View style={styles.container}>
-      {items.map((item) => (
+      {items.map((item, index) => (
         <AccordionSection
           key={item.id}
           item={item}
           isExpanded={expanded.has(item.id)}
+          isLast={index === items.length - 1}
           onToggle={() => toggle(item.id)}
         />
       ))}

@@ -16,6 +16,15 @@ export const ACTIVITY_LEVEL_KEYS: ActivityLevel[] = [
   'very_active',
 ];
 
+/** Activity levels offered in the app; `very_active` profiles show as `active`. */
+export const OFFERED_ACTIVITY_KEYS = ['sedentary', 'light', 'moderate', 'active'] as const;
+
+export type OfferedActivity = (typeof OFFERED_ACTIVITY_KEYS)[number];
+
+export function toOfferedActivity(level: ActivityLevel): OfferedActivity {
+  return level === 'very_active' ? 'active' : level;
+}
+
 export const GENDER_KEYS: Gender[] = ['male', 'female', 'other'];
 
 export const MONTHLY_WEIGHT_GOAL_OPTIONS = [2, 1, 0.5, 0, -0.5, -1, -2] as const;

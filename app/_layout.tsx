@@ -23,6 +23,7 @@ import { CameraProvider } from '@/providers/camera';
 import { initializeDatabase } from '@/services/database/sqlite';
 import { ensureDeviceLocalId } from '@/services/device/deviceLocalId';
 import { handleSystemThemeChange } from '@/theme/themeManager';
+import { toastConfig } from '@/utils/toastConfig';
 
 export const unstable_settings = {
   anchor: '(main)',
@@ -197,7 +198,7 @@ export default function RootLayout() {
                   <AppContent />
                 </AppAlertProvider>
               </AppBottomSheetProvider>
-              <Toast />
+              <Toast config={toastConfig} />
             </CameraProvider>
           </KeyboardProvider>
         </QueryProvider>

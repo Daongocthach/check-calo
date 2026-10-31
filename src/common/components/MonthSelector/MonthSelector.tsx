@@ -6,7 +6,7 @@ import { useUnistyles } from 'react-native-unistyles';
 import { IconButton } from '@/common/components/IconButton';
 import { Text } from '@/common/components/Text';
 import { formatDateKey } from '@/utils/date';
-import CrownIcon from '../../../../assets/crown.png';
+import CrownIcon from '../../../../assets/crown.webp';
 import { DAY_ITEM_WIDTH, styles } from './MonthSelector.styles';
 import type { MonthSelectorProps } from './MonthSelector.types';
 

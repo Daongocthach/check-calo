@@ -12,7 +12,7 @@ import {
   type ChatIntent,
   type ChatMealTime,
 } from '../services/foodAnalyzer';
-import { logFoodItems, logRecentFood } from '../services/foodLogService';
+import { logFoodItems, logRecentFood, removeLoggedFoods } from '../services/foodLogService';
 import { useFoodEntryRefreshStore } from '../stores/useFoodEntryRefreshStore';
 import type { RecentFood } from '../types';
 import { pickNutrients } from '../utils/nutrients';
@@ -34,10 +34,20 @@ export type ChatMessage =
       mealTime: ChatMealTime | null;
       imageUri: string | null;
       followUps: string[];
-      /** Indexes of `items` already saved to the diary. */
-      loggedItemIndexes: number[];
+      /** Diary entry id for each item index already saved, so the save can be undone. */
+      loggedEntryIds: Partial<Record<number, string>>;
       createdAt: string;
     };
+
+/** Key of the card action being saved: one item, or the whole card when `itemIndex` is unset. */
+export function getSavingKey(messageId: string, itemIndex?: number) {
+  return `${messageId}:${itemIndex ?? 'all'}`;
+}
+
+/** The items an action covers: the one picked, or every item on the card. */
+function getTargetIndexes(message: AssistantMessage, itemIndex?: number) {
+  return itemIndex === undefined ? message.items.map((_, index) => index) : [itemIndex];
+}
 
 function isQuotaError(message: string) {
   return message.includes('Daily AI usage limit reached');
@@ -113,7 +123,7 @@ function createAssistantMessage(
     mealTime: null,
     imageUri: null,
     followUps: [],
-    loggedItemIndexes: [],
+    loggedEntryIds: {},
     createdAt: new Date().toISOString(),
     ...fields,
   };
@@ -158,7 +168,7 @@ export function useFoodChat() {
       mealTime: null,
       imageUri: null,
       followUps: [t('chat.followUps.logBreakfast'), t('chat.followUps.suggestDinner')],
-      loggedItemIndexes: [],
+      loggedEntryIds: {},
       createdAt: new Date().toISOString(),
     },
   ]);
@@ -210,7 +220,7 @@ export function useFoodChat() {
             mealTime: result.mealTime,
             imageUri: result.intent === 'log' ? imageUri : null,
             followUps: result.followUps,
-            loggedItemIndexes: [],
+            loggedEntryIds: {},
             createdAt: new Date().toISOString(),
           },
         ]);
@@ -235,7 +245,7 @@ export function useFoodChat() {
             mealTime: null,
             imageUri: null,
             followUps: [],
-            loggedItemIndexes: [],
+            loggedEntryIds: {},
             createdAt: new Date().toISOString(),
           },
         ]);
@@ -259,18 +269,18 @@ export function useFoodChat() {
         return false;
       }
 
-      const indexes =
-        itemIndex === undefined ? message.items.map((_, index) => index) : [itemIndex];
-      const pending = indexes.filter((index) => !message.loggedItemIndexes.includes(index));
+      const pending = getTargetIndexes(message, itemIndex).filter(
+        (index) => message.loggedEntryIds[index] === undefined
+      );
 
       if (pending.length === 0) {
         return false;
       }
 
-      setSavingKey(`${messageId}:${itemIndex ?? 'all'}`);
+      setSavingKey(getSavingKey(messageId, itemIndex));
 
       try {
-        await logFoodItems(
+        const entries = await logFoodItems(
           pending.map((index) => {
             const item = message.items[index];
             return {
@@ -287,13 +297,59 @@ export function useFoodChat() {
           }),
           { imageUri: message.imageUri, consumedAt: resolveConsumedAt(message.mealTime) }
         );
+        // logFoodItems returns entries in the order of `pending`.
+        const savedIds = Object.fromEntries(
+          entries.map((entry, position) => [pending[position], entry.id])
+        );
         markFoodEntriesChanged();
         setMessages((previous) =>
           previous.map((item) =>
             item.id === messageId && item.role === 'assistant'
-              ? { ...item, loggedItemIndexes: [...item.loggedItemIndexes, ...pending] }
+              ? { ...item, loggedEntryIds: { ...item.loggedEntryIds, ...savedIds } }
               : item
           )
+        );
+        return true;
+      } finally {
+        setSavingKey(null);
+      }
+    },
+    [markFoodEntriesChanged, messages]
+  );
+
+  /** Removes what a card just saved from the diary, so it can be added again. */
+  const undoLog = useCallback(
+    async (messageId: string, itemIndex?: number) => {
+      const message = messages.find((item) => item.id === messageId);
+
+      if (!message || message.role !== 'assistant') {
+        return false;
+      }
+
+      const logged = getTargetIndexes(message, itemIndex).flatMap((index) => {
+        const entryId = message.loggedEntryIds[index];
+        return entryId === undefined ? [] : [{ index, entryId }];
+      });
+
+      if (logged.length === 0) {
+        return false;
+      }
+
+      setSavingKey(getSavingKey(messageId, itemIndex));
+
+      try {
+        await removeLoggedFoods(logged.map(({ entryId }) => entryId));
+        markFoodEntriesChanged();
+        setMessages((previous) =>
+          previous.map((item) => {
+            if (item.id !== messageId || item.role !== 'assistant') {
+              return item;
+            }
+
+            const loggedEntryIds = { ...item.loggedEntryIds };
+            logged.forEach(({ index }) => delete loggedEntryIds[index]);
+            return { ...item, loggedEntryIds };
+          })
         );
         return true;
       } finally {
@@ -353,7 +409,7 @@ export function useFoodChat() {
   /** One-tap re-log of a recent food; the card in the chat confirms it was saved. */
   const logRecent = useCallback(
     async (recent: RecentFood) => {
-      await logRecentFood(recent.id);
+      const entry = await logRecentFood(recent.id);
       markFoodEntriesChanged();
       setMessages((previous) => [
         ...previous,
@@ -361,7 +417,7 @@ export function useFoodChat() {
           text: t('chat.recentLogged', { name: recent.name }),
           intent: 'log',
           items: [recentFoodToItem(recent)],
-          loggedItemIndexes: [0],
+          loggedEntryIds: { 0: entry.id },
         }),
       ]);
     },
@@ -374,6 +430,7 @@ export function useFoodChat() {
     savingKey,
     sendMessage,
     logMessageItems,
+    undoLog,
     addBarcodeProduct,
     logRecent,
   };

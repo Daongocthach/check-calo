@@ -6,7 +6,7 @@ export const HEALTH_INFORMATION_SOURCE_SECTIONS = [
         key: 'cdc',
         titleKey: 'healthInformationSourcesScreen.sections.bmi.references.cdc.title',
         citationKey: 'healthInformationSourcesScreen.sections.bmi.references.cdc.citation',
-        url: 'https://www.cdc.gov/growth-chart-training/hcp/using-bmi/calculating-bmi.html',
+        url: 'https://www.cdc.gov/bmi/adult-calculator/',
       },
     ],
   },
@@ -17,13 +17,7 @@ export const HEALTH_INFORMATION_SOURCE_SECTIONS = [
         key: 'mifflin',
         titleKey: 'healthInformationSourcesScreen.sections.bmr.references.mifflin.title',
         citationKey: 'healthInformationSourcesScreen.sections.bmr.references.mifflin.citation',
-        url: 'https://doi.org/10.1093/ajcn/51.2.241',
-      },
-      {
-        key: 'roza',
-        titleKey: 'healthInformationSourcesScreen.sections.bmr.references.roza.title',
-        citationKey: 'healthInformationSourcesScreen.sections.bmr.references.roza.citation',
-        url: 'https://pubmed.ncbi.nlm.nih.gov/6741850/',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/',
       },
     ],
   },
@@ -34,13 +28,13 @@ export const HEALTH_INFORMATION_SOURCE_SECTIONS = [
         key: 'brooks',
         titleKey: 'healthInformationSourcesScreen.sections.activity.references.brooks.title',
         citationKey: 'healthInformationSourcesScreen.sections.activity.references.brooks.citation',
-        url: 'https://doi.org/10.1093/ajcn/79.5.921S',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/15113740/',
       },
       {
         key: 'iom',
         titleKey: 'healthInformationSourcesScreen.sections.activity.references.iom.title',
         citationKey: 'healthInformationSourcesScreen.sections.activity.references.iom.citation',
-        url: 'https://nap.nationalacademies.org/catalog/10490/dietary-reference-intakes-for-energy-carbohydrate-fiber-fat-fatty-acids-cholesterol-protein-and-amino-acids',
+        url: 'https://www.nationalacademies.org/read/10490',
       },
     ],
   },
@@ -48,12 +42,18 @@ export const HEALTH_INFORMATION_SOURCE_SECTIONS = [
     key: 'macros',
     references: [
       {
+        key: 'protein',
+        titleKey: 'healthInformationSourcesScreen.sections.macros.references.protein.title',
+        citationKey: 'healthInformationSourcesScreen.sections.macros.references.protein.citation',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/28642676/',
+      },
+      {
         key: 'dietaryGuidelines',
         titleKey:
           'healthInformationSourcesScreen.sections.macros.references.dietaryGuidelines.title',
         citationKey:
           'healthInformationSourcesScreen.sections.macros.references.dietaryGuidelines.citation',
-        url: 'https://www.dietaryguidelines.gov/sites/default/files/2020-12/Dietary_Guidelines_for_Americans_2020-2025.pdf',
+        url: 'https://odphp.health.gov/our-work/nutrition-physical-activity/dietary-guidelines/current-dietary-guidelines',
       },
       {
         key: 'who',
@@ -92,6 +92,21 @@ export const HEALTH_INFORMATION_SOURCE_SECTIONS = [
     key: 'weightManagement',
     references: [
       {
+        key: 'niddk',
+        titleKey: 'healthInformationSourcesScreen.sections.weightManagement.references.niddk.title',
+        citationKey:
+          'healthInformationSourcesScreen.sections.weightManagement.references.niddk.citation',
+        url: 'https://www.niddk.nih.gov/health-information/weight-management/body-weight-planner',
+      },
+      {
+        key: 'hallWeight',
+        titleKey:
+          'healthInformationSourcesScreen.sections.weightManagement.references.hallWeight.title',
+        citationKey:
+          'healthInformationSourcesScreen.sections.weightManagement.references.hallWeight.citation',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/17848938/',
+      },
+      {
         key: 'wadden',
         titleKey:
           'healthInformationSourcesScreen.sections.weightManagement.references.wadden.title',
@@ -104,7 +119,7 @@ export const HEALTH_INFORMATION_SOURCE_SECTIONS = [
         titleKey: 'healthInformationSourcesScreen.sections.weightManagement.references.hall.title',
         citationKey:
           'healthInformationSourcesScreen.sections.weightManagement.references.hall.citation',
-        url: 'https://doi.org/10.3945/ajcn.112.036350',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/22434603/',
       },
     ],
   },
@@ -113,15 +128,15 @@ export const HEALTH_INFORMATION_SOURCE_SECTIONS = [
 export const BMI_PROFILE_SOURCE_LINKS = [
   {
     key: 'bmi',
-    url: 'https://www.cdc.gov/growth-chart-training/hcp/using-bmi/calculating-bmi.html',
+    url: 'https://www.cdc.gov/bmi/adult-calculator/',
   },
   {
     key: 'energy',
-    url: 'https://doi.org/10.1093/ajcn/51.2.241',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/',
   },
   {
     key: 'macros',
-    url: 'https://nap.nationalacademies.org/catalog/10490/dietary-reference-intakes-for-energy-carbohydrate-fiber-fat-fatty-acids-cholesterol-protein-and-amino-acids',
+    url: 'https://www.nationalacademies.org/read/10490',
   },
   {
     key: 'weightChange',

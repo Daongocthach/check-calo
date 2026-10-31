@@ -2,19 +2,20 @@ import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { Button, Icon, Text } from '@/common/components';
-import { NUTRIENT_UNIT_KEYS, NUTRIENTS } from '../../constants';
+import { Accordion, Button, Icon, Text } from '@/common/components';
 import type { ChatFoodItem } from '../../services/foodAnalyzer';
-import { formatNutrientAmount } from '../../utils/format';
 import { sumNutrients } from '../../utils/nutrients';
+import { NutrientList } from '../NutrientList';
 
 export interface FoodResultCardProps {
   items: ChatFoodItem[];
   imageUri: string | null;
   isSuggestion: boolean;
   isLogged: boolean;
+  /** A save or undo for this card is in progress. */
   isSaving: boolean;
   onLog: () => void;
+  onUndo: () => void;
 }
 
 function sum(
@@ -24,7 +25,10 @@ function sum(
   return Math.round(items.reduce((total, item) => total + item[key], 0));
 }
 
-/** AI result: list of detected/suggested foods with totals and an "add to diary" button. */
+/**
+ * AI result: detected/suggested foods with macro totals, the other nutrients folded into an
+ * accordion, and an "add to diary" button that turns into an undo once saved.
+ */
 export function FoodResultCard({
   items,
   imageUri,
@@ -32,8 +36,9 @@ export function FoodResultCard({
   isLogged,
   isSaving,
   onLog,
+  onUndo,
 }: FoodResultCardProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { theme } = useUnistyles();
   const totals = [
     { key: 'protein', value: sum(items, 'proteinGrams') },
@@ -41,16 +46,7 @@ export function FoodResultCard({
     { key: 'fat', value: sum(items, 'fatGrams') },
   ] as const;
   const nutrientTotals = sumNutrients(items);
-  const nutrientSummary = NUTRIENTS.flatMap((nutrient) => {
-    const value = nutrientTotals[nutrient.key];
-    const unit = t(NUTRIENT_UNIT_KEYS[nutrient.unit]);
-
-    return value === null
-      ? []
-      : [
-          `${t(`nutrients.${nutrient.key}`)} ${formatNutrientAmount(value, nutrient.unit, i18n.language)} ${unit}`,
-        ];
-  }).join(' · ');
+  const hasNutrients = Object.values(nutrientTotals).some((value) => value !== null);
 
   return (
     <View style={styles.card}>
@@ -78,6 +74,19 @@ export function FoodResultCard({
             </Text>
           </View>
         ))}
+        {items.length > 1 ? (
+          <View style={[styles.itemRow, styles.totalRow]}>
+            <Text variant="bodySmall" color="secondary" style={styles.itemText}>
+              {t('chat.total')}
+            </Text>
+            <Text variant="body" weight="bold">
+              {sum(items, 'calories')}
+              <Text variant="caption" color="tertiary">
+                {` ${t('common.units.kcal')}`}
+              </Text>
+            </Text>
+          </View>
+        ) : null}
         <View style={styles.totals}>
           {totals.map((total) => (
             <View key={total.key} style={styles.totalItem}>
@@ -90,17 +99,35 @@ export function FoodResultCard({
             </View>
           ))}
         </View>
-        {nutrientSummary ? (
-          <Text variant="caption" color="secondary">
-            {nutrientSummary}
-          </Text>
-        ) : null}
+      </View>
+      {hasNutrients ? (
+        <View style={styles.nutrients}>
+          <Accordion
+            items={[
+              {
+                id: 'nutrients',
+                title: t('nutrients.title'),
+                content: <NutrientList values={nutrientTotals} />,
+              },
+            ]}
+          />
+        </View>
+      ) : null}
+      <View style={[styles.footer, !hasNutrients && styles.footerFlush]}>
         {isLogged ? (
           <View style={styles.logged}>
-            <Icon name="checkmark-circle" size={18} color={theme.colors.brand.primary} />
-            <Text variant="bodySmall" weight="semibold">
+            <Icon name="checkmark-circle" size={20} color={theme.colors.brand.primary} />
+            <Text variant="bodySmall" weight="semibold" style={styles.loggedText}>
               {t('chat.logged')}
             </Text>
+            <Button
+              title={t('chat.undo')}
+              variant="ghost"
+              size="sm"
+              leftIcon={<Icon name="arrow-undo" variant="brand" size={16} />}
+              loading={isSaving}
+              onPress={onUndo}
+            />
           </View>
         ) : (
           <Button
@@ -132,7 +159,7 @@ const styles = StyleSheet.create((theme) => ({
     aspectRatio: 1.8,
   },
   body: {
-    padding: theme.metrics.spacing.p12,
+    padding: theme.metrics.spacing.p16,
     gap: theme.metrics.spacingV.p12,
   },
   itemRow: {
@@ -143,6 +170,11 @@ const styles = StyleSheet.create((theme) => ({
   itemText: {
     flex: 1,
     gap: theme.metrics.spacingV.p4,
+  },
+  totalRow: {
+    paddingTop: theme.metrics.spacingV.p12,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border.subtle,
   },
   totals: {
     flexDirection: 'row',
@@ -156,11 +188,23 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background.surfaceAlt,
     gap: theme.metrics.spacingV.p4,
   },
+  nutrients: {
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.subtle,
+  },
+  footer: {
+    padding: theme.metrics.spacing.p16,
+  },
+  footerFlush: {
+    paddingTop: 0,
+  },
   logged: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: theme.metrics.spacing.p8,
-    paddingVertical: theme.metrics.spacingV.p8,
+  },
+  loggedText: {
+    flex: 1,
   },
 }));

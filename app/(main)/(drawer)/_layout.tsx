@@ -27,7 +27,6 @@ export default function DrawerLayout() {
       }}
     >
       <Drawer.Screen name="index" options={{ title: t('drawer.dashboard') }} />
-      <Drawer.Screen name="goal" options={{ title: t('drawer.goal') }} />
       <Drawer.Screen name="buddy" options={{ title: t('drawer.buddy') }} />
       <Drawer.Screen name="settings" options={{ title: t('drawer.settings') }} />
     </Drawer>

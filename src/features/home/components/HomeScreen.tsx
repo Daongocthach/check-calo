@@ -1,11 +1,11 @@
 import { Redirect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import { ScrollView, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { ChatComposer } from '@/features/food-log/components';
-import type { MealSlotGroup } from '@/features/food-log/utils/mealSlot';
+import type { FoodEntry } from '@/features/food-log/types';
 import { GoalSummaryCard } from '@/features/goals/components/GoalSummaryCard';
 import { useOpenDrawer } from '@/features/navigation';
-import { formatDateKey } from '@/utils/date';
 import { useHomeScreen } from '../hooks/useHomeScreen';
 import { DailyProgressCard } from './DailyProgressCard';
 import { HomeHeader } from './HomeHeader';
@@ -17,18 +17,10 @@ export function HomeScreen() {
   const home = useHomeScreen();
   const openDrawer = useOpenDrawer();
   const displayName = home.profile?.displayName.trim() || '';
-
-  const handleGroupPress = (group: MealSlotGroup) => {
-    if (group.entries.length === 1) {
-      router.push({ pathname: '/meal/[id]', params: { id: group.entries[0].id } });
-      return;
-    }
-
-    router.push({
-      pathname: '/meal-slot',
-      params: { date: formatDateKey(home.selectedDate), slot: group.slot },
-    });
-  };
+  const openEntry = useCallback(
+    (entry: FoodEntry) => router.push({ pathname: '/meal/[id]', params: { id: entry.id } }),
+    [router]
+  );
 
   if (home.isProfileMissing) {
     return <Redirect href="/welcome" />;
@@ -43,19 +35,19 @@ export function HomeScreen() {
       >
         <HomeHeader
           displayName={displayName}
-          streak={home.streak}
-          onStreakPress={() => router.navigate('/buddy')}
+          onBuddyPress={() => router.navigate('/buddy')}
           onMenuPress={openDrawer}
         />
         <WeekStrip
           selectedDate={home.selectedDate}
           today={home.today}
           dayStatuses={home.dayStatuses}
+          streak={home.streak}
           onSelect={home.setSelectedDate}
         />
         <DailyProgressCard summary={home.summary} profile={home.profile} />
-        <GoalSummaryCard profile={home.profile} />
-        <MealsGrid groups={home.mealGroups} onGroupPress={handleGroupPress} />
+        <GoalSummaryCard />
+        <MealsGrid entries={home.entries} onEntryPress={openEntry} />
       </ScrollView>
       <View style={styles.composer}>
         <ChatComposer

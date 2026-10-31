@@ -1,6 +1,6 @@
 import type { FoodEntry, FoodEntryInput, NutrientValues } from '../types';
 import { pickNutrients } from '../utils/nutrients';
-import { createFoodEntry, deleteFoodEntry, updateFoodEntry } from './foodEntryRepository';
+import { createFoodEntry, deleteFoodEntries, updateFoodEntry } from './foodEntryRepository';
 import { getFoodEntryById } from './foodEntryRepositoryCore';
 import { deleteOrphanedFoodEntryAssets, persistFoodEntryAssetsLocally } from './foodImageStorage';
 import {
@@ -110,11 +110,14 @@ export async function updateLoggedFood(entryId: string, input: FoodEntryInput) {
   return entry;
 }
 
-export async function removeLoggedFood(entryId: string) {
-  const entry = await getFoodEntryById(entryId);
-  await deleteFoodEntry(entryId);
+/** Deletes diary entries in one go, then their photos once nothing else uses them. */
+export async function removeLoggedFoods(entryIds: string[]) {
+  const entries = await Promise.all(entryIds.map((entryId) => getFoodEntryById(entryId)));
+  await deleteFoodEntries(entryIds);
 
-  if (entry) {
-    await deleteOrphanedFoodEntryAssets(entry.imageUri, entry.thumbnailUri);
-  }
+  // Items from one photo share its files, so each file is checked once.
+  const assetUris = new Set(
+    entries.flatMap((entry) => (entry ? [entry.imageUri, entry.thumbnailUri] : []))
+  );
+  await deleteOrphanedFoodEntryAssets(...assetUris);
 }

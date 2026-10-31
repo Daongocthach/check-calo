@@ -69,6 +69,22 @@ export interface OverlayColors {
   shadow: string;
 }
 
+/** iOS `UIAlertController`-style alert dialog. */
+export interface AlertColors {
+  /** Dim behind the alert, lighter than `overlay.modal`. */
+  backdrop: string;
+  /** Translucent tint layered over the blur (iOS). */
+  surface: string;
+  /** Opaque card fill where blur is unavailable (Android). */
+  surfaceSolid: string;
+  separator: string;
+  /** Highlight on a pressed button row. */
+  pressed: string;
+  /** Button text for default and cancel actions. */
+  action: string;
+  destructive: string;
+}
+
 export interface GradientColors {
   primary: [string, string];
   secondary: [string, string];
@@ -97,6 +113,7 @@ export interface ThemeColors {
   icon: IconColors;
   state: StateColors;
   overlay: OverlayColors;
+  alert: AlertColors;
   gradient: GradientColors;
   shadow: ShadowConfig;
 }

@@ -1,1 +1,0 @@
-export { GoalTrackingCard } from './GoalTrackingCard';

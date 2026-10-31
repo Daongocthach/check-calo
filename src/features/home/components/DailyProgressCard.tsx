@@ -17,7 +17,7 @@ export interface DailyProgressCardProps {
 }
 
 export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [showNutrients, setShowNutrients] = useState(false);
   const consumed = Math.round(summary?.consumedCalories ?? 0);
   const target = Math.round(summary?.calorieTarget ?? profile?.dailyCalorieTarget ?? 0);
@@ -30,7 +30,6 @@ export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) 
     summary?.date,
     summary?.goalMode
   );
-  const numberFormat = new Intl.NumberFormat(i18n.language);
   const macros = {
     carbs: { value: summary?.carbsGrams ?? 0, target: profile?.carbsTargetGrams ?? 0 },
     protein: { value: summary?.proteinGrams ?? 0, target: profile?.proteinTargetGrams ?? 0 },
@@ -55,16 +54,8 @@ export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) 
         target={target}
         range={range}
         state={state}
-        width={hs(250)}
+        width={hs(310)}
       />
-      {target > 0 ? (
-        <Text variant="caption" color="secondary" align="center">
-          {t('home.rangeLabel', {
-            min: numberFormat.format(range.min),
-            max: numberFormat.format(range.max),
-          })}
-        </Text>
-      ) : null}
       <View style={styles.macros}>
         {MACRO_KEYS.map((key) => (
           <MacroProgress

@@ -2,8 +2,6 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Slider, Text } from '@/common/components';
-import { MetricSliderCard } from '@/features/profile/components/onboarding/MetricSliderCard';
-import { ChoiceTile } from '@/features/profile/components/onboarding/OnboardingParts';
 import { calculateBmi, type BodyStats } from '@/features/profile/utils/calorie';
 import { formatDateKey } from '@/utils/date';
 import type { WeightGoalMode } from '../../types';
@@ -16,6 +14,8 @@ import {
   type GoalDraft,
 } from '../../utils/goalPlan';
 import { addDays } from '../../utils/weightGoal';
+import { ChoiceTile } from './ChoiceTile';
+import { MetricSliderCard } from './MetricSliderCard';
 
 const MODES = [
   { value: 'lose', icon: 'flame-outline' },

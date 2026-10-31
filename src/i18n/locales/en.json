@@ -58,8 +58,7 @@
     "open": "Open menu",
     "dashboard": "Dashboard",
     "buddy": "Pet",
-    "settings": "Settings",
-    "goal": "Goal"
+    "settings": "Settings"
   },
   "language": {
     "label": "Language",
@@ -71,7 +70,6 @@
     "greeting": "Hi {{name}}",
     "streakLabel": "{{count}}-day streak",
     "openMenu": "Open menu",
-    "changeAvatar": "Change avatar",
     "pickDate": "Pick a date",
     "goToToday": "Go to today",
     "dayStatus": {
@@ -83,7 +81,29 @@
     "caloriesLabel": "Calories",
     "emptyTitle": "Nothing logged yet",
     "emptySubtitle": "Tell Check AI what you ate, or snap a photo of your meal.",
-    "rangeLabel": "On target at {{min}}–{{max}} kcal"
+    "rangeLabel": "On target at {{min}}–{{max}} kcal",
+    "goalSummary": {
+      "title": "Current goal",
+      "goal": "Goal",
+      "progress": "Current progress",
+      "expectedEnd": "Estimated finish",
+      "daysUnit": "days",
+      "modes": {
+        "lose": "Lose weight",
+        "gain": "Gain weight",
+        "maintain": "Maintain weight"
+      },
+      "remaining": {
+        "lose": "Still to cut",
+        "gain": "Still to add",
+        "maintain": "Days left"
+      },
+      "changeGoal": "Change goal",
+      "reachedTitle": "Reached: {{goal}}!",
+      "reachedMessage": "Great work! Your plan has switched to maintaining. Set your next goal to update your weight and plan.",
+      "keepMaintaining": "Keep maintaining",
+      "nextGoal": "Next goal"
+    }
   },
   "supportScreen": {
     "title": "Support the app",
@@ -109,7 +129,7 @@
     "saveImageModalBody": "You are an important part of making this app better every day ❤️",
     "saveImagePermissionDenied": "Photo library permission was denied.",
     "saveImageFailed": "Could not save the image. Please try again.",
-    "thanks": "Thank you very much! 🙏"
+    "thanks": "Thank you very much!"
   },
   "homeScreen": {
     "monthStatus": {
@@ -127,31 +147,27 @@
     "sections": {
       "bmi": {
         "title": "BMI Calculation (Body Mass Index)",
-        "description": "BMI is calculated from weight and height to estimate weight status. This index is a screening tool only and does not replace a personalized medical assessment.",
+        "description": "BMI is weight in kilograms divided by squared height in metres. The linked CDC categories apply to adults aged 20 and older. Ages 2–19 require BMI-for-age and sex assessment rather than direct use of adult thresholds.",
         "references": {
           "cdc": {
             "title": "Centers for Disease Control and Prevention.",
-            "citation": "Calculating BMI using the English system and metric system. CDC Growth Chart Training."
+            "citation": "Adult BMI Calculator. Centers for Disease Control and Prevention. For adults aged 20 and older."
           }
         }
       },
       "bmr": {
         "title": "BMR Calculation (Basal Metabolic Rate)",
-        "description": "We use the Mifflin-St Jeor equation to calculate basal metabolic rate, considered the most accurate method for healthy individuals.",
+        "description": "The app uses Mifflin–St Jeor to estimate resting energy expenditure, not measure metabolism. For Other, the −78 coefficient averages the two equation coefficients; this is an app convention without separate validation.",
         "references": {
           "mifflin": {
             "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
             "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
-          },
-          "roza": {
-            "title": "Roza AM, Shizgal HM.",
-            "citation": "The Harris Benedict equation reevaluated: resting energy requirements and the body cell mass. Am J Clin Nutr. 1984;40(1):168-82."
           }
         }
       },
       "activity": {
         "title": "Activity Level Factors",
-        "description": "Physical activity factors are applied to BMR to estimate total daily energy expenditure based on established research.",
+        "description": "The app multiplies BMR by 1.2, 1.375, 1.55, 1.725 or 1.9 according to activity level. These are app-selected estimates. The references provide background on activity and energy, not validation of this exact multiplier set.",
         "references": {
           "brooks": {
             "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
@@ -165,15 +181,19 @@
       },
       "macros": {
         "title": "Macronutrient Distribution",
-        "description": "Recommended macronutrient ratios are based on nutrition guidance from health organizations.",
+        "description": "These sources provide general nutrition guidance and protein guidance for exercising individuals. App rules select 1.6–2 g/kg protein by goal, at least 60 g; fat at least 0.8 g/kg or 25% of energy; and remaining energy from carbohydrate. Above BMI 25, reference weight is capped at BMI 25. These planning rules are not universal recommendations.",
         "references": {
           "dietaryGuidelines": {
             "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
-            "citation": "2020-2025 Dietary Guidelines for Americans. 9th Edition."
+            "citation": "Dietary Guidelines for Americans, 2025–2030. 10th Edition. Current guidance and related resources."
           },
           "who": {
             "title": "World Health Organization.",
             "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          },
+          "protein": {
+            "title": "Jäger R, Kerksick CM, Campbell BI, et al.",
+            "citation": "International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20. Applies to exercising individuals."
           }
         }
       },
@@ -197,7 +217,7 @@
       },
       "weightManagement": {
         "title": "Weight Management",
-        "description": "Weight loss and weight gain recommendations are based on evidence-based methods for sustainable weight management.",
+        "description": "The app estimates weight change using 7,700 kcal/kg; completion dates are estimates, not the NIDDK dynamic model. The 25% deficit cap, 500 kcal/day surplus cap, sex-specific calorie floors combined with BMR, and on-target calorie ranges are app rules, not a combined protocol validated by these references.",
         "references": {
           "wadden": {
             "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
@@ -206,6 +226,14 @@
           "hall": {
             "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
             "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          },
+          "hallWeight": {
+            "title": "Hall KD.",
+            "citation": "What is the required energy deficit per unit weight loss? Int J Obes (Lond). 2008;32(3):573–576."
+          },
+          "niddk": {
+            "title": "National Institute of Diabetes and Digestive and Kidney Diseases.",
+            "citation": "About the Body Weight Planner. Background on personalized weight-change estimates; the app does not implement this model."
           }
         }
       }
@@ -270,12 +298,8 @@
     }
   },
   "goalTracking": {
-    "profileTitle": "Goal progress",
-    "planTitle": "Plan: {{goal}}",
     "progressKcal": "{{current}} / {{target}} kcal",
     "progressDays": "{{current}} / {{target}} days",
-    "statusLabel": "Status",
-    "startDate": "Start: {{value}}",
     "goalNames": {
       "loseWithValue": "Lose {{value, number}} kg",
       "gainWithValue": "Gain {{value, number}} kg",
@@ -292,46 +316,10 @@
       "subtitle": "Goals you completed or changed midway.",
       "empty": "You do not have any goal history yet."
     },
-    "progressKg": "{{current}} / {{target}} kg",
-    "weightRoute": "{{start}} {{unit}} → {{target}} {{unit}}",
-    "maintainRoute": "Stay around {{value}} {{unit}} (±{{band}} {{unit}})",
-    "currentWeightLabel": "Current",
-    "lostLabel": "Lost",
-    "gainedLabel": "Gained",
-    "remainingWeightLabel": "To go",
-    "driftLabel": "Change",
-    "bandHint": "Keep within ±{{value}} kg",
-    "withinBand": "On track",
-    "outsideBand": "Off range",
-    "expectedDate": "Expected: {{value}}",
-    "reachedTitle": "Reached: {{goal}}",
-    "reachedHint": "Great work! Set a new goal to keep going.",
-    "newGoalAction": "Set a new goal",
     "today": {
-      "label": "Today {{consumed}} / {{target}} {{unit}}",
       "remaining": "{{value}} kcal left",
       "onTarget": "On target",
       "over": "{{value}} kcal over"
-    },
-    "weighIn": {
-      "action": "Log today's weight",
-      "title": "Today's weight (kg)",
-      "message": "Weigh yourself in the morning before eating for the steadiest numbers.",
-      "placeholder": "e.g. 65.5",
-      "invalid": "Enter a weight between 25 and 250 kg",
-      "saved": "Weight saved"
-    },
-    "transition": {
-      "title_one": "Transition · {{count}} day left",
-      "title_other": "Transition · {{count}} days left",
-      "hint": "Eat about {{kcal}} kcal (maintenance). The scale may rise 1–2 kg in the first days from water, not fat."
-    },
-    "suggestion": {
-      "underweight": "Your BMI is under 18.5. Consider maintaining or gaining instead.",
-      "stale": "No weigh-ins for over a month. Start over from your current weight for accurate progress?",
-      "regained": "Your weight has moved over 2 kg away from the goal. Start over from your current weight?",
-      "changeGoal": "Change goal",
-      "restart": "Start over"
     }
   },
   "achievements": {
@@ -415,8 +403,6 @@
       "heroTitle": "Eat Well,\nLive Well",
       "heroSubtitle": "A calorie and smart nutrition tracking app",
       "heroBody": "Check Calo helps you understand your body, manage daily calories, and reach your health goals every day.",
-      "ctaTitle": "Start your healthier journey today.",
-      "ctaAction": "Start now",
       "features": {
         "tracking": {
           "title": "Daily calorie tracking",
@@ -506,7 +492,8 @@
           "title": "Policy changes",
           "body": "We may update this policy. Any important changes will be announced in the app."
         }
-      }
+      },
+      "updatedDate": "November 1, 2026"
     },
     "help": {
       "title": "Need help?",
@@ -639,8 +626,11 @@
     "addToDiary_one": "Add to diary",
     "addToDiary_other": "Add {{count}} foods to diary",
     "addSuggestion": "Add to diary",
-    "logged": "Added to your diary",
+    "logged": "Added",
     "loggedToast": "Saved to your diary",
+    "total": "Total",
+    "undo": "Undo",
+    "undoToast": "Removed from your diary",
     "scanBarcode": "Scan barcode",
     "recentTitle": "Recent",
     "recentChip": "{{name}} · {{calories}} kcal",
@@ -682,9 +672,8 @@
   },
   "onboarding": {
     "headerTitle": "Getting started",
-    "title": "Welcome to Check Calo! 👋",
+    "title": "Welcome to Check Calo!",
     "subtitle": "Tell {{name}} a little about you to build a plan that fits.",
-    "basicInfo": "Basic info",
     "displayName": "Display name",
     "displayNamePlaceholder": "Your name",
     "age": "Age",
@@ -694,26 +683,21 @@
       "female": "Female",
       "other": "Other"
     },
-    "bodyMetrics": "Body metrics",
     "height": "Height",
     "weight": "Weight",
     "bmi": "BMI",
     "bmiCategories": {
       "underweight": {
-        "title": "Underweight",
-        "description": "Eating enough and building strength will help."
+        "title": "Underweight"
       },
       "normal": {
-        "title": "Healthy weight",
-        "description": "You're in a healthy range. Keep it up!"
+        "title": "Healthy weight"
       },
       "overweight": {
-        "title": "Overweight",
-        "description": "A small daily deficit will move you toward a healthy range."
+        "title": "Overweight"
       },
       "obese": {
-        "title": "Obese",
-        "description": "Steady, sustainable changes work best. Consider asking a doctor."
+        "title": "Obese"
       }
     },
     "goal": "Your goal",
@@ -739,7 +723,6 @@
       "active": "Very active"
     },
     "plan": "Your estimated plan",
-    "startAction": "Start my journey",
     "saveSuccess": "Profile saved",
     "healthSources": "How we calculate this",
     "validation": {
@@ -747,7 +730,6 @@
     },
     "targetWeight": "Target weight",
     "targetBmiWarning": "This target is below a healthy BMI (18.5). Consider checking with a health professional.",
-    "planRange": "Eating {{min}}–{{max}} kcal a day counts as on target",
     "planLoading": {
       "title": "Building your plan…",
       "bmr": "Calculating your resting metabolism (BMR)…",
@@ -769,41 +751,33 @@
       "dateMaintain": "Ongoing",
       "dateMaintainHint": "No end date"
     },
-    "planExplain": {
-      "title": "How we got these numbers",
-      "dailyTitle": "Calories per day",
-      "dailyBmr": "At rest your body burns about {{bmr}} kcal a day (BMR, Mifflin-St Jeor formula from your age, gender, height and weight).",
-      "dailyTdee": "Your activity level ({{activity}}) multiplies that by {{factor}}: about {{tdee}} kcal a day keeps your weight where it is.",
-      "dailyLose": "Eating {{gap}} kcal less than that each day gives your target of {{kcal}} kcal.",
-      "dailyGain": "Eating {{gap}} kcal more than that each day gives your target of {{kcal}} kcal.",
-      "dailyMaintain": "Since you want to hold your weight, your target is exactly that.",
-      "weeklyTitle": "Calories per week",
-      "weeklyTotal": "{{kcal}} kcal × 7 days = {{total}} kcal a week.",
-      "weeklyLose": "About {{perKg}} kcal equals 1 kg of body fat, so a {{gap}} kcal weekly deficit loses about {{rate}} kg a week, a {{pace}} pace.",
-      "weeklyGain": "About {{perKg}} kcal builds 1 kg, so a {{gap}} kcal weekly surplus adds about {{rate}} kg a week, a {{pace}} pace.",
-      "weeklyMaintain": "Eating a bit more one day and a bit less the next keeps you steady.",
-      "weeklyFlex": "The weekly total matters most: a heavier meal one day can be balanced over the next few.",
-      "targetTitle": "Target weight",
-      "targetNow": "Today you weigh {{weight}} kg, a BMI of {{bmi}} ({{category}}).",
-      "targetThen": "At {{weight}} kg your BMI will be {{bmi}} ({{category}}).",
-      "targetMaintain": "You will keep this weight and BMI.",
-      "targetHealthy": "A BMI of 18.5–24.9 is considered a healthy range for adults.",
-      "dateTitle": "Expected date",
-      "dateMath": "{{change}} kg at {{rate}} kg a week takes {{weeks}}, so around {{date}}.",
-      "dateMaintain": "Maintaining has no finish line: keep eating around your target and weigh in now and then.",
-      "dateEstimate": "This is an estimate. Weight moves day to day with water and salt, so the app follows the trend of your weigh-ins and adjusts along the way.",
-      "macrosTitle": "Protein, fat and carbs",
-      "macrosSplit": "Protein {{protein}}g ({{proteinPercent}}%) · Fat {{fat}}g ({{fatPercent}}%) · Carbs {{carbs}}g ({{carbsPercent}}%) of your daily calories.",
-      "macrosWhy": "Protein is set from your body weight to protect muscle and keep you full; fat covers essential needs, and carbs fill the rest for energy."
-    },
     "step": "Step {{current}} of {{total}} · {{title}}",
     "steps": {
-      "about": "About you",
-      "goal": "Goal",
+      "about": "You & your goal",
       "plan": "Plan"
-    }
+    },
+    "createPlan": "Create my plan",
+    "start": "Start",
+    "goalLabel": "Goal",
+    "planSummary": {
+      "lose": "Your maintenance is ~{{tdee}} kcal/day; the plan eats {{gap}} kcal less.",
+      "gain": "Your maintenance is ~{{tdee}} kcal/day; the plan eats {{gap}} kcal more.",
+      "maintain": "Your maintenance is ~{{tdee}} kcal/day; eating around it keeps your weight.",
+      "macros": "Each day: protein {{protein}}g · fat {{fat}}g · carbs {{carbs}}g.",
+      "estimate": "This is an estimate; the app adjusts it as you log weigh-ins."
+    },
+    "weightAndTarget": "Weight / target",
+    "calorieAdjustment": {
+      "lose": "Calorie deficit",
+      "gain": "Calorie surplus",
+      "maintain": "Calorie adjustment"
+    },
+    "editTitle": "Update your goal",
+    "editSubtitle": "Review your details and adjust your goal so {{name}} can update your plan.",
+    "previewUpdate": "Preview updated plan"
   },
   "buddy": {
+    "openBuddy": "Open {{name}}",
     "title": "Pet",
     "subtitle": "Grow {{name}} with every healthy day",
     "rename": "Rename your pet",
@@ -933,19 +907,5 @@
     "transition_one": "Eat at maintenance for {{count}} week first ({{kcal}} kcal/day)",
     "transition_other": "Eat at maintenance for {{count}} weeks first ({{kcal}} kcal/day)",
     "transitionHint": "Lets your body adjust before changing direction; the scale may rise a little from water. Then calories move to {{kcal}} kcal/day."
-  },
-  "goalScreen": {
-    "title": "Goal",
-    "subtitle": "Progress, weight and plan",
-    "manage": "Plan",
-    "changeGoal": "Change goal",
-    "changeGoalHint": "Target weight, duration or direction",
-    "reachedTitle": "Reached: {{goal}}!",
-    "reachedMessage": "Well done! Your plan now switches to maintaining, so you keep the result.",
-    "keepMaintaining": "Maintain"
-  },
-  "goalSummary": {
-    "route": "Now {{current}} {{unit}} · target {{target}} {{unit}}",
-    "maintain": "Holding around {{current}} {{unit}}"
   }
 }

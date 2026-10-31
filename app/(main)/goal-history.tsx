@@ -2,12 +2,10 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Card, Chip, ProgressBar, ScreenContainer, Text } from '@/common/components';
+import { formatWholeNumber } from '@/features/food-log/utils/format';
 import { useGoalTracking } from '@/features/goals/hooks/useGoalTracking';
 import type { WeightGoalProgress, WeightGoalStatus } from '@/features/goals/types';
-import {
-  formatWeightGoalTitle,
-  getGoalCycleDayProgress,
-} from '@/features/goals/utils/goalTracking';
+import { formatWeightGoalTitle } from '@/features/goals/utils/goalTracking';
 
 function formatGoalHistoryDateRange(
   goalProgress: Pick<WeightGoalProgress, 'goal'>,
@@ -29,7 +27,6 @@ function formatGoalHistoryDateRange(
 const GOAL_PROGRESS_KEYS = {
   days: 'goalTracking.progressDays',
   kcal: 'goalTracking.progressKcal',
-  kg: 'goalTracking.progressKg',
 } as const satisfies Record<WeightGoalProgress['unit'], string>;
 
 function getGoalStatusLabelKey(status: WeightGoalStatus) {
@@ -45,7 +42,7 @@ function getGoalStatusLabelKey(status: WeightGoalStatus) {
 
 export default function GoalHistoryScreen() {
   const { t, i18n } = useTranslation();
-  // Shares the cached snapshot with the Profile screen, so it renders without a reload.
+  // Shares the cached snapshot with the dashboard, so it renders without a reload.
   const { snapshot } = useGoalTracking();
   const goalHistory = snapshot?.goalHistory ?? [];
 
@@ -67,47 +64,35 @@ export default function GoalHistoryScreen() {
             </Card>
           ) : (
             <View style={styles.historyList}>
-              {goalHistory.map((goalItem) => {
-                const goalCycleProgress = getGoalCycleDayProgress(goalItem);
-
-                return (
-                  <Card key={goalItem.goal.id} variant="filled" style={styles.historyItemCard}>
-                    <View style={styles.historyItemHeader}>
-                      <View style={styles.historyItemCopy}>
-                        <Text variant="body" weight="semibold">
-                          {formatWeightGoalTitle(t, goalItem.goal)}
-                        </Text>
-                        <Text variant="bodySmall" color="secondary">
-                          {formatGoalHistoryDateRange(goalItem, i18n.language)}
-                        </Text>
-                      </View>
-                      <Chip
-                        label={t(getGoalStatusLabelKey(goalItem.goal.status))}
-                        variant="outline"
-                      />
-                    </View>
-
-                    <View style={styles.historyMetrics}>
-                      <Text variant="bodySmall" color="secondary">
-                        {t(GOAL_PROGRESS_KEYS[goalItem.unit], {
-                          current: goalItem.progressValue,
-                          target: goalItem.targetValue,
-                        })}
+              {goalHistory.map((goalItem) => (
+                <Card key={goalItem.goal.id} variant="filled" style={styles.historyItemCard}>
+                  <View style={styles.historyItemHeader}>
+                    <View style={styles.historyItemCopy}>
+                      <Text variant="body" weight="semibold">
+                        {formatWeightGoalTitle(t, goalItem.goal)}
                       </Text>
-                      {goalCycleProgress ? (
-                        <Text variant="bodySmall" color="secondary">
-                          {t('goalTracking.progressDays', {
-                            current: goalCycleProgress.current,
-                            target: goalCycleProgress.target,
-                          })}
-                        </Text>
-                      ) : null}
+                      <Text variant="bodySmall" color="secondary">
+                        {formatGoalHistoryDateRange(goalItem, i18n.language)}
+                      </Text>
                     </View>
+                    <Chip
+                      label={t(getGoalStatusLabelKey(goalItem.goal.status))}
+                      variant="outline"
+                    />
+                  </View>
 
-                    <ProgressBar value={goalItem.progressPercent} size="md" colorScheme="success" />
-                  </Card>
-                );
-              })}
+                  <View style={styles.historyMetrics}>
+                    <Text variant="bodySmall" color="secondary">
+                      {t(GOAL_PROGRESS_KEYS[goalItem.unit], {
+                        current: formatWholeNumber(goalItem.progressValue, i18n.language),
+                        target: formatWholeNumber(goalItem.targetValue, i18n.language),
+                      })}
+                    </Text>
+                  </View>
+
+                  <ProgressBar value={goalItem.progressPercent} size="md" colorScheme="success" />
+                </Card>
+              ))}
             </View>
           )}
         </View>

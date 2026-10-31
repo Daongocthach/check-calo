@@ -16,12 +16,19 @@ import type { AvatarProps } from './Avatar.types';
  * <Avatar initials="JD" size="md" />
  * ```
  */
-export function Avatar({ source, initials, icon, size = 'md', accessibilityLabel }: AvatarProps) {
+export function Avatar({
+  source,
+  initials,
+  icon,
+  size = 'md',
+  tone = 'brand',
+  accessibilityLabel,
+}: AvatarProps) {
   const { t } = useTranslation();
   const dimension = AVATAR_SIZES[size];
   const fontSize = dimension * 0.4;
 
-  styles.useVariants({ size });
+  styles.useVariants({ size, tone });
 
   if (source) {
     return (

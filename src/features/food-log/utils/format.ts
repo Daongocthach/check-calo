@@ -39,3 +39,27 @@ export function formatNutrientAmount(
 
   return formatter.format(value);
 }
+
+const wholeNumberFormatterCache = new Map<string, Intl.NumberFormat>();
+
+/** Whole numbers grouped for the app language: 23.100 in Vietnamese, 23,100 in English. */
+export function formatWholeNumber(value: number, language: string) {
+  const locale = toLocale(language);
+  let formatter = wholeNumberFormatterCache.get(locale);
+
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+    wholeNumberFormatterCache.set(locale, formatter);
+  }
+
+  return formatter.format(roundNumber(value));
+}
+
+/** A YYYY-MM-DD day as dd/mm/yyyy in Vietnamese, mm/dd/yyyy in English. */
+export function formatDayDate(dateKey: string, language: string) {
+  return new Date(`${dateKey}T00:00:00`).toLocaleDateString(toLocale(language), {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}

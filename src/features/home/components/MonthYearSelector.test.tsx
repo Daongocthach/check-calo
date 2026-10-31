@@ -22,7 +22,12 @@ const today = new Date(2026, 9, 26);
 describe('MonthYearSelector', () => {
   it('shows the selected month and year', async () => {
     await render(
-      <MonthYearSelector selectedDate={new Date(2026, 2, 31)} today={today} onSelect={jest.fn()} />
+      <MonthYearSelector
+        selectedDate={new Date(2026, 2, 31)}
+        today={today}
+        streak={0}
+        onSelect={jest.fn()}
+      />
     );
 
     expect(screen.getByText('March 2026')).toBeTruthy();
@@ -31,7 +36,12 @@ describe('MonthYearSelector', () => {
   it('jumps back to today', async () => {
     const onSelect = jest.fn<(date: Date) => void>();
     await render(
-      <MonthYearSelector selectedDate={new Date(2026, 8, 30)} today={today} onSelect={onSelect} />
+      <MonthYearSelector
+        selectedDate={new Date(2026, 8, 30)}
+        today={today}
+        streak={0}
+        onSelect={onSelect}
+      />
     );
 
     await fireEvent.press(screen.getByLabelText('home.goToToday'));
@@ -40,8 +50,26 @@ describe('MonthYearSelector', () => {
   });
 
   it('disables the today button when today is selected', async () => {
-    await render(<MonthYearSelector selectedDate={today} today={today} onSelect={jest.fn()} />);
+    await render(
+      <MonthYearSelector selectedDate={today} today={today} streak={0} onSelect={jest.fn()} />
+    );
 
     expect(screen.getByLabelText('home.goToToday')).toBeDisabled();
+  });
+
+  it('shows the current streak on the date picker button', async () => {
+    await render(
+      <MonthYearSelector selectedDate={today} today={today} streak={5} onSelect={jest.fn()} />
+    );
+
+    expect(screen.getByText('5')).toBeTruthy();
+  });
+
+  it('hides the streak badge without a streak', async () => {
+    await render(
+      <MonthYearSelector selectedDate={today} today={today} streak={0} onSelect={jest.fn()} />
+    );
+
+    expect(screen.queryByText('0')).toBeNull();
   });
 });

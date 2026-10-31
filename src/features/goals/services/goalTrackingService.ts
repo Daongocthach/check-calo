@@ -1,314 +1,64 @@
 import { listDailyNutritionSummaries } from '@/features/food-log/services/dailySummaryService';
-import type { NutritionTrendPoint } from '@/features/food-log/types';
 import { syncCurrentUserLeaderboardProfile } from '@/features/leaderboard/services/leaderboardService';
 import { getUserProfile } from '@/features/profile/services/profileRepository';
 import type { UserProfile } from '@/features/profile/types';
-import {
-  getDailyCalorieGoalState,
-  getWeightGoalMode,
-  isInTransition,
-} from '@/features/profile/utils/calorie';
-import { getDatabase } from '@/services/database/sqlite';
+import { getWeightGoalMode, isInTransition } from '@/features/profile/utils/calorie';
 import { formatDateKey, nowIsoString } from '@/utils/date';
-import { createEntityId } from '@/utils/id';
 import type {
   AchievementKey,
-  AchievementUnlock,
   GoalTrackingSnapshot,
   WeightGoal,
   WeightGoalMode,
   WeightGoalProgress,
-  WeightGoalStatus,
   WeightLog,
 } from '../types';
+import { calculateGoalProgress, getStreakFromSummaries } from '../utils/goalProgress';
 import {
   addDays,
   calculateTrendWeight,
-  calculateWeightGoalProgress,
   daysBetween,
   MAINTAIN_GOAL_DAYS,
   roundKg,
 } from '../utils/weightGoal';
+import {
+  completeWeightGoal,
+  getActiveWeightGoal,
+  getLatestCompletedWeightGoal,
+  listAchievementUnlocks,
+  listHistoricalWeightGoals,
+  replaceActiveWeightGoal,
+  unlockAchievement,
+  updateWeightGoalPlan,
+  type WeightGoalPlan,
+} from './goalTrackingRepository';
 import { listWeightLogs } from './weightLogRepository';
 
 const KCAL_PER_KG = 7700;
 const DAYS_PER_MONTH = 30;
 const DEFAULT_TARGET_KG = 1;
-const MAINTENANCE_TOLERANCE_KCAL = 100;
 
-interface WeightGoalPreset {
-  targetKg: number | null;
-  targetKcalDelta: number;
-  targetDays: number;
-  startWeightKg: number;
-  targetWeightKg: number;
-  monthlyRateKg: number;
-}
-
-interface WeightGoalRow {
-  id: string;
-  mode: WeightGoalMode;
-  target_kg: number | null;
-  target_kcal_delta: number;
-  target_days: number;
-  start_weight_kg: number | null;
-  target_weight_kg: number | null;
-  monthly_rate_kg: number | null;
-  status: WeightGoalStatus;
-  started_at: string;
-  completed_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface AchievementUnlockRow {
-  id: string;
-  achievement_key: AchievementKey;
-  unlocked_at: string;
-  created_at: string;
-  updated_at: string;
-}
-
-function mapWeightGoal(row: WeightGoalRow): WeightGoal {
-  return {
-    id: row.id,
-    mode: row.mode,
-    targetKg: row.target_kg,
-    targetKcalDelta: row.target_kcal_delta,
-    targetDays: row.target_days,
-    startWeightKg: row.start_weight_kg,
-    targetWeightKg: row.target_weight_kg,
-    monthlyRateKg: row.monthly_rate_kg,
-    status: row.status,
-    startedAt: row.started_at,
-    completedAt: row.completed_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function mapAchievementUnlock(row: AchievementUnlockRow): AchievementUnlock {
-  return {
-    id: row.id,
-    achievementKey: row.achievement_key,
-    unlockedAt: row.unlocked_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function calculateMaintainDayProgress(
-  summaries: NutritionTrendPoint[],
-  profile: UserProfile
-): number {
-  return summaries.reduce((count, summary) => {
-    if (summary.consumedCalories <= 0) {
-      return count;
-    }
-
-    return Math.abs(summary.consumedCalories - profile.maintenanceCalorieTarget) <=
-      MAINTENANCE_TOLERANCE_KCAL
-      ? count + 1
-      : count;
-  }, 0);
-}
-
-/** Goals from before weight tracking measure the calorie deficit or surplus instead. */
-function calculateLegacyGoalProgress(
-  goal: WeightGoal,
-  summaries: NutritionTrendPoint[],
-  profile: UserProfile
-): WeightGoalProgress {
-  const consumedCalories = Math.round(
-    summaries.reduce((total, summary) => total + Math.max(0, summary.consumedCalories), 0)
-  );
-  const targetCalories = Math.round(
-    summaries.reduce((total, summary) => total + Math.max(0, summary.calorieTarget), 0)
-  );
-
-  if (goal.mode === 'maintain') {
-    const progressValue = calculateMaintainDayProgress(summaries, profile);
-    const targetValue = Math.max(1, goal.targetDays);
-    const remainingValue = Math.max(0, targetValue - progressValue);
-
-    return {
-      goal,
-      progressValue,
-      targetValue,
-      progressPercent: Math.min(100, Math.round((progressValue / targetValue) * 100)),
-      remainingValue,
-      consumedCalories,
-      targetCalories,
-      unit: 'days',
-      completed: progressValue >= targetValue,
-      weight: null,
-    };
-  }
-
-  const progressValue = Math.round(
-    summaries.reduce((total, summary) => {
-      if (summary.consumedCalories <= 0) {
-        return total;
-      }
-
-      if (goal.mode === 'lose') {
-        return total + Math.max(0, profile.maintenanceCalorieTarget - summary.consumedCalories);
-      }
-
-      return total + Math.max(0, summary.consumedCalories - profile.maintenanceCalorieTarget);
-    }, 0)
-  );
-  const targetValue = Math.max(1, goal.targetKcalDelta);
-  const remainingValue = Math.max(0, targetValue - progressValue);
-
-  return {
-    goal,
-    progressValue,
-    targetValue,
-    progressPercent: Math.min(100, Math.round((progressValue / targetValue) * 100)),
-    remainingValue,
-    consumedCalories,
-    targetCalories,
-    unit: 'kcal',
-    completed: progressValue >= targetValue,
-    weight: null,
-  };
-}
-
-function getStreakFromSummaries(summaries: NutritionTrendPoint[], profile: UserProfile): number {
-  const todayKey = formatDateKey(new Date());
-  const summaryMap = new Map(summaries.map((summary) => [summary.date, summary]));
-  const cursor = new Date(`${todayKey}T00:00:00`);
-  let streak = 0;
-
-  while (true) {
-    const dateKey = formatDateKey(cursor);
-    const summary = summaryMap.get(dateKey);
-
-    if (!summary || summary.consumedCalories <= 0) {
-      break;
-    }
-
-    const goalState = getDailyCalorieGoalState(
-      profile,
-      summary.calorieTarget,
-      summary.consumedCalories,
-      dateKey,
-      summary.goalMode
-    );
-
-    if (goalState !== 'on_target') {
-      break;
-    }
-
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-
-  return streak;
-}
-
-function listSummariesBetween(startedAt: string, endedAt?: string | null) {
-  return listDailyNutritionSummaries(
-    formatDateKey(startedAt),
-    formatDateKey(endedAt ?? new Date().toISOString())
-  );
-}
-
-async function getActiveWeightGoalRow() {
-  const database = await getDatabase();
-  return database.getFirstAsync<WeightGoalRow>(
-    `
-      SELECT *
-      FROM weight_goals
-      WHERE status = 'active'
-      ORDER BY started_at DESC
-      LIMIT 1;
-    `
-  );
-}
-
-async function getLatestCompletedWeightGoalRow() {
-  const database = await getDatabase();
-  return database.getFirstAsync<WeightGoalRow>(
-    `
-      SELECT *
-      FROM weight_goals
-      WHERE status = 'completed'
-      ORDER BY completed_at DESC, started_at DESC
-      LIMIT 1;
-    `
-  );
-}
-
-async function listHistoricalWeightGoalRows() {
-  const database = await getDatabase();
-  const rows = await database.getAllAsync<WeightGoalRow>(
-    `
-      SELECT *
-      FROM weight_goals
-      WHERE status != 'active'
-      ORDER BY
-        CASE WHEN completed_at IS NOT NULL THEN completed_at ELSE updated_at END DESC,
-        started_at DESC;
-    `
-  );
-
-  return rows.map(mapWeightGoal);
-}
-
-async function listAchievementUnlockRows() {
-  const database = await getDatabase();
-  const rows = await database.getAllAsync<AchievementUnlockRow>(
-    `
-      SELECT *
-      FROM achievement_unlocks
-      ORDER BY unlocked_at DESC;
-    `
-  );
-
-  return rows.map(mapAchievementUnlock);
-}
-
-async function unlockAchievement(achievementKey: AchievementKey): Promise<boolean> {
-  const database = await getDatabase();
-  const now = nowIsoString();
-
-  const result = await database.runAsync(
-    `
-      INSERT INTO achievement_unlocks (id, achievement_key, unlocked_at, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(achievement_key) DO NOTHING;
-    `,
-    [createEntityId('achievement'), achievementKey, now, now, now]
-  );
-
-  return result.changes > 0;
-}
-
-async function markGoalCompleted(goal: WeightGoalProgress) {
-  const database = await getDatabase();
-  const now = nowIsoString();
-
-  await database.runAsync(
-    `
-      UPDATE weight_goals
-      SET status = 'completed', completed_at = ?, updated_at = ?
-      WHERE id = ?;
-    `,
-    [now, now, goal.goal.id]
-  );
+async function markGoalCompleted(goal: WeightGoalProgress): Promise<WeightGoalProgress> {
+  const completedAt = await completeWeightGoal(goal.goal.id);
 
   return {
     ...goal,
-    goal: {
-      ...goal.goal,
-      status: 'completed' as const,
-      completedAt: now,
-      updatedAt: now,
-    },
+    goal: { ...goal.goal, status: 'completed', completedAt, updatedAt: completedAt },
     completed: true,
-  } satisfies WeightGoalProgress;
+  };
+}
+
+async function getGoalProgress(
+  goal: WeightGoal,
+  profile: UserProfile,
+  endedAt?: string | null
+): Promise<WeightGoalProgress> {
+  const endDateKey = formatDateKey(endedAt ?? new Date());
+  const summaries =
+    goal.mode === 'maintain'
+      ? []
+      : await listDailyNutritionSummaries(formatDateKey(goal.startedAt), endDateKey);
+
+  return calculateGoalProgress(goal, summaries, profile.maintenanceCalorieTarget, endDateKey);
 }
 
 function getPlannedTargetWeightKg(mode: WeightGoalMode, profile: UserProfile) {
@@ -361,11 +111,11 @@ function getStartWeightKg(mode: WeightGoalMode, profile: UserProfile, logs: Weig
   return trendKg;
 }
 
-function buildGoalInsert(
+function buildGoalPlan(
   mode: WeightGoalMode,
   profile: UserProfile,
   startWeightKg: number
-): WeightGoalPreset {
+): WeightGoalPlan {
   const roundedStartKg = roundKg(startWeightKg);
   const targetWeightKg =
     mode === 'maintain' ? roundedStartKg : roundKg(getPlannedTargetWeightKg(mode, profile));
@@ -383,8 +133,8 @@ function buildGoalInsert(
 }
 
 /** Whether a goal already follows the profile's mode, target weight and rate. */
-function followsProfilePlan(goal: WeightGoalRow, mode: WeightGoalMode, profile: UserProfile) {
-  if (goal.start_weight_kg === null || goal.mode !== mode) {
+function followsProfilePlan(goal: WeightGoal, mode: WeightGoalMode, profile: UserProfile) {
+  if (goal.startWeightKg === null || goal.mode !== mode) {
     return false;
   }
 
@@ -394,80 +144,17 @@ function followsProfilePlan(goal: WeightGoalRow, mode: WeightGoalMode, profile: 
 
   const sameTarget =
     profile.targetWeightKg === null ||
-    (goal.target_weight_kg !== null &&
-      roundKg(goal.target_weight_kg) === roundKg(profile.targetWeightKg));
+    (goal.targetWeightKg !== null &&
+      roundKg(goal.targetWeightKg) === roundKg(profile.targetWeightKg));
 
-  return sameTarget && goal.monthly_rate_kg === Math.abs(profile.monthlyWeightGoalKg);
-}
-
-async function insertWeightGoal(
-  database: Awaited<ReturnType<typeof getDatabase>>,
-  mode: WeightGoalMode,
-  preset: WeightGoalPreset,
-  startedAt: string,
-  now: string
-) {
-  await database.runAsync(
-    `
-      INSERT INTO weight_goals (
-        id,
-        mode,
-        target_kg,
-        target_kcal_delta,
-        target_days,
-        start_weight_kg,
-        target_weight_kg,
-        monthly_rate_kg,
-        status,
-        started_at,
-        completed_at,
-        created_at,
-        updated_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, NULL, ?, ?);
-    `,
-    [
-      createEntityId('goal'),
-      mode,
-      preset.targetKg,
-      preset.targetKcalDelta,
-      preset.targetDays,
-      preset.startWeightKg,
-      preset.targetWeightKg,
-      preset.monthlyRateKg,
-      startedAt,
-      now,
-      now,
-    ]
-  );
-}
-
-async function startWeightGoal(mode: WeightGoalMode, preset: WeightGoalPreset, startedAt: string) {
-  const database = await getDatabase();
-  const now = nowIsoString();
-  const existingActiveGoal = await getActiveWeightGoalRow();
-
-  await database.withTransactionAsync(async () => {
-    if (existingActiveGoal) {
-      await database.runAsync(
-        `
-          UPDATE weight_goals
-          SET status = 'cancelled', updated_at = ?
-          WHERE id = ?;
-        `,
-        [now, existingActiveGoal.id]
-      );
-    }
-
-    await insertWeightGoal(database, mode, preset, startedAt, now);
-  });
+  return sameTarget && goal.monthlyRateKg === Math.abs(profile.monthlyWeightGoalKg);
 }
 
 /**
  * A new target weight or rate in the same direction edits the running goal: its start stays,
  * and its length becomes the days so far plus the rest at the new rate.
  */
-async function updateGoalPlan(goal: WeightGoalRow, profile: UserProfile, logs: WeightLog[]) {
+async function updateGoalPlan(goal: WeightGoal, profile: UserProfile, logs: WeightLog[]) {
   if (goal.mode === 'maintain' || profile.targetWeightKg === null) {
     return;
   }
@@ -476,36 +163,21 @@ async function updateGoalPlan(goal: WeightGoalRow, profile: UserProfile, logs: W
     return;
   }
 
-  const startDate = formatDateKey(goal.started_at);
-  const startKg = goal.start_weight_kg ?? profile.weightKg;
+  const startDate = formatDateKey(goal.startedAt);
+  const startKg = goal.startWeightKg ?? profile.weightKg;
   const currentKg = calculateTrendWeight(logs, startDate) ?? startKg;
   const targetWeightKg = roundKg(profile.targetWeightKg);
   const monthlyRateKg = Math.abs(profile.monthlyWeightGoalKg);
   const targetKg = roundKg(Math.abs(startKg - targetWeightKg));
   const elapsedDays = Math.max(0, daysBetween(startDate, formatDateKey(new Date())));
-  const database = await getDatabase();
 
-  await database.runAsync(
-    `
-      UPDATE weight_goals
-      SET target_weight_kg = ?,
-        monthly_rate_kg = ?,
-        target_kg = ?,
-        target_kcal_delta = ?,
-        target_days = ?,
-        updated_at = ?
-      WHERE id = ?;
-    `,
-    [
-      targetWeightKg,
-      monthlyRateKg,
-      targetKg,
-      Math.round(targetKg * KCAL_PER_KG),
-      elapsedDays + getPlannedDays(goal.mode, currentKg, targetWeightKg, monthlyRateKg),
-      nowIsoString(),
-      goal.id,
-    ]
-  );
+  await updateWeightGoalPlan(goal.id, {
+    targetWeightKg,
+    monthlyRateKg,
+    targetKg,
+    targetKcalDelta: Math.round(targetKg * KCAL_PER_KG),
+    targetDays: elapsedDays + getPlannedDays(goal.mode, currentKg, targetWeightKg, monthlyRateKg),
+  });
 }
 
 export interface GoalSyncOptions {
@@ -523,17 +195,17 @@ export async function syncActiveGoalToProfile(
   profile: UserProfile,
   { restart = false }: GoalSyncOptions = {}
 ) {
-  const activeGoal = await getActiveWeightGoalRow();
+  const activeGoal = await getActiveWeightGoal();
   const mode = getWeightGoalMode(profile.monthlyWeightGoalKg);
   const logs = await listWeightLogs();
 
-  if (activeGoal && !restart && activeGoal.start_weight_kg !== null && activeGoal.mode === mode) {
+  if (activeGoal && !restart && activeGoal.startWeightKg !== null && activeGoal.mode === mode) {
     await updateGoalPlan(activeGoal, profile, logs);
     return;
   }
 
   if (!activeGoal && !restart && mode !== 'maintain') {
-    const latestCompletedGoal = await getLatestCompletedWeightGoalRow();
+    const latestCompletedGoal = await getLatestCompletedWeightGoal();
 
     if (latestCompletedGoal && followsProfilePlan(latestCompletedGoal, mode, profile)) {
       return;
@@ -545,66 +217,33 @@ export async function syncActiveGoalToProfile(
       ? new Date(`${profile.transitionUntil}T00:00:00`).toISOString()
       : nowIsoString();
 
-  await startWeightGoal(
+  await replaceActiveWeightGoal(
     mode,
-    buildGoalInsert(mode, profile, getStartWeightKg(mode, profile, logs)),
+    buildGoalPlan(mode, profile, getStartWeightKg(mode, profile, logs)),
     startedAt
   );
 }
 
 /** When the maintenance phase ends, the goal starts from the weight reached by then. */
 export async function rebaselineActiveGoal(profile: UserProfile) {
-  const activeGoal = await getActiveWeightGoalRow();
+  const activeGoal = await getActiveWeightGoal();
 
-  if (!activeGoal || activeGoal.start_weight_kg === null || activeGoal.mode === 'maintain') {
+  if (!activeGoal || activeGoal.startWeightKg === null || activeGoal.mode === 'maintain') {
     return;
   }
 
-  const preset = buildGoalInsert(
+  const { startWeightKg, targetKg, targetKcalDelta, targetDays } = buildGoalPlan(
     activeGoal.mode,
     profile,
     getStartWeightKg(activeGoal.mode, profile, await listWeightLogs())
   );
-  const database = await getDatabase();
 
-  await database.runAsync(
-    `
-      UPDATE weight_goals
-      SET start_weight_kg = ?, target_kg = ?, target_kcal_delta = ?, target_days = ?, updated_at = ?
-      WHERE id = ?;
-    `,
-    [
-      preset.startWeightKg,
-      preset.targetKg,
-      preset.targetKcalDelta,
-      preset.targetDays,
-      nowIsoString(),
-      activeGoal.id,
-    ]
-  );
-}
-
-async function getGoalProgress(
-  goal: WeightGoal,
-  profile: UserProfile,
-  logs: WeightLog[],
-  endedAt?: string | null
-): Promise<WeightGoalProgress> {
-  const endDateKey = formatDateKey(endedAt ?? new Date());
-
-  if (goal.startWeightKg !== null) {
-    return calculateWeightGoalProgress(
-      goal,
-      logs.filter((log) => log.date <= endDateKey),
-      endDateKey
-    );
-  }
-
-  return calculateLegacyGoalProgress(
-    goal,
-    await listSummariesBetween(goal.startedAt, endedAt),
-    profile
-  );
+  await updateWeightGoalPlan(activeGoal.id, {
+    startWeightKg,
+    targetKg,
+    targetKcalDelta,
+    targetDays,
+  });
 }
 
 export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
@@ -616,7 +255,7 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
       latestCompletedGoal: null,
       goalHistory: [],
       currentStreak: 0,
-      unlockedAchievements: await listAchievementUnlockRows(),
+      unlockedAchievements: await listAchievementUnlocks(),
       newlyUnlockedAchievements: [],
       justCompletedGoal: null,
     };
@@ -624,7 +263,6 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
 
   await syncActiveGoalToProfile(profile);
 
-  const weightLogs = await listWeightLogs();
   const achievementKeys: AchievementKey[] = [];
   const allRecentSummaries = await listDailyNutritionSummaries(
     formatDateKey(new Date(Date.now() - 1000 * 60 * 60 * 24 * 60)),
@@ -642,11 +280,10 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
 
   let justCompletedGoal: WeightGoalProgress | null = null;
   let activeGoalSnapshot: WeightGoalProgress | null = null;
-  const activeGoalRow = await getActiveWeightGoalRow();
+  const activeGoal = await getActiveWeightGoal();
 
-  if (activeGoalRow) {
-    const activeGoal = mapWeightGoal(activeGoalRow);
-    const progress = await getGoalProgress(activeGoal, profile, weightLogs);
+  if (activeGoal) {
+    const progress = await getGoalProgress(activeGoal, profile);
 
     if (progress.completed) {
       justCompletedGoal = await markGoalCompleted(progress);
@@ -665,23 +302,21 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
     }
   }
 
-  const latestCompletedRow = await getLatestCompletedWeightGoalRow();
+  const completedGoal = await getLatestCompletedWeightGoal();
   let latestCompletedGoal: WeightGoalProgress | null = null;
 
-  if (latestCompletedRow) {
-    const completedGoal = mapWeightGoal(latestCompletedRow);
+  if (completedGoal) {
     latestCompletedGoal = await getGoalProgress(
       completedGoal,
       profile,
-      weightLogs,
       completedGoal.completedAt ?? completedGoal.updatedAt
     );
   }
 
-  const historicalGoals = await listHistoricalWeightGoalRows();
+  const historicalGoals = await listHistoricalWeightGoals();
   const goalHistory = await Promise.all(
     historicalGoals.map((goal) =>
-      getGoalProgress(goal, profile, weightLogs, goal.completedAt ?? goal.updatedAt)
+      getGoalProgress(goal, profile, goal.completedAt ?? goal.updatedAt)
     )
   );
   const completedGoals = goalHistory.filter((goal) => goal.completed).length;
@@ -693,7 +328,7 @@ export async function syncGoalTracking(): Promise<GoalTrackingSnapshot> {
     latestCompletedGoal,
     goalHistory,
     currentStreak,
-    unlockedAchievements: await listAchievementUnlockRows(),
+    unlockedAchievements: await listAchievementUnlocks(),
     newlyUnlockedAchievements: achievementKeys,
     justCompletedGoal,
   };

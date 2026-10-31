@@ -73,6 +73,16 @@ export const darkColors: ThemeColors = {
     shadow: 'rgba(0, 0, 0, 0.62)',
   },
 
+  alert: {
+    backdrop: 'rgba(0, 0, 0, 0.48)',
+    surface: 'rgba(37, 37, 37, 0.55)',
+    surfaceSolid: '#2C2C2E',
+    separator: 'rgba(84, 84, 88, 0.65)',
+    pressed: 'rgba(255, 255, 255, 0.1)',
+    action: '#0A84FF', // system blue
+    destructive: '#FF453A', // system red
+  },
+
   gradient: {
     primary: ['#6366F1', '#A5B4FC'],
     secondary: ['#1E1B4B', '#6366F1'],

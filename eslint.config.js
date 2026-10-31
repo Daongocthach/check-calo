@@ -176,6 +176,7 @@ module.exports = [
       // ========================================
       // Code Quality
       // ========================================
+      'max-lines': ['error', { max: 500, skipBlankLines: false, skipComments: false }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-debugger': 'error',
       'no-alert': 'off', // alerts are valid in RN for user prompts

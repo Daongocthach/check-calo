@@ -24,28 +24,11 @@ export interface WeightGoalProgress {
   targetValue: number;
   progressPercent: number;
   remainingValue: number;
-  consumedCalories: number;
-  targetCalories: number;
-  /** `kg` for weight goals; maintain weight goals count `days` like legacy ones. */
-  unit: 'kcal' | 'days' | 'kg';
+  /** Calories cut (lose) or added (gain) by the diary; maintain goals count days. */
+  unit: 'kcal' | 'days';
   completed: boolean;
-  /** Weight goals only; null on legacy calorie goals. */
-  weight: WeightGoalWeightProgress | null;
-}
-
-export interface WeightGoalWeightProgress {
-  startKg: number;
-  targetKg: number;
-  /** Average of the latest week of weigh-ins since the goal started. */
-  currentKg: number;
-  /** Signed change since the start, positive in the goal's direction. */
-  changeKg: number;
-  /** YYYY-MM-DD the goal should be reached at its planned rate. */
+  /** YYYY-MM-DD the goal should finish by its plan. */
   expectedEndDate: string;
-  /** Maintain goals: whether the current weight is still within the band. */
-  withinBand: boolean;
-  /** YYYY-MM-DD of the latest weigh-in since the goal started; null when none. */
-  lastWeighInDate: string | null;
 }
 
 export interface WeightLog {

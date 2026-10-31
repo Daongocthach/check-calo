@@ -2,12 +2,12 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Text } from '@/common/components';
-import { MealSlotCard } from '@/features/food-log/components';
-import type { MealSlotGroup } from '@/features/food-log/utils/mealSlot';
+import { FoodEntryCard } from '@/features/food-log/components';
+import type { FoodEntry } from '@/features/food-log/types';
 
 export interface MealsGridProps {
-  groups: MealSlotGroup[];
-  onGroupPress: (group: MealSlotGroup) => void;
+  entries: FoodEntry[];
+  onEntryPress: (entry: FoodEntry) => void;
 }
 
 function chunkPairs<T>(items: T[]) {
@@ -18,10 +18,10 @@ function chunkPairs<T>(items: T[]) {
   return rows;
 }
 
-export function MealsGrid({ groups, onGroupPress }: MealsGridProps) {
+export function MealsGrid({ entries, onEntryPress }: MealsGridProps) {
   const { t } = useTranslation();
 
-  if (groups.length === 0) {
+  if (entries.length === 0) {
     return (
       <View style={styles.empty}>
         <Text variant="body" weight="semibold" align="center">
@@ -36,10 +36,10 @@ export function MealsGrid({ groups, onGroupPress }: MealsGridProps) {
 
   return (
     <View style={styles.grid}>
-      {chunkPairs(groups).map((row) => (
-        <View key={row.map((group) => group.slot).join('-')} style={styles.row}>
-          {row.map((group) => (
-            <MealSlotCard key={group.slot} group={group} onPress={() => onGroupPress(group)} />
+      {chunkPairs(entries).map((row) => (
+        <View key={row.map((entry) => entry.id).join('-')} style={styles.row}>
+          {row.map((entry) => (
+            <FoodEntryCard key={entry.id} entry={entry} onPress={onEntryPress} />
           ))}
           {row.length === 1 ? <View style={styles.spacer} /> : null}
         </View>

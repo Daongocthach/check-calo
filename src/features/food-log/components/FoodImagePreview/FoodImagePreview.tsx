@@ -12,7 +12,7 @@ import {
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Icon, Text } from '@/common/components';
-import FALLBACK_MEAL_IMAGE from '../../../../../assets/fallback-meal.png';
+import FALLBACK_MEAL_IMAGE from '../../../../../assets/fallback-meal.webp';
 
 export interface FoodImagePreviewProps {
   imageUri?: string | null;

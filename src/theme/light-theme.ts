@@ -77,6 +77,16 @@ export const lightColors: ThemeColors = {
     shadow: 'rgba(0, 0, 0, 0.08)',
   },
 
+  alert: {
+    backdrop: 'rgba(0, 0, 0, 0.2)',
+    surface: 'rgba(255, 255, 255, 0.55)',
+    surfaceSolid: '#F2F2F7',
+    separator: 'rgba(60, 60, 67, 0.29)',
+    pressed: 'rgba(0, 0, 0, 0.08)',
+    action: '#007AFF', // system blue
+    destructive: '#FF3B30', // system red
+  },
+
   gradient: {
     primary: ['#4F46E5', '#818CF8'],
     secondary: ['#FFFFFF', '#F3F4F6'],

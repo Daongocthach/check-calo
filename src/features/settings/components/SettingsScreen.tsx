@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { ScreenHeader, Select, Switch, Text } from '@/common/components';
 import { deleteCurrentUserCloudNutritionData } from '@/features/auth/services/authService';
 import { useDevToolsStore } from '@/features/dev-tools';
@@ -13,12 +13,12 @@ import { appAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { toast } from '@/utils/toast';
 import { usePreferences } from '../hooks/usePreferences';
-import { PersonalInfoGroup } from './PersonalInfoGroup';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
 
 export function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { theme } = useUnistyles();
   const bottomPadding = useBottomPadding();
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const preferences = usePreferences();
@@ -27,11 +27,6 @@ export function SettingsScreen() {
   const user = useAuthStore((state) => state.user);
   const isAnonymous = !user || user.isAnonymous;
 
-  const themeOptions = [
-    { label: t('header.themeSystem'), value: 'system' },
-    { label: t('header.themeLight'), value: 'light' },
-    { label: t('header.themeDark'), value: 'dark' },
-  ];
   const languageOptions = [
     { label: t('language.vietnamese'), value: 'vi' },
     { label: t('language.english'), value: 'en' },
@@ -90,8 +85,6 @@ export function SettingsScreen() {
           />
         </SettingsGroup>
 
-        <PersonalInfoGroup />
-
         <SettingsGroup title={t('settingsScreen.general')}>
           <SettingsRow
             icon="notifications-outline"
@@ -101,18 +94,13 @@ export function SettingsScreen() {
           <SettingsRow
             icon="color-palette-outline"
             title={t('profileTab.appearance')}
+            subtitle={t('header.themeDark')}
             right={
-              <Select
-                value={preferences.theme}
-                onChange={preferences.changeTheme}
-                options={themeOptions}
-                size="sm"
-                triggerVariant="plain"
-              >
-                <Text variant="bodySmall" color="secondary">
-                  {themeOptions.find((option) => option.value === preferences.theme)?.label}
-                </Text>
-              </Select>
+              <Switch
+                value={theme.colors.mode === 'dark'}
+                onValueChange={(enabled) => preferences.changeTheme(enabled ? 'dark' : 'light')}
+                accessibilityLabel={t('header.themeDark')}
+              />
             }
           />
           <SettingsRow
@@ -132,6 +120,11 @@ export function SettingsScreen() {
               </Select>
             }
           />
+          <SettingsRow
+            icon="heart-outline"
+            title={t('profileTab.support')}
+            onPress={() => router.push('/support')}
+          />
         </SettingsGroup>
 
         <SettingsGroup title={t('settingsScreen.healthAndPrivacy')}>
@@ -145,14 +138,6 @@ export function SettingsScreen() {
             title={t('settings.privacy')}
             onPress={() => router.push('/privacy')}
             external
-          />
-        </SettingsGroup>
-
-        <SettingsGroup title={t('profileTab.other')}>
-          <SettingsRow
-            icon="heart-outline"
-            title={t('profileTab.support')}
-            onPress={() => router.push('/support')}
           />
           <SettingsRow
             icon="mail-outline"

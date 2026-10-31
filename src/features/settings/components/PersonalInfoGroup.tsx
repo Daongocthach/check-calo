@@ -3,17 +3,16 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, Input, Select, Text } from '@/common/components';
 import { useFoodLogQuery } from '@/features/food-log/hooks/useFoodLogQuery';
 import { useFoodEntryRefreshStore } from '@/features/food-log/stores/useFoodEntryRefreshStore';
-import { GENDER_KEYS } from '@/features/profile/constants';
+import {
+  GENDER_KEYS,
+  OFFERED_ACTIVITY_KEYS,
+  toOfferedActivity,
+} from '@/features/profile/constants';
 import { getUserProfile, toUserProfileInput } from '@/features/profile/services/profileRepository';
 import { saveProfile } from '@/features/profile/services/profileService';
 import type { UserProfile, UserProfileInput } from '@/features/profile/types';
 import { toast } from '@/utils/toast';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
-
-/** Activity levels offered in the app; `very_active` profiles show as `active`. */
-const ACTIVITIES = ['sedentary', 'light', 'moderate', 'active'] as const;
-
-type OfferedActivity = (typeof ACTIVITIES)[number];
 
 type TextField = 'displayName' | 'age' | 'heightCm';
 
@@ -66,13 +65,12 @@ export function PersonalInfoGroup() {
     });
   };
 
-  const activity: OfferedActivity =
-    profile.activityLevel === 'very_active' ? 'active' : profile.activityLevel;
+  const activity = toOfferedActivity(profile.activityLevel);
   const genderOptions = GENDER_KEYS.map((value) => ({
     value,
     label: t(`onboarding.genders.${value}`),
   }));
-  const activityOptions = ACTIVITIES.map((value) => ({
+  const activityOptions = OFFERED_ACTIVITY_KEYS.map((value) => ({
     value,
     label: t(`onboarding.activities.${value}`),
   }));
@@ -125,7 +123,7 @@ export function PersonalInfoGroup() {
           <Select
             value={activity}
             onChange={(value) => {
-              const activityLevel = ACTIVITIES.find((key) => key === value);
+              const activityLevel = OFFERED_ACTIVITY_KEYS.find((key) => key === value);
               if (activityLevel) saveQuietly({ activityLevel });
             }}
             options={activityOptions}

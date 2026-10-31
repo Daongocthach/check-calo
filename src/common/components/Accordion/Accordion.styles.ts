@@ -5,7 +5,8 @@ export const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.lg,
     overflow: 'hidden' as const,
   },
-  section: {
+  // Dividers sit between sections only, so the accordion can sit flush inside a card.
+  sectionDivider: {
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border.default,
   },

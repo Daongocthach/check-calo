@@ -29,8 +29,6 @@ export default function MainLayout() {
         }}
       />
       <Stack.Screen name="meal/[id]" />
-      <Stack.Screen name="meal-slot" />
-      <Stack.Screen name="goal-edit" />
       <Stack.Screen name="goal-history" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="reminders" />

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import Toast from 'react-native-toast-message';
+import { toastConfig } from '@/utils/toastConfig';
 import { AppAlertProvider } from './app-alert';
 import { CameraProvider } from './camera';
 
@@ -15,7 +16,7 @@ export function ModalScreenOverlays({ children }: { children: ReactNode }) {
   return (
     <CameraProvider>
       <AppAlertProvider>{children}</AppAlertProvider>
-      <Toast />
+      <Toast config={toastConfig} />
     </CameraProvider>
   );
 }

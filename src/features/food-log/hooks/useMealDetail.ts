@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { getUserProfile } from '@/features/profile/services/profileRepository';
 import { getFoodEntryById } from '../services/foodEntryRepositoryCore';
-import { removeLoggedFood, updateLoggedFood } from '../services/foodLogService';
+import { removeLoggedFoods, updateLoggedFood } from '../services/foodLogService';
 import { useFoodEntryRefreshStore } from '../stores/useFoodEntryRefreshStore';
 import type { FoodEntryInput } from '../types';
 import { useFoodLogQuery } from './useFoodLogQuery';
@@ -24,7 +24,7 @@ export function useMealDetail(entryId: string) {
   );
 
   const remove = useCallback(async () => {
-    await removeLoggedFood(entryId);
+    await removeLoggedFoods([entryId]);
     markFoodEntriesChanged();
   }, [entryId, markFoodEntriesChanged]);
 

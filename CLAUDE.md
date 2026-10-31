@@ -45,8 +45,8 @@ src/
 ├── config/                # Centralized env config with validation
 ├── features/              # Feature modules:
 │                          #   food-log (diary, Check AI chat, meal detail, sync), profile (onboarding,
-│                          #   calorie math), home, buddy (mascot + achievements), goals (screen,
-│                          #   planner, weigh-ins), settings (incl. personal info),
+│                          #   calorie math), home, buddy (mascot + achievements), goals (dashboard
+│                          #   card, planner, history), settings (incl. personal info),
 │                          #   navigation (drawer), auth, notifications, support, legal,
 │                          #   leaderboard (service only)
 ├── hooks/                 # useBottomPadding, useNetworkStatus, useScreenDimensions, useProtectedRoute
@@ -63,7 +63,7 @@ app/                       # Expo Router
 ├── +not-found.tsx
 ├── (auth)/               # Login, register, forgot/reset password — one modal over the app
 └── (main)/                # Stack: the drawer plus detail screens (chat, meal, reminders, legal…)
-    └── (drawer)/          # Drawer: Dashboard (index), Goal, Buddy, Settings (thin routes)
+    └── (drawer)/          # Drawer: Dashboard (index), Buddy, Settings (thin routes)
 ```
 
 Route files stay thin: they render a screen component exported by a feature. The diary is the

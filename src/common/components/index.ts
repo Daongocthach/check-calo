@@ -5,8 +5,8 @@ export { IconButton } from './IconButton';
 export type { IconButtonProps, IconButtonVariant, IconButtonSize } from './IconButton';
 
 // Data Display
-export { Avatar } from './Avatar';
-export type { AvatarProps, AvatarSize } from './Avatar';
+export { Avatar, AVATAR_SIZES } from './Avatar';
+export type { AvatarProps, AvatarSize, AvatarTone } from './Avatar';
 export { Badge } from './Badge';
 export type { BadgeProps, BadgeVariant, BadgeSize } from './Badge';
 export { Card } from './Card';

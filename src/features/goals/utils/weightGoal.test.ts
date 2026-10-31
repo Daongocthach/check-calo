@@ -1,11 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import type { WeightGoal, WeightLog } from '../types';
-import {
-  calculateTrendWeight,
-  calculateWeightGoalProgress,
-  estimateGoalEndDate,
-  getGoalSuggestion,
-} from './weightGoal';
+import { calculateTrendWeight, estimateGoalEndDate, getGoalEndDate } from './weightGoal';
 
 function log(date: string, weightKg: number): WeightLog {
   return { date, weightKg, createdAt: `${date}T07:00:00`, updatedAt: `${date}T07:00:00` };
@@ -53,102 +48,12 @@ describe('estimateGoalEndDate', () => {
   });
 });
 
-describe('calculateWeightGoalProgress', () => {
-  it('measures a loss goal in kilograms', () => {
-    const progress = calculateWeightGoalProgress(
-      goal({}),
-      [log('2026-01-10', 78), log('2026-01-12', 77.6)],
-      '2026-01-12'
-    );
-
-    expect(progress.unit).toBe('kg');
-    expect(progress.progressValue).toBe(2.2);
-    expect(progress.remainingValue).toBe(2.8);
-    expect(progress.progressPercent).toBe(44);
-    expect(progress.completed).toBe(false);
-    expect(progress.weight?.expectedEndDate).toBe('2026-05-31');
+describe('getGoalEndDate', () => {
+  it('uses the stored length when the plan has one', () => {
+    expect(getGoalEndDate(goal({ targetDays: 45 }))).toBe('2026-02-15');
   });
 
-  it('uses the stored plan length when the plan was edited mid-way', () => {
-    const progress = calculateWeightGoalProgress(goal({ targetDays: 100 }), [], '2026-01-02');
-
-    expect(progress.weight?.expectedEndDate).toBe('2026-04-11');
-  });
-
-  it('shows no progress before a goal that starts after a transition', () => {
-    const later = goal({ startedAt: '2026-01-15T00:00:00' });
-    const progress = calculateWeightGoalProgress(later, [log('2026-01-05', 78)], '2026-01-05');
-
-    expect(progress.progressValue).toBe(0);
-    expect(progress.weight?.lastWeighInDate).toBeNull();
-  });
-
-  it('starts from the start weight before any weigh-in', () => {
-    const progress = calculateWeightGoalProgress(goal({}), [], '2026-01-02');
-
-    expect(progress.progressValue).toBe(0);
-    expect(progress.weight?.currentKg).toBe(80);
-  });
-
-  it('completes once the trend reaches the target', () => {
-    const progress = calculateWeightGoalProgress(goal({}), [log('2026-04-01', 74.9)], '2026-04-01');
-
-    expect(progress.completed).toBe(true);
-    expect(progress.progressPercent).toBe(100);
-  });
-
-  it('counts gains in the other direction', () => {
-    const gain = goal({ mode: 'gain', startWeightKg: 60, targetWeightKg: 63 });
-    const progress = calculateWeightGoalProgress(gain, [log('2026-02-01', 61.5)], '2026-02-01');
-
-    expect(progress.progressValue).toBe(1.5);
-    expect(progress.progressPercent).toBe(50);
-  });
-
-  it('completes a maintain goal after 30 days within the band', () => {
-    const maintain = goal({ mode: 'maintain', targetWeightKg: 80, monthlyRateKg: 0 });
-    const held = calculateWeightGoalProgress(maintain, [log('2026-01-28', 80.6)], '2026-01-30');
-
-    expect(held.unit).toBe('days');
-    expect(held.completed).toBe(true);
-  });
-
-  it('does not complete a maintain goal without a weigh-in in the final week', () => {
-    const maintain = goal({ mode: 'maintain', targetWeightKg: 80, monthlyRateKg: 0 });
-    const progress = calculateWeightGoalProgress(maintain, [log('2026-01-05', 80)], '2026-02-10');
-
-    expect(progress.completed).toBe(false);
-  });
-
-  it('does not complete a maintain goal outside the band', () => {
-    const maintain = goal({ mode: 'maintain', targetWeightKg: 80, monthlyRateKg: 0 });
-    const progress = calculateWeightGoalProgress(maintain, [log('2026-01-28', 81.5)], '2026-01-30');
-
-    expect(progress.completed).toBe(false);
-    expect(progress.weight?.withinBand).toBe(false);
-  });
-});
-
-describe('getGoalSuggestion', () => {
-  const healthyBmi = 24;
-
-  it('suggests stopping a loss goal when underweight', () => {
-    const progress = calculateWeightGoalProgress(goal({}), [log('2026-01-05', 79)], '2026-01-05');
-
-    expect(getGoalSuggestion(progress, 18, '2026-01-05')).toBe('underweight');
-    expect(getGoalSuggestion(progress, healthyBmi, '2026-01-05')).toBeNull();
-  });
-
-  it('suggests restarting after a month without weigh-ins', () => {
-    const progress = calculateWeightGoalProgress(goal({}), [log('2026-01-05', 79)], '2026-02-04');
-
-    expect(getGoalSuggestion(progress, healthyBmi, '2026-02-03')).toBeNull();
-    expect(getGoalSuggestion(progress, healthyBmi, '2026-02-04')).toBe('stale');
-  });
-
-  it('suggests restarting after regaining 2 kg', () => {
-    const progress = calculateWeightGoalProgress(goal({}), [log('2026-01-20', 82)], '2026-01-20');
-
-    expect(getGoalSuggestion(progress, healthyBmi, '2026-01-20')).toBe('regained');
+  it('derives the length from the rate otherwise', () => {
+    expect(getGoalEndDate(goal({}))).toBe('2026-05-31');
   });
 });
