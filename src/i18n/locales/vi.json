@@ -287,7 +287,6 @@
         "timeLabel": "Giờ nhắc",
         "defaultName": "Nhắc nhở"
       },
-      "hint": "Bấm thông báo sẽ mở Check AI để bạn ghi món ngay.",
       "permissionDenied": "Bạn chưa cấp quyền thông báo cho ứng dụng.",
       "adjustedToMealWindow": "Giờ nhắc đã được đưa về khung giờ hợp lệ của bữa ăn.",
       "channelName": "Nhắc cập nhật calories",

@@ -287,7 +287,6 @@
         "timeLabel": "Remind me at",
         "defaultName": "Reminder"
       },
-      "hint": "Tapping a reminder opens Check AI so you can log your meal right away.",
       "permissionDenied": "Notifications permission has not been granted to the app.",
       "adjustedToMealWindow": "Reminder time was adjusted to the valid meal window.",
       "channelName": "Calorie reminders",

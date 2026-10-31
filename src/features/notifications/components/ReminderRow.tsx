@@ -41,48 +41,51 @@ export function ReminderRow({
   };
 
   return (
-    <View style={styles.row}>
-      <Pressable
-        onPress={handlePress}
-        disabled={disabled}
-        accessibilityRole="button"
-        accessibilityLabel={
-          isCustom
-            ? t('profileScreen.reminders.editA11y', { name: title })
-            : t('profileScreen.reminders.changeTimeA11y', { name: title })
-        }
-        accessibilityValue={{ text: reminder.time }}
-        style={({ pressed }) => [styles.main, pressed && styles.pressed]}
-      >
-        <View style={styles.text}>
-          <Text variant="body" weight="medium" numberOfLines={1}>
-            {title}
-          </Text>
-          <View style={styles.timeRow}>
-            <Text
-              variant="body"
-              weight="semibold"
-              style={reminder.enabled ? styles.timeActive : styles.timeInactive}
-            >
-              {reminder.time}
+    <>
+      <View style={styles.row}>
+        <Pressable
+          onPress={handlePress}
+          disabled={disabled}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isCustom
+              ? t('profileScreen.reminders.editA11y', { name: title })
+              : t('profileScreen.reminders.changeTimeA11y', { name: title })
+          }
+          accessibilityValue={{ text: reminder.time }}
+          style={({ pressed }) => [styles.main, pressed && styles.pressed]}
+        >
+          <View style={styles.text}>
+            <Text variant="body" weight="medium" numberOfLines={1}>
+              {title}
             </Text>
-            <Text variant="caption" color="secondary" numberOfLines={1} style={styles.caption}>
-              {mealWindow
-                ? t('profileScreen.reminders.mealWindow', mealWindow)
-                : t('profileScreen.reminders.customTag')}
-            </Text>
+            <View style={styles.timeRow}>
+              <Text
+                variant="body"
+                weight="semibold"
+                style={reminder.enabled ? styles.timeActive : styles.timeInactive}
+              >
+                {reminder.time}
+              </Text>
+              <Text variant="caption" color="secondary" numberOfLines={1} style={styles.caption}>
+                {mealWindow
+                  ? t('profileScreen.reminders.mealWindow', mealWindow)
+                  : t('profileScreen.reminders.customTag')}
+              </Text>
+            </View>
           </View>
-        </View>
-        <Icon name={isCustom ? 'create-outline' : 'time-outline'} variant="tertiary" size={18} />
-      </Pressable>
+          <Icon name={isCustom ? 'create-outline' : 'time-outline'} variant="tertiary" size={18} />
+        </Pressable>
 
-      <Switch
-        value={reminder.enabled}
-        onValueChange={onToggle}
-        disabled={disabled}
-        accessibilityLabel={t('profileScreen.reminders.toggleA11y', { name: title })}
-      />
+        <Switch
+          value={reminder.enabled}
+          onValueChange={onToggle}
+          disabled={disabled}
+          accessibilityLabel={t('profileScreen.reminders.toggleA11y', { name: title })}
+        />
+      </View>
 
+      {/* Outside the row so its empty wrapper doesn't add a flex gap after the switch. */}
       {mealWindow ? (
         <DateTimeField
           ref={timeFieldRef}
@@ -95,7 +98,7 @@ export function ReminderRow({
           maximumDate={reminderTimeToDate(mealWindow.end)}
         />
       ) : null}
-    </View>
+    </>
   );
 }
 

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Button, Icon, ScreenContainer, Text } from '@/common/components';
 import {
   getStoredCalorieReminders,
@@ -28,6 +28,7 @@ interface EditorState {
 
 export function RemindersScreen() {
   const { t } = useTranslation();
+  const { theme } = useUnistyles();
   const [reminders, setReminders] = useState(getStoredCalorieReminders);
   const [isUpdating, setIsUpdating] = useState(false);
   const [editor, setEditor] = useState<EditorState>({ visible: false, reminder: null });
@@ -160,7 +161,7 @@ export function RemindersScreen() {
             variant="outline"
             fullWidth
             disabled={!canAddReminder || isUpdating}
-            leftIcon={<Icon name="add" variant="brand" size={18} />}
+            leftIcon={<Icon name="add" color={theme.colors.text.primary} size={18} />}
             onPress={() => setEditor({ visible: true, reminder: null })}
           />
           {!canAddReminder ? (
@@ -169,10 +170,6 @@ export function RemindersScreen() {
             </Text>
           ) : null}
         </View>
-
-        <Text variant="caption" color="secondary">
-          {t('profileScreen.reminders.hint')}
-        </Text>
       </View>
 
       <ReminderEditorDialog
