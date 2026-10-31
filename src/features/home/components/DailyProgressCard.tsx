@@ -69,6 +69,7 @@ export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) 
         range={range}
         state={state}
         width={hs(310)}
+        maximumValue={profile?.maintenanceCalorieTarget || undefined}
       />
       {mood ? (
         <View style={styles.mood}>

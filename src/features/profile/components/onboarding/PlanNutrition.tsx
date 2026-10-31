@@ -39,14 +39,6 @@ export function PlanNutrition({ plan, maintenanceCalories }: PlanNutritionProps)
           maximumValue={maintenanceCalories}
           label={t('onboarding.planResults.daily')}
         />
-        <View style={styles.endpoints}>
-          <Text variant="caption" color="secondary" align="center" style={styles.endpointLabel}>
-            {format(0)}
-          </Text>
-          <Text variant="caption" color="secondary" align="center" style={styles.endpointLabel}>
-            {format(maintenanceCalories)}
-          </Text>
-        </View>
       </View>
       <View style={styles.macros}>
         {macros.map((macro) => (
@@ -68,12 +60,6 @@ export function PlanNutrition({ plan, maintenanceCalories }: PlanNutritionProps)
 const styles = StyleSheet.create((theme) => ({
   container: { gap: theme.metrics.spacingV.p12 },
   gaugeWidth: (width: number) => ({ width, alignSelf: 'center' as const }),
-  endpoints: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: theme.metrics.spacingV.p4,
-  },
-  endpointLabel: { width: '20%' },
   macros: {
     flexDirection: 'row',
     gap: theme.metrics.spacing.p12,

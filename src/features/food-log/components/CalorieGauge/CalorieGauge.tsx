@@ -14,7 +14,7 @@ export interface CalorieGaugeProps {
   state: DailyCalorieGoalState;
   /** Rendered width; height is roughly half. Defaults to 260. */
   width?: number;
-  /** Upper endpoint when showing a planned target against maintenance. */
+  /** Fixed end of the scale, e.g. maintenance calories; 0 and this value are labelled under the ends. */
   maximumValue?: number;
   /** Optional label for a target preview outside the daily dashboard. */
   label?: string;
@@ -70,48 +70,60 @@ export function CalorieGauge({
 
   return (
     <View style={styles.container}>
-      <Svg width={width} height={height}>
-        {Array.from({ length: BAR_COUNT }, (_, index) => {
-          const position = index / (BAR_COUNT - 1);
-          const angle = Math.PI - position * Math.PI;
-          const cos = Math.cos(angle);
-          const sin = Math.sin(angle);
-          const value = position * scaleMax;
-          const isFilled = index < filledBars;
-          const isInRange = scaleMax > 0 && value >= range.min && value <= range.max;
-          const isTargetBand = !isFilled && isInRange;
-          const idleStroke =
-            isTargetBand && appearance !== 'primary'
-              ? theme.colors.state.success
-              : theme.colors.border.default;
+      <View style={styles.dial}>
+        <Svg width={width} height={height}>
+          {Array.from({ length: BAR_COUNT }, (_, index) => {
+            const position = index / (BAR_COUNT - 1);
+            const angle = Math.PI - position * Math.PI;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            const value = position * scaleMax;
+            const isFilled = index < filledBars;
+            const isInRange = scaleMax > 0 && value >= range.min && value <= range.max;
+            const isTargetBand = !isFilled && isInRange;
+            const idleStroke =
+              isTargetBand && appearance !== 'primary'
+                ? theme.colors.state.success
+                : theme.colors.border.default;
 
-          return (
-            <Line
-              key={index}
-              x1={centerX + innerRadius * cos}
-              y1={centerY - innerRadius * sin}
-              x2={centerX + outerRadius * cos}
-              y2={centerY - outerRadius * sin}
-              stroke={isFilled ? fillColor : idleStroke}
-              strokeOpacity={isTargetBand ? 0.35 : 1}
-              strokeWidth={width * 0.034}
-              strokeLinecap="round"
-            />
-          );
-        })}
-      </Svg>
-      <View style={styles.center}>
-        <Text variant="h1" weight="bold">
-          {numberFormat.format(Math.round(consumed))}
-        </Text>
-        <Text
-          variant="bodySmall"
-          weight="semibold"
-          style={appearance === 'primary' ? styles.primaryLabel : styles.status(state)}
-        >
-          {label ?? statusLabel}
-        </Text>
+            return (
+              <Line
+                key={index}
+                x1={centerX + innerRadius * cos}
+                y1={centerY - innerRadius * sin}
+                x2={centerX + outerRadius * cos}
+                y2={centerY - outerRadius * sin}
+                stroke={isFilled ? fillColor : idleStroke}
+                strokeOpacity={isTargetBand ? 0.35 : 1}
+                strokeWidth={width * 0.034}
+                strokeLinecap="round"
+              />
+            );
+          })}
+        </Svg>
+        <View style={styles.center}>
+          <Text variant="h1" weight="bold">
+            {numberFormat.format(Math.round(consumed))}
+          </Text>
+          <Text
+            variant="bodySmall"
+            weight="semibold"
+            style={appearance === 'primary' ? styles.primaryLabel : styles.status(state)}
+          >
+            {label ?? statusLabel}
+          </Text>
+        </View>
       </View>
+      {maximumValue ? (
+        <View style={styles.endpoints(width)}>
+          <Text variant="caption" color="secondary" align="center" style={styles.endpointLabel}>
+            {numberFormat.format(0)}
+          </Text>
+          <Text variant="caption" color="secondary" align="center" style={styles.endpointLabel}>
+            {numberFormat.format(Math.round(maximumValue))}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -120,11 +132,21 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     alignItems: 'center',
   },
+  dial: {
+    alignItems: 'center',
+  },
   center: {
     position: 'absolute',
     bottom: 0,
     alignItems: 'center',
   },
+  endpoints: (width: number) => ({
+    width,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: theme.metrics.spacingV.p4,
+  }),
+  endpointLabel: { width: '20%' },
   primaryLabel: { color: theme.colors.brand.primary },
   status: (state: DailyCalorieGoalState) => ({
     color: {
