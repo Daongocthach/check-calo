@@ -83,7 +83,8 @@ export const lightColors: ThemeColors = {
     surfaceSolid: '#F2F2F7',
     separator: 'rgba(60, 60, 67, 0.29)',
     pressed: 'rgba(0, 0, 0, 0.08)',
-    action: '#007AFF', // system blue
+    action: '#FF3B30', // system red
+    cancel: 'rgba(60, 60, 67, 0.85)', // dark grey label
     destructive: '#FF3B30', // system red
   },
 

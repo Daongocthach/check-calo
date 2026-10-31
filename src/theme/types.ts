@@ -82,6 +82,8 @@ export interface AlertColors {
   pressed: string;
   /** Button text for default and cancel actions. */
   action: string;
+  /** Button text for the cancel action. */
+  cancel: string;
   destructive: string;
 }
 

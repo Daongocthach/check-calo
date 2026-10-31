@@ -79,7 +79,8 @@ export const darkColors: ThemeColors = {
     surfaceSolid: '#2C2C2E',
     separator: 'rgba(84, 84, 88, 0.65)',
     pressed: 'rgba(255, 255, 255, 0.1)',
-    action: '#0A84FF', // system blue
+    action: '#FF453A', // system red
+    cancel: 'rgba(235, 235, 245, 0.85)', // dark grey label
     destructive: '#FF453A', // system red
   },
 

@@ -139,6 +139,7 @@ export function AppAlertProvider({ children }: AppAlertProviderProps) {
                     weight={button.style === 'cancel' ? 'regular' : 'semibold'}
                     style={[
                       styles.actionLabel,
+                      button.style === 'cancel' && styles.cancelLabel,
                       button.style === 'destructive' && styles.destructiveLabel,
                     ]}
                   >
@@ -222,6 +223,9 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.alert.action,
     fontSize: rf(17),
     lineHeight: rf(22),
+  },
+  cancelLabel: {
+    color: theme.colors.alert.cancel,
   },
   destructiveLabel: {
     color: theme.colors.alert.destructive,
