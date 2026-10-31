@@ -2,8 +2,10 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Text } from '@/common/components';
+import { BuddySticker } from '@/features/buddy';
 import { FoodEntryCard } from '@/features/food-log/components';
 import type { FoodEntry } from '@/features/food-log/types';
+import { hs } from '@/theme/metrics';
 
 export interface MealsGridProps {
   entries: FoodEntry[];
@@ -24,6 +26,7 @@ export function MealsGrid({ entries, onEntryPress }: MealsGridProps) {
   if (entries.length === 0) {
     return (
       <View style={styles.empty}>
+        <BuddySticker pose="noodles" size={hs(72)} />
         <Text variant="body" weight="semibold" align="center">
           {t('home.emptyTitle')}
         </Text>

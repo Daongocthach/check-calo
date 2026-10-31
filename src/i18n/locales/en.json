@@ -82,6 +82,10 @@
     "emptyTitle": "Nothing logged yet",
     "emptySubtitle": "Tell Check AI what you ate, or snap a photo of your meal.",
     "rangeLabel": "On target at {{min}}–{{max}} kcal",
+    "buddyMood": {
+      "onTarget": "Right in your range. {{name}} is proud of you!",
+      "aboveTarget": "A little over the range. How about a short walk with {{name}}?"
+    },
     "goalSummary": {
       "title": "Current goal",
       "goal": "Goal",

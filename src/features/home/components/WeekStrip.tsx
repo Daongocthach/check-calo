@@ -18,7 +18,7 @@ export interface WeekStripProps {
   today: Date;
   /** Status per date key (YYYY-MM-DD); missing days count as empty. */
   dayStatuses: Record<string, DayStatus>;
-  /** Current logging streak, shown as a badge on the date picker button. */
+  /** Current logging streak, shown with a fire sticker beside the date picker. */
   streak: number;
   onSelect: (date: Date) => void;
 }

@@ -3,12 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Icon, Text } from '@/common/components';
+import { BuddySticker, useBuddyName } from '@/features/buddy';
+import type { MascotPose } from '@/features/buddy';
 import { CalorieGauge, MacroProgress, NutrientList } from '@/features/food-log/components';
 import { MACRO_KEYS } from '@/features/food-log/constants';
 import type { DailyNutritionSummary } from '@/features/food-log/types';
 import { EMPTY_NUTRIENTS } from '@/features/food-log/utils/nutrients';
 import type { UserProfile } from '@/features/profile/types';
 import { getCalorieRange, getDailyCalorieGoalState } from '@/features/profile/utils/calorie';
+import type { DailyCalorieGoalState } from '@/features/profile/utils/calorie';
 import { hs } from '@/theme/metrics';
 
 export interface DailyProgressCardProps {
@@ -16,8 +19,17 @@ export interface DailyProgressCardProps {
   profile: UserProfile | null;
 }
 
+/** Buddy's reaction once the day reaches the range. Over it gets a nudge, never a sad face. */
+const MOODS = {
+  on_target: { pose: 'celebrate', messageKey: 'home.buddyMood.onTarget' },
+  above_target: { pose: 'stretch', messageKey: 'home.buddyMood.aboveTarget' },
+} as const satisfies Partial<
+  Record<DailyCalorieGoalState, { pose: MascotPose; messageKey: string }>
+>;
+
 export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) {
   const { t } = useTranslation();
+  const { name: buddyName } = useBuddyName();
   const [showNutrients, setShowNutrients] = useState(false);
   const consumed = Math.round(summary?.consumedCalories ?? 0);
   const target = Math.round(summary?.calorieTarget ?? profile?.dailyCalorieTarget ?? 0);
@@ -30,6 +42,8 @@ export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) 
     summary?.date,
     summary?.goalMode
   );
+  // Buddy reacts once the day lands in or past the range; below it the day is still in progress.
+  const mood = consumed > 0 && target > 0 && state !== 'below_target' ? MOODS[state] : null;
   const macros = {
     carbs: { value: summary?.carbsGrams ?? 0, target: profile?.carbsTargetGrams ?? 0 },
     protein: { value: summary?.proteinGrams ?? 0, target: profile?.proteinTargetGrams ?? 0 },
@@ -56,6 +70,14 @@ export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) 
         state={state}
         width={hs(310)}
       />
+      {mood ? (
+        <View style={styles.mood}>
+          <BuddySticker pose={mood.pose} size={hs(44)} />
+          <Text variant="bodySmall" weight="semibold" style={styles.moodText}>
+            {t(mood.messageKey, { name: buddyName })}
+          </Text>
+        </View>
+      ) : null}
       <View style={styles.macros}>
         {MACRO_KEYS.map((key) => (
           <MacroProgress
@@ -98,6 +120,17 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  mood: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+    paddingRight: theme.metrics.spacing.p12,
+    borderRadius: theme.metrics.borderRadius.lg,
+    backgroundColor: theme.colors.background.surfaceAlt,
+  },
+  moodText: {
+    flex: 1,
   },
   toggle: {
     flexDirection: 'row',

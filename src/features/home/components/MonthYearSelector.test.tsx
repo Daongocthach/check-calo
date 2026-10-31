@@ -17,6 +17,8 @@ jest.mock('@/common/components', () => {
   };
 });
 
+jest.mock('@/features/buddy', () => ({ BuddySticker: () => null }));
+
 const today = new Date(2026, 9, 26);
 
 describe('MonthYearSelector', () => {
@@ -57,15 +59,16 @@ describe('MonthYearSelector', () => {
     expect(screen.getByLabelText('home.goToToday')).toBeDisabled();
   });
 
-  it('shows the current streak on the date picker button', async () => {
+  it('shows the current streak beside the date picker', async () => {
     await render(
       <MonthYearSelector selectedDate={today} today={today} streak={5} onSelect={jest.fn()} />
     );
 
     expect(screen.getByText('5')).toBeTruthy();
+    expect(screen.getByLabelText('home.streakLabel')).toBeTruthy();
   });
 
-  it('hides the streak badge without a streak', async () => {
+  it('hides the streak without a streak', async () => {
     await render(
       <MonthYearSelector selectedDate={today} today={today} streak={0} onSelect={jest.fn()} />
     );

@@ -82,6 +82,10 @@
     "emptyTitle": "Chưa ghi món nào",
     "emptySubtitle": "Kể cho Check AI bạn đã ăn gì, hoặc chụp ảnh bữa ăn.",
     "rangeLabel": "Khoảng đạt {{min}}–{{max}} kcal",
+    "buddyMood": {
+      "onTarget": "Vừa đúng khoảng mục tiêu, {{name}} tự hào về bạn lắm!",
+      "aboveTarget": "Hơi vượt khoảng mục tiêu. Đi bộ nhẹ cùng {{name}} nhé?"
+    },
     "goalSummary": {
       "title": "Mục tiêu hiện tại",
       "goal": "Mục tiêu",

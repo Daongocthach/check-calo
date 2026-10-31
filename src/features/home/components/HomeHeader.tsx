@@ -10,7 +10,7 @@ export interface HomeHeaderProps {
   onMenuPress: () => void;
 }
 
-/** Pet avatar (opens Buddy), greeting and the drawer button. The streak lives on the date picker. */
+/** Pet avatar (opens Buddy), greeting and the drawer button. The streak sits beside the date picker. */
 export function HomeHeader({ displayName, onBuddyPress, onMenuPress }: HomeHeaderProps) {
   const { t } = useTranslation();
 
