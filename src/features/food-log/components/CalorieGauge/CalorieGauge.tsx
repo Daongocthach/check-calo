@@ -8,7 +8,7 @@ import type { CalorieRange, DailyCalorieGoalState } from '@/features/profile/uti
 export interface CalorieGaugeProps {
   consumed: number;
   target: number;
-  /** Calories that count as on target; the empty bars in this range are tinted green. */
+  /** Calories that count as on target; the empty bars in this range are tinted green until over. */
   range: CalorieRange;
   /** Whether the day is under, within or over the range; colours the bars and the label. */
   state: DailyCalorieGoalState;
@@ -80,7 +80,9 @@ export function CalorieGauge({
             const value = position * scaleMax;
             const isFilled = index < filledBars;
             const isInRange = scaleMax > 0 && value >= range.min && value <= range.max;
-            const isTargetBand = !isFilled && isInRange;
+            // Once over, the band would show past the fill (rounding, or older days judged by
+            // the target alone), so it is dropped.
+            const isTargetBand = !isFilled && isInRange && state !== 'above_target';
             const idleStroke =
               isTargetBand && appearance !== 'primary'
                 ? theme.colors.state.success
