@@ -17,7 +17,7 @@ export interface MacroProgressProps {
   target: number;
 }
 
-/** Compact "60 / 250" macro block with a colored bar, used on the Home card. */
+/** Compact "60 / 250" macro block, labelled in grams, with a colored bar, used on the Home card. */
 export function MacroProgress({ macro, value, target }: MacroProgressProps) {
   const { t } = useTranslation();
   const percent = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0;
@@ -42,7 +42,7 @@ export function MacroProgress({ macro, value, target }: MacroProgressProps) {
         <Animated.View style={[styles.fill(macro), widthStyle]} />
       </View>
       <Text variant="caption" color="secondary" align="center">
-        {t(`macros.${macro}`)}
+        {`${t(`macros.${macro}`)} (${t('common.units.gram')})`}
       </Text>
     </View>
   );
