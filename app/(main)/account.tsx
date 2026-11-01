@@ -272,7 +272,7 @@ export default function AccountScreen() {
                 leftIcon={
                   <Icon name="trash-outline" size={18} color={theme.colors.brand.onBrand} />
                 }
-                style={{ backgroundColor: theme.colors.state.error }}
+                style={styles.dangerButton}
                 onPress={handleDeleteAccount}
               />
             </View>
@@ -320,5 +320,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   dangerLabel: {
     color: theme.colors.state.error,
+  },
+  dangerButton: {
+    backgroundColor: theme.colors.state.error,
   },
 }));
