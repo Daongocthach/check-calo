@@ -38,5 +38,6 @@ export const STORAGE_KEYS = {
     goalRangeRulesSince: 'goal_range_rules_since',
     celebratedGoalId: 'celebrated_goal_id',
     celebratedMaintainMilestone: 'celebrated_maintain_milestone',
+    buddyHeaderSeen: 'buddy_header_seen',
   },
 } as const;
