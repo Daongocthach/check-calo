@@ -326,3 +326,36 @@ export async function runVersion19Migration(database: SQLite.SQLiteDatabase) {
     WHERE status != 'active' AND ended_at IS NULL;
   `);
 }
+
+/**
+ * Day plans keep their macro targets and, like weight goals, a sync state for the cloud copy.
+ * Plans saved before this version get the current profile's macros, which is what they were
+ * judged by until now, and are pushed without overwriting a copy another device already sent.
+ */
+export async function runVersion20Migration(database: SQLite.SQLiteDatabase) {
+  for (const columnDefinition of [
+    'protein_target_grams REAL',
+    'carbs_target_grams REAL',
+    'fat_target_grams REAL',
+  ]) {
+    const [columnName] = columnDefinition.split(' ');
+    await addColumnIfMissing(database, 'daily_calorie_targets', columnName, columnDefinition);
+  }
+  await addColumnIfMissing(
+    database,
+    'daily_calorie_targets',
+    'synced',
+    'synced INTEGER NOT NULL DEFAULT 0'
+  );
+  await addColumnIfMissing(database, 'weight_goals', 'synced', 'synced INTEGER NOT NULL DEFAULT 0');
+
+  await database.execAsync(`
+    UPDATE daily_calorie_targets
+    SET
+      protein_target_grams = (SELECT protein_target_grams FROM user_profile WHERE id = 1),
+      carbs_target_grams = (SELECT carbs_target_grams FROM user_profile WHERE id = 1),
+      fat_target_grams = (SELECT fat_target_grams FROM user_profile WHERE id = 1),
+      synced = 2
+    WHERE protein_target_grams IS NULL;
+  `);
+}

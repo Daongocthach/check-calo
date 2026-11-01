@@ -3,11 +3,17 @@ import {
   listDailyTargets,
 } from '@/features/profile/services/dailyTargetRepository';
 import { getUserProfile } from '@/features/profile/services/profileRepository';
+import type { DailyTargetRecord } from '@/features/profile/types';
 import { getDailyCalorieGoalState, getProfileDayPlan } from '@/features/profile/utils/calorie';
 import { getDatabase } from '@/services/database/sqlite';
 import { formatDateKey } from '@/utils/date';
 import type { DailyNutritionSummary, NutritionTrendPoint } from '../types';
 import { NUTRIENT_SQL, nutrientsFromColumns, type NutrientColumnValues } from '../utils/nutrients';
+
+type SavedDayPlan = Pick<
+  DailyTargetRecord,
+  'calorieTarget' | 'goalMode' | 'proteinTargetGrams' | 'carbsTargetGrams' | 'fatTargetGrams'
+>;
 
 interface DailyTotalsRow extends NutrientColumnValues {
   entry_date: string;
@@ -37,7 +43,10 @@ export async function listDailyNutritionSummaries(
   const normalizedEndDate = formatDateKey(endDate);
   const profile = await getUserProfile();
   const profilePlan = profile ? getProfileDayPlan(profile) : null;
-  const plans = await listDailyTargets(normalizedStartDate, normalizedEndDate);
+  const plans: Map<string, SavedDayPlan> = await listDailyTargets(
+    normalizedStartDate,
+    normalizedEndDate
+  );
   const totalRows = await database.getAllAsync<DailyTotalsRow>(
     `
       SELECT
@@ -88,6 +97,9 @@ export async function listDailyNutritionSummaries(
       proteinGrams: totals?.protein_grams ?? 0,
       carbsGrams: totals?.carbs_grams ?? 0,
       fatGrams: totals?.fat_grams ?? 0,
+      proteinTargetGrams: plan?.proteinTargetGrams ?? profilePlan?.proteinTargetGrams ?? 0,
+      carbsTargetGrams: plan?.carbsTargetGrams ?? profilePlan?.carbsTargetGrams ?? 0,
+      fatTargetGrams: plan?.fatTargetGrams ?? profilePlan?.fatTargetGrams ?? 0,
       nutrients: nutrientsFromColumns(totals ?? {}),
     });
 

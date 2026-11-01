@@ -9,6 +9,7 @@ import {
   getActivityFactor,
   isInTransition,
 } from '../utils/calorie';
+import { DAILY_TARGET_SYNC } from './dailyTargetRepository';
 
 interface UserProfileRow {
   id: number;
@@ -183,16 +184,31 @@ export async function upsertDailyTargetOverride(date: string, calorieTarget: num
   const now = nowIsoString();
   const normalizedDate = formatDateKey(date);
 
+  // A new day takes the profile's macro targets; a planned day keeps its own.
   await database.runAsync(
     `
-      INSERT INTO daily_calorie_targets (date, calorie_target, source, created_at, updated_at)
-      VALUES (?, ?, 'manual', ?, ?)
+      INSERT INTO daily_calorie_targets (
+        date,
+        calorie_target,
+        protein_target_grams,
+        carbs_target_grams,
+        fat_target_grams,
+        source,
+        synced,
+        created_at,
+        updated_at
+      )
+      SELECT ?, ?, protein_target_grams, carbs_target_grams, fat_target_grams, 'manual', ?, ?, ?
+      FROM (SELECT 1)
+      LEFT JOIN user_profile ON user_profile.id = 1
+      WHERE true
       ON CONFLICT(date) DO UPDATE SET
         calorie_target = excluded.calorie_target,
         source = excluded.source,
+        synced = excluded.synced,
         updated_at = excluded.updated_at;
     `,
-    [normalizedDate, calorieTarget, now, now]
+    [normalizedDate, calorieTarget, DAILY_TARGET_SYNC.pending, now, now]
   );
 
   return {

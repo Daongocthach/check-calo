@@ -140,6 +140,8 @@ export async function resetCloudNutritionData() {
     'meal_items',
     'meal_images',
     'weight_logs',
+    'daily_targets',
+    'weight_goals',
     'profiles',
   ] as const;
 

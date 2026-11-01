@@ -161,6 +161,9 @@ export function getProfileDayPlan(profile: UserProfile): DayPlan {
   return {
     calorieTarget: profile.dailyCalorieTarget,
     goalMode: isInTransition(profile) ? 'maintain' : getWeightGoalMode(profile.monthlyWeightGoalKg),
+    proteinTargetGrams: profile.proteinTargetGrams,
+    carbsTargetGrams: profile.carbsTargetGrams,
+    fatTargetGrams: profile.fatTargetGrams,
   };
 }
 

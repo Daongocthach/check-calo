@@ -8,6 +8,7 @@ import type {
   WeightGoalMode,
   WeightGoalStatus,
 } from '../types';
+import { findSupersededActiveGoals } from '../utils/activeGoal';
 
 interface WeightGoalRow {
   id: string;
@@ -141,7 +142,7 @@ export async function replaceActiveWeightGoal(
     await database.runAsync(
       `
         UPDATE weight_goals
-        SET status = 'cancelled', ended_at = ?, updated_at = ?
+        SET status = 'cancelled', ended_at = ?, updated_at = ?, synced = 0
         WHERE status = 'active';
       `,
       [now, now]
@@ -197,7 +198,7 @@ export async function updateWeightGoalPlan(goalId: string, changes: Partial<Weig
   await database.runAsync(
     `
       UPDATE weight_goals
-      SET ${entries.map(([column]) => `${column} = ?`).join(', ')}, updated_at = ?
+      SET ${entries.map(([column]) => `${column} = ?`).join(', ')}, updated_at = ?, synced = 0
       WHERE id = ?;
     `,
     [...entries.map(([, value]) => value), nowIsoString(), goalId]
@@ -212,13 +213,133 @@ export async function completeWeightGoal(goalId: string) {
   await database.runAsync(
     `
       UPDATE weight_goals
-      SET status = 'completed', completed_at = ?, ended_at = ?, updated_at = ?
+      SET status = 'completed', completed_at = ?, ended_at = ?, updated_at = ?, synced = 0
       WHERE id = ?;
     `,
     [now, now, now, goalId]
   );
 
   return now;
+}
+
+/** Goals saved or changed since the last push. */
+export async function listPendingWeightGoals() {
+  const database = await getDatabase();
+  const rows = await database.getAllAsync<WeightGoalRow>(
+    'SELECT * FROM weight_goals WHERE synced = 0 ORDER BY started_at ASC;'
+  );
+
+  return rows.map(mapWeightGoal);
+}
+
+/** Marks pushed goals as synced unless they were changed again meanwhile. */
+export async function markWeightGoalsSynced(goals: WeightGoal[]) {
+  const database = await getDatabase();
+
+  await database.withTransactionAsync(async () => {
+    for (const goal of goals) {
+      await database.runAsync(
+        'UPDATE weight_goals SET synced = 1 WHERE id = ? AND updated_at = ?;',
+        [goal.id, goal.updatedAt]
+      );
+    }
+  });
+}
+
+/**
+ * Saves goals pulled from the cloud and returns how many changed. A goal changed on this
+ * device and not pushed yet wins; with `replace`, every local goal is dropped first. If that
+ * leaves two running goals, only the most recently changed one keeps running.
+ */
+export async function applyCloudWeightGoals(
+  goals: WeightGoal[],
+  { replace = false }: { replace?: boolean } = {}
+) {
+  const database = await getDatabase();
+  let changed = 0;
+
+  await database.withTransactionAsync(async () => {
+    if (replace) {
+      await database.runAsync('DELETE FROM weight_goals;');
+    }
+
+    for (const goal of goals) {
+      const result = await database.runAsync(
+        `
+          INSERT INTO weight_goals (
+            id,
+            mode,
+            target_kg,
+            target_kcal_delta,
+            target_days,
+            start_weight_kg,
+            target_weight_kg,
+            monthly_rate_kg,
+            status,
+            started_at,
+            completed_at,
+            ended_at,
+            synced,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET
+            mode = excluded.mode,
+            target_kg = excluded.target_kg,
+            target_kcal_delta = excluded.target_kcal_delta,
+            target_days = excluded.target_days,
+            start_weight_kg = excluded.start_weight_kg,
+            target_weight_kg = excluded.target_weight_kg,
+            monthly_rate_kg = excluded.monthly_rate_kg,
+            status = excluded.status,
+            started_at = excluded.started_at,
+            completed_at = excluded.completed_at,
+            ended_at = excluded.ended_at,
+            synced = excluded.synced,
+            created_at = excluded.created_at,
+            updated_at = excluded.updated_at
+          WHERE weight_goals.synced != 0 AND weight_goals.updated_at != excluded.updated_at;
+        `,
+        [
+          goal.id,
+          goal.mode,
+          goal.targetKg,
+          goal.targetKcalDelta,
+          goal.targetDays,
+          goal.startWeightKg,
+          goal.targetWeightKg,
+          goal.monthlyRateKg,
+          goal.status,
+          goal.startedAt,
+          goal.completedAt,
+          goal.endedAt,
+          goal.createdAt,
+          goal.updatedAt,
+        ]
+      );
+      changed += result.changes;
+    }
+
+    const activeRows = await database.getAllAsync<WeightGoalRow>(
+      "SELECT * FROM weight_goals WHERE status = 'active';"
+    );
+    const now = nowIsoString();
+
+    for (const goal of findSupersededActiveGoals(activeRows.map(mapWeightGoal))) {
+      await database.runAsync(
+        `
+          UPDATE weight_goals
+          SET status = 'cancelled', ended_at = ?, updated_at = ?, synced = 0
+          WHERE id = ?;
+        `,
+        [now, now, goal.id]
+      );
+      changed += 1;
+    }
+  });
+
+  return changed;
 }
 
 export async function listAchievementUnlocks() {

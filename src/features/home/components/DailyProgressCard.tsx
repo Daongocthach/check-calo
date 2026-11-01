@@ -45,9 +45,18 @@ export function DailyProgressCard({ summary, profile }: DailyProgressCardProps) 
   // Buddy reacts once the day lands in or past the range; below it the day is still in progress.
   const mood = consumed > 0 && target > 0 && state !== 'below_target' ? MOODS[state] : null;
   const macros = {
-    carbs: { value: summary?.carbsGrams ?? 0, target: profile?.carbsTargetGrams ?? 0 },
-    protein: { value: summary?.proteinGrams ?? 0, target: profile?.proteinTargetGrams ?? 0 },
-    fat: { value: summary?.fatGrams ?? 0, target: profile?.fatTargetGrams ?? 0 },
+    carbs: {
+      value: summary?.carbsGrams ?? 0,
+      target: summary?.carbsTargetGrams ?? profile?.carbsTargetGrams ?? 0,
+    },
+    protein: {
+      value: summary?.proteinGrams ?? 0,
+      target: summary?.proteinTargetGrams ?? profile?.proteinTargetGrams ?? 0,
+    },
+    fat: {
+      value: summary?.fatGrams ?? 0,
+      target: summary?.fatTargetGrams ?? profile?.fatTargetGrams ?? 0,
+    },
   };
 
   return (

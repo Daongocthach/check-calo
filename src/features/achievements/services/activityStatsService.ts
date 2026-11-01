@@ -102,18 +102,15 @@ export async function getActivityStats(): Promise<ActivityStats> {
     loggedDays += 1;
     onTargetDays += status === 'on_target' ? 1 : 0;
 
-    if (
-      profile &&
-      reachesRatio(summary.proteinGrams, profile.proteinTargetGrams, PROTEIN_DAY_RATIO)
-    ) {
+    // Each day is judged by its own plan, so a later goal change does not re-judge it.
+    if (reachesRatio(summary.proteinGrams, summary.proteinTargetGrams, PROTEIN_DAY_RATIO)) {
       proteinDays += 1;
     }
 
     if (
-      profile &&
-      reachesRatio(summary.proteinGrams, profile.proteinTargetGrams, BALANCED_DAY_RATIO) &&
-      reachesRatio(summary.carbsGrams, profile.carbsTargetGrams, BALANCED_DAY_RATIO) &&
-      reachesRatio(summary.fatGrams, profile.fatTargetGrams, BALANCED_DAY_RATIO)
+      reachesRatio(summary.proteinGrams, summary.proteinTargetGrams, BALANCED_DAY_RATIO) &&
+      reachesRatio(summary.carbsGrams, summary.carbsTargetGrams, BALANCED_DAY_RATIO) &&
+      reachesRatio(summary.fatGrams, summary.fatTargetGrams, BALANCED_DAY_RATIO)
     ) {
       balancedDays += 1;
     }

@@ -43,8 +43,27 @@ export interface DailyTargetOverride {
   updatedAt: string;
 }
 
-/** The calorie target and goal a day is judged by. */
+/** The calorie and macro targets and the goal a day is judged by. */
 export interface DayPlan {
   calorieTarget: number;
   goalMode: WeightGoalMode;
+  proteinTargetGrams: number;
+  carbsTargetGrams: number;
+  fatTargetGrams: number;
+}
+
+/**
+ * A plan as saved for one day. A manual target saved without a goal has a null mode; plans
+ * saved before macro targets were kept per day have null macros.
+ */
+export interface DailyTargetRecord {
+  date: string;
+  calorieTarget: number;
+  proteinTargetGrams: number | null;
+  carbsTargetGrams: number | null;
+  fatTargetGrams: number | null;
+  goalMode: WeightGoalMode | null;
+  source: DailyTargetOverride['source'];
+  createdAt: string;
+  updatedAt: string;
 }

@@ -33,6 +33,9 @@ function day(
     proteinGrams: 0,
     carbsGrams: 0,
     fatGrams: 0,
+    proteinTargetGrams: 0,
+    carbsTargetGrams: 0,
+    fatTargetGrams: 0,
     nutrients: EMPTY_NUTRIENTS,
   };
 }

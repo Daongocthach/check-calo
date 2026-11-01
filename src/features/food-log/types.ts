@@ -33,6 +33,10 @@ export interface DailyNutritionSummary {
   proteinGrams: number;
   carbsGrams: number;
   fatGrams: number;
+  /** The day's macro targets: its saved plan, else the current profile's. */
+  proteinTargetGrams: number;
+  carbsTargetGrams: number;
+  fatTargetGrams: number;
   /** Sum of the known values that day; `null` when no entry had the nutrient. */
   nutrients: NutrientValues;
 }

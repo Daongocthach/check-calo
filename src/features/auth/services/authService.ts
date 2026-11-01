@@ -11,7 +11,9 @@ import {
   resetLocalNutritionDataForLogin,
 } from '@/features/food-log/services/localDataReset';
 import { useFoodEntryRefreshStore } from '@/features/food-log/stores/useFoodEntryRefreshStore';
+import { pullWeightGoalsFromCloud } from '@/features/goals/services/weightGoalSync';
 import { pullWeightLogsFromCloud } from '@/features/goals/services/weightLogSync';
+import { pullDailyTargetsFromCloud } from '@/features/profile/services/dailyTargetSync';
 import { supabase } from '@/integrations/supabase';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { STORAGE_KEYS, removeItem, setItem } from '@/utils/storage';
@@ -76,6 +78,9 @@ export async function loginSyncCloudData() {
 
   await syncUserProfileFromCloud();
   await pullWeightLogsFromCloud();
+  // Before the diary arrives: a day shown without its plan is frozen at today's plan.
+  await pullDailyTargetsFromCloud({ replace: true });
+  await pullWeightGoalsFromCloud({ replace: true });
   await syncFoodEntriesDeltaFromSupabase();
   await syncRecentFoodsDeltaFromSupabase();
   useFoodEntryRefreshStore.getState().markFoodEntriesChanged();
