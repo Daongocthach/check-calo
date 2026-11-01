@@ -1,5 +1,5 @@
 import type { WeightGoalMode } from '@/features/goals/types';
-import { getDatabase } from '@/services/database/sqlite';
+import { getDatabase, withWriteTransaction } from '@/services/database/sqlite';
 import { formatDateKey, nowIsoString } from '@/utils/date';
 import type { DailyTargetRecord, DayPlan } from '../types';
 
@@ -69,7 +69,7 @@ export async function freezeDailyTargets(dates: string[], plan: DayPlan) {
   const database = await getDatabase();
   const now = nowIsoString();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     for (const date of dates) {
       await database.runAsync(
         `
@@ -165,7 +165,7 @@ export async function listPendingDailyTargets(): Promise<PendingDailyTarget[]> {
 export async function markDailyTargetsSynced(targets: DailyTargetRecord[]) {
   const database = await getDatabase();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     for (const target of targets) {
       await database.runAsync(
         'UPDATE daily_calorie_targets SET synced = ? WHERE date = ? AND updated_at = ?;',
@@ -186,7 +186,7 @@ export async function applyCloudDailyTargets(
   const database = await getDatabase();
   let changed = 0;
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     if (replace) {
       await database.runAsync('DELETE FROM daily_calorie_targets;');
     }

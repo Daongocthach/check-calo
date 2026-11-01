@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase';
-import { getDatabase } from '@/services/database/sqlite';
+import { getDatabase, withWriteTransaction } from '@/services/database/sqlite';
 import { clear as clearAppStorage } from '@/utils/storage';
 import { clearManagedFoodEntryImageCache, deleteLocalFoodEntryImage } from './foodImageStorage';
 
@@ -95,7 +95,7 @@ const SYNCED_NUTRITION_TABLES = [
 async function clearLocalNutritionTables(tables: readonly string[] = NUTRITION_TABLES) {
   const database = await getDatabase();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     for (const table of tables) {
       try {
         await database.runAsync(`DELETE FROM ${table};`);

@@ -25,7 +25,6 @@ jest.mock('@/services/database/sqlite', () => ({
         const row = mockRows.get(id);
         return Promise.resolve(row ? { ...row } : null);
       },
-      withTransactionAsync: (task: () => Promise<void>) => task(),
       runAsync: (
         sql: string,
         [nextUri, id, previousUri]: [string | null, string, string | null]
@@ -36,6 +35,7 @@ jest.mock('@/services/database/sqlite', () => ({
         return Promise.resolve();
       },
     }),
+  withWriteTransaction: (_database: unknown, task: () => Promise<void>) => task(),
 }));
 
 jest.mock('./foodImageStorage', () => ({

@@ -1,4 +1,4 @@
-import { getDatabase } from '@/services/database/sqlite';
+import { getDatabase, withWriteTransaction } from '@/services/database/sqlite';
 import { formatDateKey, nowIsoString } from '@/utils/date';
 import type { DailyTargetOverride, UserProfile, UserProfileInput } from '../types';
 import {
@@ -173,7 +173,7 @@ export async function setTransitionUntil(dateKey: string | null) {
 export async function deleteUserProfile() {
   const database = await getDatabase();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     await database.runAsync('DELETE FROM daily_calorie_targets;');
     await database.runAsync('DELETE FROM user_profile WHERE id = 1;');
   });

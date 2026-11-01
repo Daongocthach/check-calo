@@ -1,4 +1,4 @@
-import { getDatabase } from '@/services/database/sqlite';
+import { getDatabase, withWriteTransaction } from '@/services/database/sqlite';
 import { nowIsoString } from '@/utils/date';
 import { createEntityId } from '@/utils/id';
 import type {
@@ -138,7 +138,7 @@ export async function replaceActiveWeightGoal(
   const database = await getDatabase();
   const now = nowIsoString();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     await database.runAsync(
       `
         UPDATE weight_goals
@@ -236,7 +236,7 @@ export async function listPendingWeightGoals() {
 export async function markWeightGoalsSynced(goals: WeightGoal[]) {
   const database = await getDatabase();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     for (const goal of goals) {
       await database.runAsync(
         'UPDATE weight_goals SET synced = 1 WHERE id = ? AND updated_at = ?;',
@@ -258,7 +258,7 @@ export async function applyCloudWeightGoals(
   const database = await getDatabase();
   let changed = 0;
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     if (replace) {
       await database.runAsync('DELETE FROM weight_goals;');
     }

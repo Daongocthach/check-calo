@@ -1,6 +1,6 @@
 import { env } from '@/config/env';
 import { supabase } from '@/integrations/supabase';
-import { getDatabase } from '@/services/database/sqlite';
+import { getDatabase, withWriteTransaction } from '@/services/database/sqlite';
 import { pickNutrientColumns } from '../utils/nutrients';
 import type { RecentFoodRow } from './foodEntryRepositoryCore';
 import { deleteOrphanedFoodEntryAssets, ensureRemoteImage } from './foodImageStorage';
@@ -50,7 +50,7 @@ async function storeRemoteImageUris(
 
   const database = await getDatabase();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     if (imageChanged) {
       await database.runAsync(
         'UPDATE recent_foods SET image_uri = ? WHERE id = ? AND image_uri IS ?;',

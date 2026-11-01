@@ -1,4 +1,4 @@
-import { getDatabase } from '@/services/database/sqlite';
+import { getDatabase, withWriteTransaction } from '@/services/database/sqlite';
 import { nowIsoString } from '@/utils/date';
 import type { QuestCompletion } from '../types';
 
@@ -36,7 +36,7 @@ export async function recordQuestCompletions(
   const completedAt = nowIsoString();
   const recorded: QuestCompletion[] = [];
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     for (const completion of completions) {
       const result = await database.runAsync(
         `
@@ -106,7 +106,7 @@ export async function applyCloudQuestCompletions(
   const database = await getDatabase();
   let changed = 0;
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     if (replace) {
       await database.runAsync('DELETE FROM buddy_quest_completions;');
     }

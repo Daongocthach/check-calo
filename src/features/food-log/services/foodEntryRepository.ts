@@ -1,4 +1,4 @@
-import { getDatabase } from '@/services/database/sqlite';
+import { getDatabase, withWriteTransaction } from '@/services/database/sqlite';
 import { formatDateKey, nowIsoString } from '@/utils/date';
 import { createEntityId } from '@/utils/id';
 import type { FoodEntryInput } from '../types';
@@ -164,7 +164,7 @@ export async function deleteFoodEntries(entryIds: string[]) {
 export async function resetNutritionData() {
   const database = await getDatabase();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     await database.runAsync('DELETE FROM recent_foods;');
     await database.runAsync('DELETE FROM food_entries;');
     await database.runAsync('DELETE FROM daily_calorie_targets;');

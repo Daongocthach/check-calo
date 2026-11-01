@@ -1,6 +1,6 @@
 import type { NutrientValues } from '@/features/food-log/types';
 import { NUTRIENT_SQL, toNutrientParams } from '@/features/food-log/utils/nutrients';
-import { getDatabase } from '@/services/database/sqlite';
+import { getDatabase, withWriteTransaction } from '@/services/database/sqlite';
 import { formatDateKey, nowIsoString } from '@/utils/date';
 import { createEntityId } from '@/utils/id';
 import { SAMPLE_DAY, SAMPLE_ENTRY_ID_PREFIX } from '../constants/sampleFoods';
@@ -24,7 +24,7 @@ export async function seedSampleFoodEntries(days = 7) {
   const createdAt = nowIsoString();
   let inserted = 0;
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     for (let dayOffset = 0; dayOffset < days; dayOffset += 1) {
       // Vary portions a little so the progress charts are not flat.
       const scale = 0.8 + ((dayOffset * 7) % 5) / 10;

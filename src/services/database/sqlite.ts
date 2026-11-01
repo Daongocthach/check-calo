@@ -5,6 +5,7 @@ const DATABASE_NAME = 'check-calo.db';
 const DATABASE_VERSION = MIGRATIONS.length;
 
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
+let writeQueue: Promise<void> = Promise.resolve();
 
 function createDatabase() {
   return SQLite.openDatabaseAsync(DATABASE_NAME);
@@ -16,6 +17,21 @@ export async function getDatabase() {
   }
 
   return databasePromise;
+}
+
+/**
+ * Runs `task` in a transaction once every earlier one has finished. The app shares one
+ * connection, so two `withTransactionAsync` calls at once would nest their BEGINs and one
+ * COMMIT or ROLLBACK would end the other's transaction. Never call it from inside `task`:
+ * it would wait for itself.
+ */
+export function withWriteTransaction(
+  database: SQLite.SQLiteDatabase,
+  task: () => Promise<void>
+): Promise<void> {
+  const run = writeQueue.then(() => database.withTransactionAsync(task));
+  writeQueue = run.catch(() => undefined);
+  return run;
 }
 
 export async function initializeDatabase() {

@@ -1,4 +1,4 @@
-import { getDatabase } from '@/services/database/sqlite';
+import { getDatabase, withWriteTransaction } from '@/services/database/sqlite';
 import { formatDateKey, nowIsoString } from '@/utils/date';
 import type { WeightLog } from '../types';
 
@@ -96,7 +96,7 @@ export async function listUnsyncedWeightLogs() {
 export async function markWeightLogsSynced(logs: WeightLog[]) {
   const database = await getDatabase();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     for (const log of logs) {
       await database.runAsync(
         'UPDATE weight_logs SET synced = 1 WHERE log_date = ? AND updated_at = ?;',

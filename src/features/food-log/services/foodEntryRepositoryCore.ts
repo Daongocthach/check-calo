@@ -1,4 +1,4 @@
-import { getDatabase } from '@/services/database/sqlite';
+import { getDatabase, withWriteTransaction } from '@/services/database/sqlite';
 import { nowIsoString } from '@/utils/date';
 import type { FoodEntry, RecentFood } from '../types';
 import { nutrientsFromColumns, type NutrientColumnValues } from '../utils/nutrients';
@@ -107,7 +107,7 @@ export async function replaceImageUriReferences(previousUri: string, nextUri: st
   const database = await getDatabase();
   const now = nowIsoString();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     await database.runAsync(
       `
         UPDATE food_entries
@@ -132,7 +132,7 @@ export async function replaceThumbnailUriReferences(previousUri: string, nextUri
   const database = await getDatabase();
   const now = nowIsoString();
 
-  await database.withTransactionAsync(async () => {
+  await withWriteTransaction(database, async () => {
     await database.runAsync(
       `
         UPDATE food_entries
