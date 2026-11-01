@@ -44,14 +44,15 @@ export const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.full,
   },
   weekDot_met: {
-    backgroundColor: theme.colors.state.success,
+    backgroundColor: theme.colors.brand.primary,
   },
   weekDot_missed: {
-    backgroundColor: theme.colors.state.errorBg,
+    backgroundColor: theme.colors.background.section,
   },
   weekDot_today: {
     borderWidth: 1.5,
     borderColor: theme.colors.brand.primary,
+    backgroundColor: theme.colors.background.section,
   },
   weekDot_future: {
     backgroundColor: theme.colors.background.section,
