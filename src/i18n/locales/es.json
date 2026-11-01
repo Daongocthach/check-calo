@@ -647,7 +647,6 @@
     "potassiumMg": "Potasio",
     "unknown": "—",
     "emptyHint": "Aún no hay datos detallados de este alimento. Toca Editar para ingresar los valores de la etiqueta nutricional.",
-    "dailyValueHint": "% de la referencia diaria para una dieta de 2000 kcal. Intenta alcanzarla en fibra y potasio; en los demás, mantente por debajo.",
     "showDetails": "Mostrar detalle de nutrientes",
     "hideDetails": "Ocultar detalle de nutrientes"
   },
@@ -692,7 +691,45 @@
     "followUps": {
       "logBreakfast": "Desayuné dos huevos revueltos con pan tostado",
       "suggestDinner": "Sugiéreme una cena alta en proteínas de menos de 700 kcal"
-    }
+    },
+    "loggedPortion": {
+      "twoThirds": "Agregado ⅔ de porción",
+      "half": "Agregada ½ porción"
+    },
+    "editFood": "Editar {{name}}",
+    "removeFood": "Quitar este alimento"
+  },
+  "mealImpact": {
+    "title": "Después de esta comida",
+    "lines": {
+      "over": "Te pasas {{calories}} kcal del objetivo de hoy",
+      "nextMeal": {
+        "breakfast": "Quedan {{remaining}} kcal · desayuno de unas {{calories}} kcal",
+        "lunch": "Quedan {{remaining}} kcal · almuerzo de unas {{calories}} kcal",
+        "dinner": "Quedan {{remaining}} kcal · cena de unas {{calories}} kcal"
+      },
+      "lastMeal": {
+        "breakfast": "Quedan {{calories}} kcal para el desayuno",
+        "lunch": "Quedan {{calories}} kcal para el almuerzo",
+        "dinner": "Quedan {{calories}} kcal para la cena"
+      },
+      "remaining": "Quedan {{calories}} kcal para hoy",
+      "full": "Alcanzaste el objetivo de calorías de hoy",
+      "short": "Aún te faltan {{calories}} kcal para tu objetivo de aumento",
+      "heavy": "Esta comida es el {{percent}}% de tu objetivo diario",
+      "proteinLow": "Faltan {{grams}} g de proteína: prioriza la proteína en la próxima comida",
+      "nutrientHigh": "{{nutrient}} llega al {{percent}}% del límite diario"
+    },
+    "portions": {
+      "twoThirds": "⅔ de porción",
+      "half": "½ porción"
+    },
+    "actions": {
+      "portion": "Agregar {{portion}} · {{calories}} kcal",
+      "alternative": "Agregar {{name}} en su lugar · {{calories}} kcal",
+      "askAi": "Pedir a Check AI una opción más ligera"
+    },
+    "askPrompt": "Sugiere una opción más ligera de menos de {{calories}} kcal en lugar de {{name}}"
   },
   "voice": {
     "listening": "Escuchando…",

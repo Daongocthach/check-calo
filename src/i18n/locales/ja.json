@@ -647,7 +647,6 @@
     "potassiumMg": "カリウム",
     "unknown": "—",
     "emptyHint": "この食品の詳細データはまだありません。編集をタップして、栄養成分表示の値を入力してください。",
-    "dailyValueHint": "1日2,000 kcalの食事における1日の参考量に対する割合（%）です。食物繊維とカリウムは達成を目指し、その他は下回るようにしましょう。",
     "showDetails": "栄養素の詳細を表示",
     "hideDetails": "栄養素の詳細を隠す"
   },
@@ -690,7 +689,45 @@
     "followUps": {
       "logBreakfast": "朝ごはんに納豆ごはんとみそ汁を食べた",
       "suggestDinner": "700 kcal以下の高たんぱくな夕食を提案して"
-    }
+    },
+    "loggedPortion": {
+      "twoThirds": "⅔の量を追加しました",
+      "half": "半分の量を追加しました"
+    },
+    "editFood": "{{name}}を編集",
+    "removeFood": "この食品を削除"
+  },
+  "mealImpact": {
+    "title": "この食事のあと",
+    "lines": {
+      "over": "今日の目標を{{calories}} kcal超えます",
+      "nextMeal": {
+        "breakfast": "残り{{remaining}} kcal · 朝食は約{{calories}} kcal",
+        "lunch": "残り{{remaining}} kcal · 昼食は約{{calories}} kcal",
+        "dinner": "残り{{remaining}} kcal · 夕食は約{{calories}} kcal"
+      },
+      "lastMeal": {
+        "breakfast": "朝食に残り{{calories}} kcal",
+        "lunch": "昼食に残り{{calories}} kcal",
+        "dinner": "夕食に残り{{calories}} kcal"
+      },
+      "remaining": "今日は残り{{calories}} kcal",
+      "full": "今日のカロリー目標に達しました",
+      "short": "増量目標まであと{{calories}} kcal",
+      "heavy": "この食事は1日の目標の{{percent}}%です",
+      "proteinLow": "たんぱく質があと{{grams}} g — 次の食事はたんぱく質を多めに",
+      "nutrientHigh": "{{nutrient}}が1日の上限の{{percent}}%に達します"
+    },
+    "portions": {
+      "twoThirds": "⅔の量",
+      "half": "半分の量"
+    },
+    "actions": {
+      "portion": "{{portion}}を追加 · {{calories}} kcal",
+      "alternative": "代わりに{{name}}を追加 · {{calories}} kcal",
+      "askAi": "Check AIに軽めの候補を聞く"
+    },
+    "askPrompt": "{{name}}の代わりに{{calories}} kcal以下の軽めのメニューを提案して"
   },
   "voice": {
     "listening": "聞き取り中…",

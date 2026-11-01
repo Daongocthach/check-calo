@@ -57,9 +57,6 @@ export function NutrientList({ values }: NutrientListProps) {
           </View>
         );
       })}
-      <Text variant="caption" color="tertiary">
-        {t('nutrients.dailyValueHint')}
-      </Text>
     </View>
   );
 }

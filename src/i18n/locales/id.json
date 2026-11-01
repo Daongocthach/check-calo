@@ -647,7 +647,6 @@
     "potassiumMg": "Kalium",
     "unknown": "—",
     "emptyHint": "Belum ada data detail untuk makanan ini. Ketuk ubah untuk memasukkan nilai dari label gizi.",
-    "dailyValueHint": "% dari acuan harian untuk diet 2.000 kcal. Usahakan mencapainya untuk serat dan kalium; jaga yang lain tetap di bawahnya.",
     "showDetails": "Tampilkan detail zat gizi",
     "hideDetails": "Sembunyikan detail zat gizi"
   },
@@ -690,7 +689,45 @@
     "followUps": {
       "logBreakfast": "Aku sarapan semangkuk bubur ayam",
       "suggestDinner": "Saran makan malam tinggi protein di bawah 700 kcal"
-    }
+    },
+    "loggedPortion": {
+      "twoThirds": "Ditambahkan ⅔ porsi",
+      "half": "Ditambahkan ½ porsi"
+    },
+    "editFood": "Ubah {{name}}",
+    "removeFood": "Hapus makanan ini"
+  },
+  "mealImpact": {
+    "title": "Setelah makanan ini",
+    "lines": {
+      "over": "Melebihi target hari ini {{calories}} kcal",
+      "nextMeal": {
+        "breakfast": "Sisa {{remaining}} kcal · sarapan sekitar {{calories}} kcal",
+        "lunch": "Sisa {{remaining}} kcal · makan siang sekitar {{calories}} kcal",
+        "dinner": "Sisa {{remaining}} kcal · makan malam sekitar {{calories}} kcal"
+      },
+      "lastMeal": {
+        "breakfast": "Sisa {{calories}} kcal untuk sarapan",
+        "lunch": "Sisa {{calories}} kcal untuk makan siang",
+        "dinner": "Sisa {{calories}} kcal untuk makan malam"
+      },
+      "remaining": "Sisa {{calories}} kcal untuk hari ini",
+      "full": "Target kalori hari ini sudah tercapai",
+      "short": "Masih kurang {{calories}} kcal dari target naik berat badan",
+      "heavy": "Makanan ini {{percent}}% dari target harian",
+      "proteinLow": "Masih kurang {{grams}} g protein — utamakan protein di makan berikutnya",
+      "nutrientHigh": "{{nutrient}} mencapai {{percent}}% dari batas harian"
+    },
+    "portions": {
+      "twoThirds": "⅔ porsi",
+      "half": "½ porsi"
+    },
+    "actions": {
+      "portion": "Tambah {{portion}} · {{calories}} kcal",
+      "alternative": "Tambah {{name}} sebagai gantinya · {{calories}} kcal",
+      "askAi": "Tanya Check AI pilihan yang lebih ringan"
+    },
+    "askPrompt": "Sarankan pilihan yang lebih ringan di bawah {{calories}} kcal sebagai pengganti {{name}}"
   },
   "voice": {
     "listening": "Mendengarkan…",

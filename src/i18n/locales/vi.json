@@ -647,7 +647,6 @@
     "potassiumMg": "Kali",
     "unknown": "—",
     "emptyHint": "Món này chưa có dữ liệu chi tiết. Bấm sửa để nhập theo nhãn dinh dưỡng.",
-    "dailyValueHint": "% so với mức tham khảo mỗi ngày cho chế độ ăn 2.000 kcal. Chất xơ và kali nên ăn đủ; các chất còn lại nên giữ dưới mức này.",
     "showDetails": "Xem chi tiết dinh dưỡng",
     "hideDetails": "Ẩn chi tiết dinh dưỡng"
   },
@@ -691,7 +690,45 @@
     "followUps": {
       "logBreakfast": "Sáng nay mình ăn 1 tô phở bò",
       "suggestDinner": "Gợi ý bữa tối giàu đạm dưới 700 calo"
-    }
+    },
+    "loggedPortion": {
+      "twoThirds": "Đã thêm ⅔ phần",
+      "half": "Đã thêm ½ phần"
+    },
+    "editFood": "Sửa {{name}}",
+    "removeFood": "Xoá món này"
+  },
+  "mealImpact": {
+    "title": "Sau món này",
+    "lines": {
+      "over": "Vượt mục tiêu hôm nay {{calories}} kcal",
+      "nextMeal": {
+        "breakfast": "Còn {{remaining}} kcal · bữa sáng nên khoảng {{calories}} kcal",
+        "lunch": "Còn {{remaining}} kcal · bữa trưa nên khoảng {{calories}} kcal",
+        "dinner": "Còn {{remaining}} kcal · bữa tối nên khoảng {{calories}} kcal"
+      },
+      "lastMeal": {
+        "breakfast": "Còn {{calories}} kcal cho bữa sáng",
+        "lunch": "Còn {{calories}} kcal cho bữa trưa",
+        "dinner": "Còn {{calories}} kcal cho bữa tối"
+      },
+      "remaining": "Còn {{calories}} kcal cho hôm nay",
+      "full": "Đã đủ kcal mục tiêu hôm nay",
+      "short": "Còn thiếu {{calories}} kcal so với mục tiêu tăng cân",
+      "heavy": "Món này chiếm {{percent}}% mục tiêu cả ngày",
+      "proteinLow": "Còn thiếu {{grams}} g đạm — bữa sau nên ưu tiên đạm",
+      "nutrientHigh": "{{nutrient}} đã tới {{percent}}% giới hạn của ngày"
+    },
+    "portions": {
+      "twoThirds": "⅔ phần",
+      "half": "½ phần"
+    },
+    "actions": {
+      "portion": "Thêm {{portion}} · {{calories}} kcal",
+      "alternative": "Thêm {{name}} thay thế · {{calories}} kcal",
+      "askAi": "Hỏi Check AI món nhẹ hơn"
+    },
+    "askPrompt": "Gợi ý món nhẹ hơn, dưới {{calories}} kcal, thay cho {{name}}"
   },
   "voice": {
     "listening": "Đang nghe…",

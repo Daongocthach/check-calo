@@ -647,7 +647,6 @@
     "potassiumMg": "โพแทสเซียม",
     "unknown": "—",
     "emptyHint": "อาหารนี้ยังไม่มีข้อมูลละเอียด แตะแก้ไขเพื่อกรอกค่าจากฉลากโภชนาการ",
-    "dailyValueHint": "% เทียบกับค่าอ้างอิงต่อวันสำหรับอาหาร 2,000 kcal ใยอาหารและโพแทสเซียมควรได้ให้ถึง ส่วนตัวอื่นๆ ควรต่ำกว่านี้",
     "showDetails": "แสดงรายละเอียดสารอาหาร",
     "hideDetails": "ซ่อนรายละเอียดสารอาหาร"
   },
@@ -690,7 +689,45 @@
     "followUps": {
       "logBreakfast": "มื้อเช้ากินข้าวมันไก่ไป 1 จาน",
       "suggestDinner": "แนะนำมื้อเย็นโปรตีนสูง ไม่เกิน 700 kcal"
-    }
+    },
+    "loggedPortion": {
+      "twoThirds": "เพิ่ม ⅔ ส่วนแล้ว",
+      "half": "เพิ่ม ½ ส่วนแล้ว"
+    },
+    "editFood": "แก้ไข {{name}}",
+    "removeFood": "ลบอาหารนี้"
+  },
+  "mealImpact": {
+    "title": "หลังมื้อนี้",
+    "lines": {
+      "over": "เกินเป้าหมายวันนี้ {{calories}} kcal",
+      "nextMeal": {
+        "breakfast": "เหลือ {{remaining}} kcal · มื้อเช้าประมาณ {{calories}} kcal",
+        "lunch": "เหลือ {{remaining}} kcal · มื้อกลางวันประมาณ {{calories}} kcal",
+        "dinner": "เหลือ {{remaining}} kcal · มื้อเย็นประมาณ {{calories}} kcal"
+      },
+      "lastMeal": {
+        "breakfast": "เหลือ {{calories}} kcal สำหรับมื้อเช้า",
+        "lunch": "เหลือ {{calories}} kcal สำหรับมื้อกลางวัน",
+        "dinner": "เหลือ {{calories}} kcal สำหรับมื้อเย็น"
+      },
+      "remaining": "วันนี้เหลือ {{calories}} kcal",
+      "full": "ถึงเป้าหมายแคลอรี่วันนี้แล้ว",
+      "short": "ยังขาดอีก {{calories}} kcal จากเป้าหมายเพิ่มน้ำหนัก",
+      "heavy": "มื้อนี้คิดเป็น {{percent}}% ของเป้าหมายทั้งวัน",
+      "proteinLow": "ยังขาดโปรตีนอีก {{grams}} g — มื้อถัดไปเน้นโปรตีน",
+      "nutrientHigh": "{{nutrient}} ถึง {{percent}}% ของขีดจำกัดต่อวัน"
+    },
+    "portions": {
+      "twoThirds": "⅔ ส่วน",
+      "half": "½ ส่วน"
+    },
+    "actions": {
+      "portion": "เพิ่ม {{portion}} · {{calories}} kcal",
+      "alternative": "เพิ่ม {{name}} แทน · {{calories}} kcal",
+      "askAi": "ถาม Check AI หาเมนูที่เบากว่า"
+    },
+    "askPrompt": "แนะนำเมนูที่เบากว่า ไม่เกิน {{calories}} kcal แทน {{name}}"
   },
   "voice": {
     "listening": "กำลังฟัง…",

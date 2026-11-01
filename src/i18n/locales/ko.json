@@ -647,7 +647,6 @@
     "potassiumMg": "칼륨",
     "unknown": "—",
     "emptyHint": "이 음식은 아직 상세 정보가 없어요. 수정을 눌러 영양성분표의 값을 입력하세요.",
-    "dailyValueHint": "2,000 kcal 식단 기준 일일 기준량 대비 %예요. 식이섬유와 칼륨은 기준량을 채우고, 나머지는 기준량 아래로 유지하세요.",
     "showDetails": "영양 성분 상세 보기",
     "hideDetails": "영양 성분 상세 숨기기"
   },
@@ -690,7 +689,45 @@
     "followUps": {
       "logBreakfast": "아침으로 김치찌개에 밥 한 공기 먹었어요",
       "suggestDinner": "700 kcal 이하 고단백 저녁 메뉴 추천해 주세요"
-    }
+    },
+    "loggedPortion": {
+      "twoThirds": "⅔인분 추가됨",
+      "half": "½인분 추가됨"
+    },
+    "editFood": "{{name}} 수정",
+    "removeFood": "이 음식 삭제"
+  },
+  "mealImpact": {
+    "title": "이 식사 후",
+    "lines": {
+      "over": "오늘 목표를 {{calories}} kcal 초과해요",
+      "nextMeal": {
+        "breakfast": "{{remaining}} kcal 남음 · 아침은 약 {{calories}} kcal",
+        "lunch": "{{remaining}} kcal 남음 · 점심은 약 {{calories}} kcal",
+        "dinner": "{{remaining}} kcal 남음 · 저녁은 약 {{calories}} kcal"
+      },
+      "lastMeal": {
+        "breakfast": "아침에 {{calories}} kcal 남았어요",
+        "lunch": "점심에 {{calories}} kcal 남았어요",
+        "dinner": "저녁에 {{calories}} kcal 남았어요"
+      },
+      "remaining": "오늘 {{calories}} kcal 남았어요",
+      "full": "오늘 칼로리 목표를 채웠어요",
+      "short": "증량 목표까지 {{calories}} kcal 부족해요",
+      "heavy": "이 식사는 하루 목표의 {{percent}}%예요",
+      "proteinLow": "단백질이 {{grams}} g 부족해요 — 다음 식사는 단백질 위주로",
+      "nutrientHigh": "{{nutrient}}: 하루 한도의 {{percent}}%"
+    },
+    "portions": {
+      "twoThirds": "⅔인분",
+      "half": "½인분"
+    },
+    "actions": {
+      "portion": "{{portion}} 추가 · {{calories}} kcal",
+      "alternative": "대신 {{name}} 추가 · {{calories}} kcal",
+      "askAi": "Check AI에게 더 가벼운 메뉴 묻기"
+    },
+    "askPrompt": "{{name}} 대신 {{calories}} kcal 이하의 가벼운 메뉴를 추천해 줘"
   },
   "voice": {
     "listening": "듣고 있어요…",

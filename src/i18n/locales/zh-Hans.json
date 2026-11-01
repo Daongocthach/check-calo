@@ -647,7 +647,6 @@
     "potassiumMg": "钾",
     "unknown": "—",
     "emptyHint": "这种食物暂无详细数据。点击编辑，按营养成分表填写。",
-    "dailyValueHint": "占 2,000 kcal 饮食每日参考量的百分比。膳食纤维和钾尽量吃够，其他营养素应控制在参考量以下。",
     "showDetails": "显示营养详情",
     "hideDetails": "隐藏营养详情"
   },
@@ -690,7 +689,45 @@
     "followUps": {
       "logBreakfast": "早餐吃了一碗牛肉面",
       "suggestDinner": "推荐一份 700 kcal 以内的高蛋白晚餐"
-    }
+    },
+    "loggedPortion": {
+      "twoThirds": "已添加 ⅔ 份",
+      "half": "已添加 ½ 份"
+    },
+    "editFood": "编辑{{name}}",
+    "removeFood": "移除这道菜"
+  },
+  "mealImpact": {
+    "title": "吃完这餐后",
+    "lines": {
+      "over": "超出今日目标 {{calories}} kcal",
+      "nextMeal": {
+        "breakfast": "还剩 {{remaining}} kcal · 早餐约 {{calories}} kcal",
+        "lunch": "还剩 {{remaining}} kcal · 午餐约 {{calories}} kcal",
+        "dinner": "还剩 {{remaining}} kcal · 晚餐约 {{calories}} kcal"
+      },
+      "lastMeal": {
+        "breakfast": "早餐还剩 {{calories}} kcal",
+        "lunch": "午餐还剩 {{calories}} kcal",
+        "dinner": "晚餐还剩 {{calories}} kcal"
+      },
+      "remaining": "今天还剩 {{calories}} kcal",
+      "full": "已达到今日热量目标",
+      "short": "距离增重目标还差 {{calories}} kcal",
+      "heavy": "这餐占全天目标的 {{percent}}%",
+      "proteinLow": "蛋白质还差 {{grams}} g — 下一餐多吃蛋白质",
+      "nutrientHigh": "{{nutrient}}达到每日上限的 {{percent}}%"
+    },
+    "portions": {
+      "twoThirds": "⅔ 份",
+      "half": "½ 份"
+    },
+    "actions": {
+      "portion": "添加 {{portion}} · {{calories}} kcal",
+      "alternative": "改为添加{{name}} · {{calories}} kcal",
+      "askAi": "问 Check AI 更清淡的选择"
+    },
+    "askPrompt": "推荐一个低于 {{calories}} kcal 的更清淡选择来替代{{name}}"
   },
   "voice": {
     "listening": "正在聆听…",

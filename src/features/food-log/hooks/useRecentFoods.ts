@@ -12,12 +12,17 @@ async function loadRecentFoods() {
   return page.items;
 }
 
+/** Every recently logged food the chat searches, newest first; `null` until loaded. */
+export function useRecentFoodPool() {
+  return useFoodLogQuery('recent-foods', loadRecentFoods).data;
+}
+
 /**
  * Logged foods for one-tap re-logging from the chat, which skips the AI. With `search`, only the
  * foods that match what is being typed; otherwise the latest ones.
  */
 export function useRecentFoods(search = '') {
-  const { data } = useFoodLogQuery('recent-foods', loadRecentFoods);
+  const data = useRecentFoodPool();
 
   return useMemo(() => {
     const foods = data ?? [];

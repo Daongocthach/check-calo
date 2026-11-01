@@ -4,9 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Icon, Text } from '@/common/components';
-import { getSavingKey, type ChatMessage } from '../../hooks/useFoodChat';
+import { getSavingKey, resolveConsumedAt, type ChatMessage } from '../../hooks/useFoodChat';
+import type { ChatFoodItem } from '../../services/foodAnalyzer';
+import type { RecentFood } from '../../types';
 import { formatTime } from '../../utils/format';
+import type { MealPortion } from '../../utils/mealImpact';
 import { FoodResultCard } from './FoodResultCard';
+import { MealImpactCard } from './MealImpactCard';
 
 export interface ChatMessageItemProps {
   message: ChatMessage;
@@ -14,13 +18,31 @@ export interface ChatMessageItemProps {
   savingKey: string | null;
   showFollowUps: boolean;
   onLog: (messageId: string, itemIndex?: number) => void;
+  onLogPortion: (messageId: string, portion: MealPortion) => void;
+  /** Saves a recent food in place of the card's meal. */
+  onLogRecent: (food: RecentFood) => void;
   onUndo: (messageId: string, itemIndex?: number) => void;
+  onEditItem: (messageId: string, itemIndex: number, item: ChatFoodItem) => void;
+  onRemoveItem: (messageId: string, itemIndex: number) => void;
+  onScaleItem: (messageId: string, itemIndex: number, factor: number) => void;
   onFollowUp: (text: string) => void;
 }
 
 /** Memoized: the chat re-renders while typing, but a message only changes when it is saved. */
 export const ChatMessageItem = memo(
-  ({ message, savingKey, showFollowUps, onLog, onUndo, onFollowUp }: ChatMessageItemProps) => {
+  ({
+    message,
+    savingKey,
+    showFollowUps,
+    onLog,
+    onLogPortion,
+    onLogRecent,
+    onUndo,
+    onEditItem,
+    onRemoveItem,
+    onScaleItem,
+    onFollowUp,
+  }: ChatMessageItemProps) => {
     const { i18n } = useTranslation();
     const time = formatTime(message.createdAt, i18n.language);
 
@@ -44,6 +66,23 @@ export const ChatMessageItem = memo(
       );
     }
 
+    const isLogged =
+      message.items.length > 0 &&
+      message.items.every((_, index) => message.loggedEntryIds[index] !== undefined);
+    const isSaving = savingKey === getSavingKey(message.id);
+    // Removing or editing shifts item indexes, so foods stay editable only until one is saved.
+    const canEdit = Object.keys(message.loggedEntryIds).length === 0;
+    const editProps = (toMessageIndex: (index: number) => number) =>
+      canEdit
+        ? {
+            onEditItem: (index: number, item: ChatFoodItem) =>
+              onEditItem(message.id, toMessageIndex(index), item),
+            onRemoveItem: (index: number) => onRemoveItem(message.id, toMessageIndex(index)),
+            onScaleItem: (index: number, factor: number) =>
+              onScaleItem(message.id, toMessageIndex(index), factor),
+          }
+        : {};
+
     return (
       <View style={styles.assistantRow}>
         <View style={styles.avatar}>
@@ -59,14 +98,17 @@ export const ChatMessageItem = memo(
           {message.intent === 'suggest'
             ? message.items.map((item, index) => (
                 <FoodResultCard
-                  key={`${item.name}-${item.calories}`}
+                  // Index keys: editing or scaling a suggestion changes its name and calories.
+                  key={index}
                   items={[item]}
                   imageUri={null}
                   isSuggestion
                   isLogged={message.loggedEntryIds[index] !== undefined}
+                  scales={[message.itemScales?.[index] ?? 1]}
                   isSaving={savingKey === getSavingKey(message.id, index)}
                   onLog={() => onLog(message.id, index)}
                   onUndo={() => onUndo(message.id, index)}
+                  {...editProps(() => index)}
                 />
               ))
             : null}
@@ -75,12 +117,25 @@ export const ChatMessageItem = memo(
               items={message.items}
               imageUri={message.imageUri}
               isSuggestion={false}
-              isLogged={message.items.every(
-                (_, index) => message.loggedEntryIds[index] !== undefined
-              )}
-              isSaving={savingKey === getSavingKey(message.id)}
+              isLogged={isLogged}
+              loggedPortion={message.loggedPortion}
+              impact={
+                isLogged ? null : (
+                  <MealImpactCard
+                    items={message.items}
+                    consumedAt={resolveConsumedAt(message.mealTime)}
+                    disabled={isSaving}
+                    onLogPortion={(portion) => onLogPortion(message.id, portion)}
+                    onLogFood={onLogRecent}
+                    onAsk={onFollowUp}
+                  />
+                )
+              }
+              scales={message.itemScales}
+              isSaving={isSaving}
               onLog={() => onLog(message.id)}
               onUndo={() => onUndo(message.id)}
+              {...editProps((index) => index)}
             />
           ) : null}
           {showFollowUps && message.followUps.length > 0 ? (

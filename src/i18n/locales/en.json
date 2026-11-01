@@ -647,7 +647,6 @@
     "potassiumMg": "Potassium",
     "unknown": "—",
     "emptyHint": "No detailed data for this food yet. Tap edit to enter values from the nutrition label.",
-    "dailyValueHint": "% of the daily reference for a 2,000 kcal diet. Aim to reach it for fiber and potassium; keep the others below it.",
     "showDetails": "Show nutrient details",
     "hideDetails": "Hide nutrient details"
   },
@@ -691,7 +690,45 @@
     "followUps": {
       "logBreakfast": "I had a bowl of beef pho for breakfast",
       "suggestDinner": "Suggest a high-protein dinner under 700 kcal"
-    }
+    },
+    "loggedPortion": {
+      "twoThirds": "Added ⅔ portion",
+      "half": "Added ½ portion"
+    },
+    "editFood": "Edit {{name}}",
+    "removeFood": "Remove this food"
+  },
+  "mealImpact": {
+    "title": "After this meal",
+    "lines": {
+      "over": "Puts you {{calories}} kcal over today's target",
+      "nextMeal": {
+        "breakfast": "{{remaining}} kcal left today · breakfast about {{calories}} kcal",
+        "lunch": "{{remaining}} kcal left today · lunch about {{calories}} kcal",
+        "dinner": "{{remaining}} kcal left today · dinner about {{calories}} kcal"
+      },
+      "lastMeal": {
+        "breakfast": "{{calories}} kcal left for breakfast",
+        "lunch": "{{calories}} kcal left for lunch",
+        "dinner": "{{calories}} kcal left for dinner"
+      },
+      "remaining": "{{calories}} kcal left for today",
+      "full": "Today's calorie target is reached",
+      "short": "Still {{calories}} kcal short of your gain target",
+      "heavy": "This meal is {{percent}}% of your daily target",
+      "proteinLow": "{{grams}} g protein still to go — make the next meal protein-rich",
+      "nutrientHigh": "{{nutrient}} reaches {{percent}}% of the daily limit"
+    },
+    "portions": {
+      "twoThirds": "⅔ portion",
+      "half": "½ portion"
+    },
+    "actions": {
+      "portion": "Add {{portion}} · {{calories}} kcal",
+      "alternative": "Add {{name}} instead · {{calories}} kcal",
+      "askAi": "Ask Check AI for a lighter option"
+    },
+    "askPrompt": "Suggest a lighter option under {{calories}} kcal instead of {{name}}"
   },
   "voice": {
     "listening": "Listening…",

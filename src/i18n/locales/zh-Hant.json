@@ -647,7 +647,6 @@
     "potassiumMg": "鉀",
     "unknown": "—",
     "emptyHint": "這項食物還沒有詳細資料。點選編輯，依營養標示輸入數值。",
-    "dailyValueHint": "以每日 2,000 kcal 飲食為基準的每日參考值百分比。膳食纖維和鉀應盡量吃到；其他則應低於此值。",
     "showDetails": "顯示營養素詳情",
     "hideDetails": "隱藏營養素詳情"
   },
@@ -690,7 +689,45 @@
     "followUps": {
       "logBreakfast": "我早餐吃了一份火腿蛋餅和一杯無糖豆漿",
       "suggestDinner": "推薦一份 700 大卡以內的高蛋白晚餐"
-    }
+    },
+    "loggedPortion": {
+      "twoThirds": "已加入 ⅔ 份",
+      "half": "已加入 ½ 份"
+    },
+    "editFood": "編輯{{name}}",
+    "removeFood": "移除這道菜"
+  },
+  "mealImpact": {
+    "title": "吃完這餐後",
+    "lines": {
+      "over": "超出今日目標 {{calories}} kcal",
+      "nextMeal": {
+        "breakfast": "還剩 {{remaining}} kcal · 早餐約 {{calories}} kcal",
+        "lunch": "還剩 {{remaining}} kcal · 午餐約 {{calories}} kcal",
+        "dinner": "還剩 {{remaining}} kcal · 晚餐約 {{calories}} kcal"
+      },
+      "lastMeal": {
+        "breakfast": "早餐還剩 {{calories}} kcal",
+        "lunch": "午餐還剩 {{calories}} kcal",
+        "dinner": "晚餐還剩 {{calories}} kcal"
+      },
+      "remaining": "今天還剩 {{calories}} kcal",
+      "full": "已達到今日熱量目標",
+      "short": "距離增重目標還差 {{calories}} kcal",
+      "heavy": "這餐佔全天目標的 {{percent}}%",
+      "proteinLow": "蛋白質還差 {{grams}} g — 下一餐多吃蛋白質",
+      "nutrientHigh": "{{nutrient}}達到每日上限的 {{percent}}%"
+    },
+    "portions": {
+      "twoThirds": "⅔ 份",
+      "half": "½ 份"
+    },
+    "actions": {
+      "portion": "加入 {{portion}} · {{calories}} kcal",
+      "alternative": "改為加入{{name}} · {{calories}} kcal",
+      "askAi": "問 Check AI 更清淡的選擇"
+    },
+    "askPrompt": "推薦一個低於 {{calories}} kcal 的更清淡選擇來取代{{name}}"
   },
   "voice": {
     "listening": "聆聽中…",

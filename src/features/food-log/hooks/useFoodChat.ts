@@ -16,7 +16,10 @@ import {
 import { logFoodItems, logRecentFood, removeLoggedFoods } from '../services/foodLogService';
 import { useFoodEntryRefreshStore } from '../stores/useFoodEntryRefreshStore';
 import type { RecentFood } from '../types';
+import { toPortion } from '../utils/chatItems';
+import type { MealPortion } from '../utils/mealImpact';
 import { pickNutrients } from '../utils/nutrients';
+import { useChatItemEdits } from './useChatItemEdits';
 
 export type ChatMessage =
   | {
@@ -32,11 +35,17 @@ export type ChatMessage =
       text: string;
       intent: ChatIntent | 'welcome' | 'error';
       items: ChatFoodItem[];
+      /** The items before a quantity scale was picked; unset until one is. */
+      baseItems?: ChatFoodItem[];
+      /** Quantity scale picked for each item; 1 when unset. */
+      itemScales?: number[];
       mealTime: ChatMealTime | null;
       imageUri: string | null;
       followUps: string[];
       /** Diary entry id for each item index already saved, so the save can be undone. */
       loggedEntryIds: Partial<Record<number, string>>;
+      /** Set when the card was saved as a smaller portion than detected. */
+      loggedPortion: MealPortion | null;
       createdAt: string;
     };
 
@@ -65,7 +74,8 @@ const MEAL_TIME_HOURS: Record<Exclude<ChatMealTime, 'snack'>, [number, number]> 
   dinner: [19, 0],
 };
 
-function resolveConsumedAt(mealTime: ChatMealTime | null) {
+/** When a chat meal is saved: the meal the user mentioned, or now. */
+export function resolveConsumedAt(mealTime: ChatMealTime | null) {
   const now = new Date();
 
   if (!mealTime || mealTime === 'snack') {
@@ -125,6 +135,7 @@ function createAssistantMessage(
     imageUri: null,
     followUps: [],
     loggedEntryIds: {},
+    loggedPortion: null,
     createdAt: new Date().toISOString(),
     ...fields,
   };
@@ -170,6 +181,7 @@ export function useFoodChat() {
       imageUri: null,
       followUps: [t('chat.followUps.logBreakfast'), t('chat.followUps.suggestDinner')],
       loggedEntryIds: {},
+      loggedPortion: null,
       createdAt: new Date().toISOString(),
     },
   ]);
@@ -222,6 +234,7 @@ export function useFoodChat() {
             imageUri: result.intent === 'log' ? imageUri : null,
             followUps: result.followUps,
             loggedEntryIds: {},
+            loggedPortion: null,
             createdAt: new Date().toISOString(),
           },
         ]);
@@ -247,6 +260,7 @@ export function useFoodChat() {
             imageUri: null,
             followUps: [],
             loggedEntryIds: {},
+            loggedPortion: null,
             createdAt: new Date().toISOString(),
           },
         ]);
@@ -260,10 +274,10 @@ export function useFoodChat() {
 
   /**
    * Saves a message's foods. Logged meals save every item at once; for suggestions the user
-   * picks one dish, so `itemIndex` saves just that item.
+   * picks one dish, so `itemIndex` saves just that item. `portion` saves a smaller share of each.
    */
   const logMessageItems = useCallback(
-    async (messageId: string, itemIndex?: number) => {
+    async (messageId: string, itemIndex?: number, portion?: MealPortion) => {
       const message = messages.find((item) => item.id === messageId);
 
       if (!message || message.role !== 'assistant' || message.items.length === 0) {
@@ -283,7 +297,7 @@ export function useFoodChat() {
       try {
         const entries = await logFoodItems(
           pending.map((index) => {
-            const item = message.items[index];
+            const item = portion ? toPortion(message.items[index], portion) : message.items[index];
             return {
               name: item.name,
               quantityLabel: item.quantityLabel,
@@ -306,7 +320,11 @@ export function useFoodChat() {
         setMessages((previous) =>
           previous.map((item) =>
             item.id === messageId && item.role === 'assistant'
-              ? { ...item, loggedEntryIds: { ...item.loggedEntryIds, ...savedIds } }
+              ? {
+                  ...item,
+                  loggedEntryIds: { ...item.loggedEntryIds, ...savedIds },
+                  loggedPortion: portion ?? null,
+                }
               : item
           )
         );
@@ -349,7 +367,7 @@ export function useFoodChat() {
 
             const loggedEntryIds = { ...item.loggedEntryIds };
             logged.forEach(({ index }) => delete loggedEntryIds[index]);
-            return { ...item, loggedEntryIds };
+            return { ...item, loggedEntryIds, loggedPortion: null };
           })
         );
         return true;
@@ -359,6 +377,8 @@ export function useFoodChat() {
     },
     [markFoodEntriesChanged, messages]
   );
+
+  const { editMessageItem, removeMessageItem, scaleMessageItem } = useChatItemEdits(setMessages);
 
   /** Looks up a scanned barcode and offers the product as a loggable card. */
   const addBarcodeProduct = useCallback(
@@ -432,6 +452,9 @@ export function useFoodChat() {
     sendMessage,
     logMessageItems,
     undoLog,
+    editMessageItem,
+    removeMessageItem,
+    scaleMessageItem,
     addBarcodeProduct,
     logRecent,
   };

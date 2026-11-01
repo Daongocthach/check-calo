@@ -13,6 +13,7 @@ import { useRecentFoods } from '../../hooks/useRecentFoods';
 import { useVoiceInput } from '../../hooks/useVoiceInput';
 import type { RecentFood } from '../../types';
 import { matchesFoodSearch } from '../../utils/foodSearch';
+import type { MealPortion } from '../../utils/mealImpact';
 import { ChatComposer } from '../ChatComposer';
 import { ChatMessageItem } from './ChatMessageItem';
 import { RecentFoodsBar } from './RecentFoodsBar';
@@ -41,7 +42,15 @@ export function FoodChatScreen() {
   );
   const startVoice = voice.start;
   const cancelVoice = voice.cancel;
-  const { sendMessage, logMessageItems, undoLog } = chat;
+  const {
+    sendMessage,
+    logMessageItems,
+    undoLog,
+    logRecent,
+    editMessageItem,
+    removeMessageItem,
+    scaleMessageItem,
+  } = chat;
   const voiceRequestedRef = useRef(params.voice === '1');
 
   useEffect(() => {
@@ -131,6 +140,23 @@ export function FoodChatScreen() {
     [logMessageItems, withToast]
   );
 
+  const handleLogPortion = useCallback(
+    (messageId: string, portion: MealPortion) => {
+      void withToast(() => logMessageItems(messageId, undefined, portion), 'chat.loggedToast');
+    },
+    [logMessageItems, withToast]
+  );
+
+  const handleLogInstead = useCallback(
+    (food: RecentFood) => {
+      void withToast(async () => {
+        await logRecent(food);
+        return true;
+      }, 'chat.loggedToast');
+    },
+    [logRecent, withToast]
+  );
+
   const handleUndo = useCallback(
     (messageId: string, itemIndex?: number) => {
       void withToast(() => undoLog(messageId, itemIndex), 'chat.undoToast');
@@ -146,11 +172,28 @@ export function FoodChatScreen() {
         savingKey={chat.savingKey}
         showFollowUps={item.id === lastMessageId && !chat.isSending}
         onLog={handleLog}
+        onLogPortion={handleLogPortion}
+        onLogRecent={handleLogInstead}
         onUndo={handleUndo}
+        onEditItem={editMessageItem}
+        onRemoveItem={removeMessageItem}
+        onScaleItem={scaleMessageItem}
         onFollowUp={sendText}
       />
     ),
-    [chat.isSending, chat.savingKey, handleLog, handleUndo, lastMessageId, sendText]
+    [
+      chat.isSending,
+      chat.savingKey,
+      editMessageItem,
+      handleLog,
+      handleLogInstead,
+      handleLogPortion,
+      handleUndo,
+      lastMessageId,
+      removeMessageItem,
+      scaleMessageItem,
+      sendText,
+    ]
   );
 
   return (
