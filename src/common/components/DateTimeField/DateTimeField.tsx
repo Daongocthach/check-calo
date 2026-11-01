@@ -9,18 +9,18 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
-import DatePicker from 'react-native-date-picker';
-import { useUnistyles } from 'react-native-unistyles';
 import { Button } from '@/common/components/Button';
 import { Icon } from '@/common/components/Icon';
 import { Text } from '@/common/components/Text';
 import { useAppBottomSheet } from '@/providers/bottom-sheet';
+import { CalendarPicker } from './CalendarPicker';
 import { styles } from './DateTimeField.styles';
 import type {
   DateTimeFieldHandle,
   DateTimeFieldMode,
   DateTimeFieldProps,
 } from './DateTimeField.types';
+import { TimePicker } from './TimePicker';
 
 interface DateTimeSheetProps {
   initialValue: Date;
@@ -134,8 +134,11 @@ function DateTimeSheet({
   onConfirm,
 }: DateTimeSheetProps) {
   const { t } = useTranslation();
-  const { theme } = useUnistyles();
-  const [draftValue, setDraftValue] = useState(initialValue);
+  const [draftValue, setDraftValue] = useState(() => {
+    if (minimumDate && initialValue < minimumDate) return new Date(minimumDate);
+    if (maximumDate && initialValue > maximumDate) return new Date(maximumDate);
+    return initialValue;
+  });
 
   return (
     <View style={styles.sheetContent}>
@@ -146,23 +149,43 @@ function DateTimeSheet({
       </View>
 
       <View style={styles.pickerSurface}>
-        <DatePicker
-          style={styles.picker}
-          date={draftValue}
-          locale={locale}
-          mode={mode}
-          minimumDate={minimumDate}
-          maximumDate={maximumDate}
-          onDateChange={setDraftValue}
-          theme={theme.colors.mode === 'dark' ? 'dark' : 'light'}
-          dividerColor={theme.colors.border.default}
-          buttonColor={theme.colors.brand.primary}
-        />
+        {mode !== 'time' && (
+          <CalendarPicker
+            selectedDate={draftValue}
+            locale={locale}
+            minimumDate={minimumDate}
+            maximumDate={maximumDate}
+            onDateSelect={(date) => setDraftValue(mergeTime(date, draftValue))}
+          />
+        )}
+        {mode !== 'date' && (
+          <TimePicker
+            value={{
+              hour: draftValue.getHours(),
+              minute: draftValue.getMinutes(),
+              second: 0,
+            }}
+            onChange={({ hour, minute }) => {
+              const next = new Date(draftValue);
+              next.setHours(hour, minute, 0, 0);
+              setDraftValue(next);
+            }}
+          />
+        )}
       </View>
 
       <View style={styles.actions}>
         <Button title={t('common.cancel')} variant="outline" size="sm" onPress={onCancel} />
-        <Button title={t('common.confirm')} size="sm" onPress={() => onConfirm(draftValue)} />
+        <Button
+          title={t('common.confirm')}
+          size="sm"
+          onPress={() => {
+            let next = draftValue;
+            if (minimumDate && next < minimumDate) next = minimumDate;
+            if (maximumDate && next > maximumDate) next = maximumDate;
+            onConfirm(next);
+          }}
+        />
       </View>
     </View>
   );
@@ -244,7 +267,7 @@ export const DateTimeField = forwardRef<DateTimeFieldHandle, DateTimeFieldProps>
           }}
         />,
         {
-          containerVariant: 'view',
+          containerVariant: 'scroll',
           enablePanDownToClose: true,
           onDismiss: () => {
             isSheetOpenRef.current = false;
@@ -281,7 +304,7 @@ export const DateTimeField = forwardRef<DateTimeFieldHandle, DateTimeFieldProps>
             onPress={openPicker}
             disabled={isInteractionDisabled}
             accessibilityRole="button"
-            accessibilityLabel={label ?? title}
+            accessibilityLabel={modalTitle}
             accessibilityValue={{ text: displayText }}
             accessibilityState={{ disabled: isInteractionDisabled }}
             style={({ pressed }) => [

@@ -1158,5 +1158,41 @@
     "transition_one": "Eat at maintenance for {{count}} week first ({{kcal}} kcal/day)",
     "transition_other": "Eat at maintenance for {{count}} weeks first ({{kcal}} kcal/day)",
     "transitionHint": "Lets your body adjust before changing direction; the scale may rise a little from water. Then calories move to {{kcal}} kcal/day."
+  },
+  "dateTimePicker": {
+    "monthNames": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ],
+    "monthNamesShort": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
+    "dayNames": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "dayNamesShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "today": "Today",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds"
   }
 }

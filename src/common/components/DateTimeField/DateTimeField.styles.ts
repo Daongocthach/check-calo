@@ -62,10 +62,6 @@ export const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.xl,
     backgroundColor: theme.colors.background.surface,
     overflow: 'hidden',
-    alignItems: 'center' as const,
-  },
-  picker: {
-    alignSelf: 'center',
   },
   actions: {
     flexDirection: 'row' as const,

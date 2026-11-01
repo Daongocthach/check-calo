@@ -4,3 +4,4 @@ export type {
   DateTimeFieldMode,
   DateTimeFieldProps,
 } from './DateTimeField.types';
+export { TimePicker } from './TimePicker';

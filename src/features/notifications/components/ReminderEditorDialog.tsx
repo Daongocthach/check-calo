@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
-import DatePicker from 'react-native-date-picker';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 import { Dialog, Input, Text } from '@/common/components';
 import type { DialogAction } from '@/common/components';
+import { TimePicker } from '@/common/components/DateTimeField';
 import type { CalorieReminder } from '@/features/notifications/types';
 import {
   CUSTOM_REMINDER_LABEL_MAX_LENGTH,
@@ -37,8 +37,7 @@ export function ReminderEditorDialog({
   onSave,
   onDelete,
 }: ReminderEditorDialogProps) {
-  const { t, i18n } = useTranslation();
-  const { theme } = useUnistyles();
+  const { t } = useTranslation();
   const [label, setLabel] = useState('');
   const [time, setTime] = useState(() => reminderTimeToDate(NEW_REMINDER_TIME));
 
@@ -90,15 +89,13 @@ export function ReminderEditorDialog({
           {t('profileScreen.reminders.editor.timeLabel')}
         </Text>
         <View style={styles.pickerSurface}>
-          <DatePicker
-            style={styles.picker}
-            date={time}
-            mode="time"
-            locale={i18n.language}
-            onDateChange={setTime}
-            theme={theme.colors.mode === 'dark' ? 'dark' : 'light'}
-            dividerColor={theme.colors.border.default}
-            buttonColor={theme.colors.brand.primary}
+          <TimePicker
+            value={{ hour: time.getHours(), minute: time.getMinutes(), second: 0 }}
+            onChange={({ hour, minute }) => {
+              const next = new Date(time);
+              next.setHours(hour, minute, 0, 0);
+              setTime(next);
+            }}
           />
         </View>
       </View>
@@ -114,9 +111,5 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.metrics.borderRadius.xl,
     backgroundColor: theme.colors.background.surface,
     overflow: 'hidden',
-    alignItems: 'center',
-  },
-  picker: {
-    alignSelf: 'center',
   },
 }));
