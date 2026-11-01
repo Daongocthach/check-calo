@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { Button, FormField, Input, Text, TextArea } from '@/common/components';
+import { Button, FormField, IconButton, Input, Text, TextArea } from '@/common/components';
 import { NUTRIENT_UNIT_KEYS, NUTRIENTS } from '../../constants';
 import {
   foodEntryFormSchema,
@@ -11,23 +11,38 @@ import {
   parseOptionalFormNumber,
   type FoodEntryFormValues,
 } from '../../schemas/foodEntrySchema';
-import type { FoodEntry, FoodEntryInput, NutrientKey } from '../../types';
+import type { NutrientKey, NutrientValues } from '../../types';
 import { formatNutrientAmount } from '../../utils/format';
 import { pickNutrients } from '../../utils/nutrients';
 
+/** What the form edits: a diary entry, or a food Check AI found before it is saved. */
+export interface MealEditValues extends NutrientValues {
+  name: string;
+  quantityLabel: string;
+  calories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+  notes: string | null;
+}
+
 export interface MealEditFormProps {
-  entry: FoodEntry;
+  values: MealEditValues;
+  /** Chat foods have no notes yet, so the field is hidden there. Defaults to `true`. */
+  showNotes?: boolean;
+  /** Renders a remove button next to cancel and save. */
+  onRemove?: () => void;
   onCancel: () => void;
-  onSubmit: (input: FoodEntryInput) => Promise<void>;
+  onSubmit: (values: MealEditValues) => Promise<void> | void;
 }
 
 type NutrientFormValues = Pick<FoodEntryFormValues, NutrientKey>;
 
-function toNutrientFormValues(entry: FoodEntry, language: string) {
+function toNutrientFormValues(source: NutrientValues, language: string) {
   const values: Partial<NutrientFormValues> = {};
 
   for (const nutrient of NUTRIENTS) {
-    const value = entry[nutrient.key];
+    const value = source[nutrient.key];
     values[nutrient.key] =
       value === null
         ? ''
@@ -47,7 +62,13 @@ function parseNutrientFormValues(values: NutrientFormValues) {
   return pickNutrients(parsed);
 }
 
-export function MealEditForm({ entry, onCancel, onSubmit }: MealEditFormProps) {
+export function MealEditForm({
+  values: initialValues,
+  showNotes = true,
+  onRemove,
+  onCancel,
+  onSubmit,
+}: MealEditFormProps) {
   const { t, i18n } = useTranslation();
   const {
     control,
@@ -56,33 +77,27 @@ export function MealEditForm({ entry, onCancel, onSubmit }: MealEditFormProps) {
   } = useForm<FoodEntryFormValues>({
     resolver: zodResolver(foodEntryFormSchema),
     defaultValues: {
-      name: entry.mealName,
-      quantityLabel: entry.quantityLabel,
-      calories: String(Math.round(entry.totalCalories)),
-      proteinGrams: String(Math.round(entry.proteinGrams)),
-      carbsGrams: String(Math.round(entry.carbsGrams)),
-      fatGrams: String(Math.round(entry.fatGrams)),
-      ...toNutrientFormValues(entry, i18n.language),
-      notes: entry.notes ?? '',
+      name: initialValues.name,
+      quantityLabel: initialValues.quantityLabel,
+      calories: String(Math.round(initialValues.calories)),
+      proteinGrams: String(Math.round(initialValues.proteinGrams)),
+      carbsGrams: String(Math.round(initialValues.carbsGrams)),
+      fatGrams: String(Math.round(initialValues.fatGrams)),
+      ...toNutrientFormValues(initialValues, i18n.language),
+      notes: initialValues.notes ?? '',
     },
   });
 
   const submit = handleSubmit(async (values) => {
     await onSubmit({
-      mealName: values.name.trim(),
+      name: values.name.trim(),
       quantityLabel: values.quantityLabel.trim(),
-      quantityGrams: entry.quantityGrams ?? null,
-      totalCalories: parseFormNumber(values.calories),
+      calories: parseFormNumber(values.calories),
       proteinGrams: parseFormNumber(values.proteinGrams),
       carbsGrams: parseFormNumber(values.carbsGrams),
       fatGrams: parseFormNumber(values.fatGrams),
       ...parseNutrientFormValues(values),
       notes: values.notes.trim() || null,
-      barcode: entry.barcode ?? null,
-      imageUri: entry.imageUri ?? null,
-      thumbnailUri: entry.thumbnailUri ?? null,
-      consumedAt: entry.consumedAt,
-      entryDate: entry.entryDate,
     });
   });
 
@@ -126,10 +141,20 @@ export function MealEditForm({ entry, onCancel, onSubmit }: MealEditFormProps) {
           </View>
         ))}
       </View>
-      <FormField control={control} name="notes" label={t('mealDetail.fields.notes')}>
-        <TextArea />
-      </FormField>
+      {showNotes ? (
+        <FormField control={control} name="notes" label={t('mealDetail.fields.notes')}>
+          <TextArea />
+        </FormField>
+      ) : null}
       <View style={styles.actions}>
+        {onRemove ? (
+          <IconButton
+            icon="trash-outline"
+            variant="outline"
+            onPress={onRemove}
+            accessibilityLabel={t('chat.removeFood')}
+          />
+        ) : null}
         <Button
           title={t('common.cancel')}
           variant="outline"

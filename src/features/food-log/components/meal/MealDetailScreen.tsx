@@ -78,10 +78,20 @@ export function MealDetailScreen({ entryId }: MealDetailScreenProps) {
   } else if (isEditing) {
     content = (
       <MealEditForm
-        entry={entry}
+        values={{ ...entry, name: entry.mealName, calories: entry.totalCalories }}
         onCancel={() => setIsEditing(false)}
-        onSubmit={async (input) => {
-          await update(input);
+        onSubmit={async ({ name, calories, ...values }) => {
+          await update({
+            ...values,
+            mealName: name,
+            totalCalories: calories,
+            quantityGrams: entry.quantityGrams ?? null,
+            barcode: entry.barcode ?? null,
+            imageUri: entry.imageUri ?? null,
+            thumbnailUri: entry.thumbnailUri ?? null,
+            consumedAt: entry.consumedAt,
+            entryDate: entry.entryDate,
+          });
           toast.success(t('mealDetail.saveSuccess'));
           setIsEditing(false);
         }}
