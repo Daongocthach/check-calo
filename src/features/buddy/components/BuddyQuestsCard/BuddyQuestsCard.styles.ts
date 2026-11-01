@@ -28,7 +28,7 @@ export const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background.section,
   },
   iconDone: {
-    backgroundColor: theme.colors.state.success,
+    backgroundColor: theme.colors.brand.primarySoft,
   },
   body: {
     flex: 1,

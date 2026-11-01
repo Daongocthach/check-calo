@@ -95,7 +95,7 @@ function QuestRow({
     <View style={styles.row}>
       <View style={[styles.icon, done && styles.iconDone]}>
         {done ? (
-          <Icon name="checkmark" variant="onBrand" size={18} />
+          <Icon name="checkmark" variant="brand" size={18} />
         ) : (
           <Text variant="body" color="secondary" accessible={false}>
             {'–'}

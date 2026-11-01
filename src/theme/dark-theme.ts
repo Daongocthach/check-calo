@@ -8,6 +8,7 @@ export const darkColors: ThemeColors = {
     secondary: '#F5F7FF',
     tertiary: '#FB923C',
     primaryVariant: '#A5B4FC',
+    primarySoft: 'rgba(129, 140, 248, 0.2)',
     secondaryVariant: '#DDE4FF',
     onBrand: '#FFFFFF',
   },

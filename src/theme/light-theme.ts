@@ -8,6 +8,7 @@ export const lightColors: ThemeColors = {
     secondary: '#1C1C1E', // text chính
     tertiary: '#F97316', // streak / CTA phụ
     primaryVariant: '#6366F1',
+    primarySoft: '#E0E7FF',
     secondaryVariant: '#6B7280',
     onBrand: '#FFFFFF',
   },

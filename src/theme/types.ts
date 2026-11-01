@@ -3,6 +3,8 @@ export interface BrandColors {
   secondary: string;
   tertiary: string;
   primaryVariant: string;
+  /** Light primary tint behind primary-coloured marks, e.g. a completed check. */
+  primarySoft: string;
   secondaryVariant: string;
   onBrand: string;
 }
