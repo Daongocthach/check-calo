@@ -1,10 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, View, type ListRenderItemInfo } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { IconButton, ScreenHeader, Text } from '@/common/components';
+import { IconButton, PaginatedList, ScreenHeader, Text } from '@/common/components';
+import type { PaginatedListRef } from '@/common/components';
 import { getDevFakeBarcode } from '@/features/dev-tools';
 import { useOpenCamera, useOpenImageLibrary, useOpenQrScanner } from '@/providers/camera';
 import { toast } from '@/utils/toast';
@@ -27,7 +28,7 @@ export function FoodChatScreen() {
   const openCamera = useOpenCamera();
   const openImageLibrary = useOpenImageLibrary();
   const openBarcodeScanner = useOpenQrScanner();
-  const listRef = useRef<FlatList<ChatMessage>>(null);
+  const listRef = useRef<PaginatedListRef<ChatMessage>>(null);
   const [draft, setDraft] = useState(params.message ?? '');
   const recentFoods = useRecentFoods(draft);
   const [imageUri, setImageUri] = useState<string | null>(params.imageUri ?? null);
@@ -166,8 +167,9 @@ export function FoodChatScreen() {
 
   const lastMessageId = lastMessage?.id;
   const renderMessage = useCallback(
-    ({ item }: ListRenderItemInfo<ChatMessage>) => (
+    ({ item }: { item: ChatMessage }) => (
       <ChatMessageItem
+        key={item.id}
         message={item}
         savingKey={chat.savingKey}
         showFollowUps={item.id === lastMessageId && !chat.isSending}
@@ -221,12 +223,15 @@ export function FoodChatScreen() {
         keyboardVerticalOffset={-rt.insets.bottom}
         style={styles.flex}
       >
-        <FlatList
+        <PaginatedList
           ref={listRef}
           data={chat.messages}
           keyExtractor={(message) => message.id}
           contentContainerStyle={styles.list}
-          keyboardShouldPersistTaps="handled"
+          automaticContentPadding={false}
+          keyboardDismissMode="none"
+          showScrollToTop={false}
+          ItemSeparatorComponent={MessageSeparator}
           renderItem={renderMessage}
           ListFooterComponent={
             chat.isSending ? (
@@ -273,6 +278,10 @@ export function FoodChatScreen() {
   );
 }
 
+function MessageSeparator() {
+  return <View style={styles.messageSeparator} />;
+}
+
 const styles = StyleSheet.create((theme, rt) => ({
   container: {
     flex: 1,
@@ -287,7 +296,9 @@ const styles = StyleSheet.create((theme, rt) => ({
   list: {
     paddingHorizontal: theme.metrics.spacing.p16,
     paddingVertical: theme.metrics.spacingV.p12,
-    gap: theme.metrics.spacingV.p16,
+  },
+  messageSeparator: {
+    height: theme.metrics.spacingV.p16,
   },
   typing: {
     flexDirection: 'row',
