@@ -77,6 +77,7 @@ const NUTRITION_TABLES = [
   'weight_goals',
   'weight_logs',
   'achievement_unlocks',
+  'buddy_quest_completions',
   'food_products',
   'app_device',
 ] as const;
@@ -142,6 +143,7 @@ export async function resetCloudNutritionData() {
     'weight_logs',
     'daily_targets',
     'weight_goals',
+    'buddy_quest_completions',
     'profiles',
   ] as const;
 

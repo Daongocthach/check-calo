@@ -7,3 +7,4 @@ export { BuddySticker } from './components/BuddySticker';
 export type { MascotPose } from './constants/mascot';
 export { useBuddyName } from './hooks/useBuddyName';
 export { useBuddyProgress } from './hooks/useBuddyProgress';
+export { useBuddyQuestTracker } from './hooks/useBuddyQuestTracker';

@@ -7,14 +7,15 @@ import { StreakCalendar } from '@/features/achievements';
 import { DrawerMenuButton } from '@/features/navigation';
 import { useBottomPadding } from '@/hooks';
 import { hs } from '@/theme/metrics';
-import { BUDDY_POINTS } from '../constants/levels';
 import { EMPTY_AXIS_SCORES } from '../constants/stats';
 import { BUDDY_NAME_MAX_LENGTH, useBuddyName } from '../hooks/useBuddyName';
 import { useBuddyProgress } from '../hooks/useBuddyProgress';
+import { useBuddyQuests } from '../hooks/useBuddyQuests';
 import { useBuddyStats } from '../hooks/useBuddyStats';
 import type { BuddyAxis } from '../types';
 import { BuddyJourney } from './BuddyJourney';
 import { BuddyMascot } from './BuddyMascot';
+import { BuddyQuestsCard } from './BuddyQuestsCard';
 import { styles } from './BuddyScreen.styles';
 import { BuddyStatsHexagon, getHexagonCenterSize } from './BuddyStatsHexagon';
 import { BuddyStatsInsight } from './BuddyStatsInsight';
@@ -28,6 +29,7 @@ export function BuddyScreen() {
   const { width } = useWindowDimensions();
   const { stats, progress } = useBuddyProgress();
   const { data: buddyStats } = useBuddyStats();
+  const questStatuses = useBuddyQuests();
   const { name, setName } = useBuddyName();
   // Kept apart from the draft: an IME can send a late onChangeText after Save, which must not
   // reopen the dialog.
@@ -37,33 +39,6 @@ export function BuddyScreen() {
   if (!stats || !progress) {
     return <Loading />;
   }
-
-  const rules = [
-    {
-      key: 'streak' as const,
-      icon: 'flame' as const,
-      points: BUDDY_POINTS.streakWeek,
-      earned: progress.breakdown.streakBonus,
-    },
-    {
-      key: 'onTarget' as const,
-      icon: 'locate' as const,
-      points: BUDDY_POINTS.onTargetDay,
-      earned: progress.breakdown.onTargetDays,
-    },
-    {
-      key: 'balanced' as const,
-      icon: 'nutrition' as const,
-      points: BUDDY_POINTS.balancedDay,
-      earned: progress.breakdown.balancedDays,
-    },
-    {
-      key: 'logged' as const,
-      icon: 'create' as const,
-      points: BUDDY_POINTS.loggedDay,
-      earned: progress.breakdown.loggedDays,
-    },
-  ];
 
   const startRename = () => {
     setDraftName(name);
@@ -112,21 +87,35 @@ export function BuddyScreen() {
             hitSlop={8}
             style={styles.nameRow}
           >
-            <Text variant="h1" weight="bold" numberOfLines={1}>
+            <Text variant="h2" weight="bold" numberOfLines={1}>
               {name}
             </Text>
             <View style={styles.editBadge}>
               <Icon name="create-outline" variant="brand" size={16} />
             </View>
           </Pressable>
-          <Text variant="h3" weight="semibold" color="secondary" align="center">
+          <Text variant="body" weight="semibold" color="secondary" align="center">
             {t('buddy.levelTitle', {
               level: progress.current.level,
               stage: t(`buddy.stages.${progress.current.stage}`),
             })}
           </Text>
           <View style={styles.progressWrap}>
-            <ProgressBar value={progress.progressPercent} size="lg" />
+            <View style={styles.progressRow}>
+              {progress.next ? (
+                <Text variant="caption" color="secondary">
+                  {0}
+                </Text>
+              ) : null}
+              <View style={styles.progressTrack}>
+                <ProgressBar value={progress.progressPercent} size="lg" />
+              </View>
+              {progress.next ? (
+                <Text variant="caption" color="secondary">
+                  {progress.next.minPoints - progress.current.minPoints}
+                </Text>
+              ) : null}
+            </View>
             <Text variant="bodySmall" color="link" weight="semibold" align="center">
               {progress.next
                 ? t('buddy.progressToNext', {
@@ -145,6 +134,14 @@ export function BuddyScreen() {
           ) : null}
         </View>
 
+        {questStatuses ? (
+          <BuddyQuestsCard
+            statuses={questStatuses}
+            name={name}
+            onCreateAccount={() => router.push('/register')}
+          />
+        ) : null}
+
         <StreakCalendar stats={stats} />
 
         <View style={styles.card}>
@@ -153,50 +150,6 @@ export function BuddyScreen() {
           </Text>
           <BuddyJourney currentLevel={progress.current.level} />
         </View>
-
-        <View style={styles.card}>
-          <Text variant="body" weight="bold">
-            {t('buddy.howToEarn')}
-          </Text>
-          {rules.map((rule) => (
-            <View key={rule.key} style={styles.rule}>
-              <View style={styles.ruleIcon}>
-                <Icon name={rule.icon} variant="brand" size={18} />
-              </View>
-              <View style={styles.flex}>
-                <Text variant="bodySmall" weight="semibold">
-                  {t(`buddy.rules.${rule.key}.title`)}
-                </Text>
-                <Text variant="caption" color="secondary">
-                  {t('buddy.earnedSoFar', { points: rule.earned })}
-                </Text>
-              </View>
-              <View style={styles.pointsPill}>
-                <Text variant="caption" weight="bold" color="link">
-                  {`+${rule.points}`}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        {progress.next ? (
-          <View style={styles.reward}>
-            <Icon name="gift-outline" variant="brand" size={22} />
-            <View style={styles.flex}>
-              <Text variant="bodySmall" weight="bold" color="link">
-                {t('buddy.nextReward')}
-              </Text>
-              <Text variant="caption" color="secondary">
-                {t('buddy.nextRewardHint', {
-                  stage: t(`buddy.stages.${progress.next.stage}`),
-                  points: progress.next.minPoints,
-                  name,
-                })}
-              </Text>
-            </View>
-          </View>
-        ) : null}
       </ScrollView>
 
       <Dialog

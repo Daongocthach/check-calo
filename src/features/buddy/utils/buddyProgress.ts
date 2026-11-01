@@ -1,17 +1,19 @@
 import type { ActivityStats } from '@/features/achievements/types';
-import { BUDDY_LEVELS, BUDDY_POINTS } from '../constants/levels';
+import { BUDDY_LEVELS, LEGACY_POINTS } from '../constants/levels';
 import type { BuddyProgress } from '../types';
 
-export function calculateBuddyProgress(stats: ActivityStats): BuddyProgress {
-  const breakdown = {
-    streakBonus: Math.floor(stats.longestStreak / 7) * BUDDY_POINTS.streakWeek,
-    onTargetDays: stats.onTargetDays * BUDDY_POINTS.onTargetDay,
-    balancedDays: stats.balancedDays * BUDDY_POINTS.balancedDay,
-    loggedDays: stats.loggedDays * BUDDY_POINTS.loggedDay,
-  };
-  const points =
-    breakdown.streakBonus + breakdown.onTargetDays + breakdown.balancedDays + breakdown.loggedDays;
+/** Points the diary earned under the rules before quests. */
+export function calculateLegacyPoints(stats: ActivityStats) {
+  return (
+    Math.floor(stats.longestStreak / 7) * LEGACY_POINTS.streakWeek +
+    stats.onTargetDays * LEGACY_POINTS.onTargetDay +
+    stats.balancedDays * LEGACY_POINTS.balancedDay +
+    stats.loggedDays * LEGACY_POINTS.loggedDay
+  );
+}
 
+/** The level `points` reach and how far along the next one is. */
+export function calculateBuddyProgress(points: number): BuddyProgress {
   let currentIndex = 0;
   BUDDY_LEVELS.forEach((level, index) => {
     if (points >= level.minPoints) {
@@ -25,5 +27,5 @@ export function calculateBuddyProgress(stats: ActivityStats): BuddyProgress {
     ? Math.round(((points - current.minPoints) / (next.minPoints - current.minPoints)) * 100)
     : 100;
 
-  return { points, current, next, progressPercent, breakdown };
+  return { points, current, next, progressPercent };
 }

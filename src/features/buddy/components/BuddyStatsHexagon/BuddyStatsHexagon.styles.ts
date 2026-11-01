@@ -4,6 +4,8 @@ import type { Point } from '../../utils/hexagonGeometry';
 
 export const LABEL_WIDTH = hs(84);
 export const LABEL_HEIGHT = hs(44);
+export const SWATCH_WIDTH = hs(20);
+export const SWATCH_HEIGHT = hs(4);
 
 export const styles = StyleSheet.create((theme) => ({
   container: {
@@ -65,17 +67,5 @@ export const styles = StyleSheet.create((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.metrics.spacing.p4,
-  },
-  swatch: {
-    width: theme.metrics.spacing.p16,
-    height: theme.metrics.spacing.p4,
-    borderRadius: theme.metrics.borderRadius.full,
-  },
-  swatchOverall: {
-    backgroundColor: theme.colors.brand.primary,
-  },
-  swatchRecent: {
-    backgroundColor: theme.colors.brand.primary,
-    opacity: 0.45,
   },
 }));

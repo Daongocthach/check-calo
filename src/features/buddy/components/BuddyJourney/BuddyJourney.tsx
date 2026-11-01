@@ -4,14 +4,14 @@ import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Icon, Text } from '@/common/components';
 import { hs } from '@/theme/metrics';
-import { BUDDY_LEVELS } from '../../constants/levels';
+import { BUDDY_STAGE_LEVELS } from '../../constants/levels';
 import type { BuddyLevel, BuddyLevelDefinition } from '../../types';
 import { BuddyMascot } from '../BuddyMascot';
 import { BuddyPreview } from '../BuddyPreview';
 
 /**
- * Horizontal row of all five growth stages with reached/current/locked states. Tapping a stage
- * opens it full screen.
+ * Horizontal row of the five growth stages (two levels each) with reached/current/locked
+ * states. Tapping a stage opens it full screen.
  */
 export function BuddyJourney({ currentLevel }: { currentLevel: BuddyLevel }) {
   const { t } = useTranslation();
@@ -19,9 +19,9 @@ export function BuddyJourney({ currentLevel }: { currentLevel: BuddyLevel }) {
 
   return (
     <View style={styles.row}>
-      {BUDDY_LEVELS.map((level) => {
-        const reached = level.level < currentLevel;
-        const isCurrent = level.level === currentLevel;
+      {BUDDY_STAGE_LEVELS.map(({ first: level, last }) => {
+        const reached = last.level < currentLevel;
+        const isCurrent = level.level <= currentLevel && currentLevel <= last.level;
         const locked = level.level > currentLevel;
 
         return (
@@ -49,7 +49,7 @@ export function BuddyJourney({ currentLevel }: { currentLevel: BuddyLevel }) {
               ) : null}
             </View>
             <Text variant="caption" color={locked ? 'tertiary' : 'primary'}>
-              {t('buddy.levelShort', { level: level.level })}
+              {t('buddy.levelRange', { from: level.level, to: last.level })}
             </Text>
             <Text variant="caption" weight="semibold" color={isCurrent ? 'link' : 'secondary'}>
               {t(`buddy.stages.${level.stage}`)}

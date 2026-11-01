@@ -1,6 +1,6 @@
 # Kế hoạch: Buddy — thể trạng, thống kê và nhiệm vụ mới
 
-> Trạng thái: **giai đoạn 1–2 đã code** (migration `20261101000001_add_daily_targets_and_weight_goals.sql` chưa chạy trên Supabase); giai đoạn 3–4 chưa làm. Mỗi giai đoạn ra một PR riêng, theo đúng thứ tự.
+> Trạng thái: **giai đoạn 1–3 đã code**. Migration cần chạy trên Supabase theo thứ tự: `20261101000001_add_daily_targets_and_weight_goals.sql` rồi `20261101000002_add_buddy_quests.sql`. Giai đoạn 4 chưa làm.
 
 ## Mục tiêu
 
@@ -301,6 +301,14 @@ Apple (App Review Guidelines 5.6.1) và Google Play (chính sách User Ratings) 
 - RPC: không tự đặt điểm, không ghi trùng, không ghi kỳ quá cũ (kiểm thử thủ công trên Supabase).
 
 ---
+
+### Khác với thiết kế ban đầu (đã code)
+
+- `buddy_quests` bỏ `comparator`/`target`/`target_unit`: ngưỡng nằm trong app (dùng chung với lục giác), trên Dashboard chỉnh được điểm, tên, bật/tắt, ngày, `required_days`, `goal_modes`.
+- Level 1–10 giữ đúng giai đoạn cũ: 0 · 150 · **300** Junior · 550 · **800** Teen · 1150 · **1500** Pro · 2000 · **2500** Master · 5000. Ai đang Junior vẫn là Junior (số cấp tăng, ví dụ Cấp 2 → Cấp 3/4).
+- Ảnh theo giai đoạn (`BUDDY_STAGE_IMAGES`); ảnh riêng từng cấp thêm vào `BUDDY_IMAGES` khi có art 10 cấp.
+- `special_weight_goal` được server kiểm tra với `weight_goals` đã đồng bộ (cần migration giai đoạn 1).
+- Khoá MMKV header đổi sang `buddy_header_seen_v2` để đổi số cấp không bị tính là lên cấp.
 
 ## Giai đoạn 4 — Sự kiện, giao riêng, push (thiết kế chi tiết sau)
 

@@ -826,22 +826,6 @@
     "progressToNext": "Tiến độ: {{percent}}% · còn {{points}} điểm",
     "maxLevel": "Đã đạt cấp cao nhất!",
     "journey": "Hành trình phát triển của {{name}}",
-    "howToEarn": "Cách nhận điểm",
-    "earnedSoFar": "Đã nhận {{points}} điểm",
-    "rules": {
-      "streak": {
-        "title": "Duy trì chuỗi 7 ngày ghi món"
-      },
-      "onTarget": {
-        "title": "Mỗi ngày đạt mục tiêu calo"
-      },
-      "balanced": {
-        "title": "Mỗi ngày ăn đủ 3 nhóm chất"
-      },
-      "logged": {
-        "title": "Mỗi ngày có ghi món"
-      }
-    },
     "nextReward": "Phần thưởng cấp tiếp theo",
     "nextRewardHint": "Đạt {{points}} điểm để {{name}} tiến hoá thành {{stage}}",
     "stats": {
@@ -967,7 +951,44 @@
       "lose": "Đang giảm cân: ăn dưới mục tiêu vẫn tốt, miễn không thấp hơn mức tối thiểu an toàn.",
       "gain": "Đang tăng cân: cần ăn đủ mục tiêu, dư một chút vẫn ổn.",
       "maintain": "Đang giữ cân: lệch về phía nào cũng bị trừ điểm."
-    }
+    },
+    "quests": {
+      "title": "Nhiệm vụ",
+      "subtitle": "Hoàn thành để {{name}} lớn nhanh hơn",
+      "tabs": {
+        "daily": "Ngày",
+        "weekly": "Tuần",
+        "special": "Đặc biệt"
+      },
+      "done": "Đã hoàn thành",
+      "settling": "Đang đạt · chốt khi hết ngày",
+      "firstLogOpen": "Chưa ghi món hôm nay",
+      "limitsNeedsData": "Cần 2 bữa chính có số liệu đường, muối",
+      "limitsOpen": "Chốt khi hết ngày",
+      "progress": {
+        "kcal": "{{value}} / {{target}} kcal",
+        "g": "{{value}} / {{target}} g",
+        "macros": "{{value}} / {{target}} nhóm chất",
+        "days": "{{value}} / {{target}} ngày"
+      },
+      "weekDone": "Đã hoàn thành tuần này",
+      "levelUp_one": "Đã thăng {{count}} cấp",
+      "levelUp_other": "Đã thăng {{count}} cấp",
+      "levelUpOpen": "Lên cấp tiếp theo để nhận huy hiệu",
+      "badge": "Huy hiệu",
+      "weightGoalOpen": "Hoàn thành một mục tiêu cân nặng",
+      "weightGoalDone_one": "Đã đạt {{count}} mục tiêu · làm tiếp để nhận thêm",
+      "weightGoalDone_other": "Đã đạt {{count}} mục tiêu · làm tiếp để nhận thêm",
+      "accountOpen": "Đăng ký để giữ dữ liệu khi đổi máy",
+      "accountDone": "Đã tạo tài khoản",
+      "points": "+{{points}}",
+      "earnedTitle": "Hoàn thành nhiệm vụ!",
+      "earnedToast": "+{{points}} điểm · {{title}}",
+      "earnedManyToast_one": "+{{points}} điểm từ {{count}} nhiệm vụ",
+      "earnedManyToast_other": "+{{points}} điểm từ {{count}} nhiệm vụ",
+      "empty": "Chưa có nhiệm vụ nào"
+    },
+    "levelRange": "Cấp {{from}}–{{to}}"
   },
   "profileTab": {
     "guest": "Khách",

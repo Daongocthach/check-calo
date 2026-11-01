@@ -1,6 +1,7 @@
 import NetInfo from '@react-native-community/netinfo';
 import { useEffect } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
+import { syncQuestCompletions } from '@/features/buddy/services/questCompletionSync';
 import { syncWeightGoals } from '@/features/goals/services/weightGoalSync';
 import { syncWeightLogs } from '@/features/goals/services/weightLogSync';
 import { syncDailyTargets } from '@/features/profile/services/dailyTargetSync';
@@ -31,6 +32,7 @@ function runNutritionSync() {
   syncWeightLogs().then(refreshWhenChanged).catch(handleSyncError);
   syncDailyTargets().then(refreshWhenChanged).catch(handleSyncError);
   syncWeightGoals().then(refreshWhenChanged).catch(handleSyncError);
+  syncQuestCompletions().then(refreshWhenChanged).catch(handleSyncError);
 }
 
 export function useFoodLogSync() {

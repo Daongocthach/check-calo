@@ -1,6 +1,11 @@
+import type Ionicons from '@expo/vector-icons/Ionicons';
+import type { ComponentProps } from 'react';
 import type { DailyNutritionSummary } from '@/features/food-log/types';
+import type { WeightGoalMode } from '@/features/goals/types';
 
-export type BuddyLevel = 1 | 2 | 3 | 4 | 5;
+export type IoniconName = ComponentProps<typeof Ionicons>['name'];
+
+export type BuddyLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export type BuddyStage = 'baby' | 'junior' | 'teen' | 'buddy' | 'master';
 
@@ -11,20 +16,12 @@ export interface BuddyLevelDefinition {
   minPoints: number;
 }
 
-export interface BuddyPointBreakdown {
-  streakBonus: number;
-  onTargetDays: number;
-  balancedDays: number;
-  loggedDays: number;
-}
-
 export interface BuddyProgress {
   points: number;
   current: BuddyLevelDefinition;
   next: BuddyLevelDefinition | null;
   /** 0-100 progress toward the next level (100 at max level). */
   progressPercent: number;
-  breakdown: BuddyPointBreakdown;
 }
 
 /** The six stats on Buddy's hexagon, clockwise from the top. */
@@ -64,4 +61,43 @@ export interface BuddyStats {
   loggedDays: number;
   /** Every day from the first log through today, oldest first. */
   days: BuddyDayScore[];
+}
+
+export type QuestKind = 'daily' | 'weekly' | 'special';
+
+/** What a quest checks; the app knows how to check each of these. */
+export type QuestMetric =
+  | 'first_log'
+  | 'calorie_goal'
+  | 'diverse_menu'
+  | 'within_limits'
+  | 'fiber_enough'
+  | 'pet_level_up'
+  | 'weight_goal_reached'
+  | 'create_account';
+
+/** A quest as configured in Supabase (`buddy_quests`), or the built-in default. */
+export interface BuddyQuest {
+  id: string;
+  kind: QuestKind;
+  metric: QuestMetric;
+  /** Weekly quests: days of the week that must meet the metric. */
+  requiredDays: number;
+  /** Null: every goal. */
+  goalModes: WeightGoalMode[] | null;
+  points: number;
+  /** Title by language code. */
+  title: Record<string, string>;
+  icon: IoniconName;
+  sortOrder: number;
+  startsAt: string | null;
+  endsAt: string | null;
+}
+
+/** One quest completed for one period, with the points it earned at the time. */
+export interface QuestCompletion {
+  questId: string;
+  periodKey: string;
+  points: number;
+  completedAt: string;
 }

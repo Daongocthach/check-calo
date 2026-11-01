@@ -826,22 +826,6 @@
     "progressToNext": "{{percent}}% · {{points}} points to next level",
     "maxLevel": "Max level reached!",
     "journey": "{{name}}'s growth journey",
-    "howToEarn": "How to earn points",
-    "earnedSoFar": "{{points}} points earned so far",
-    "rules": {
-      "streak": {
-        "title": "Every 7-day logging streak"
-      },
-      "onTarget": {
-        "title": "Each day within your calorie goal"
-      },
-      "balanced": {
-        "title": "Each day with balanced macros"
-      },
-      "logged": {
-        "title": "Each day you log food"
-      }
-    },
     "nextReward": "Next level reward",
     "nextRewardHint": "Reach {{points}} points for {{name}} to evolve into {{stage}}",
     "stats": {
@@ -967,7 +951,44 @@
       "lose": "Losing weight: eating under the target is fine, as long as you stay above the safe minimum.",
       "gain": "Gaining weight: reach the target; a little over is fine.",
       "maintain": "Keeping your weight: drifting either way costs points."
-    }
+    },
+    "quests": {
+      "title": "Quests",
+      "subtitle": "Complete them to help {{name}} grow faster",
+      "tabs": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "special": "Special"
+      },
+      "done": "Completed",
+      "settling": "On track · settles when the day ends",
+      "firstLogOpen": "Nothing logged today yet",
+      "limitsNeedsData": "Needs 2 main meals with sugar and salt numbers",
+      "limitsOpen": "Settles when the day ends",
+      "progress": {
+        "kcal": "{{value}} / {{target}} kcal",
+        "g": "{{value}} / {{target}} g",
+        "macros": "{{value}} / {{target}} macros",
+        "days": "{{value}} / {{target}} days"
+      },
+      "weekDone": "Completed this week",
+      "levelUp_one": "Leveled up {{count}} time",
+      "levelUp_other": "Leveled up {{count}} times",
+      "levelUpOpen": "Reach the next level for a badge",
+      "badge": "Badge",
+      "weightGoalOpen": "Complete a weight goal",
+      "weightGoalDone_one": "{{count}} goal reached · keep going for more",
+      "weightGoalDone_other": "{{count}} goals reached · keep going for more",
+      "accountOpen": "Sign up to keep your data on a new phone",
+      "accountDone": "Account created",
+      "points": "+{{points}}",
+      "earnedTitle": "Quest complete!",
+      "earnedToast": "+{{points}} points · {{title}}",
+      "earnedManyToast_one": "+{{points}} points from {{count}} quest",
+      "earnedManyToast_other": "+{{points}} points from {{count}} quests",
+      "empty": "No quests yet"
+    },
+    "levelRange": "Level {{from}}–{{to}}"
   },
   "profileTab": {
     "guest": "Guest",

@@ -38,6 +38,9 @@ export const STORAGE_KEYS = {
     goalRangeRulesSince: 'goal_range_rules_since',
     celebratedGoalId: 'celebrated_goal_id',
     celebratedMaintainMilestone: 'celebrated_maintain_milestone',
-    buddyHeaderSeen: 'buddy_header_seen',
+    // v2: levels were renumbered (1-5 → 1-10) when quests arrived; the old value would read
+    // as a level-up.
+    buddyHeaderSeen: 'buddy_header_seen_v2',
+    buddyQuestConfig: 'buddy_quest_config',
   },
 } as const;

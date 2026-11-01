@@ -1,6 +1,7 @@
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { env } from '@/config/env';
+import { pullQuestCompletionsFromCloud } from '@/features/buddy/services/questCompletionSync';
 import {
   syncFoodEntriesDeltaFromSupabase,
   syncUserProfileFromCloud,
@@ -81,6 +82,7 @@ export async function loginSyncCloudData() {
   // Before the diary arrives: a day shown without its plan is frozen at today's plan.
   await pullDailyTargetsFromCloud({ replace: true });
   await pullWeightGoalsFromCloud({ replace: true });
+  await pullQuestCompletionsFromCloud({ replace: true });
   await syncFoodEntriesDeltaFromSupabase();
   await syncRecentFoodsDeltaFromSupabase();
   useFoodEntryRefreshStore.getState().markFoodEntriesChanged();

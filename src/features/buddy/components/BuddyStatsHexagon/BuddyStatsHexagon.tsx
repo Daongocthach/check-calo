@@ -21,7 +21,13 @@ import {
   type HexagonRadii,
   type Point,
 } from '../../utils/hexagonGeometry';
-import { LABEL_HEIGHT, LABEL_WIDTH, styles } from './BuddyStatsHexagon.styles';
+import {
+  LABEL_HEIGHT,
+  LABEL_WIDTH,
+  SWATCH_HEIGHT,
+  SWATCH_WIDTH,
+  styles,
+} from './BuddyStatsHexagon.styles';
 
 /** Share of the chart's width the outer ring's radius takes; the rest holds the labels. */
 const OUTER_RADIUS_RATIO = 0.34;
@@ -36,6 +42,8 @@ const MASCOT_SHARE = 0.84;
 const MASCOT_LIFT = 0.17;
 /** Grid rings, as shares of the way from the bubble's edge to the outer ring. */
 const GRID_LEVELS = [0.25, 0.5, 0.75, 1] as const;
+/** Dash pattern of the last seven days' outline, repeated in its legend swatch. */
+const RECENT_DASH = '4 3';
 // Fixed scattered positions keep the decoration stable when scores update.
 const MINI_BUBBLES = [
   { x: -0.51, y: -0.16, radius: 0.018 },
@@ -51,6 +59,24 @@ const MINI_BUBBLES = [
 function getRadii(size: number): HexagonRadii {
   const outer = size * OUTER_RADIUS_RATIO;
   return { inner: outer * BUBBLE_RADIUS_RATIO, outer };
+}
+
+/** A short line in the legend drawn like the outline it stands for. */
+function LegendSwatch({ color, dashed }: { color: string; dashed?: boolean }) {
+  return (
+    <Svg width={SWATCH_WIDTH} height={SWATCH_HEIGHT}>
+      <Line
+        x1={SWATCH_HEIGHT / 2}
+        y1={SWATCH_HEIGHT / 2}
+        x2={SWATCH_WIDTH - SWATCH_HEIGHT / 2}
+        y2={SWATCH_HEIGHT / 2}
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeDasharray={dashed ? RECENT_DASH : undefined}
+      />
+    </Svg>
+  );
 }
 
 /** Width and height Buddy should be drawn at so it sits inside the bubble of a `size` chart. */
@@ -70,7 +96,7 @@ export interface BuddyStatsHexagonProps {
 
 /**
  * Six stats on a layered hexagon grid around a bubble holding Buddy: the overall stats
- * filled, the last seven days dashed over them.
+ * filled, the last seven days dashed over them in green.
  */
 export function BuddyStatsHexagon({
   size,
@@ -144,10 +170,9 @@ export function BuddyStatsHexagon({
           <Path
             d={getScorePath(center, radii, recent)}
             fill="none"
-            stroke={theme.colors.brand.primary}
-            strokeOpacity={0.45}
-            strokeDasharray="4 3"
-            strokeWidth={1.5}
+            stroke={theme.colors.state.success}
+            strokeDasharray={RECENT_DASH}
+            strokeWidth={1.6}
             strokeLinejoin="round"
           />
           {BUDDY_AXES.map((axis) => {
@@ -258,23 +283,18 @@ export function BuddyStatsHexagon({
       {hasScores ? (
         <View style={styles.legend}>
           <View style={styles.legendItem}>
-            <View style={[styles.swatch, styles.swatchOverall]} />
+            <LegendSwatch color={theme.colors.brand.primary} />
             <Text variant="caption" color="secondary">
               {t('buddy.stats.legendOverall')}
             </Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.swatch, styles.swatchRecent]} />
+            <LegendSwatch color={theme.colors.state.success} dashed />
             <Text variant="caption" color="secondary">
               {t('buddy.stats.legendRecent')}
             </Text>
           </View>
         </View>
-      ) : null}
-      {hasScores ? (
-        <Text variant="caption" color="tertiary" align="center">
-          {t('buddy.stats.subtitle')}
-        </Text>
       ) : null}
     </View>
   );

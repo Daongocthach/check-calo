@@ -9,6 +9,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import Toast from 'react-native-toast-message';
 import { StyleSheet } from 'react-native-unistyles';
 import { ErrorBoundary } from '@/common/components/ErrorBoundary';
+import { useBuddyQuestTracker } from '@/features/buddy/hooks/useBuddyQuestTracker';
 import { useFoodLogInvalidation } from '@/features/food-log/hooks/useFoodLogQuery';
 import { useFoodLogSync } from '@/features/food-log/hooks/useFoodLogSync';
 import {
@@ -60,6 +61,7 @@ function AppContent() {
   useAuthInit();
   useFoodLogSync();
   useFoodLogInvalidation();
+  useBuddyQuestTracker();
   const router = useRouter();
 
   useEffect(() => {

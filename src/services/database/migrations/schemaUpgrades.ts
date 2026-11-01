@@ -359,3 +359,17 @@ export async function runVersion20Migration(database: SQLite.SQLiteDatabase) {
     WHERE protein_target_grams IS NULL;
   `);
 }
+
+/** Buddy quests completed on this device, with the points they earned and a cloud sync state. */
+export async function runVersion21Migration(database: SQLite.SQLiteDatabase) {
+  await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS buddy_quest_completions (
+      quest_id TEXT NOT NULL,
+      period_key TEXT NOT NULL,
+      points INTEGER NOT NULL,
+      completed_at TEXT NOT NULL,
+      synced INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (quest_id, period_key)
+    );
+  `);
+}

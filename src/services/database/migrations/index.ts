@@ -17,6 +17,7 @@ import {
   runVersion18Migration,
   runVersion19Migration,
   runVersion20Migration,
+  runVersion21Migration,
 } from './schemaUpgrades';
 
 type Migration = (database: SQLite.SQLiteDatabase) => Promise<void>;
@@ -46,4 +47,5 @@ export const MIGRATIONS: readonly Migration[] = [
   runVersion18Migration,
   runVersion19Migration,
   runVersion20Migration,
+  runVersion21Migration,
 ];

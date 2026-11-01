@@ -14,7 +14,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 import { StyleSheet } from 'react-native-unistyles';
-import { BUDDY_IMAGES } from '../../constants/images';
+import { BUDDY_IMAGES, BUDDY_STAGE_IMAGES } from '../../constants/images';
+import { BUDDY_LEVELS } from '../../constants/levels';
 import { BUDDY_PALETTE } from '../../constants/palette';
 import type { BuddyLevel } from '../../types';
 
@@ -29,6 +30,10 @@ export interface BuddyMascotProps {
 }
 
 type Palette = (typeof BUDDY_PALETTE)[keyof typeof BUDDY_PALETTE];
+
+function getLevelStage(level: BuddyLevel) {
+  return BUDDY_LEVELS.find((definition) => definition.level === level)?.stage ?? 'baby';
+}
 
 function Sparkle({ x, y, scale, color }: { x: number; y: number; scale: number; color: string }) {
   return (
@@ -178,7 +183,7 @@ function MascotSvg({
 }
 
 function MascotArt({ level, size, locked }: Required<Omit<BuddyMascotProps, 'animated'>>) {
-  const imageSource = BUDDY_IMAGES[level];
+  const imageSource = BUDDY_IMAGES[level] ?? BUDDY_STAGE_IMAGES[getLevelStage(level)];
 
   if (imageSource) {
     return (

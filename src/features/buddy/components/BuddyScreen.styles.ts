@@ -33,6 +33,14 @@ export const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     backgroundColor: theme.colors.background.section,
   },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.metrics.spacing.p8,
+  },
+  progressTrack: {
+    flex: 1,
+  },
   progressWrap: {
     alignSelf: 'stretch',
     gap: theme.metrics.spacingV.p8,
@@ -45,35 +53,6 @@ export const styles = StyleSheet.create((theme) => ({
     gap: theme.metrics.spacingV.p12,
     padding: theme.metrics.spacing.p16,
     borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.surface,
-  },
-  rule: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p12,
-  },
-  ruleIcon: {
-    width: theme.metrics.spacing.p36,
-    height: theme.metrics.spacing.p36,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.section,
-  },
-  pointsPill: {
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p4,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.background.section,
-  },
-  reward: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p12,
-    padding: theme.metrics.spacing.p16,
-    borderRadius: theme.metrics.borderRadius.xl,
-    borderWidth: 1,
-    borderColor: theme.colors.border.focus,
     backgroundColor: theme.colors.background.surface,
   },
 }));
