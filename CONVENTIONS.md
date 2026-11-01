@@ -27,6 +27,7 @@ This is the single source of truth for all coding conventions in this project. E
 | Item                | Convention                     | Example                         |
 | ------------------- | ------------------------------ | ------------------------------- |
 | Component directory | PascalCase                     | `src/common/components/Button/` |
+| Component group dir | lowercase, kebab-case          | `food-log/components/chat/`     |
 | Component file      | PascalCase.tsx                 | `Button.tsx`                    |
 | Component styles    | PascalCase.styles.ts           | `Button.styles.ts`              |
 | Component types     | PascalCase.types.ts            | `Button.types.ts`               |
@@ -216,7 +217,34 @@ src/features/<feature>/
 ├── stores/            # Zustand stores
 ├── types/             # TypeScript types and interfaces
 ├── schemas/           # Zod validation schemas
-└── constants/         # Feature-level constants
+├── constants/         # Feature-level constants
+└── index.ts           # Public API of the feature
+```
+
+Feature folder names are lowercase kebab-case (`food-log`, `dev-tools`).
+
+### Feature Components
+
+Inside `src/features/<feature>/components/`, a directory name's casing tells you what it holds:
+
+- **Component files sit flat**: `components/FoodEntryCard.tsx`, with an optional
+  `FoodEntryCard.styles.ts` beside it. No one-component-per-folder wrapper.
+- **kebab-case directories group related components**, usually one screen and its parts:
+  `components/chat/`, `components/meal/`, `profile/components/onboarding/`,
+  `goals/components/goal-planner/`. Each group has its own `index.ts`.
+- **PascalCase directories are for `src/common/components/` only**, one component each.
+- Every `components/` directory has an `index.ts` exporting what other features and `app/`
+  use; the feature's own `index.ts` re-exports from `./components`.
+
+```
+src/features/food-log/components/
+├── CalorieGauge.tsx
+├── FoodEntryCard.tsx
+├── chat/
+│   ├── FoodChatScreen.tsx
+│   ├── ChatMessageItem.tsx
+│   └── index.ts
+└── index.ts
 ```
 
 ### Accessibility

@@ -1,9 +1,11 @@
-export { BuddyAvatar } from './components/BuddyAvatar';
-export { BuddyAxisDetailScreen } from './components/BuddyAxisDetailScreen';
-export { BuddyJourney } from './components/BuddyJourney';
-export { BuddyMascot } from './components/BuddyMascot';
-export { BuddyScreen } from './components/BuddyScreen';
-export { BuddySticker } from './components/BuddySticker';
+export {
+  BuddyAvatar,
+  BuddyAxisDetailScreen,
+  BuddyJourney,
+  BuddyMascot,
+  BuddyScreen,
+  BuddySticker,
+} from './components';
 export type { MascotPose } from './constants/mascot';
 export { useBuddyName } from './hooks/useBuddyName';
 export { useBuddyProgress } from './hooks/useBuddyProgress';

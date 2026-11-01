@@ -1,1 +1,0 @@
-export { CalorieChartCard } from './CalorieChartCard';

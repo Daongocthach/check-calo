@@ -4,7 +4,7 @@ import { ScrollView, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { ChatComposer } from '@/features/food-log/components';
 import type { FoodEntry } from '@/features/food-log/types';
-import { GoalSummaryCard } from '@/features/goals/components/GoalSummaryCard';
+import { GoalSummaryCard } from '@/features/goals/components';
 import { useIsPermanentDrawer, useOpenDrawer } from '@/features/navigation';
 import { useHomeScreen } from '../hooks/useHomeScreen';
 import { DailyProgressCard } from './DailyProgressCard';

@@ -104,8 +104,13 @@ feature/
 ├── stores/
 ├── types/
 ├── schemas/
-└── constants/
+├── constants/
+└── index.ts
 ```
+
+Folder casing in `components/`: PascalCase folder = one shared component (`src/common/components/` only);
+inside a feature, component files sit flat and kebab-case folders group a screen with its parts
+(`food-log/components/chat/`). Every `components/` has an `index.ts`. See `CONVENTIONS.md`.
 
 ## Key Rules
 

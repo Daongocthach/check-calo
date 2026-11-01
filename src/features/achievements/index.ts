@@ -1,4 +1,2 @@
-export { AchievementGrid } from './components/AchievementGrid';
-export { DayStatusBubble } from './components/DayStatusBubble';
-export { StreakCalendar } from './components/StreakCalendar';
+export { AchievementGrid, DayStatusBubble, StreakCalendar } from './components';
 export { getAchievementProgress } from './services/activityStatsService';
