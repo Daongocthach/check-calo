@@ -8,9 +8,9 @@ A production-grade React Native Expo base template designed as a reusable founda
 
 ## Tech Stack
 
-- **Framework**: React Native 0.83.2 + Expo SDK 55
+- **Framework**: React Native 0.88.1 + Expo SDK 58
 - **Routing**: expo-router (file-based, typed routes)
-- **Language**: TypeScript 5.9
+- **Language**: TypeScript 6.0
 - **Styling**: react-native-unistyles 3.x
 - **State Management**: @tanstack/react-query (server) + Zustand (client)
 - **Backend**: Supabase (graceful degradation if unconfigured)
@@ -46,9 +46,10 @@ src/
 ├── features/              # Feature modules:
 │                          #   food-log (diary, Check AI chat, meal detail, sync), profile (onboarding,
 │                          #   calorie math), home, buddy (mascot + achievements), goals (dashboard
-│                          #   card, planner, history), settings (incl. personal info),
-│                          #   navigation (drawer), auth, notifications, support, legal,
-│                          #   leaderboard (service only)
+│                          #   card, planner, history), achievements (streak calendar,
+│                          #   badges), settings (incl. personal info), navigation (drawer),
+│                          #   auth, notifications, support, legal, leaderboard (service
+│                          #   only), dev-tools (__DEV__ only)
 ├── hooks/                 # useBottomPadding, useNetworkStatus, useScreenDimensions, useProtectedRoute
 ├── i18n/                  # Translation files (en.json, vi.json) and config
 ├── integrations/          # Supabase client (graceful init)

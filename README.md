@@ -2,7 +2,7 @@
 
 Production-ready Expo template for building real mobile apps on top of a solid base instead of starting from a blank screen.
 
-[![React Native](https://img.shields.io/badge/React%20Native-0.83.2-61DAFB?logo=react&logoColor=white)](https://reactnative.dev)
+[![React Native](https://img.shields.io/badge/React%20Native-0.88.1-61DAFB?logo=react&logoColor=white)](https://reactnative.dev)
 [![Expo SDK](https://img.shields.io/badge/Expo%20SDK-55-000020?logo=expo&logoColor=white)](https://expo.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22C55E)](LICENSE)
@@ -32,9 +32,9 @@ This template ships with the parts most projects end up rebuilding anyway:
 
 | Layer        | Technology                        |
 | ------------ | --------------------------------- |
-| Framework    | React Native 0.83.2 + Expo SDK 55 |
+| Framework    | React Native 0.88.1 + Expo SDK 58 |
 | Routing      | `expo-router`                     |
-| Language     | TypeScript 5.9 (strict mode)      |
+| Language     | TypeScript 6.0 (strict mode)      |
 | Styling      | `react-native-unistyles` 3.x      |
 | Server state | `@tanstack/react-query`           |
 | Client state | Zustand                           |

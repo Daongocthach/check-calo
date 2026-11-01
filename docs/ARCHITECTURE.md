@@ -8,9 +8,9 @@ This is a production-grade React Native Expo template designed as a reusable fou
 
 | Layer        | Technology                                      |
 | ------------ | ----------------------------------------------- |
-| Framework    | React Native 0.83.2 + Expo SDK 55               |
+| Framework    | React Native 0.88.1 + Expo SDK 58               |
 | Routing      | expo-router (file-based, typed routes)          |
-| Language     | TypeScript 5.9 (strict)                         |
+| Language     | TypeScript 6.0 (strict)                         |
 | Styling      | react-native-unistyles 3.x                      |
 | Server State | @tanstack/react-query + MMKV persistence        |
 | Client State | Zustand                                         |

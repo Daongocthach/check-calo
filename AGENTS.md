@@ -8,9 +8,9 @@ A production-grade React Native Expo base template designed as a reusable founda
 
 **Tech Stack:**
 
-- React Native 0.83.2 + Expo SDK 55
+- React Native 0.88.1 + Expo SDK 58
 - expo-router (file-based routing with typed routes)
-- TypeScript 5.9 (strict mode)
+- TypeScript 6.0 (strict mode)
 - react-native-unistyles 3.x (styling with design tokens)
 - @tanstack/react-query (server state management)
 - Zustand (client state management)

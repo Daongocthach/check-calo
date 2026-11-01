@@ -4,7 +4,7 @@
 
 **Purpose:** This guide gives you a precise, mechanical procedure to transform this base template into a specific application. When a user says "I want to build an e-commerce app" or "I want to build a game hub" or "I want to build a social media app", follow this guide from top to bottom in sequence.
 
-**Template version:** React Native 0.83.2 / Expo SDK 55 / TypeScript 5.9
+**Template version:** React Native 0.88.1 / Expo SDK 58 / TypeScript 6.0
 
 ---
 

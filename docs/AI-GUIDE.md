@@ -2,7 +2,7 @@
 
 This guide is the master reference for AI coding agents working in this codebase. Read it completely before making any changes. Every pattern here is prescriptive - follow exactly as shown.
 
-**Tech stack at a glance:** React Native 0.83.2, Expo SDK 55, expo-router, TypeScript 5.9 strict, react-native-unistyles 3.x, TanStack Query, Zustand, Supabase, Axios, react-i18next, react-native-mmkv, react-hook-form + Zod.
+**Tech stack at a glance:** React Native 0.88.1, Expo SDK 58, expo-router, TypeScript 6.0 strict, react-native-unistyles 3.x, TanStack Query, Zustand, Supabase, Axios, react-i18next, react-native-mmkv, react-hook-form + Zod.
 
 **Path aliases:** `@/*` = `src/*`, `~/*` = `app/*`
 
