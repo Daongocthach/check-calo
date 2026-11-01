@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import { ChatComposer } from '@/features/food-log/components';
 import type { FoodEntry } from '@/features/food-log/types';
 import { GoalSummaryCard } from '@/features/goals/components/GoalSummaryCard';
-import { useOpenDrawer } from '@/features/navigation';
+import { useIsPermanentDrawer, useOpenDrawer } from '@/features/navigation';
 import { useHomeScreen } from '../hooks/useHomeScreen';
 import { DailyProgressCard } from './DailyProgressCard';
 import { HomeHeader } from './HomeHeader';
@@ -16,6 +16,7 @@ export function HomeScreen() {
   const router = useRouter();
   const home = useHomeScreen();
   const openDrawer = useOpenDrawer();
+  const isPermanentDrawer = useIsPermanentDrawer();
   const displayName = home.profile?.displayName.trim() || '';
   const openEntry = useCallback(
     (entry: FoodEntry) => router.push({ pathname: '/meal/[id]', params: { id: entry.id } }),
@@ -36,7 +37,7 @@ export function HomeScreen() {
         <HomeHeader
           displayName={displayName}
           onBuddyPress={() => router.navigate('/buddy')}
-          onMenuPress={openDrawer}
+          onMenuPress={isPermanentDrawer ? undefined : openDrawer}
         />
         <WeekStrip
           selectedDate={home.selectedDate}

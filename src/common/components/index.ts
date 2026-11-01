@@ -73,6 +73,8 @@ export { TextArea } from './TextArea';
 export type { TextAreaProps } from './TextArea';
 
 // Layout
+export { ContentColumn, CONTENT_MAX_WIDTH, useContentWidth } from './ContentColumn';
+export type { ContentColumnProps } from './ContentColumn';
 export { Divider } from './Divider';
 export type { DividerProps } from './Divider';
 export { ScreenContainer } from './ScreenContainer';

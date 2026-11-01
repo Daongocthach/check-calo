@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { useWindowDimensions, View } from 'react-native';
+import { View } from 'react-native';
 import { BarChart, type stackDataItem } from 'react-native-gifted-charts';
 import { useUnistyles } from 'react-native-unistyles';
 import { hs, vs } from '@/theme/metrics';
+import { useContentWidth } from '../ContentColumn';
 import { Text } from '../Text';
 import { styles } from './StackedMacroBarChart.styles';
 import type { StackedMacroBarChartProps } from './StackedMacroBarChart.types';
@@ -31,7 +32,7 @@ export function StackedMacroBarChart({
   gramUnit,
   scrollEnabled = false,
 }: StackedMacroBarChartProps) {
-  const { width } = useWindowDimensions();
+  const width = useContentWidth();
   const { theme } = useUnistyles();
 
   const stackData = useMemo<stackDataItem[]>(

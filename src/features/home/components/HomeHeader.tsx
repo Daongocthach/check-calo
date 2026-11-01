@@ -7,7 +7,8 @@ import { BuddyAvatar } from '@/features/buddy';
 export interface HomeHeaderProps {
   displayName: string;
   onBuddyPress: () => void;
-  onMenuPress: () => void;
+  /** Omitted while the menu is pinned as a sidebar, which hides the button. */
+  onMenuPress?: () => void;
 }
 
 /** Pet avatar (opens Buddy), greeting and the drawer button. The streak lives on the date picker. */
@@ -25,14 +26,16 @@ export function HomeHeader({ displayName, onBuddyPress, onMenuPress }: HomeHeade
           {t('home.subtitle')}
         </Text>
       </View>
-      <Pressable
-        onPress={onMenuPress}
-        accessibilityRole="button"
-        accessibilityLabel={t('home.openMenu')}
-        style={styles.action}
-      >
-        <Icon name="menu" sizeVariant="md" />
-      </Pressable>
+      {onMenuPress ? (
+        <Pressable
+          onPress={onMenuPress}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.openMenu')}
+          style={styles.action}
+        >
+          <Icon name="menu" sizeVariant="md" />
+        </Pressable>
+      ) : null}
     </View>
   );
 }

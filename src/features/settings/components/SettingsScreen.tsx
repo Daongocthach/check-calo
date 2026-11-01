@@ -7,7 +7,7 @@ import { deleteCurrentUserCloudNutritionData } from '@/features/auth/services/au
 import { useDevToolsStore } from '@/features/dev-tools';
 import { resetLocalNutritionData } from '@/features/food-log/services/localDataReset';
 import { useFoodEntryRefreshStore } from '@/features/food-log/stores/useFoodEntryRefreshStore';
-import { DrawerMenuButton } from '@/features/navigation';
+import { DrawerMenuButton, useIsPermanentDrawer } from '@/features/navigation';
 import { useBottomPadding } from '@/hooks';
 import { LANGUAGE_INFO, toAppLanguage } from '@/i18n/languages';
 import { appAlert } from '@/providers/app-alert';
@@ -21,6 +21,8 @@ export function SettingsScreen() {
   const router = useRouter();
   const { theme } = useUnistyles();
   const bottomPadding = useBottomPadding();
+  // The pinned sidebar already links back to the dashboard.
+  const isPermanentDrawer = useIsPermanentDrawer();
   const markFoodEntriesChanged = useFoodEntryRefreshStore((state) => state.markFoodEntriesChanged);
   const preferences = usePreferences();
   const devModeEnabled = useDevToolsStore((state) => state.enabled);
@@ -54,6 +56,7 @@ export function SettingsScreen() {
     <View style={styles.container}>
       <ScreenHeader
         title={t('settingsScreen.title')}
+        showBack={!isPermanentDrawer}
         subtitle={t('settingsScreen.subtitle')}
         right={<DrawerMenuButton />}
       />

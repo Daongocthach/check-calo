@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { useUnistyles } from 'react-native-unistyles';
+import { ContentColumn } from '@/common/components';
 
 export const unstable_settings = {
   anchor: '(drawer)',
@@ -10,6 +11,11 @@ export default function MainLayout() {
 
   return (
     <Stack
+      // Detail screens keep a phone-width column on iPad instead of stretching edge to edge. The
+      // drawer columns its own scenes, leaving room for the sidebar.
+      screenLayout={({ route, children }) =>
+        route.name === '(drawer)' ? children : <ContentColumn>{children}</ContentColumn>
+      }
       screenOptions={{
         headerShown: false,
         // Opaque so detail screens never show the navigator's default grey behind them.

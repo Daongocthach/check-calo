@@ -1,10 +1,19 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
-import { Dialog, Icon, Input, Loading, ProgressBar, ScreenHeader, Text } from '@/common/components';
+import { Pressable, ScrollView, View } from 'react-native';
+import {
+  Dialog,
+  Icon,
+  Input,
+  Loading,
+  ProgressBar,
+  ScreenHeader,
+  Text,
+  useContentWidth,
+} from '@/common/components';
 import { StreakCalendar } from '@/features/achievements';
-import { DrawerMenuButton } from '@/features/navigation';
+import { DrawerMenuButton, useIsPermanentDrawer } from '@/features/navigation';
 import { useBottomPadding } from '@/hooks';
 import { hs } from '@/theme/metrics';
 import { EMPTY_AXIS_SCORES } from '../constants/stats';
@@ -27,7 +36,9 @@ export function BuddyScreen() {
   const { t } = useTranslation();
   const bottomPadding = useBottomPadding();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const width = useContentWidth();
+  // The pinned sidebar already links back to the dashboard.
+  const isPermanentDrawer = useIsPermanentDrawer();
   const { stats, progress } = useBuddyProgress();
   const { data: buddyStats } = useBuddyStats();
   const questStatuses = useBuddyQuests();
@@ -61,6 +72,7 @@ export function BuddyScreen() {
     <View style={styles.container}>
       <ScreenHeader
         title={t('buddy.title')}
+        showBack={!isPermanentDrawer}
         subtitle={t('buddy.subtitle', { name })}
         right={<DrawerMenuButton />}
       />

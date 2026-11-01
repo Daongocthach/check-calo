@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
-import { useWindowDimensions, View } from 'react-native';
+import { View } from 'react-native';
 import { BarChart, type barDataItem } from 'react-native-gifted-charts';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { useContentWidth } from '@/common/components';
 import { toLocale } from '@/features/food-log/utils/format';
 import { hs, vs } from '@/theme/metrics';
 import { SCORE_BANDS } from '../../constants/stats';
 import type { AxisChartPoint, StatsRange } from '../../utils/axisDetail';
 
-/** Room the screen and card padding plus the y-axis labels take from the window width. */
+/** Room the screen and card padding plus the y-axis labels take from the content width. */
 const HORIZONTAL_CHROME = hs(96);
 const Y_AXIS_WIDTH = hs(28);
 /** Aim for about this many x-axis labels however many bars there are. */
@@ -29,7 +30,7 @@ function formatLabel(dateKey: string, range: StatsRange, language: string) {
 
 /** A day's (or a week's) score as a bar coloured by how close it came to 100. */
 export function AxisScoreChart({ points, range, language }: AxisScoreChartProps) {
-  const { width } = useWindowDimensions();
+  const width = useContentWidth();
   const { theme } = useUnistyles();
   const chartWidth = width - HORIZONTAL_CHROME - Y_AXIS_WIDTH;
   const slot = chartWidth / Math.max(points.length, 1);

@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
-import { useWindowDimensions, View } from 'react-native';
+import { View } from 'react-native';
 import { LineChart, type lineDataItem } from 'react-native-gifted-charts';
 import { useUnistyles } from 'react-native-unistyles';
 import { hs, vs } from '@/theme/metrics';
+import { useContentWidth } from '../ContentColumn';
 import { styles } from './LineTrendChart.styles';
 import type { LineTrendChartProps } from './LineTrendChart.types';
 
 export function LineTrendChart({ data, scrollEnabled = false }: LineTrendChartProps) {
-  const { width } = useWindowDimensions();
+  const width = useContentWidth();
   const { theme } = useUnistyles();
 
   const lineData = useMemo<lineDataItem[]>(

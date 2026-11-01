@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useWindowDimensions, View } from 'react-native';
+import { View } from 'react-native';
 import { BarChart, type stackDataItem } from 'react-native-gifted-charts';
 import { useUnistyles } from 'react-native-unistyles';
-import { IconButton, SegmentedControl, Text } from '@/common/components';
+import { IconButton, SegmentedControl, Text, useContentWidth } from '@/common/components';
 import { formatWholeNumber, toLocale } from '@/features/food-log/utils/format';
 import { addDays } from '@/features/goals/utils/weightGoal';
 import { useCurrentDate } from '@/hooks';
@@ -60,7 +60,7 @@ function getDefaultKey(bars: CalorieChartBar[], today: string) {
 export function CalorieChartCard() {
   const { t, i18n } = useTranslation();
   const { theme } = useUnistyles();
-  const { width } = useWindowDimensions();
+  const width = useContentWidth();
   const locale = toLocale(i18n.language);
   const today = formatDateKey(useCurrentDate());
   const currentWeek = getChartWeekStart(today);
