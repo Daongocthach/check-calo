@@ -16,13 +16,13 @@ import { useBottomPadding } from '@/hooks';
 import { appAlert } from '@/providers/app-alert';
 import { toast } from '@/utils/toast';
 import { useMealDetail } from '../../hooks/useMealDetail';
-import { formatTime } from '../../utils/format';
+import { formatDayDate, formatTime } from '../../utils/format';
 import { getMealSlot } from '../../utils/mealSlot';
 import { hasAnyNutrient } from '../../utils/nutrients';
 import { FoodImagePreview } from '../FoodImagePreview';
 import { MacroRings } from '../MacroRings';
 import { NutrientList } from '../NutrientList';
-import { MealEditForm } from './MealEditForm';
+import { MealDetailEditForm } from './MealDetailEditForm';
 
 export interface MealDetailScreenProps {
   entryId: string;
@@ -77,21 +77,11 @@ export function MealDetailScreen({ entryId }: MealDetailScreenProps) {
     );
   } else if (isEditing) {
     content = (
-      <MealEditForm
-        values={{ ...entry, name: entry.mealName, calories: entry.totalCalories }}
+      <MealDetailEditForm
+        entry={entry}
         onCancel={() => setIsEditing(false)}
-        onSubmit={async ({ name, calories, ...values }) => {
-          await update({
-            ...values,
-            mealName: name,
-            totalCalories: calories,
-            quantityGrams: entry.quantityGrams ?? null,
-            barcode: entry.barcode ?? null,
-            imageUri: entry.imageUri ?? null,
-            thumbnailUri: entry.thumbnailUri ?? null,
-            consumedAt: entry.consumedAt,
-            entryDate: entry.entryDate,
-          });
+        onSubmit={async (input) => {
+          await update(input);
           toast.success(t('mealDetail.saveSuccess'));
           setIsEditing(false);
         }}
@@ -110,6 +100,12 @@ export function MealDetailScreen({ entryId }: MealDetailScreenProps) {
             {entry.mealName}
           </Text>
           <View style={styles.metaRow}>
+            <View style={styles.meta}>
+              <Icon name="calendar-outline" variant="secondary" size={16} />
+              <Text variant="bodySmall" color="secondary">
+                {formatDayDate(entry.entryDate, i18n.language)}
+              </Text>
+            </View>
             <View style={styles.meta}>
               <Icon name="time-outline" variant="secondary" size={16} />
               <Text variant="bodySmall" color="secondary">
