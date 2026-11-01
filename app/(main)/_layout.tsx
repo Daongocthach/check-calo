@@ -33,6 +33,7 @@ export default function MainLayout() {
       <Stack.Screen name="buddy-stat/[axis]" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="reminders" />
+      <Stack.Screen name="language" />
       <Stack.Screen name="health-sources" />
       <Stack.Screen name="account" />
       <Stack.Screen name="support" />

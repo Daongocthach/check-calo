@@ -6,6 +6,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 import { ProgressBar, Text } from '@/common/components';
 import { BuddyMascot } from '@/features/buddy/components/BuddyMascot';
+import { toLocale } from '@/features/food-log/utils/format';
 import {
   normalizeGoalDraft,
   planForDuration,
@@ -92,9 +93,9 @@ function PlanResults({ body, draft, plan, bmiAnimationPlayed }: Omit<PlanStepPro
   const goal = normalizeGoalDraft(body, draft);
   const duration = planForDuration(body, goal.targetWeightKg, goal.weeks);
   const mode = duration.mode;
-  const number = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 });
+  const number = new Intl.NumberFormat(toLocale(i18n.language), { maximumFractionDigits: 1 });
   const format = (value: number) => number.format(value);
-  const endDate = new Intl.DateTimeFormat(i18n.language, {
+  const endDate = new Intl.DateTimeFormat(toLocale(i18n.language), {
     day: 'numeric',
     month: 'numeric',
     year: 'numeric',

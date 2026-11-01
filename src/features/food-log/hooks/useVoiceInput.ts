@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/utils/toast';
 import { getSpeechRecognition } from '../services/speechRecognition';
+import { toLocale } from '../utils/format';
 
 /** Errors that only mean the user stopped or said nothing; no message for these. */
 const SILENT_ERRORS = new Set(['aborted', 'no-speech', 'speech-timeout']);
@@ -63,7 +64,7 @@ export function useVoiceInput(onTranscript: (transcript: string) => void) {
     }
 
     speech.start({
-      lang: i18n.language === 'en' ? 'en-US' : 'vi-VN',
+      lang: toLocale(i18n.language),
       interimResults: true,
       continuous: false,
     });

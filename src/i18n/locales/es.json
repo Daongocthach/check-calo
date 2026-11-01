@@ -1,0 +1,1136 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "done": "Listo",
+    "date": "Fecha",
+    "time": "Hora",
+    "retry": "Reintentar",
+    "search": "Buscar",
+    "settings": "Ajustes",
+    "close": "Cerrar",
+    "edit": "Editar",
+    "clear": "Borrar",
+    "more": "Más",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "progress": "Progreso",
+    "userAvatar": "Foto de perfil",
+    "removeItem": "Quitar {{name}}",
+    "clearSearch": "Borrar búsqueda",
+    "decreaseQuantity": "Reducir cantidad",
+    "increaseQuantity": "Aumentar cantidad",
+    "defaultMealName": "Comida",
+    "numberPlaceholder": "0",
+    "submit": "Enviar",
+    "ok": "OK",
+    "units": {
+      "cm": "cm",
+      "kg": "kg",
+      "kcal": "kcal",
+      "gram": "g",
+      "milligram": "mg",
+      "day": "día"
+    },
+    "aiQuotaExceeded": "Llegaste al límite de IA de hoy. Vuelve a intentarlo mañana.",
+    "signInRequired": "Inicia sesión para usar las funciones de IA.",
+    "syncStatus": {
+      "syncNow": "Sincronizar ahora",
+      "loginToSync": "Inicia sesión para sincronizar",
+      "localOnly": "Solo en este dispositivo",
+      "failed": "Error de sincronización",
+      "syncing": "Sincronizando",
+      "synced": "Sincronizado"
+    }
+  },
+  "header": {
+    "back": "Atrás",
+    "themeSystem": "Sistema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro"
+  },
+  "drawer": {
+    "open": "Abrir menú",
+    "dashboard": "Resumen",
+    "buddy": "Mascota",
+    "settings": "Ajustes"
+  },
+  "language": {
+    "label": "Idioma",
+    "english": "English",
+    "vietnamese": "Tiếng Việt",
+    "thai": "ไทย",
+    "indonesian": "Bahasa Indonesia",
+    "japanese": "日本語",
+    "korean": "한국어",
+    "chineseSimplified": "简体中文",
+    "chineseTraditional": "繁體中文",
+    "spanish": "Español",
+    "localized": {
+      "vietnamese": "Vietnamita",
+      "english": "Inglés",
+      "thai": "Tailandés",
+      "indonesian": "Indonesio",
+      "japanese": "Japonés",
+      "korean": "Coreano",
+      "chineseSimplified": "Chino simplificado",
+      "chineseTraditional": "Chino tradicional",
+      "spanish": "Español"
+    }
+  },
+  "home": {
+    "subtitle": "Así va tu día",
+    "greeting": "Hola, {{name}}",
+    "streakLabel": "Racha de {{count}} días",
+    "openMenu": "Abrir menú",
+    "pickDate": "Elegir fecha",
+    "goToToday": "Ir a hoy",
+    "dayStatus": {
+      "on_target": "Meta cumplida",
+      "off_target": "Registrado",
+      "empty": "Sin registros"
+    },
+    "dailyProgress": "Progreso del día",
+    "caloriesLabel": "Calorías",
+    "emptyTitle": "Aún no hay registros",
+    "emptySubtitle": "Cuéntale a Check AI qué comiste o toma una foto de tu comida.",
+    "rangeLabel": "En meta entre {{min}} y {{max}} kcal",
+    "buddyMood": {
+      "onTarget": "Justo en tu rango. ¡{{name}} está feliz por ti!",
+      "aboveTarget": "Un poco por encima del rango. ¿Qué tal una caminata corta con {{name}}?"
+    },
+    "goalSummary": {
+      "title": "Meta actual",
+      "goal": "Meta",
+      "progress": "Progreso actual",
+      "expectedEnd": "Fin estimado",
+      "daysUnit": "días",
+      "modes": {
+        "lose": "Bajar de peso",
+        "gain": "Subir de peso",
+        "maintain": "Mantener peso"
+      },
+      "remaining": {
+        "lose": "Falta bajar",
+        "gain": "Falta subir",
+        "maintain": "Días restantes"
+      },
+      "maintainToday": "Hoy",
+      "maintainRecent_other": "Últimos {{count}} días",
+      "maintainOnTarget": "{{value}} días en meta",
+      "maintainTotal": "Días en meta",
+      "maintainSince": "Manteniendo desde",
+      "milestoneTitle": "¡{{value}} días en meta!",
+      "milestoneMessage": "Comiste dentro de tu rango {{value}} días desde que empezaste a mantener. ¡Sigue así!",
+      "milestoneAction": "Seguir",
+      "changeGoal": "Cambiar meta",
+      "reachedTitle": "¡Lo lograste: {{goal}}!",
+      "reachedMessage": "¡Buen trabajo! Tu plan pasó a mantenimiento. Define tu próxima meta para actualizar tu peso y tu plan.",
+      "keepMaintaining": "Seguir manteniendo",
+      "nextGoal": "Próxima meta"
+    }
+  },
+  "supportScreen": {
+    "title": "Apoya la app",
+    "introTitle": "Gracias por apoyar la app",
+    "introBody": "Cada aporte ayuda a mantener la app funcionando y a mejorar la experiencia para todos ❤️",
+    "subtitle": "Apoya por transferencia bancaria",
+    "providerBrand": "VIETQR.IO",
+    "bankBrand": "Shinhan Bank",
+    "napasBrand": "napas",
+    "accountHolderLabel": "Titular de la cuenta",
+    "accountHolder": "DAO NGOC THACH",
+    "accountNumberLabel": "Número de cuenta",
+    "accountNumber": "700-034-951978",
+    "bankLabel": "Banco",
+    "bankName": "Shinhan Bank Vietnam",
+    "copySectionTitle": "Copia rápida",
+    "copyAccountNumberAction": "Copiar número de cuenta",
+    "copyAccountHolderAction": "Copiar titular",
+    "copyBankAction": "Copiar nombre del banco",
+    "copySuccess": "Copiado al portapapeles.",
+    "saveImageAction": "Guardar imagen",
+    "saveImageModalTitle": "¡Imagen guardada!",
+    "saveImageModalBody": "Eres parte importante de que esta app mejore cada día ❤️",
+    "saveImagePermissionDenied": "Se denegó el permiso de acceso a las fotos.",
+    "saveImageFailed": "No se pudo guardar la imagen. Inténtalo de nuevo.",
+    "thanks": "¡Muchas gracias!"
+  },
+  "homeScreen": {
+    "monthStatus": {
+      "goalMet": "Meta cumplida"
+    }
+  },
+  "manualFoodEntry": {
+    "openImageViewer": "Ver la foto del alimento en pantalla completa",
+    "closeImageViewer": "Cerrar la foto del alimento en pantalla completa"
+  },
+  "healthInformationSourcesScreen": {
+    "title": "Fuentes de información de salud",
+    "intro": "Esta app ofrece información de salud y nutrición basada en investigación científica reconocida. Estas son las fuentes que usamos para los cálculos y las recomendaciones:",
+    "disclaimer": "Esta app es solo informativa y no sustituye el consejo médico profesional. Consulta siempre a profesionales de la salud para recibir orientación personalizada.",
+    "sections": {
+      "bmi": {
+        "title": "Cálculo del IMC (índice de masa corporal)",
+        "description": "El IMC es el peso en kilogramos dividido entre la estatura en metros al cuadrado. Las categorías de los CDC citadas se aplican a adultos de 20 años o más. Entre los 2 y los 19 años se evalúa el IMC según edad y sexo, sin aplicar directamente los umbrales de adultos.",
+        "references": {
+          "cdc": {
+            "title": "Centers for Disease Control and Prevention.",
+            "citation": "Adult BMI Calculator. Centers for Disease Control and Prevention. For adults aged 20 and older."
+          }
+        }
+      },
+      "bmr": {
+        "title": "Cálculo de la TMB (tasa metabólica basal)",
+        "description": "La app usa la ecuación de Mifflin–St Jeor para estimar el gasto energético en reposo, no para medir el metabolismo. Para «Otro», el coeficiente −78 es el promedio de los dos coeficientes de la ecuación; es una convención de la app sin validación propia.",
+        "references": {
+          "mifflin": {
+            "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
+            "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
+          }
+        }
+      },
+      "activity": {
+        "title": "Factores de nivel de actividad",
+        "description": "La app multiplica la TMB por 1,2; 1,375; 1,55; 1,725 o 1,9 según el nivel de actividad. Son estimaciones elegidas por la app. Las referencias aportan contexto sobre actividad y energía, no validan este conjunto exacto de factores.",
+        "references": {
+          "brooks": {
+            "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
+            "citation": "Chronicle of the Institute of Medicine physical activity recommendation: how a physical activity recommendation came to be among dietary recommendations. Am J Clin Nutr. 2004;79(5):921S-930S."
+          },
+          "iom": {
+            "title": "Institute of Medicine (US) Panel on Macronutrients.",
+            "citation": "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. Washington (DC): National Academies Press (US); 2005."
+          }
+        }
+      },
+      "macros": {
+        "title": "Distribución de macronutrientes",
+        "description": "Estas fuentes ofrecen pautas generales de nutrición y de proteínas para personas que hacen ejercicio. Las reglas de la app fijan 1,6–2 g/kg de proteínas según la meta, con un mínimo de 60 g; grasas de al menos 0,8 g/kg o el 25 % de la energía; y el resto de la energía en carbohidratos. Con un IMC mayor de 25, el peso de referencia se limita al de un IMC de 25. Estas reglas de planificación no son recomendaciones universales.",
+        "references": {
+          "dietaryGuidelines": {
+            "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
+            "citation": "Dietary Guidelines for Americans, 2025–2030. 10th Edition. Current guidance and related resources."
+          },
+          "who": {
+            "title": "World Health Organization.",
+            "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          },
+          "protein": {
+            "title": "Jäger R, Kerksick CM, Campbell BI, et al.",
+            "citation": "International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20. Applies to exercising individuals."
+          }
+        }
+      },
+      "nutrients": {
+        "title": "Referencias diarias de nutrientes",
+        "description": "Las cantidades diarias de referencia de fibra, azúcares, grasas saturadas, grasas trans, colesterol, sodio y potasio siguen los Valores Diarios de la FDA; los límites de azúcares y grasas trans siguen las directrices de la OMS.",
+        "references": {
+          "fda": {
+            "title": "U.S. Food and Drug Administration.",
+            "citation": "Daily Value on the Nutrition and Supplement Facts Labels."
+          },
+          "whoSugars": {
+            "title": "World Health Organization.",
+            "citation": "Guideline: Sugars intake for adults and children. Geneva: World Health Organization; 2015."
+          },
+          "whoFats": {
+            "title": "World Health Organization.",
+            "citation": "Saturated fatty acid and trans-fatty acid intake for adults and children: WHO guideline. Geneva: World Health Organization; 2023."
+          }
+        }
+      },
+      "weightManagement": {
+        "title": "Control del peso",
+        "description": "La app estima el cambio de peso con 7700 kcal/kg; las fechas de finalización son estimaciones, no el modelo dinámico del NIDDK. El límite de déficit del 25 %, el límite de superávit de 500 kcal/día, los mínimos de calorías por sexo combinados con la TMB y los rangos de calorías en meta son reglas de la app, no un protocolo combinado validado por estas referencias.",
+        "references": {
+          "wadden": {
+            "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
+            "citation": "Lifestyle modification for obesity: new developments in diet, physical activity, and behavior therapy. Circulation. 2012;125(9):1157-70."
+          },
+          "hall": {
+            "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
+            "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          },
+          "hallWeight": {
+            "title": "Hall KD.",
+            "citation": "What is the required energy deficit per unit weight loss? Int J Obes (Lond). 2008;32(3):573–576."
+          },
+          "niddk": {
+            "title": "National Institute of Diabetes and Digestive and Kidney Diseases.",
+            "citation": "About the Body Weight Planner. Background on personalized weight-change estimates; the app does not implement this model."
+          }
+        }
+      }
+    }
+  },
+  "accountScreen": {
+    "title": "Cuenta",
+    "switchAccount": "Cambiar de cuenta",
+    "dangerZone": "Zona de peligro",
+    "deleteAction": "Eliminar cuenta",
+    "deleteDescription": "Se eliminarán de forma permanente tu cuenta en la nube y todos los datos de este dispositivo. Se creará una nueva sesión anónima.",
+    "deleteTitle": "¿Eliminar la cuenta?",
+    "deleteMessage": "Todos tus datos en la nube y en el dispositivo se eliminarán de forma permanente. Esta acción no se puede deshacer.",
+    "deleteConfirm": "Eliminar todo",
+    "deleteSuccess": "Cuenta y datos eliminados.",
+    "deleteError": "No se pudo eliminar la cuenta en este momento. Inténtalo de nuevo.",
+    "deleteDataAction": "Eliminar todos los datos",
+    "deleteDataTitle": "¿Eliminar todos los datos?",
+    "deleteDataMessage": "Se eliminarán de forma permanente todos tus datos de nutrición, locales y en la nube. Esta acción no se puede deshacer.",
+    "deleteDataConfirm": "Eliminar todo",
+    "deleteDataSuccess": "Se eliminaron todos los datos de nutrición.",
+    "deleteDataError": "No se pudieron eliminar los datos. Inténtalo de nuevo.",
+    "logoutAction": "Cerrar sesión",
+    "logoutTitle": "¿Cerrar sesión?",
+    "logoutMessage": "Se cerrará tu sesión y se creará una nueva sesión anónima. Tus datos en la nube están a salvo.",
+    "logoutConfirm": "Cerrar sesión",
+    "logoutSuccess": "Sesión cerrada.",
+    "logoutError": "No se pudo cerrar la sesión en este momento.",
+    "joinedAt": "Te uniste el {{value}}",
+    "joinedAtUnknown": "Fecha de registro desconocida"
+  },
+  "profileScreen": {
+    "actionError": "No se pudieron actualizar los datos en este momento. Inténtalo de nuevo.",
+    "reminders": {
+      "subtitle": "Cada recordatorio tiene su propio interruptor. Agrega los tuyos para snacks u otros hábitos que quieras seguir.",
+      "breakfast": "Desayuno",
+      "lunch": "Almuerzo",
+      "dinner": "Cena",
+      "mealWindow": "{{start}}–{{end}}",
+      "customTag": "Personalizado",
+      "addButton": "Agregar recordatorio",
+      "limitReached": "Puedes tener hasta {{count}} recordatorios.",
+      "toggleA11y": "Activar o desactivar el recordatorio de {{name}}",
+      "changeTimeA11y": "Cambiar la hora del recordatorio de {{name}}",
+      "editA11y": "Editar el recordatorio de {{name}}",
+      "editor": {
+        "addTitle": "Nuevo recordatorio",
+        "editTitle": "Editar recordatorio",
+        "nameLabel": "Nombre",
+        "namePlaceholder": "p. ej., Merienda",
+        "timeLabel": "Recordarme a las",
+        "defaultName": "Recordatorio"
+      },
+      "permissionDenied": "La app no tiene permiso para enviar notificaciones.",
+      "adjustedToMealWindow": "La hora del recordatorio se ajustó al horario válido de la comida.",
+      "channelName": "Recordatorios de calorías",
+      "notifications": {
+        "breakfast": {
+          "title": "Hora de registrar el desayuno",
+          "body": "Abre la app para escanear tu comida y mantener tus calorías al día."
+        },
+        "lunch": {
+          "title": "Hora de registrar el almuerzo",
+          "body": "Un recordatorio rápido: actualiza tus calorías para seguir tu plan de hoy."
+        },
+        "dinner": {
+          "title": "Hora de registrar la cena",
+          "body": "Cierra el día registrando tu cena en unos pocos toques."
+        },
+        "custom": {
+          "body": "Abre la app para registrar lo que acabas de comer."
+        }
+      }
+    }
+  },
+  "goalTracking": {
+    "progressKcal": "{{current}} / {{target}} kcal",
+    "progressMaintainDays": "{{current}} / {{target}} días en meta",
+    "goalNames": {
+      "maintain": "Mantener peso",
+      "loseWithValue": "Bajar {{value, number}} kg",
+      "gainWithValue": "Subir {{value, number}} kg",
+      "maintainWithValue": "Mantener {{value}} días",
+      "maintainWithOneMonth": "Mantener 1 mes",
+      "maintainWithMonths": "Mantener {{value}} meses"
+    },
+    "status": {
+      "active": "Activa",
+      "completed": "Completada",
+      "cancelled": "Detenida",
+      "ended": "Finalizada"
+    },
+    "history": {
+      "subtitle": "Metas que completaste o cambiaste a mitad de camino.",
+      "empty": "Todavía no tienes historial de metas.",
+      "period": {
+        "completed": "Inicio {{start}} · Completada {{end}}",
+        "cancelled": "Inicio {{start}} · Detenida {{end}}",
+        "ended": "Inicio {{start}} · Finalizada {{end}}"
+      }
+    },
+    "today": {
+      "remaining": "Quedan {{value}} kcal",
+      "onTarget": "En meta",
+      "over": "{{value}} kcal de más"
+    }
+  },
+  "achievements": {
+    "streakHistory": "Historial de rachas",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "legendOnTarget": "En meta",
+    "legendLogged": "Registrado",
+    "badges": "Insignias",
+    "unlockedCount": "{{unlocked}}/{{total}} desbloqueadas",
+    "done": "Listo",
+    "items": {
+      "streak_7": "Racha de 7 días",
+      "streak_14": "Racha de 14 días",
+      "streak_30": "Racha de 30 días",
+      "on_target_7": "7 días en meta",
+      "protein_5": "5 días con proteínas",
+      "balanced_7": "7 días equilibrados",
+      "entries_10": "10 alimentos registrados",
+      "entries_100": "100 alimentos registrados"
+    }
+  },
+  "auth": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "welcomeBack": "¡Hola de nuevo!",
+    "welcomeBackSubtitle": "Inicia sesión para seguir registrando tu nutrición y mantener tus datos sincronizados.",
+    "emailPlaceholder": "nombre@ejemplo.com",
+    "passwordPlaceholder": "Al menos 8 caracteres",
+    "confirmPasswordPlaceholder": "Repite tu contraseña",
+    "signIn": "Iniciar sesión",
+    "signInWithGoogle": "Iniciar sesión con Google",
+    "signUp": "Crear cuenta",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "registerPageTitle": "Registrarse",
+    "registerAction": "Registrarse",
+    "upgradeAccount": "Proteger esta cuenta",
+    "goToLogin": "Ya tengo una cuenta",
+    "goToRegister": "Crear una cuenta de sincronización",
+    "loginTitle": "Inicia sesión en tu cuenta de sincronización",
+    "loginCardSubtitle": "Inicia sesión con tus credenciales.",
+    "loginSubtitle": "Usa una cuenta existente para cargar en este dispositivo tus datos de nutrición sincronizados.",
+    "loginSubtitleAnonymous": "Inicia sesión solo si ya tienes una cuenta. Para proteger esta sesión anónima, usa Crear cuenta.",
+    "registerTitle": "Crear una cuenta de sincronización",
+    "registerSubtitle": "Crea una cuenta nueva para poder recuperar tus datos de nutrición en otro dispositivo.",
+    "registerUpgradeTitle": "Protege estos datos sincronizados",
+    "registerUpgradeSubtitle": "Vincula esta sesión anónima con tu correo, Google o Apple para poder recuperar tus datos más adelante.",
+    "loginSuccess": "Sesión iniciada.",
+    "loginFailed": "No se pudo iniciar sesión en este momento.",
+    "loginConfirmTitle": "¿Reemplazar los datos locales?",
+    "loginConfirmMessage": "Al iniciar sesión, todos los datos de este dispositivo se reemplazarán por los de tu cuenta en la nube. Esta acción no se puede deshacer.",
+    "loginConfirmAction": "Iniciar sesión",
+    "syncPhaseAuth": "Iniciando sesión…",
+    "syncPhaseData": "Sincronizando tus datos…",
+    "syncPleaseWait": "Espera un momento, esto puede tardar un poco.",
+    "syncFailedTitle": "Error de sincronización",
+    "syncFailedMessage": "No se pudieron sincronizar tus datos desde la nube. Puedes reintentar u omitirlo por ahora.",
+    "syncRetry": "Reintentar",
+    "syncSkip": "Omitir por ahora",
+    "forgotPasswordTitle": "Restablece tu contraseña",
+    "forgotPasswordSubtitle": "Ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.",
+    "forgotPasswordAction": "Enviar enlace",
+    "forgotPasswordSuccess": "Si el correo existe, te enviamos un enlace para restablecer la contraseña.",
+    "forgotPasswordFailed": "No se pudo enviar el enlace en este momento.",
+    "resetPasswordTitle": "Crea una nueva contraseña",
+    "resetPasswordSubtitle": "Elige una contraseña nueva para tu cuenta.",
+    "resetPasswordAction": "Guardar contraseña",
+    "resetPasswordSuccess": "Tu contraseña se actualizó.",
+    "resetPasswordFailed": "No se pudo actualizar la contraseña en este momento.",
+    "registerSuccess": "Cuenta creada.",
+    "registerFailed": "No se pudo crear ni proteger esta cuenta en este momento.",
+    "lastSyncAt": "Última sincronización: {{value}}",
+    "lastSignedInAt": "Último inicio de sesión: {{value}}",
+    "lastSignedInUnknown": "Último inicio de sesión: no disponible"
+  },
+  "legal": {
+    "updatedTitle": "Última actualización",
+    "updatedDate": "15 de mayo de 2024",
+    "about": {
+      "heroTitle": "Come bien,\nvive bien",
+      "heroSubtitle": "Una app inteligente para seguir tus calorías y tu nutrición",
+      "heroBody": "Check Calo te ayuda a entender tu cuerpo, controlar tus calorías diarias y alcanzar tus metas de salud día a día.",
+      "features": {
+        "tracking": {
+          "title": "Registro diario de calorías",
+          "body": "Registra las calorías de cada comida en segundos y mira tu progreso del día de un vistazo."
+        },
+        "goals": {
+          "title": "Metas personalizadas",
+          "body": "Define metas de nutrición que se adapten a tu cuerpo, tu estilo de vida y tus objetivos de salud."
+        },
+        "meals": {
+          "title": "Análisis de tus comidas",
+          "body": "Registra desayuno, almuerzo, cena y snacks para entender tus hábitos de alimentación."
+        }
+      }
+    },
+    "terms": {
+      "title": "Términos del servicio",
+      "summary": "Lee con atención estos términos antes de usar la app Check Calo.",
+      "readMore": "Leer más",
+      "readLess": "Mostrar menos",
+      "items": {
+        "acceptance": {
+          "title": "Aceptación de los términos",
+          "body": "Al usar Check Calo, aceptas cumplir los términos y condiciones descritos en este documento."
+        },
+        "purpose": {
+          "title": "Finalidad de uso",
+          "body": "La app te ayuda a registrar calorías, nutrición y metas personales. No sustituye el consejo ni el tratamiento médico."
+        },
+        "account": {
+          "title": "Cuenta de usuario",
+          "body": "Eres responsable de proteger la información de tu cuenta y de mantener tus datos de salud correctos."
+        },
+        "prohibited": {
+          "title": "Conductas prohibidas",
+          "body": "No uses la app con fines ilegales, para interrumpir el servicio ni para perjudicar a otras personas usuarias."
+        },
+        "liability": {
+          "title": "Limitación de responsabilidad",
+          "body": "La información nutricional es solo de referencia. Tú sigues siendo responsable de tus decisiones de salud y alimentación."
+        }
+      },
+      "moreItems": {
+        "changes": {
+          "title": "Cambios en estos términos",
+          "body": "Podemos actualizar estos términos con el tiempo para reflejar cambios en el producto o requisitos legales."
+        },
+        "retention": {
+          "title": "Conservación de datos",
+          "body": "Es posible que conservemos algunos datos para mantener tu experiencia, la sincronización y la recuperación del historial."
+        },
+        "contact": {
+          "title": "Contactar con soporte",
+          "body": "Si tienes preguntas sobre estos términos, escríbenos desde la página de soporte de la app."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Política de privacidad",
+      "summary": "Nos comprometemos a proteger tu privacidad y a explicarte cómo se usan los datos en Check Calo.",
+      "items": {
+        "collection": {
+          "title": "Información que recopilamos",
+          "body": "Podemos recopilar la información que nos proporcionas, como nombre, correo electrónico, fecha de nacimiento, sexo, estatura, peso y registros de comidas."
+        },
+        "use": {
+          "title": "Cómo usamos la información",
+          "body": "Usamos los datos para ofrecerte metas personalizadas, seguimiento nutricional y una mejor experiencia en la app."
+        },
+        "sharing": {
+          "title": "Compartir información",
+          "body": "No vendemos ni compartimos datos personales con terceros, salvo que lo exija la ley o contemos con tu consentimiento."
+        },
+        "voice": {
+          "title": "Entrada por voz",
+          "body": "Cuando hablas en el chat, el servicio de voz de tu teléfono (Apple o Google) lo convierte en texto. El audio puede enviarse a ese servicio para su reconocimiento; Check Calo solo guarda el texto que envías."
+        },
+        "security": {
+          "title": "Seguridad de los datos",
+          "body": "Aplicamos medidas técnicas y organizativas razonables para proteger tu información frente a accesos no autorizados."
+        },
+        "rights": {
+          "title": "Tus derechos",
+          "body": "Puedes acceder a tus datos personales, actualizarlos, corregirlos o solicitar su eliminación desde la app o a través de soporte."
+        },
+        "changes": {
+          "title": "Cambios en la política",
+          "body": "Podemos actualizar esta política. Anunciaremos en la app cualquier cambio importante."
+        }
+      },
+      "updatedDate": "1 de noviembre de 2026"
+    },
+    "help": {
+      "title": "¿Necesitas ayuda?",
+      "body": "Escríbenos si tienes preguntas sobre estos términos o tu privacidad.",
+      "action": "Contacto"
+    }
+  },
+  "contactScreen": {
+    "title": "Contacto",
+    "heroTitle": "Ponte en contacto",
+    "formTitle": "Envíanos un mensaje",
+    "formSubtitle": "Solo déjanos tu correo y el problema que tienes.",
+    "copyHint": "Toca para copiar",
+    "copySuccess": "Datos de contacto copiados.",
+    "submitAction": "Enviar",
+    "submitSuccess": "Recibimos tu solicitud de contacto.",
+    "emailLabel": "Correo electrónico",
+    "emailValue": "checkcalosupport@gmail.com",
+    "phoneLabel": "Teléfono",
+    "phoneValue": "0373060206",
+    "locationLabel": "Oficina",
+    "locationValue": "No. 2A, Street 55, Quarter 2, Binh Duong Ward, Ho Chi Minh City, Vietnam",
+    "workingDaysLabel": "Horario de atención",
+    "workingDaysValue": "Lunes a sábado | 08:00 - 17:00",
+    "emailPlaceholder": "Tu correo",
+    "problemPlaceholder": "Cuéntanos el problema"
+  },
+  "settings": {
+    "about": "Acerca de",
+    "privacy": "Política de privacidad",
+    "terms": "Términos del servicio",
+    "contact": "Contacto"
+  },
+  "settingsScreen": {
+    "title": "Ajustes",
+    "subtitle": "Cuenta, datos personales y pantalla",
+    "general": "General",
+    "healthAndPrivacy": "Salud y privacidad"
+  },
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "message": "La app tuvo un error inesperado. Inténtalo de nuevo.",
+    "retry": "Reintentar"
+  },
+  "network": {
+    "offline": "Parece que no tienes conexión",
+    "online": "Conexión restablecida"
+  },
+  "notFound": {
+    "title": "No encontrado",
+    "message": "Esta pantalla no existe.",
+    "goHome": "Ir al inicio"
+  },
+  "errors": {
+    "title": "Error",
+    "generic": "Algo salió mal. Inténtalo de nuevo.",
+    "network": "Error de red. Revisa tu conexión.",
+    "auth": "Error de autenticación."
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "emailInvalid": "Ingresa un correo electrónico válido",
+    "numberInvalid": "Ingresa un número válido",
+    "passwordMin": "La contraseña debe tener al menos 8 caracteres",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "usernameMin": "El nombre de usuario debe tener al menos 3 caracteres",
+    "usernameMax": "El nombre de usuario debe tener como máximo 20 caracteres",
+    "usernameFormat": "El nombre de usuario solo puede tener letras, números y guiones bajos"
+  },
+  "camera": {
+    "title": "Cámara",
+    "scanTitle": "Escanear código QR",
+    "barcodeTitle": "Escanear código de barras",
+    "scanHint": "Coloca el código QR dentro del marco para escanearlo automáticamente.",
+    "barcodeHint": "Coloca el código de barras dentro del marco para escanearlo automáticamente.",
+    "permissionDenied": "Se denegó el permiso de cámara.",
+    "libraryPermissionDenied": "Se denegó el permiso de acceso a las fotos.",
+    "captureFailed": "No se pudo tomar la foto. Inténtalo de nuevo.",
+    "libraryPickFailed": "No se pudo elegir la foto. Inténtalo de nuevo.",
+    "scanFailed": "No se pudo escanear el código. Inténtalo de nuevo.",
+    "actions": {
+      "close": "Cerrar",
+      "flip": "Cambiar cámara",
+      "capture": "Tomar foto",
+      "toggleFlash": "Activar o desactivar el flash"
+    }
+  },
+  "macros": {
+    "calories": "Calorías",
+    "carbs": "Carbohidratos",
+    "protein": "Proteínas",
+    "fat": "Grasas"
+  },
+  "nutrients": {
+    "title": "Detalle de nutrientes",
+    "fiberGrams": "Fibra",
+    "sugarGrams": "Azúcares",
+    "saturatedFatGrams": "Grasas saturadas",
+    "transFatGrams": "Grasas trans",
+    "cholesterolMg": "Colesterol",
+    "sodiumMg": "Sodio",
+    "potassiumMg": "Potasio",
+    "unknown": "—",
+    "emptyHint": "Aún no hay datos detallados de este alimento. Toca Editar para ingresar los valores de la etiqueta nutricional.",
+    "dailyValueHint": "% de la referencia diaria para una dieta de 2000 kcal. Intenta alcanzarla en fibra y potasio; en los demás, mantente por debajo.",
+    "showDetails": "Mostrar detalle de nutrientes",
+    "hideDetails": "Ocultar detalle de nutrientes"
+  },
+  "mealSlots": {
+    "breakfast": "Desayuno",
+    "lunch": "Almuerzo",
+    "dinner": "Cena",
+    "snack": "Snack"
+  },
+  "chat": {
+    "title": "Check AI",
+    "subtitle": "Pregunta lo que quieras sobre tus comidas de hoy",
+    "placeholder": "¿Qué comiste hoy?",
+    "send": "Enviar",
+    "voiceInput": "Entrada por voz",
+    "attachPhoto": "Adjuntar una foto",
+    "takePhoto": "Tomar foto",
+    "pickFromLibrary": "Elegir de la galería",
+    "removePhoto": "Quitar foto",
+    "welcome": "¡Hola! Soy tu asistente de nutrición. Cuéntame qué comiste, envíame una foto o pídeme ideas de comidas que se ajusten a tu meta.",
+    "thinking": "Check AI está pensando…",
+    "photoOnlyPrompt": "Registra la comida de esta foto.",
+    "fallbackReply": "Esto es lo que encontré.",
+    "errorReply": "Lo siento, no pude analizarlo. Inténtalo de nuevo.",
+    "addToDiary_one": "Agregar al diario",
+    "addToDiary_many": "Agregar {{count}} alimentos al diario",
+    "addToDiary_other": "Agregar {{count}} alimentos al diario",
+    "addSuggestion": "Agregar al diario",
+    "logged": "Agregado",
+    "loggedToast": "Guardado en tu diario",
+    "total": "Total",
+    "undo": "Deshacer",
+    "undoToast": "Se quitó de tu diario",
+    "scanBarcode": "Escanear código de barras",
+    "recentTitle": "Recientes",
+    "recentChip": "{{name}} · {{calories}} kcal",
+    "recentLogged": "Se agregó {{name}} a tu diario.",
+    "barcodeMessage": "Código de barras {{code}}",
+    "barcodeFound": "Encontré {{name}}. Revisa la porción y luego agrégalo a tu diario.",
+    "barcodeNotFound": "No encontré ningún producto con el código {{code}}. Prueba a describir el alimento o enviar una foto.",
+    "barcodeLookupFailed": "No se pudo buscar ese código de barras. Revisa tu conexión e inténtalo de nuevo.",
+    "followUps": {
+      "logBreakfast": "Desayuné dos huevos revueltos con pan tostado",
+      "suggestDinner": "Sugiéreme una cena alta en proteínas de menos de 700 kcal"
+    }
+  },
+  "voice": {
+    "listening": "Escuchando…",
+    "stop": "Dejar de escuchar",
+    "permissionDenied": "Permite el micrófono y el reconocimiento de voz en Ajustes para dictar tus comidas.",
+    "failed": "No te escuché bien. Inténtalo de nuevo o escríbelo."
+  },
+  "mealDetail": {
+    "title": "Detalle de la comida",
+    "nutrition": "Información nutricional",
+    "ringsHint": "Los anillos muestran la parte de tu meta diaria.",
+    "notFound": "Este alimento ya no está en tu diario.",
+    "deleteAction": "Eliminar del diario",
+    "deleteTitle": "¿Eliminar este alimento?",
+    "deleteMessage": "Se quitará de tu diario y de los totales del día.",
+    "deleteSuccess": "Alimento eliminado",
+    "saveSuccess": "Cambios guardados",
+    "fields": {
+      "name": "Nombre del alimento",
+      "quantity": "Porción",
+      "calories": "Calorías (kcal)",
+      "protein": "Proteínas (g)",
+      "carbs": "Carbohidratos (g)",
+      "fat": "Grasas (g)",
+      "notes": "Notas"
+    }
+  },
+  "onboarding": {
+    "headerTitle": "Primeros pasos",
+    "title": "¡Te damos la bienvenida a Check Calo!",
+    "subtitle": "Cuéntale a {{name}} un poco sobre ti para crear un plan a tu medida.",
+    "displayName": "Nombre visible",
+    "displayNamePlaceholder": "Tu nombre",
+    "age": "Edad",
+    "gender": "Sexo",
+    "genders": {
+      "male": "Hombre",
+      "female": "Mujer",
+      "other": "Otro"
+    },
+    "height": "Estatura",
+    "weight": "Peso",
+    "bmi": "IMC",
+    "bmiCategories": {
+      "underweight": {
+        "title": "Bajo peso"
+      },
+      "normal": {
+        "title": "Peso saludable"
+      },
+      "overweight": {
+        "title": "Sobrepeso"
+      },
+      "obese": {
+        "title": "Obesidad"
+      }
+    },
+    "goal": "Tu meta",
+    "goals": {
+      "lose": {
+        "title": "Bajar de peso",
+        "description": "Quemar grasa y adelgazar"
+      },
+      "maintain": {
+        "title": "Mantener",
+        "description": "Conservar tu peso actual"
+      },
+      "gain": {
+        "title": "Subir de peso",
+        "description": "Ganar masa de forma saludable"
+      }
+    },
+    "activity": "Nivel de actividad",
+    "activities": {
+      "sedentary": "Sedentario",
+      "light": "Poco activo",
+      "moderate": "Moderadamente activo",
+      "active": "Muy activo"
+    },
+    "plan": "Tu plan estimado",
+    "saveSuccess": "Perfil guardado",
+    "healthSources": "Cómo lo calculamos",
+    "validation": {
+      "age": "Ingresa una edad entre 10 y 100"
+    },
+    "targetWeight": "Peso meta",
+    "targetBmiWarning": "Esta meta está por debajo de un IMC saludable (18,5). Considera consultarlo con un profesional de la salud.",
+    "planLoading": {
+      "title": "Creando tu plan…",
+      "bmr": "Calculando tu metabolismo en reposo (TMB)…",
+      "energy": "Estimando cuánta energía gastas cada día…",
+      "pace": "Buscando un ritmo seguro para tu meta…",
+      "roadmap": "Trazando el camino hacia tu meta…"
+    },
+    "planResults": {
+      "target": "Peso meta",
+      "targetChange": "{{value}} kg desde hoy",
+      "targetMaintain": "Mantén tu peso actual",
+      "daily": "kcal al día",
+      "dailyHint": "En meta: {{min}}–{{max}}",
+      "weekly": "kcal a la semana",
+      "weeklyHint": "{{value}} kg a la semana",
+      "weeklyMaintain": "Peso estable",
+      "date": "Fecha estimada",
+      "dateHint": "En {{weeks}}",
+      "dateMaintain": "Continuo",
+      "dateMaintainHint": "Sin fecha de fin"
+    },
+    "step": "Paso {{current}} de {{total}} · {{title}}",
+    "steps": {
+      "about": "Tú y tu meta",
+      "plan": "Plan"
+    },
+    "createPlan": "Crear mi plan",
+    "start": "Empezar",
+    "goalLabel": "Meta",
+    "planSummary": {
+      "lose": "Tu mantenimiento es de ~{{tdee}} kcal/día; con el plan comes {{gap}} kcal menos.",
+      "gain": "Tu mantenimiento es de ~{{tdee}} kcal/día; con el plan comes {{gap}} kcal más.",
+      "maintain": "Tu mantenimiento es de ~{{tdee}} kcal/día; comer alrededor de esa cifra mantiene tu peso.",
+      "macros": "Cada día: proteínas {{protein}} g · grasas {{fat}} g · carbohidratos {{carbs}} g.",
+      "estimate": "Es una estimación; la app la ajusta a medida que registras tu peso."
+    },
+    "weightAndTarget": "Peso / meta",
+    "calorieAdjustment": {
+      "lose": "Déficit calórico",
+      "gain": "Superávit calórico",
+      "maintain": "Ajuste calórico"
+    },
+    "editTitle": "Actualiza tu meta",
+    "editSubtitle": "Revisa tus datos y ajusta tu meta para que {{name}} actualice tu plan.",
+    "previewUpdate": "Ver plan actualizado"
+  },
+  "buddy": {
+    "openBuddy": "Abrir {{name}}",
+    "title": "Mascota",
+    "subtitle": "Haz crecer a {{name}} con cada día saludable",
+    "rename": "Cambiar el nombre de tu mascota",
+    "renameLabel": "Cambiar el nombre de {{name}}",
+    "namePlaceholder": "Nombre de la mascota",
+    "levelTitle": "Nivel {{level}} - {{stage}}",
+    "levelShort": "Nv. {{level}}",
+    "stages": {
+      "baby": "Bebé",
+      "junior": "Junior",
+      "teen": "Joven",
+      "buddy": "Pro",
+      "master": "Maestro"
+    },
+    "progressToNext": "{{percent}} % · faltan {{points}} puntos para el siguiente nivel",
+    "maxLevel": "¡Nivel máximo alcanzado!",
+    "journey": "El camino de crecimiento de {{name}}",
+    "nextReward": "Recompensa del siguiente nivel",
+    "nextRewardHint": "Llega a {{points}} puntos para que {{name}} evolucione a {{stage}}",
+    "stats": {
+      "subtitle": "Toca una estadística para ver los detalles",
+      "legendOverall": "Siempre",
+      "legendRecent": "Últimos 7 días",
+      "axisLabel": "{{axis}}: {{score}} puntos. Ver detalles",
+      "axisLocked": "{{axis}}: aún no hay datos suficientes. Ver detalles",
+      "intro": "{{name}} te está conociendo",
+      "introHint_one": "Registra comidas {{count}} día más para desbloquear las estadísticas.",
+      "introHint_many": "Registra comidas {{count}} días más para desbloquear las estadísticas.",
+      "introHint_other": "Registra comidas {{count}} días más para desbloquear las estadísticas."
+    },
+    "axes": {
+      "calories": {
+        "name": "Meta de calorías",
+        "short": "Calorías",
+        "measure": "Calorías frente a la meta del día, ya sea para bajar, subir o mantener tu peso.",
+        "goal": "100 puntos cuando las calorías quedan dentro del rango meta.",
+        "tip": "Registra lo que comes justo después de comer para saber cuánto te queda para la siguiente comida."
+      },
+      "nutrients": {
+        "name": "Macros",
+        "short": "Macros",
+        "measure": "Qué parte de tus metas de proteínas, carbohidratos y grasas alcanzaste. Pasarte no suma puntos.",
+        "goal": "100 puntos cuando los tres alcanzan su meta.",
+        "tip": "Incluye en cada comida algo de proteínas (carne, pescado, huevos, legumbres), carbohidratos (arroz, pan) y un poco de grasa saludable."
+      },
+      "quality": {
+        "name": "Nutrición",
+        "short": "Nutrición",
+        "measure": "Suficiente fibra, con azúcares, sal y grasas poco saludables por debajo de los límites recomendados. Solo se puntúan los días en que al menos el 70 % de las calorías tiene estos datos.",
+        "goal": "100 puntos con suficiente fibra y todo por debajo de su límite.",
+        "tip": "Agrega verduras, fruta y legumbres; reduce las salsas, los ultraprocesados y los refrescos."
+      },
+      "timing": {
+        "name": "A tiempo",
+        "short": "A tiempo",
+        "measure": "Si las comidas principales se hacen a la hora de tus recordatorios (con margen de una hora) o, sin recordatorios, en horarios habituales. Comer después de las 22:00 resta puntos.",
+        "goal": "100 puntos cuando todas las comidas principales son a tiempo y no comes tarde.",
+        "tip": "Activa recordatorios de comidas e intenta terminar de cenar antes de las 20:30."
+      },
+      "meals": {
+        "name": "Comidas completas",
+        "short": "Comidas",
+        "measure": "Comidas principales (desayuno, almuerzo, cena) registradas en el día. Los snacks no cuentan.",
+        "goal": "100 puntos por las tres comidas principales.",
+        "tip": "No te saltes el desayuno; saltarte comidas hace que la siguiente sea más grande."
+      },
+      "consistency": {
+        "name": "Constancia",
+        "short": "Constancia",
+        "measure": "Registrar comidas todos los días desde que empezaste.",
+        "goal": "100 puntos por cada día que registras.",
+        "tip": "Activa los recordatorios de comidas para no olvidarte de registrar."
+      }
+    },
+    "insight": {
+      "strong": {
+        "calories": "¡Sigues tu plan de calorías de maravilla!",
+        "nutrients": "¡Tus comidas cubren todos los macros!",
+        "quality": "¡Comes muy sano y {{name}} se siente genial!",
+        "timing": "¡Comes a tus horas como un reloj!",
+        "meals": "¡Tres comidas todos los días, genial!",
+        "consistency": "¡Registras todos los días y {{name}} te lo agradece!"
+      },
+      "weak": {
+        "calories": {
+          "lose": "Algunos días te pasaste de calorías; cuida la cena.",
+          "gain": "Algunos días te faltaron calorías; agrega un snack.",
+          "maintain": "Las calorías se alejaron de la meta; mantenlas estables."
+        },
+        "nutrients": "Te faltan algunos macros; agrega proteínas o carbohidratos a tus comidas.",
+        "quality": "Pocas verduras o mucho azúcar y sal; equilibra un poco.",
+        "timing": "Tus horarios de comida son algo irregulares; intenta comer a tus horas.",
+        "meals": "Te saltas comidas a menudo; intenta hacer tres comidas principales.",
+        "consistency": "Registra más seguido para que {{name}} te conozca mejor."
+      },
+      "allGood": "¡Todas las estadísticas se ven muy bien, sigue así!"
+    },
+    "detail": {
+      "ranges": {
+        "week": "7 días",
+        "month": "30 días",
+        "all": "Siempre"
+      },
+      "averageScore": "Puntuación media",
+      "noData": "Aún no hay datos de esta estadística en el periodo elegido.",
+      "todayPending": "Hoy no cuenta hasta que termine el día.",
+      "chartTitle": "Puntuación por día",
+      "chartTitleWeekly": "Puntuación media por semana",
+      "dailyAverage": "Promedio diario",
+      "metDays": "Días con 100 puntos",
+      "metDaysValue": "{{met}} / {{total}} días",
+      "bestDay": "Mejor día",
+      "bestDayValue": "{{date}} · {{score}} puntos",
+      "tipTitle": "Consejo de {{name}}",
+      "values": {
+        "calories": "{{value}} / {{target}} kcal",
+        "nutrients": "Proteínas {{protein}} % · Carbohidratos {{carbs}} % · Grasas {{fat}} % de la meta",
+        "quality": "Fibra {{fiber}} g · Sodio {{sodium}} mg · Azúcares {{sugar}} g",
+        "timing": "{{value}} % de comidas a tiempo · {{late}} días comiendo tarde",
+        "meals": "{{value}} / 3 comidas principales",
+        "consistency": "{{value}} / {{target}} días registrados"
+      },
+      "topFoods": {
+        "protein": "Alimentos con más proteínas",
+        "calories": "Alimentos con más calorías",
+        "fiber": "Alimentos con más fibra",
+        "sodium": "Alimentos con más sodio"
+      },
+      "amounts": {
+        "protein": "{{value}} g",
+        "calories": "{{value}} kcal",
+        "fiber": "{{value}} g",
+        "sodium": "{{value}} mg"
+      },
+      "timesEaten_one": "{{count}} vez",
+      "timesEaten_many": "{{count}} veces",
+      "timesEaten_other": "{{count}} veces",
+      "notFound": "Esta estadística no existe.",
+      "noDataQuality": "Aún no hay suficientes datos de fibra, azúcares y sal. Registra comidas por el chat o escanea un código de barras para que Buddy pueda puntuar esto."
+    },
+    "calorieGoal": {
+      "lose": "Bajar de peso: comer por debajo de la meta está bien, siempre que no bajes del mínimo seguro.",
+      "gain": "Subir de peso: llega a la meta; pasarte un poco está bien.",
+      "maintain": "Mantener tu peso: desviarte hacia cualquier lado resta puntos."
+    },
+    "quests": {
+      "title": "Misiones",
+      "subtitle": "Complétalas para que {{name}} crezca más rápido",
+      "tabs": {
+        "daily": "Diarias",
+        "weekly": "Semanales",
+        "special": "Especiales"
+      },
+      "done": "Completada",
+      "settling": "Vas bien · se confirma al terminar el día",
+      "firstLogOpen": "Aún no registras nada hoy",
+      "limitsNeedsData": "Necesita 2 comidas principales con datos de azúcares y sal",
+      "limitsOpen": "Se confirma al terminar el día",
+      "progress": {
+        "kcal": "{{value}} / {{target}} kcal",
+        "g": "{{value}} / {{target}} g",
+        "macros": "{{value}} / {{target}} macros",
+        "days": "{{value}} / {{target}} días"
+      },
+      "weekDone": "Completada esta semana",
+      "levelUp_one": "Subiste de nivel {{count}} vez",
+      "levelUp_many": "Subiste de nivel {{count}} veces",
+      "levelUp_other": "Subiste de nivel {{count}} veces",
+      "levelUpOpen": "Llega al siguiente nivel para ganar una insignia",
+      "badge": "Insignia",
+      "weightGoalOpen": "Completa una meta de peso",
+      "weightGoalDone_one": "{{count}} meta cumplida · sigue para conseguir más",
+      "weightGoalDone_many": "{{count}} metas cumplidas · sigue para conseguir más",
+      "weightGoalDone_other": "{{count}} metas cumplidas · sigue para conseguir más",
+      "accountOpen": "Regístrate para conservar tus datos en un teléfono nuevo",
+      "accountDone": "Cuenta creada",
+      "points": "+{{points}}",
+      "earnedTitle": "¡Misión completada!",
+      "earnedToast": "+{{points}} puntos · {{title}}",
+      "earnedManyToast_one": "+{{points}} puntos por {{count}} misión",
+      "earnedManyToast_many": "+{{points}} puntos por {{count}} misiones",
+      "earnedManyToast_other": "+{{points}} puntos por {{count}} misiones",
+      "empty": "Aún no hay misiones"
+    },
+    "calorieChart": {
+      "title": "Calorías consumidas",
+      "tabs": {
+        "week": "Semana",
+        "year": "Año"
+      },
+      "previous": {
+        "week": "Semana anterior",
+        "year": "Año anterior"
+      },
+      "next": {
+        "week": "Semana siguiente",
+        "year": "Año siguiente"
+      },
+      "other": "Otros",
+      "goal": "Meta",
+      "noLog": "Sin registros",
+      "monthAverage_one": "Promedio diario · {{count}} día registrado",
+      "monthAverage_many": "Promedio diario · {{count}} días registrados",
+      "monthAverage_other": "Promedio diario · {{count}} días registrados"
+    },
+    "levelRange": "Nivel {{from}}–{{to}}"
+  },
+  "profileTab": {
+    "guest": "Invitado",
+    "guestAccount": "Cuenta de invitado · los datos se quedan en este dispositivo",
+    "reminders": "Recordatorios",
+    "appearance": "Apariencia",
+    "language": "Idioma",
+    "goalHistory": "Historial de metas",
+    "other": "Otros",
+    "support": "Apoya Check Calo",
+    "healthSources": "Fuentes de información de salud",
+    "signIn": "Iniciar sesión / crear cuenta",
+    "signInHint": "Guarda una copia de tu diario en la nube",
+    "resetData": "Eliminar todos mis datos",
+    "resetTitle": "¿Eliminar todos los datos?",
+    "resetMessage": "Se eliminarán de forma permanente tu diario, tus metas y tu perfil en este dispositivo y en la nube.",
+    "resetConfirm": "Eliminar",
+    "version": "Versión {{version}}",
+    "account": "Cuenta"
+  },
+  "devTools": {
+    "group": "Desarrollador",
+    "toggle": "Modo desarrollador",
+    "toggleHint": "Herramientas para probar la interfaz. Solo en versiones de desarrollo.",
+    "title": "Herramientas de prueba de UI",
+    "subtitle": "Datos y estados falsos para revisar pantallas",
+    "sampleData": "Datos de ejemplo",
+    "seed": "Agregar comidas de ejemplo de {{count}} días",
+    "seedHint": "Solo se guardan en este dispositivo, nunca se sincronizan",
+    "clear": "Quitar comidas de ejemplo",
+    "clearHint": "Solo quita las filas de ejemplo; los registros reales se mantienen",
+    "seeded": "Se agregaron {{count}} comidas de ejemplo",
+    "cleared": "Se quitaron {{count}} comidas de ejemplo",
+    "screenStates": "Estados de pantalla",
+    "forceEmptyDiary": "Diario vacío en Inicio",
+    "forceEmptyDiaryHint": "Muestra el estado vacío aunque haya comidas registradas",
+    "chatScenario": "Respuesta de Check AI",
+    "chatScenarioHint": "Simula cómo responde la IA en el chat",
+    "chatScenarios": {
+      "normal": "Normal",
+      "slow": "Lenta (3 s)",
+      "quota": "Sin cuota",
+      "auth": "Sin sesión",
+      "error": "Error"
+    },
+    "fakeBarcode": "Simular escaneo de código de barras",
+    "fakeBarcodeHint": "El botón de código de barras del chat usa un producto de ejemplo en lugar de la cámara",
+    "notifications": "Avisos y alertas",
+    "toastSuccess": "Aviso de éxito",
+    "toastError": "Aviso de error",
+    "toastInfo": "Aviso informativo",
+    "toastWarning": "Aviso de advertencia",
+    "alert": "Alerta",
+    "destructiveAlert": "Alerta destructiva",
+    "alertTitle": "Alerta de ejemplo",
+    "sampleMessage": "Este es un mensaje de ejemplo para revisar el diseño."
+  },
+  "personalInfo": {
+    "title": "Datos personales",
+    "saved": "Guardado",
+    "heightInvalid": "Ingresa una estatura de 100 a 230 cm"
+  },
+  "goalPlanner": {
+    "maintainHint": "Come unas {{kcal}} kcal al día para mantener tu peso.",
+    "duration": "Tiempo para llegar a la meta",
+    "weeks_one": "{{count}} semana",
+    "weeks_many": "{{count}} semanas",
+    "weeks_other": "{{count}} semanas",
+    "months": "~{{value}} meses",
+    "fastest_one": "{{count}} semana (lo más rápido)",
+    "fastest_many": "{{count}} semanas (lo más rápido)",
+    "fastest_other": "{{count}} semanas (lo más rápido)",
+    "slowest_one": "{{count}} semana (lo más lento)",
+    "slowest_many": "{{count}} semanas (lo más lento)",
+    "slowest_other": "{{count}} semanas (lo más lento)",
+    "kcal": "kcal/día",
+    "ratePerWeek": "kg/semana",
+    "paceLabel": "Ritmo",
+    "pace": {
+      "gentle": "Suave",
+      "moderate": "Moderado",
+      "fast": "Rápido"
+    },
+    "endDate": "Fecha estimada: {{value}}",
+    "stageHint": "Esto es lo máximo que permiten 12 meses. Para ir más allá, completa esta etapa y luego define la siguiente."
+  },
+  "goalEdit": {
+    "title": "Cambiar meta",
+    "saved": "Meta actualizada",
+    "restart": "Empezar de nuevo desde hoy",
+    "restartHint": "Tu peso actual será el punto de partida; la meta en curso pasa al historial.",
+    "confirmTitle": "¿Cambiar a {{mode}}?",
+    "confirmMessage": "Tu meta actual se detiene y pasa al historial. Calorías diarias: {{from}} → {{to}} kcal.",
+    "confirmAction": "Cambiar meta",
+    "transition_one": "Come en mantenimiento {{count}} semana primero ({{kcal}} kcal/día)",
+    "transition_many": "Come en mantenimiento {{count}} semanas primero ({{kcal}} kcal/día)",
+    "transition_other": "Come en mantenimiento {{count}} semanas primero ({{kcal}} kcal/día)",
+    "transitionHint": "Le da a tu cuerpo tiempo para adaptarse antes de cambiar de dirección; la báscula puede subir un poco por el agua. Luego las calorías pasan a {{kcal}} kcal/día."
+  }
+}

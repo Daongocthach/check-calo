@@ -14,6 +14,7 @@ import Svg, { Line } from 'react-native-svg';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Text } from '@/common/components';
 import type { CalorieRange, DailyCalorieGoalState } from '@/features/profile/utils/calorie';
+import { toLocale } from '../../utils/format';
 
 export interface CalorieGaugeProps {
   consumed: number;
@@ -113,7 +114,7 @@ export function CalorieGauge({
   const centerY = width / 2;
   const outerRadius = width / 2 - 10;
   const innerRadius = outerRadius - width * 0.13;
-  const numberFormat = new Intl.NumberFormat(i18n.language);
+  const numberFormat = new Intl.NumberFormat(toLocale(i18n.language));
   const fillColor =
     appearance === 'primary'
       ? theme.colors.brand.primary

@@ -1,0 +1,1114 @@
+{
+  "common": {
+    "loading": "Memuat...",
+    "cancel": "Batal",
+    "save": "Simpan",
+    "delete": "Hapus",
+    "confirm": "Konfirmasi",
+    "back": "Kembali",
+    "next": "Lanjut",
+    "done": "Selesai",
+    "date": "Tanggal",
+    "time": "Waktu",
+    "retry": "Coba lagi",
+    "search": "Cari",
+    "settings": "Pengaturan",
+    "close": "Tutup",
+    "edit": "Ubah",
+    "clear": "Bersihkan",
+    "more": "Lainnya",
+    "showPassword": "Tampilkan kata sandi",
+    "hidePassword": "Sembunyikan kata sandi",
+    "progress": "Progres",
+    "userAvatar": "Foto profil",
+    "removeItem": "Hapus {{name}}",
+    "clearSearch": "Hapus pencarian",
+    "decreaseQuantity": "Kurangi porsi",
+    "increaseQuantity": "Tambah porsi",
+    "defaultMealName": "Makanan",
+    "numberPlaceholder": "0",
+    "submit": "Kirim",
+    "ok": "OK",
+    "units": {
+      "cm": "cm",
+      "kg": "kg",
+      "kcal": "kcal",
+      "gram": "g",
+      "milligram": "mg",
+      "day": "hari"
+    },
+    "aiQuotaExceeded": "Kamu sudah mencapai batas AI hari ini. Coba lagi besok, ya.",
+    "signInRequired": "Kamu perlu masuk untuk memakai fitur AI.",
+    "syncStatus": {
+      "syncNow": "Sinkronkan",
+      "loginToSync": "Masuk untuk sinkron",
+      "localOnly": "Hanya di perangkat",
+      "failed": "Sinkron gagal",
+      "syncing": "Menyinkronkan",
+      "synced": "Tersinkron"
+    }
+  },
+  "header": {
+    "back": "Kembali",
+    "themeSystem": "Sistem",
+    "themeLight": "Terang",
+    "themeDark": "Gelap"
+  },
+  "drawer": {
+    "open": "Buka menu",
+    "dashboard": "Dasbor",
+    "buddy": "Peliharaan",
+    "settings": "Pengaturan"
+  },
+  "language": {
+    "label": "Bahasa",
+    "english": "English",
+    "vietnamese": "Tiếng Việt",
+    "thai": "ไทย",
+    "indonesian": "Bahasa Indonesia",
+    "japanese": "日本語",
+    "korean": "한국어",
+    "chineseSimplified": "简体中文",
+    "chineseTraditional": "繁體中文",
+    "spanish": "Español",
+    "localized": {
+      "vietnamese": "Bahasa Vietnam",
+      "english": "Bahasa Inggris",
+      "thai": "Bahasa Thai",
+      "indonesian": "Bahasa Indonesia",
+      "japanese": "Bahasa Jepang",
+      "korean": "Bahasa Korea",
+      "chineseSimplified": "Bahasa Mandarin (Sederhana)",
+      "chineseTraditional": "Bahasa Mandarin (Tradisional)",
+      "spanish": "Bahasa Spanyol"
+    }
+  },
+  "home": {
+    "subtitle": "Begini harimu sejauh ini",
+    "greeting": "Hai {{name}}",
+    "streakLabel": "{{count}} hari beruntun",
+    "openMenu": "Buka menu",
+    "pickDate": "Pilih tanggal",
+    "goToToday": "Ke hari ini",
+    "dayStatus": {
+      "on_target": "Target tercapai",
+      "off_target": "Tercatat",
+      "empty": "Belum dicatat"
+    },
+    "dailyProgress": "Progres harian",
+    "caloriesLabel": "Kalori",
+    "emptyTitle": "Belum ada yang dicatat",
+    "emptySubtitle": "Ceritakan ke Check AI apa yang kamu makan, atau foto makananmu.",
+    "rangeLabel": "Sesuai target di {{min}}–{{max}} kcal",
+    "buddyMood": {
+      "onTarget": "Pas di rentang targetmu. {{name}} bangga sama kamu!",
+      "aboveTarget": "Sedikit melewati rentang. Gimana kalau jalan santai bareng {{name}}?"
+    },
+    "goalSummary": {
+      "title": "Target saat ini",
+      "goal": "Target",
+      "progress": "Progres saat ini",
+      "expectedEnd": "Perkiraan selesai",
+      "daysUnit": "hari",
+      "modes": {
+        "lose": "Turunkan berat badan",
+        "gain": "Naikkan berat badan",
+        "maintain": "Jaga berat badan"
+      },
+      "remaining": {
+        "lose": "Sisa yang perlu turun",
+        "gain": "Sisa yang perlu naik",
+        "maintain": "Sisa hari"
+      },
+      "maintainToday": "Hari ini",
+      "maintainRecent_other": "{{count}} hari terakhir",
+      "maintainOnTarget": "{{value}} hari sesuai target",
+      "maintainTotal": "Hari sesuai target",
+      "maintainSince": "Menjaga berat sejak",
+      "milestoneTitle": "{{value}} hari sesuai target!",
+      "milestoneMessage": "Kamu sudah makan sesuai rentangmu selama {{value}} hari sejak mulai menjaga berat badan. Pertahankan, ya!",
+      "milestoneAction": "Lanjutkan",
+      "changeGoal": "Ganti target",
+      "reachedTitle": "Tercapai: {{goal}}!",
+      "reachedMessage": "Kerja bagus! Rencanamu kini beralih ke menjaga berat badan. Atur target berikutnya untuk memperbarui berat dan rencanamu.",
+      "keepMaintaining": "Tetap jaga berat",
+      "nextGoal": "Target berikutnya"
+    }
+  },
+  "supportScreen": {
+    "title": "Dukung aplikasi",
+    "introTitle": "Terima kasih sudah mendukung aplikasi ini",
+    "introBody": "Setiap kontribusi membantu aplikasi ini tetap berjalan dan makin baik untuk semua orang ❤️",
+    "subtitle": "Dukung lewat transfer bank",
+    "providerBrand": "VIETQR.IO",
+    "bankBrand": "Shinhan Bank",
+    "napasBrand": "napas",
+    "accountHolderLabel": "Nama pemilik rekening",
+    "accountHolder": "DAO NGOC THACH",
+    "accountNumberLabel": "Nomor rekening",
+    "accountNumber": "700-034-951978",
+    "bankLabel": "Bank",
+    "bankName": "Shinhan Bank Vietnam",
+    "copySectionTitle": "Salin cepat",
+    "copyAccountNumberAction": "Salin nomor rekening",
+    "copyAccountHolderAction": "Salin nama pemilik rekening",
+    "copyBankAction": "Salin nama bank",
+    "copySuccess": "Disalin ke papan klip.",
+    "saveImageAction": "Simpan gambar",
+    "saveImageModalTitle": "Gambar berhasil disimpan!",
+    "saveImageModalBody": "Kamu bagian penting yang membuat aplikasi ini makin baik setiap hari ❤️",
+    "saveImagePermissionDenied": "Izin akses galeri foto ditolak.",
+    "saveImageFailed": "Gagal menyimpan gambar. Coba lagi.",
+    "thanks": "Terima kasih banyak!"
+  },
+  "homeScreen": {
+    "monthStatus": {
+      "goalMet": "Target tercapai"
+    }
+  },
+  "manualFoodEntry": {
+    "openImageViewer": "Buka foto makanan layar penuh",
+    "closeImageViewer": "Tutup foto makanan layar penuh"
+  },
+  "healthInformationSourcesScreen": {
+    "title": "Sumber informasi kesehatan",
+    "intro": "Aplikasi ini menyajikan informasi kesehatan dan gizi berdasarkan riset ilmiah yang sudah mapan. Sumber berikut digunakan untuk perhitungan dan rekomendasi:",
+    "disclaimer": "Aplikasi ini hanya untuk informasi dan tidak bisa menggantikan saran medis profesional. Selalu konsultasikan dengan tenaga kesehatan untuk panduan medis yang sesuai untukmu.",
+    "sections": {
+      "bmi": {
+        "title": "Perhitungan BMI (Indeks Massa Tubuh)",
+        "description": "BMI adalah berat badan dalam kilogram dibagi kuadrat tinggi badan dalam meter. Kategori CDC yang ditautkan berlaku untuk orang dewasa usia 20 tahun ke atas. Usia 2–19 tahun perlu penilaian BMI menurut usia dan jenis kelamin, bukan langsung memakai ambang batas dewasa.",
+        "references": {
+          "cdc": {
+            "title": "Centers for Disease Control and Prevention.",
+            "citation": "Adult BMI Calculator. Centers for Disease Control and Prevention. For adults aged 20 and older."
+          }
+        }
+      },
+      "bmr": {
+        "title": "Perhitungan BMR (Laju Metabolisme Basal)",
+        "description": "Aplikasi memakai rumus Mifflin–St Jeor untuk memperkirakan pengeluaran energi saat istirahat, bukan mengukur metabolisme. Untuk pilihan Lainnya, koefisien −78 adalah rata-rata dua koefisien persamaan; ini konvensi aplikasi yang belum divalidasi secara terpisah.",
+        "references": {
+          "mifflin": {
+            "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
+            "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
+          }
+        }
+      },
+      "activity": {
+        "title": "Faktor Tingkat Aktivitas",
+        "description": "Aplikasi mengalikan BMR dengan 1,2; 1,375; 1,55; 1,725 atau 1,9 sesuai tingkat aktivitas. Ini adalah perkiraan yang dipilih aplikasi. Referensi di bawah memberi latar belakang tentang aktivitas dan energi, bukan validasi atas set pengali ini.",
+        "references": {
+          "brooks": {
+            "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
+            "citation": "Chronicle of the Institute of Medicine physical activity recommendation: how a physical activity recommendation came to be among dietary recommendations. Am J Clin Nutr. 2004;79(5):921S-930S."
+          },
+          "iom": {
+            "title": "Institute of Medicine (US) Panel on Macronutrients.",
+            "citation": "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. Washington (DC): National Academies Press (US); 2005."
+          }
+        }
+      },
+      "macros": {
+        "title": "Distribusi Makronutrien",
+        "description": "Sumber-sumber ini memberi panduan gizi umum dan panduan protein untuk orang yang berolahraga. Aturan aplikasi memilih protein 1,6–2 g/kg sesuai target, minimal 60 g; lemak minimal 0,8 g/kg atau 25% energi; dan sisa energi dari karbohidrat. Di atas BMI 25, berat acuan dibatasi pada BMI 25. Aturan perencanaan ini bukan rekomendasi universal.",
+        "references": {
+          "dietaryGuidelines": {
+            "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
+            "citation": "Dietary Guidelines for Americans, 2025–2030. 10th Edition. Current guidance and related resources."
+          },
+          "who": {
+            "title": "World Health Organization.",
+            "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          },
+          "protein": {
+            "title": "Jäger R, Kerksick CM, Campbell BI, et al.",
+            "citation": "International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20. Applies to exercising individuals."
+          }
+        }
+      },
+      "nutrients": {
+        "title": "Acuan Harian Zat Gizi",
+        "description": "Jumlah acuan harian untuk serat, gula, lemak jenuh, lemak trans, kolesterol, natrium, dan kalium mengikuti Daily Value FDA; batas gula dan lemak trans mengikuti pedoman WHO.",
+        "references": {
+          "fda": {
+            "title": "U.S. Food and Drug Administration.",
+            "citation": "Daily Value on the Nutrition and Supplement Facts Labels."
+          },
+          "whoSugars": {
+            "title": "World Health Organization.",
+            "citation": "Guideline: Sugars intake for adults and children. Geneva: World Health Organization; 2015."
+          },
+          "whoFats": {
+            "title": "World Health Organization.",
+            "citation": "Saturated fatty acid and trans-fatty acid intake for adults and children: WHO guideline. Geneva: World Health Organization; 2023."
+          }
+        }
+      },
+      "weightManagement": {
+        "title": "Manajemen Berat Badan",
+        "description": "Aplikasi memperkirakan perubahan berat badan dengan 7.700 kcal/kg; tanggal selesai hanyalah perkiraan, bukan model dinamis NIDDK. Batas defisit 25%, batas surplus 500 kcal/hari, batas bawah kalori per jenis kelamin yang dikombinasikan dengan BMR, serta rentang kalori sesuai target adalah aturan aplikasi, bukan protokol gabungan yang divalidasi oleh referensi ini.",
+        "references": {
+          "wadden": {
+            "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
+            "citation": "Lifestyle modification for obesity: new developments in diet, physical activity, and behavior therapy. Circulation. 2012;125(9):1157-70."
+          },
+          "hall": {
+            "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
+            "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          },
+          "hallWeight": {
+            "title": "Hall KD.",
+            "citation": "What is the required energy deficit per unit weight loss? Int J Obes (Lond). 2008;32(3):573–576."
+          },
+          "niddk": {
+            "title": "National Institute of Diabetes and Digestive and Kidney Diseases.",
+            "citation": "About the Body Weight Planner. Background on personalized weight-change estimates; the app does not implement this model."
+          }
+        }
+      }
+    }
+  },
+  "accountScreen": {
+    "title": "Akun",
+    "switchAccount": "Ganti akun",
+    "dangerZone": "Zona berbahaya",
+    "deleteAction": "Hapus akun",
+    "deleteDescription": "Ini akan menghapus permanen akun cloud-mu dan semua data di perangkat ini. Sesi anonim baru akan dibuat.",
+    "deleteTitle": "Hapus akun?",
+    "deleteMessage": "Semua data cloud dan data lokalmu akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.",
+    "deleteConfirm": "Hapus semuanya",
+    "deleteSuccess": "Akun dan data sudah dihapus.",
+    "deleteError": "Tidak bisa menghapus akun saat ini. Coba lagi.",
+    "deleteDataAction": "Hapus semua data",
+    "deleteDataTitle": "Hapus semua data?",
+    "deleteDataMessage": "Ini akan menghapus permanen semua data gizimu, baik di perangkat maupun di cloud. Tindakan ini tidak bisa dibatalkan.",
+    "deleteDataConfirm": "Hapus semuanya",
+    "deleteDataSuccess": "Semua data gizi sudah dihapus.",
+    "deleteDataError": "Gagal menghapus data. Coba lagi.",
+    "logoutAction": "Keluar",
+    "logoutTitle": "Keluar?",
+    "logoutMessage": "Kamu akan keluar dan sesi anonim baru akan dibuat. Data cloud-mu tetap aman.",
+    "logoutConfirm": "Keluar",
+    "logoutSuccess": "Berhasil keluar.",
+    "logoutError": "Tidak bisa keluar saat ini.",
+    "joinedAt": "Bergabung {{value}}",
+    "joinedAtUnknown": "Tanggal bergabung tidak diketahui"
+  },
+  "profileScreen": {
+    "actionError": "Tidak bisa memperbarui data saat ini. Coba lagi.",
+    "reminders": {
+      "subtitle": "Setiap pengingat punya tombolnya sendiri. Tambahkan pengingat untuk camilan atau kebiasaan lain yang ingin kamu pantau.",
+      "breakfast": "Sarapan",
+      "lunch": "Makan siang",
+      "dinner": "Makan malam",
+      "mealWindow": "{{start}}–{{end}}",
+      "customTag": "Kustom",
+      "addButton": "Tambah pengingat",
+      "limitReached": "Kamu bisa punya maksimal {{count}} pengingat.",
+      "toggleA11y": "Nyalakan atau matikan pengingat {{name}}",
+      "changeTimeA11y": "Ubah waktu pengingat {{name}}",
+      "editA11y": "Ubah pengingat {{name}}",
+      "editor": {
+        "addTitle": "Pengingat baru",
+        "editTitle": "Ubah pengingat",
+        "nameLabel": "Nama",
+        "namePlaceholder": "mis. Camilan sore",
+        "timeLabel": "Ingatkan pukul",
+        "defaultName": "Pengingat"
+      },
+      "permissionDenied": "Izin notifikasi belum diberikan ke aplikasi.",
+      "adjustedToMealWindow": "Waktu pengingat disesuaikan ke rentang waktu makan yang valid.",
+      "channelName": "Pengingat kalori",
+      "notifications": {
+        "breakfast": {
+          "title": "Waktunya catat sarapan",
+          "body": "Buka aplikasi untuk memindai makananmu dan memperbarui kalorimu."
+        },
+        "lunch": {
+          "title": "Waktunya catat makan siang",
+          "body": "Pengingat singkat: perbarui kalorimu supaya tetap sesuai rencana hari ini."
+        },
+        "dinner": {
+          "title": "Waktunya catat makan malam",
+          "body": "Tutup hari ini dengan mencatat makan malammu dalam beberapa ketukan."
+        },
+        "custom": {
+          "body": "Buka aplikasi untuk mencatat apa yang barusan kamu makan."
+        }
+      }
+    }
+  },
+  "goalTracking": {
+    "progressKcal": "{{current}} / {{target}} kcal",
+    "progressMaintainDays": "{{current}} / {{target}} hari sesuai target",
+    "goalNames": {
+      "maintain": "Jaga berat badan",
+      "loseWithValue": "Turun {{value, number}} kg",
+      "gainWithValue": "Naik {{value, number}} kg",
+      "maintainWithValue": "Jaga berat {{value}} hari",
+      "maintainWithOneMonth": "Jaga berat 1 bulan",
+      "maintainWithMonths": "Jaga berat {{value}} bulan"
+    },
+    "status": {
+      "active": "Aktif",
+      "completed": "Selesai",
+      "cancelled": "Dihentikan",
+      "ended": "Berakhir"
+    },
+    "history": {
+      "subtitle": "Target yang sudah kamu selesaikan atau ganti di tengah jalan.",
+      "empty": "Kamu belum punya riwayat target.",
+      "period": {
+        "completed": "Mulai {{start}} · Selesai {{end}}",
+        "cancelled": "Mulai {{start}} · Dihentikan {{end}}",
+        "ended": "Mulai {{start}} · Berakhir {{end}}"
+      }
+    },
+    "today": {
+      "remaining": "Sisa {{value}} kcal",
+      "onTarget": "Sesuai target",
+      "over": "Lebih {{value}} kcal"
+    }
+  },
+  "achievements": {
+    "streakHistory": "Riwayat hari beruntun",
+    "previousMonth": "Bulan sebelumnya",
+    "nextMonth": "Bulan berikutnya",
+    "legendOnTarget": "Sesuai target",
+    "legendLogged": "Tercatat",
+    "badges": "Lencana",
+    "unlockedCount": "{{unlocked}}/{{total}} terbuka",
+    "done": "Selesai",
+    "items": {
+      "streak_7": "7 hari beruntun",
+      "streak_14": "14 hari beruntun",
+      "streak_30": "30 hari beruntun",
+      "on_target_7": "7 hari sesuai target",
+      "protein_5": "5 hari cukup protein",
+      "balanced_7": "7 hari seimbang",
+      "entries_10": "10 makanan dicatat",
+      "entries_100": "100 makanan dicatat"
+    }
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Kata sandi",
+    "confirmPassword": "Konfirmasi kata sandi",
+    "welcomeBack": "Selamat datang kembali!",
+    "welcomeBackSubtitle": "Masuk untuk lanjut memantau gizimu dan menjaga datamu tetap tersinkron.",
+    "emailPlaceholder": "name@example.com",
+    "passwordPlaceholder": "Minimal 8 karakter",
+    "confirmPasswordPlaceholder": "Ulangi kata sandi",
+    "signIn": "Masuk",
+    "signInWithGoogle": "Masuk dengan Google",
+    "signUp": "Buat akun",
+    "forgotPassword": "Lupa kata sandi?",
+    "registerPageTitle": "Daftar",
+    "registerAction": "Daftar",
+    "upgradeAccount": "Lindungi akun ini",
+    "goToLogin": "Aku sudah punya akun",
+    "goToRegister": "Buat akun sinkron",
+    "loginTitle": "Masuk ke akun sinkronmu",
+    "loginCardSubtitle": "Masuk dengan email dan kata sandimu.",
+    "loginSubtitle": "Gunakan akun yang sudah ada untuk memuat data gizi tersinkron di perangkat ini.",
+    "loginSubtitleAnonymous": "Masuk hanya jika kamu sudah punya akun. Untuk melindungi sesi anonim ini, pilih Buat akun.",
+    "registerTitle": "Buat akun sinkron",
+    "registerSubtitle": "Buat akun baru agar data gizimu bisa dipulihkan di perangkat lain.",
+    "registerUpgradeTitle": "Lindungi data tersinkron ini",
+    "registerUpgradeSubtitle": "Hubungkan sesi anonim ini ke email, Google, atau Apple agar datamu bisa dipulihkan nanti.",
+    "loginSuccess": "Berhasil masuk.",
+    "loginFailed": "Tidak bisa masuk saat ini.",
+    "loginConfirmTitle": "Ganti data lokal?",
+    "loginConfirmMessage": "Masuk akan mengganti semua data di perangkat ini dengan data dari akun cloud-mu. Tindakan ini tidak bisa dibatalkan.",
+    "loginConfirmAction": "Masuk",
+    "syncPhaseAuth": "Sedang masuk…",
+    "syncPhaseData": "Menyinkronkan datamu…",
+    "syncPleaseWait": "Tunggu sebentar, ini mungkin perlu waktu.",
+    "syncFailedTitle": "Sinkron gagal",
+    "syncFailedMessage": "Datamu tidak bisa disinkronkan dari cloud. Kamu bisa coba lagi atau lewati dulu.",
+    "syncRetry": "Coba lagi",
+    "syncSkip": "Lewati dulu",
+    "forgotPasswordTitle": "Atur ulang kata sandi",
+    "forgotPasswordSubtitle": "Masukkan alamat emailmu dan kami akan mengirim tautan untuk mengatur ulang.",
+    "forgotPasswordAction": "Kirim tautan",
+    "forgotPasswordSuccess": "Jika email terdaftar, tautan atur ulang sudah dikirim.",
+    "forgotPasswordFailed": "Tidak bisa mengirim tautan atur ulang saat ini.",
+    "resetPasswordTitle": "Buat kata sandi baru",
+    "resetPasswordSubtitle": "Pilih kata sandi baru untuk akunmu.",
+    "resetPasswordAction": "Simpan kata sandi baru",
+    "resetPasswordSuccess": "Kata sandimu sudah diperbarui.",
+    "resetPasswordFailed": "Tidak bisa memperbarui kata sandi saat ini.",
+    "registerSuccess": "Akun berhasil dibuat.",
+    "registerFailed": "Tidak bisa membuat atau melindungi akun ini saat ini.",
+    "lastSyncAt": "Sinkron terakhir: {{value}}",
+    "lastSignedInAt": "Terakhir masuk: {{value}}",
+    "lastSignedInUnknown": "Terakhir masuk: tidak tersedia"
+  },
+  "legal": {
+    "updatedTitle": "Terakhir diperbarui",
+    "updatedDate": "15 Mei 2024",
+    "about": {
+      "heroTitle": "Makan Sehat,\nHidup Sehat",
+      "heroSubtitle": "Aplikasi pelacak kalori dan gizi yang cerdas",
+      "heroBody": "Check Calo membantumu memahami tubuhmu, mengatur kalori harian, dan mencapai target kesehatanmu setiap hari.",
+      "features": {
+        "tracking": {
+          "title": "Pantau kalori harian",
+          "body": "Catat kalori dari setiap makanan dengan cepat dan lihat progres harianmu sekilas."
+        },
+        "goals": {
+          "title": "Target personal",
+          "body": "Atur target gizi yang sesuai dengan tubuh, gaya hidup, dan arah kesehatanmu."
+        },
+        "meals": {
+          "title": "Wawasan makan",
+          "body": "Catat sarapan, makan siang, makan malam, dan camilan untuk memahami kebiasaan makanmu."
+        }
+      }
+    },
+    "terms": {
+      "title": "Ketentuan Layanan",
+      "summary": "Baca ketentuan ini dengan saksama sebelum memakai aplikasi Check Calo.",
+      "readMore": "Selengkapnya",
+      "readLess": "Lebih sedikit",
+      "items": {
+        "acceptance": {
+          "title": "Menerima ketentuan",
+          "body": "Dengan memakai Check Calo, kamu setuju untuk mematuhi syarat dan ketentuan yang dijelaskan dalam dokumen ini."
+        },
+        "purpose": {
+          "title": "Tujuan penggunaan",
+          "body": "Aplikasi ini membantumu memantau kalori, gizi, dan target pribadi. Aplikasi ini bukan pengganti saran atau perawatan medis."
+        },
+        "account": {
+          "title": "Akun pengguna",
+          "body": "Kamu bertanggung jawab menjaga keamanan informasi akunmu dan memastikan data kesehatanmu akurat."
+        },
+        "prohibited": {
+          "title": "Perilaku yang dilarang",
+          "body": "Jangan memakai aplikasi untuk tujuan ilegal, mengganggu layanan, atau merugikan pengguna lain."
+        },
+        "liability": {
+          "title": "Batasan tanggung jawab",
+          "body": "Informasi gizi hanya sebagai referensi. Kamu tetap bertanggung jawab atas keputusan kesehatan dan pola makanmu."
+        }
+      },
+      "moreItems": {
+        "changes": {
+          "title": "Perubahan ketentuan",
+          "body": "Kami dapat memperbarui ketentuan ini dari waktu ke waktu untuk menyesuaikan perubahan produk atau persyaratan hukum."
+        },
+        "retention": {
+          "title": "Penyimpanan data",
+          "body": "Sebagian data dapat disimpan untuk mendukung pengalamanmu, sinkronisasi, dan pemulihan riwayat."
+        },
+        "contact": {
+          "title": "Hubungi dukungan",
+          "body": "Jika ada pertanyaan tentang ketentuan ini, hubungi kami lewat halaman dukungan di aplikasi."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Kebijakan Privasi",
+      "summary": "Kami berkomitmen melindungi privasimu dan menjelaskan bagaimana data digunakan di Check Calo.",
+      "items": {
+        "collection": {
+          "title": "Informasi yang kami kumpulkan",
+          "body": "Kami dapat mengumpulkan informasi yang kamu berikan, seperti nama, email, tanggal lahir, jenis kelamin, tinggi badan, berat badan, dan catatan makan."
+        },
+        "use": {
+          "title": "Cara informasi digunakan",
+          "body": "Data digunakan untuk memberikan target yang dipersonalisasi, pemantauan gizi, dan pengalaman aplikasi yang lebih baik."
+        },
+        "sharing": {
+          "title": "Berbagi informasi",
+          "body": "Kami tidak menjual atau membagikan data pribadi kepada pihak ketiga, kecuali diwajibkan oleh hukum atau dengan persetujuanmu."
+        },
+        "voice": {
+          "title": "Input suara",
+          "body": "Saat kamu berbicara di chat, layanan ucapan ponselmu (Apple atau Google) mengubahnya menjadi teks. Audio bisa dikirim ke layanan tersebut untuk dikenali; Check Calo hanya menyimpan teks yang kamu kirim."
+        },
+        "security": {
+          "title": "Keamanan data",
+          "body": "Kami menerapkan langkah teknis dan organisasi yang wajar untuk melindungi informasimu dari akses tanpa izin."
+        },
+        "rights": {
+          "title": "Hak-hakmu",
+          "body": "Kamu dapat mengakses, memperbarui, mengoreksi, atau meminta penghapusan data pribadimu melalui aplikasi atau tim dukungan."
+        },
+        "changes": {
+          "title": "Perubahan kebijakan",
+          "body": "Kami dapat memperbarui kebijakan ini. Setiap perubahan penting akan diumumkan di aplikasi."
+        }
+      },
+      "updatedDate": "1 November 2026"
+    },
+    "help": {
+      "title": "Butuh bantuan?",
+      "body": "Hubungi kami jika ada pertanyaan tentang ketentuan ini atau privasimu.",
+      "action": "Hubungi"
+    }
+  },
+  "contactScreen": {
+    "title": "Kontak",
+    "heroTitle": "Hubungi Kami",
+    "formTitle": "Kirim pesan ke kami",
+    "formSubtitle": "Cukup tinggalkan emailmu dan masalah yang kamu alami.",
+    "copyHint": "Ketuk untuk menyalin",
+    "copySuccess": "Info kontak disalin.",
+    "submitAction": "Kirim",
+    "submitSuccess": "Permintaan kontakmu sudah kami terima.",
+    "emailLabel": "Alamat email",
+    "emailValue": "checkcalosupport@gmail.com",
+    "phoneLabel": "Nomor telepon",
+    "phoneValue": "0373060206",
+    "locationLabel": "Lokasi kantor",
+    "locationValue": "No. 2A, Street 55, Quarter 2, Binh Duong Ward, Ho Chi Minh City, Vietnam",
+    "workingDaysLabel": "Hari kerja",
+    "workingDaysValue": "Senin - Sabtu | 08:00 - 17:00",
+    "emailPlaceholder": "Emailmu",
+    "problemPlaceholder": "Masalahmu"
+  },
+  "settings": {
+    "about": "Tentang",
+    "privacy": "Kebijakan Privasi",
+    "terms": "Ketentuan Layanan",
+    "contact": "Kontak"
+  },
+  "settingsScreen": {
+    "title": "Pengaturan",
+    "subtitle": "Akun, info pribadi, dan tampilan",
+    "general": "Umum",
+    "healthAndPrivacy": "Kesehatan & privasi"
+  },
+  "errorBoundary": {
+    "title": "Terjadi kesalahan",
+    "message": "Aplikasi mengalami kesalahan tak terduga. Coba lagi.",
+    "retry": "Coba Lagi"
+  },
+  "network": {
+    "offline": "Sepertinya kamu sedang offline",
+    "online": "Kembali terhubung"
+  },
+  "notFound": {
+    "title": "Tidak Ditemukan",
+    "message": "Layar ini tidak ada.",
+    "goHome": "Ke layar utama"
+  },
+  "errors": {
+    "title": "Kesalahan",
+    "generic": "Terjadi kesalahan. Coba lagi.",
+    "network": "Kesalahan jaringan. Periksa koneksimu.",
+    "auth": "Autentikasi gagal."
+  },
+  "validation": {
+    "required": "Kolom ini wajib diisi",
+    "emailInvalid": "Masukkan alamat email yang valid",
+    "numberInvalid": "Masukkan angka yang valid",
+    "passwordMin": "Kata sandi minimal 8 karakter",
+    "passwordMismatch": "Kata sandi tidak cocok",
+    "usernameMin": "Nama pengguna minimal 3 karakter",
+    "usernameMax": "Nama pengguna maksimal 20 karakter",
+    "usernameFormat": "Nama pengguna hanya boleh berisi huruf, angka, dan garis bawah"
+  },
+  "camera": {
+    "title": "Kamera",
+    "scanTitle": "Pindai kode QR",
+    "barcodeTitle": "Pindai barcode",
+    "scanHint": "Posisikan kode QR di dalam bingkai untuk memindai otomatis.",
+    "barcodeHint": "Posisikan barcode di dalam bingkai untuk memindai otomatis.",
+    "permissionDenied": "Izin kamera ditolak.",
+    "libraryPermissionDenied": "Izin akses galeri foto ditolak.",
+    "captureFailed": "Gagal mengambil foto. Coba lagi.",
+    "libraryPickFailed": "Gagal memilih foto. Coba lagi.",
+    "scanFailed": "Gagal memindai kode. Coba lagi.",
+    "actions": {
+      "close": "Tutup",
+      "flip": "Balik kamera",
+      "capture": "Ambil foto",
+      "toggleFlash": "Nyalakan/matikan flash"
+    }
+  },
+  "macros": {
+    "calories": "Kalori",
+    "carbs": "Karbo",
+    "protein": "Protein",
+    "fat": "Lemak"
+  },
+  "nutrients": {
+    "title": "Detail zat gizi",
+    "fiberGrams": "Serat",
+    "sugarGrams": "Gula",
+    "saturatedFatGrams": "Lemak jenuh",
+    "transFatGrams": "Lemak trans",
+    "cholesterolMg": "Kolesterol",
+    "sodiumMg": "Natrium",
+    "potassiumMg": "Kalium",
+    "unknown": "—",
+    "emptyHint": "Belum ada data detail untuk makanan ini. Ketuk ubah untuk memasukkan nilai dari label gizi.",
+    "dailyValueHint": "% dari acuan harian untuk diet 2.000 kcal. Usahakan mencapainya untuk serat dan kalium; jaga yang lain tetap di bawahnya.",
+    "showDetails": "Tampilkan detail zat gizi",
+    "hideDetails": "Sembunyikan detail zat gizi"
+  },
+  "mealSlots": {
+    "breakfast": "Sarapan",
+    "lunch": "Makan siang",
+    "dinner": "Makan malam",
+    "snack": "Camilan"
+  },
+  "chat": {
+    "title": "Check AI",
+    "subtitle": "Tanya apa saja soal makananmu hari ini",
+    "placeholder": "Hari ini kamu makan apa?",
+    "send": "Kirim",
+    "voiceInput": "Input suara",
+    "attachPhoto": "Lampirkan foto",
+    "takePhoto": "Ambil foto",
+    "pickFromLibrary": "Pilih dari galeri",
+    "removePhoto": "Hapus foto",
+    "welcome": "Hai! Aku teman gizimu. Ceritakan apa yang kamu makan, kirim foto, atau minta ide menu yang sesuai targetmu.",
+    "thinking": "Check AI sedang berpikir…",
+    "photoOnlyPrompt": "Catat makanan di foto ini.",
+    "fallbackReply": "Ini yang aku temukan.",
+    "errorReply": "Maaf, aku belum bisa menganalisisnya. Coba lagi, ya.",
+    "addToDiary_other": "Tambah {{count}} makanan ke jurnal",
+    "addSuggestion": "Tambah ke jurnal",
+    "logged": "Ditambahkan",
+    "loggedToast": "Tersimpan di jurnalmu",
+    "total": "Total",
+    "undo": "Urungkan",
+    "undoToast": "Dihapus dari jurnalmu",
+    "scanBarcode": "Pindai barcode",
+    "recentTitle": "Terbaru",
+    "recentChip": "{{name}} · {{calories}} kcal",
+    "recentLogged": "{{name}} ditambahkan ke jurnalmu.",
+    "barcodeMessage": "Barcode {{code}}",
+    "barcodeFound": "{{name}} ditemukan. Cek porsinya, lalu tambahkan ke jurnalmu.",
+    "barcodeNotFound": "Aku tidak menemukan produk untuk barcode {{code}}. Coba jelaskan makanannya atau kirim foto.",
+    "barcodeLookupFailed": "Gagal mencari barcode itu. Periksa koneksimu dan coba lagi.",
+    "followUps": {
+      "logBreakfast": "Aku sarapan semangkuk bubur ayam",
+      "suggestDinner": "Saran makan malam tinggi protein di bawah 700 kcal"
+    }
+  },
+  "voice": {
+    "listening": "Mendengarkan…",
+    "stop": "Berhenti mendengarkan",
+    "permissionDenied": "Izinkan mikrofon dan pengenalan suara di Pengaturan untuk menyebutkan makananmu.",
+    "failed": "Suaranya kurang jelas. Coba lagi atau ketik saja."
+  },
+  "mealDetail": {
+    "title": "Detail makanan",
+    "nutrition": "Rincian gizi",
+    "ringsHint": "Lingkaran menunjukkan bagian dari target harianmu.",
+    "notFound": "Makanan ini sudah tidak ada di jurnalmu.",
+    "deleteAction": "Hapus dari jurnal",
+    "deleteTitle": "Hapus makanan ini?",
+    "deleteMessage": "Makanan ini akan dihapus dari jurnal dan total harianmu.",
+    "deleteSuccess": "Makanan dihapus",
+    "saveSuccess": "Perubahan disimpan",
+    "fields": {
+      "name": "Nama makanan",
+      "quantity": "Porsi",
+      "calories": "Kalori (kcal)",
+      "protein": "Protein (g)",
+      "carbs": "Karbo (g)",
+      "fat": "Lemak (g)",
+      "notes": "Catatan"
+    }
+  },
+  "onboarding": {
+    "headerTitle": "Memulai",
+    "title": "Selamat datang di Check Calo!",
+    "subtitle": "Ceritakan sedikit tentang dirimu ke {{name}} untuk menyusun rencana yang pas.",
+    "displayName": "Nama tampilan",
+    "displayNamePlaceholder": "Namamu",
+    "age": "Usia",
+    "gender": "Jenis kelamin",
+    "genders": {
+      "male": "Laki-laki",
+      "female": "Perempuan",
+      "other": "Lainnya"
+    },
+    "height": "Tinggi badan",
+    "weight": "Berat badan",
+    "bmi": "BMI",
+    "bmiCategories": {
+      "underweight": {
+        "title": "Berat badan kurang"
+      },
+      "normal": {
+        "title": "Berat badan sehat"
+      },
+      "overweight": {
+        "title": "Berat badan berlebih"
+      },
+      "obese": {
+        "title": "Obesitas"
+      }
+    },
+    "goal": "Targetmu",
+    "goals": {
+      "lose": {
+        "title": "Turunkan berat",
+        "description": "Bakar lemak, lebih ramping"
+      },
+      "maintain": {
+        "title": "Jaga berat",
+        "description": "Pertahankan berat badan saat ini"
+      },
+      "gain": {
+        "title": "Naikkan berat",
+        "description": "Tambah massa tubuh dengan sehat"
+      }
+    },
+    "activity": "Tingkat aktivitas",
+    "activities": {
+      "sedentary": "Banyak duduk",
+      "light": "Sedikit aktif",
+      "moderate": "Cukup aktif",
+      "active": "Sangat aktif"
+    },
+    "plan": "Perkiraan rencanamu",
+    "saveSuccess": "Profil disimpan",
+    "healthSources": "Cara kami menghitung",
+    "validation": {
+      "age": "Masukkan usia antara 10 dan 100"
+    },
+    "targetWeight": "Berat target",
+    "targetBmiWarning": "Target ini di bawah BMI sehat (18,5). Sebaiknya konsultasikan dengan tenaga kesehatan.",
+    "planLoading": {
+      "title": "Menyusun rencanamu…",
+      "bmr": "Menghitung metabolisme istirahatmu (BMR)…",
+      "energy": "Memperkirakan energi yang kamu bakar setiap hari…",
+      "pace": "Mencari laju yang aman untuk targetmu…",
+      "roadmap": "Memetakan jalan menuju targetmu…"
+    },
+    "planResults": {
+      "target": "Berat target",
+      "targetChange": "{{value}} kg dari hari ini",
+      "targetMaintain": "Pertahankan berat saat ini",
+      "daily": "kcal per hari",
+      "dailyHint": "Sesuai target: {{min}}–{{max}}",
+      "weekly": "kcal per minggu",
+      "weeklyHint": "{{value}} kg per minggu",
+      "weeklyMaintain": "Berat tetap stabil",
+      "date": "Perkiraan tercapai",
+      "dateHint": "Dalam {{weeks}}",
+      "dateMaintain": "Berkelanjutan",
+      "dateMaintainHint": "Tanpa tanggal akhir"
+    },
+    "step": "Langkah {{current}} dari {{total}} · {{title}}",
+    "steps": {
+      "about": "Kamu & targetmu",
+      "plan": "Rencana"
+    },
+    "createPlan": "Buat rencanaku",
+    "start": "Mulai",
+    "goalLabel": "Target",
+    "planSummary": {
+      "lose": "Kalori pemeliharaanmu ~{{tdee}} kcal/hari; rencana ini {{gap}} kcal lebih rendah.",
+      "gain": "Kalori pemeliharaanmu ~{{tdee}} kcal/hari; rencana ini {{gap}} kcal lebih tinggi.",
+      "maintain": "Kalori pemeliharaanmu ~{{tdee}} kcal/hari; makan di sekitar angka ini menjaga beratmu.",
+      "macros": "Setiap hari: protein {{protein}}g · lemak {{fat}}g · karbo {{carbs}}g.",
+      "estimate": "Ini perkiraan; aplikasi akan menyesuaikannya saat kamu mencatat hasil timbang."
+    },
+    "weightAndTarget": "Berat / target",
+    "calorieAdjustment": {
+      "lose": "Defisit kalori",
+      "gain": "Surplus kalori",
+      "maintain": "Penyesuaian kalori"
+    },
+    "editTitle": "Perbarui targetmu",
+    "editSubtitle": "Tinjau datamu dan sesuaikan targetmu agar {{name}} bisa memperbarui rencanamu.",
+    "previewUpdate": "Lihat rencana baru"
+  },
+  "buddy": {
+    "openBuddy": "Buka {{name}}",
+    "title": "Peliharaan",
+    "subtitle": "Besarkan {{name}} di setiap hari sehatmu",
+    "rename": "Ganti nama peliharaan",
+    "renameLabel": "Ganti nama {{name}}",
+    "namePlaceholder": "Nama peliharaan",
+    "levelTitle": "Level {{level}} - {{stage}}",
+    "levelShort": "Lv {{level}}",
+    "stages": {
+      "baby": "Bayi",
+      "junior": "Junior",
+      "teen": "Remaja",
+      "buddy": "Pro",
+      "master": "Master"
+    },
+    "progressToNext": "{{percent}}% · {{points}} poin lagi ke level berikutnya",
+    "maxLevel": "Level maksimal tercapai!",
+    "journey": "Perjalanan tumbuh {{name}}",
+    "nextReward": "Hadiah level berikutnya",
+    "nextRewardHint": "Capai {{points}} poin agar {{name}} berevolusi menjadi {{stage}}",
+    "stats": {
+      "subtitle": "Ketuk statistik untuk detail",
+      "legendOverall": "Sepanjang waktu",
+      "legendRecent": "7 hari terakhir",
+      "axisLabel": "{{axis}}: {{score}} poin. Lihat detail",
+      "axisLocked": "{{axis}}: data belum cukup. Lihat detail",
+      "intro": "{{name}} sedang mengenalmu",
+      "introHint_other": "Catat makanan {{count}} hari lagi untuk membuka statistik."
+    },
+    "axes": {
+      "calories": {
+        "name": "Target kalori",
+        "short": "Kalori",
+        "measure": "Kalori dibandingkan target hari itu, untuk menurunkan, menaikkan, atau menjaga berat badan.",
+        "goal": "100 poin saat kalori masuk rentang target.",
+        "tip": "Catat makanan langsung setelah makan supaya tahu sisa kalori untuk makan berikutnya."
+      },
+      "nutrients": {
+        "name": "Makro",
+        "short": "Makro",
+        "measure": "Seberapa banyak target protein, karbo, dan lemak yang kamu capai. Kelebihan tidak menambah poin.",
+        "goal": "100 poin saat ketiganya mencapai target.",
+        "tip": "Pastikan setiap makan ada protein (daging, ikan, telur, tempe), karbo (nasi, kentang), dan sedikit lemak sehat."
+      },
+      "quality": {
+        "name": "Gizi",
+        "short": "Gizi",
+        "measure": "Cukup serat, dengan gula, garam, dan lemak jahat di bawah batas yang disarankan. Hanya hari dengan minimal 70% kalori yang punya data ini yang dinilai.",
+        "goal": "100 poin jika serat cukup dan semuanya di bawah batas.",
+        "tip": "Tambah sayur, buah, dan kacang-kacangan; kurangi saus, makanan olahan, dan minuman bersoda."
+      },
+      "timing": {
+        "name": "Tepat waktu",
+        "short": "Tepat waktu",
+        "measure": "Apakah makan utama dilakukan sesuai jam pengingat (selisih maksimal satu jam), atau di jam makan biasa jika tanpa pengingat. Makan setelah pukul 22.00 mengurangi poin.",
+        "goal": "100 poin jika semua makan utama tepat waktu dan tidak ada makan larut malam.",
+        "tip": "Atur pengingat makan dan usahakan selesai makan malam sebelum pukul 20.30."
+      },
+      "meals": {
+        "name": "Makan lengkap",
+        "short": "Makan",
+        "measure": "Makan utama (sarapan, makan siang, makan malam) yang dicatat dalam sehari. Camilan tidak dihitung.",
+        "goal": "100 poin untuk ketiga makan utama.",
+        "tip": "Jangan lewatkan sarapan; melewatkan makan bikin porsi berikutnya lebih besar."
+      },
+      "consistency": {
+        "name": "Konsistensi",
+        "short": "Konsisten",
+        "measure": "Mencatat makanan setiap hari sejak kamu mulai.",
+        "goal": "100 poin untuk setiap hari kamu mencatat.",
+        "tip": "Nyalakan pengingat makan supaya tidak lupa mencatat."
+      }
+    },
+    "insight": {
+      "strong": {
+        "calories": "Kamu disiplin banget dengan rencana kalorimu!",
+        "nutrients": "Makananmu sudah mencakup semua makro!",
+        "quality": "Makanmu sehat sekali, {{name}} jadi ikut segar!",
+        "timing": "Kamu makan tepat waktu seperti jam!",
+        "meals": "Tiga kali makan setiap hari, keren!",
+        "consistency": "Kamu mencatat setiap hari, {{name}} terharu!"
+      },
+      "weak": {
+        "calories": {
+          "lose": "Beberapa hari kalorimu berlebih, perhatikan makan malam, ya.",
+          "gain": "Beberapa hari kalorimu kurang, tambah camilan, ya.",
+          "maintain": "Kalorimu agak meleset dari target, jaga tetap stabil, ya."
+        },
+        "nutrients": "Beberapa makro masih kurang, tambahkan protein atau karbo ke makananmu.",
+        "quality": "Agak kurang sayur atau kebanyakan gula dan garam, seimbangkan sedikit, ya.",
+        "timing": "Jam makanmu agak tidak teratur, coba makan tepat waktu.",
+        "meals": "Kamu sering melewatkan makan, usahakan tiga kali makan utama.",
+        "consistency": "Catat lebih sering supaya {{name}} makin mengenalmu."
+      },
+      "allGood": "Semua statistik bagus, pertahankan!"
+    },
+    "detail": {
+      "ranges": {
+        "week": "7 hari",
+        "month": "30 hari",
+        "all": "Semua"
+      },
+      "averageScore": "Skor rata-rata",
+      "noData": "Belum ada data untuk statistik ini di rentang yang dipilih.",
+      "todayPending": "Hari ini belum dihitung sampai harinya selesai.",
+      "chartTitle": "Skor per hari",
+      "chartTitleWeekly": "Skor rata-rata per minggu",
+      "dailyAverage": "Rata-rata harian",
+      "metDays": "Hari dengan 100 poin",
+      "metDaysValue": "{{met}} / {{total}} hari",
+      "bestDay": "Hari terbaik",
+      "bestDayValue": "{{date}} · {{score}} poin",
+      "tipTitle": "Tips dari {{name}}",
+      "values": {
+        "calories": "{{value}} / {{target}} kcal",
+        "nutrients": "Protein {{protein}}% · Karbo {{carbs}}% · Lemak {{fat}}% dari target",
+        "quality": "Serat {{fiber}} g · Natrium {{sodium}} mg · Gula {{sugar}} g",
+        "timing": "{{value}}% makan tepat waktu · {{late}} hari makan larut",
+        "meals": "{{value}} / 3 makan utama",
+        "consistency": "{{value}} / {{target}} hari tercatat"
+      },
+      "topFoods": {
+        "protein": "Sumber protein teratas",
+        "calories": "Sumber kalori teratas",
+        "fiber": "Sumber serat teratas",
+        "sodium": "Sumber natrium teratas"
+      },
+      "amounts": {
+        "protein": "{{value}} g",
+        "calories": "{{value}} kcal",
+        "fiber": "{{value}} g",
+        "sodium": "{{value}} mg"
+      },
+      "timesEaten_other": "{{count}} kali",
+      "notFound": "Statistik ini tidak ada.",
+      "noDataQuality": "Data serat, gula, dan garam belum cukup. Catat makanan lewat chat atau pindai barcode supaya Buddy bisa menilai ini."
+    },
+    "calorieGoal": {
+      "lose": "Menurunkan berat: makan di bawah target tidak apa-apa, asal tetap di atas batas minimum yang aman.",
+      "gain": "Menaikkan berat: capai targetnya; sedikit lebih tidak masalah.",
+      "maintain": "Menjaga berat: meleset ke arah mana pun mengurangi poin."
+    },
+    "quests": {
+      "title": "Misi",
+      "subtitle": "Selesaikan untuk membantu {{name}} tumbuh lebih cepat",
+      "tabs": {
+        "daily": "Harian",
+        "weekly": "Mingguan",
+        "special": "Spesial"
+      },
+      "done": "Selesai",
+      "settling": "Sesuai jalur · dinilai saat hari berakhir",
+      "firstLogOpen": "Belum ada catatan hari ini",
+      "limitsNeedsData": "Perlu 2 makan utama dengan data gula dan garam",
+      "limitsOpen": "Dinilai saat hari berakhir",
+      "progress": {
+        "kcal": "{{value}} / {{target}} kcal",
+        "g": "{{value}} / {{target}} g",
+        "macros": "{{value}} / {{target}} makro",
+        "days": "{{value}} / {{target}} hari"
+      },
+      "weekDone": "Selesai minggu ini",
+      "levelUp_other": "Naik level {{count}} kali",
+      "levelUpOpen": "Capai level berikutnya untuk dapat lencana",
+      "badge": "Lencana",
+      "weightGoalOpen": "Selesaikan satu target berat badan",
+      "weightGoalDone_other": "{{count}} target tercapai · lanjutkan untuk dapat lebih",
+      "accountOpen": "Daftar supaya datamu tetap ada di ponsel baru",
+      "accountDone": "Akun dibuat",
+      "points": "+{{points}}",
+      "earnedTitle": "Misi selesai!",
+      "earnedToast": "+{{points}} poin · {{title}}",
+      "earnedManyToast_other": "+{{points}} poin dari {{count}} misi",
+      "empty": "Belum ada misi"
+    },
+    "calorieChart": {
+      "title": "Kalori masuk",
+      "tabs": {
+        "week": "Minggu",
+        "year": "Tahun"
+      },
+      "previous": {
+        "week": "Minggu sebelumnya",
+        "year": "Tahun sebelumnya"
+      },
+      "next": {
+        "week": "Minggu berikutnya",
+        "year": "Tahun berikutnya"
+      },
+      "other": "Lainnya",
+      "goal": "Target",
+      "noLog": "Belum dicatat",
+      "monthAverage_other": "Rata-rata harian · {{count}} hari tercatat"
+    },
+    "levelRange": "Level {{from}}–{{to}}"
+  },
+  "profileTab": {
+    "guest": "Tamu",
+    "guestAccount": "Akun tamu · data tersimpan di perangkat ini",
+    "reminders": "Pengingat",
+    "appearance": "Tampilan",
+    "language": "Bahasa",
+    "goalHistory": "Riwayat target",
+    "other": "Lainnya",
+    "support": "Dukung Check Calo",
+    "healthSources": "Sumber informasi kesehatan",
+    "signIn": "Masuk / buat akun",
+    "signInHint": "Cadangkan jurnalmu ke cloud",
+    "resetData": "Hapus semua dataku",
+    "resetTitle": "Hapus semua data?",
+    "resetMessage": "Ini menghapus permanen jurnal, target, dan profilmu di perangkat ini dan di cloud.",
+    "resetConfirm": "Hapus",
+    "version": "Versi {{version}}",
+    "account": "Akun"
+  },
+  "devTools": {
+    "group": "Pengembang",
+    "toggle": "Mode dev",
+    "toggleHint": "Alat uji UI. Hanya tersedia di build dev.",
+    "title": "Alat uji UI",
+    "subtitle": "Data dan status palsu untuk mengecek layar",
+    "sampleData": "Data contoh",
+    "seed": "Tambah makanan contoh untuk {{count}} hari",
+    "seedHint": "Hanya disimpan di perangkat ini, tidak pernah disinkronkan",
+    "clear": "Hapus makanan contoh",
+    "clearHint": "Hanya menghapus baris contoh, catatan asli tetap ada",
+    "seeded": "{{count}} makanan contoh ditambahkan",
+    "cleared": "{{count}} makanan contoh dihapus",
+    "screenStates": "Status layar",
+    "forceEmptyDiary": "Jurnal kosong di Beranda",
+    "forceEmptyDiaryHint": "Tampilkan status kosong meski ada makanan tercatat",
+    "chatScenario": "Balasan Check AI",
+    "chatScenarioHint": "Simulasikan cara AI membalas di chat",
+    "chatScenarios": {
+      "normal": "Normal",
+      "slow": "Lambat (3 dtk)",
+      "quota": "Kuota habis",
+      "auth": "Belum masuk",
+      "error": "Kesalahan"
+    },
+    "fakeBarcode": "Simulasikan pindai barcode",
+    "fakeBarcodeHint": "Tombol barcode di chat memakai produk contoh, bukan kamera",
+    "notifications": "Toast & dialog",
+    "toastSuccess": "Toast berhasil",
+    "toastError": "Toast gagal",
+    "toastInfo": "Toast info",
+    "toastWarning": "Toast peringatan",
+    "alert": "Dialog",
+    "destructiveAlert": "Dialog hapus",
+    "alertTitle": "Contoh dialog",
+    "sampleMessage": "Ini pesan contoh untuk mengecek tata letak."
+  },
+  "personalInfo": {
+    "title": "Info pribadi",
+    "saved": "Tersimpan",
+    "heightInvalid": "Masukkan tinggi dari 100 sampai 230 cm"
+  },
+  "goalPlanner": {
+    "maintainHint": "Makan sekitar {{kcal}} kcal sehari untuk menjaga beratmu.",
+    "duration": "Waktu mencapai target",
+    "weeks_other": "{{count}} minggu",
+    "months": "~{{value}} bulan",
+    "fastest_other": "{{count}} minggu (tercepat)",
+    "slowest_other": "{{count}} minggu (paling lambat)",
+    "kcal": "kcal/hari",
+    "ratePerWeek": "kg/minggu",
+    "paceLabel": "Laju",
+    "pace": {
+      "gentle": "Santai",
+      "moderate": "Sedang",
+      "fast": "Cepat"
+    },
+    "endDate": "Perkiraan tercapai: {{value}}",
+    "stageHint": "Ini batas terjauh dalam 12 bulan. Untuk lebih jauh, capai tahap ini lalu atur tahap berikutnya."
+  },
+  "goalEdit": {
+    "title": "Ganti target",
+    "saved": "Target diperbarui",
+    "restart": "Mulai ulang dari hari ini",
+    "restartHint": "Berat saat ini jadi titik awal; target yang sedang berjalan dipindah ke riwayat.",
+    "confirmTitle": "Beralih ke {{mode}}?",
+    "confirmMessage": "Target saat ini dihentikan dan dipindah ke riwayat. Kalori harian: {{from}} → {{to}} kcal.",
+    "confirmAction": "Ganti target",
+    "transition_other": "Makan sesuai kalori pemeliharaan selama {{count}} minggu dulu ({{kcal}} kcal/hari)",
+    "transitionHint": "Memberi tubuhmu waktu menyesuaikan sebelum ganti arah; timbangan mungkin naik sedikit karena air. Setelah itu kalori beralih ke {{kcal}} kcal/hari."
+  }
+}

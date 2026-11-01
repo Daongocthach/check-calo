@@ -1,5 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import { env } from '@/config/env';
+import { LANGUAGE_INFO, type AppLanguage } from '@/i18n/languages';
 import { supabase } from '@/integrations/supabase';
 import type { NutrientKey, NutrientValues } from '../types';
 import { pickNutrients } from '../utils/nutrients';
@@ -104,7 +105,7 @@ export interface ChatAnalysisResult {
 
 export interface ChatAnalysisContext {
   /** Language the reply should be written in. */
-  language: 'vi' | 'en';
+  language: AppLanguage;
   /** Short plain-text summary of today's intake so suggestions fit the remaining budget. */
   daySummary?: string | null;
 }
@@ -141,7 +142,7 @@ function buildFoodPrompt(userMessage?: string | null) {
 }
 
 function buildChatPrompt(context: ChatAnalysisContext) {
-  const replyLanguage = context.language === 'en' ? 'English' : 'Vietnamese';
+  const replyLanguage = LANGUAGE_INFO[context.language].englishName;
 
   return [
     'You are "Check AI", a friendly nutrition assistant inside a calorie tracking app.',
@@ -161,7 +162,7 @@ function buildChatPrompt(context: ChatAnalysisContext) {
     '- quantityLabel is a short human portion such as "1 tô", "2 lát", "1 bowl".',
     `- reply is 1 to 2 short sentences in ${replyLanguage}. Item names are in ${replyLanguage}.`,
     `- followUps has up to 3 very short suggested user replies in ${replyLanguage}.`,
-    context.language === 'en' ? null : VIETNAMESE_MACRO_TERMS_RULE,
+    context.language === 'vi' ? VIETNAMESE_MACRO_TERMS_RULE : null,
     '- Do not include markdown fences or extra commentary.',
     context.daySummary ? `Today so far: ${context.daySummary}` : null,
   ]

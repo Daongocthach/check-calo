@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { IconButton, Text } from '@/common/components';
+import { toLocale } from '@/features/food-log/utils/format';
 import { formatDateKey } from '@/utils/date';
 import type { ActivityStats } from '../types';
 import { DayStatusBadge, DayStatusBubble } from './DayStatusBubble';
@@ -26,7 +27,7 @@ function buildMonthCells(month: Date) {
 /** Month grid (Mon-first) marking each day the same way as the dashboard week strip. */
 export function StreakCalendar({ stats }: { stats: ActivityStats }) {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
+  const locale = toLocale(i18n.language);
   const today = new Date();
   const [month, setMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const cells = buildMonthCells(month);

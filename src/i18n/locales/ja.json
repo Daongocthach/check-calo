@@ -1,0 +1,1114 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "confirm": "確認",
+    "back": "戻る",
+    "next": "次へ",
+    "done": "完了",
+    "date": "日付",
+    "time": "時刻",
+    "retry": "再試行",
+    "search": "検索",
+    "settings": "設定",
+    "close": "閉じる",
+    "edit": "編集",
+    "clear": "クリア",
+    "more": "もっと見る",
+    "showPassword": "パスワードを表示",
+    "hidePassword": "パスワードを隠す",
+    "progress": "進捗",
+    "userAvatar": "ユーザーアイコン",
+    "removeItem": "{{name}}を削除",
+    "clearSearch": "検索をクリア",
+    "decreaseQuantity": "量を減らす",
+    "increaseQuantity": "量を増やす",
+    "defaultMealName": "食事",
+    "numberPlaceholder": "0",
+    "submit": "送信",
+    "ok": "OK",
+    "units": {
+      "cm": "cm",
+      "kg": "kg",
+      "kcal": "kcal",
+      "gram": "g",
+      "milligram": "mg",
+      "day": "日"
+    },
+    "aiQuotaExceeded": "本日のAI利用上限に達しました。明日またお試しください。",
+    "signInRequired": "AI機能を使うにはログインが必要です。",
+    "syncStatus": {
+      "syncNow": "今すぐ同期",
+      "loginToSync": "ログインして同期",
+      "localOnly": "この端末のみ",
+      "failed": "同期に失敗",
+      "syncing": "同期中",
+      "synced": "同期済み"
+    }
+  },
+  "header": {
+    "back": "戻る",
+    "themeSystem": "システム",
+    "themeLight": "ライト",
+    "themeDark": "ダーク"
+  },
+  "drawer": {
+    "open": "メニューを開く",
+    "dashboard": "ホーム",
+    "buddy": "ペット",
+    "settings": "設定"
+  },
+  "language": {
+    "label": "言語",
+    "english": "English",
+    "vietnamese": "Tiếng Việt",
+    "thai": "ไทย",
+    "indonesian": "Bahasa Indonesia",
+    "japanese": "日本語",
+    "korean": "한국어",
+    "chineseSimplified": "简体中文",
+    "chineseTraditional": "繁體中文",
+    "spanish": "Español",
+    "localized": {
+      "vietnamese": "ベトナム語",
+      "english": "英語",
+      "thai": "タイ語",
+      "indonesian": "インドネシア語",
+      "japanese": "日本語",
+      "korean": "韓国語",
+      "chineseSimplified": "中国語（簡体字）",
+      "chineseTraditional": "中国語（繁体字）",
+      "spanish": "スペイン語"
+    }
+  },
+  "home": {
+    "subtitle": "今日のこれまでの記録です",
+    "greeting": "こんにちは、{{name}}さん",
+    "streakLabel": "{{count}}日連続",
+    "openMenu": "メニューを開く",
+    "pickDate": "日付を選択",
+    "goToToday": "今日に戻る",
+    "dayStatus": {
+      "on_target": "目標達成",
+      "off_target": "記録済み",
+      "empty": "未記録"
+    },
+    "dailyProgress": "今日の進捗",
+    "caloriesLabel": "カロリー",
+    "emptyTitle": "まだ記録がありません",
+    "emptySubtitle": "食べたものをCheck AIに伝えるか、食事の写真を撮りましょう。",
+    "rangeLabel": "目標範囲 {{min}}–{{max}} kcal",
+    "buddyMood": {
+      "onTarget": "ちょうど目標範囲内です。{{name}}も誇らしげです！",
+      "aboveTarget": "目標範囲を少しオーバー。{{name}}と軽くお散歩しませんか？"
+    },
+    "goalSummary": {
+      "title": "現在の目標",
+      "goal": "目標",
+      "progress": "現在の進捗",
+      "expectedEnd": "達成予定",
+      "daysUnit": "日",
+      "modes": {
+        "lose": "減量",
+        "gain": "増量",
+        "maintain": "体重維持"
+      },
+      "remaining": {
+        "lose": "あと減らす量",
+        "gain": "あと増やす量",
+        "maintain": "残り日数"
+      },
+      "maintainToday": "今日",
+      "maintainRecent_other": "直近{{count}}日間",
+      "maintainOnTarget": "目標達成 {{value}}日",
+      "maintainTotal": "目標達成日数",
+      "maintainSince": "維持開始日",
+      "milestoneTitle": "目標達成{{value}}日！",
+      "milestoneMessage": "体重維持を始めてから{{value}}日、目標範囲内で食事ができました。この調子で続けましょう！",
+      "milestoneAction": "続ける",
+      "changeGoal": "目標を変更",
+      "reachedTitle": "達成：{{goal}}！",
+      "reachedMessage": "よく頑張りました！プランは体重維持に切り替わりました。次の目標を設定して、体重とプランを更新しましょう。",
+      "keepMaintaining": "維持を続ける",
+      "nextGoal": "次の目標"
+    }
+  },
+  "supportScreen": {
+    "title": "アプリを応援",
+    "introTitle": "応援ありがとうございます",
+    "introBody": "いただいたご支援は、アプリの運営とみなさんの使い心地の改善に役立てています ❤️",
+    "subtitle": "銀行振込で応援",
+    "providerBrand": "VIETQR.IO",
+    "bankBrand": "Shinhan Bank",
+    "napasBrand": "napas",
+    "accountHolderLabel": "口座名義",
+    "accountHolder": "DAO NGOC THACH",
+    "accountNumberLabel": "口座番号",
+    "accountNumber": "700-034-951978",
+    "bankLabel": "銀行",
+    "bankName": "新韓銀行ベトナム",
+    "copySectionTitle": "かんたんコピー",
+    "copyAccountNumberAction": "口座番号をコピー",
+    "copyAccountHolderAction": "口座名義をコピー",
+    "copyBankAction": "銀行名をコピー",
+    "copySuccess": "クリップボードにコピーしました。",
+    "saveImageAction": "画像を保存",
+    "saveImageModalTitle": "画像を保存しました！",
+    "saveImageModalBody": "あなたの応援が、このアプリを日々より良くしています ❤️",
+    "saveImagePermissionDenied": "写真ライブラリへのアクセスが許可されていません。",
+    "saveImageFailed": "画像を保存できませんでした。もう一度お試しください。",
+    "thanks": "本当にありがとうございます！"
+  },
+  "homeScreen": {
+    "monthStatus": {
+      "goalMet": "目標達成"
+    }
+  },
+  "manualFoodEntry": {
+    "openImageViewer": "料理の画像を全画面で表示",
+    "closeImageViewer": "料理の画像の全画面表示を閉じる"
+  },
+  "healthInformationSourcesScreen": {
+    "title": "健康情報の出典",
+    "intro": "このアプリは、確立された科学的研究に基づいて健康・栄養情報を提供しています。計算と推奨には以下の出典を使用しています：",
+    "disclaimer": "このアプリは情報提供のみを目的としており、医療専門家のアドバイスに代わるものではありません。個別の医療的な指導については、必ず医療専門家にご相談ください。",
+    "sections": {
+      "bmi": {
+        "title": "BMIの計算（体格指数）",
+        "description": "BMIは体重(kg)を身長(m)の2乗で割った値です。リンク先のCDCの区分は20歳以上の成人が対象です。2〜19歳では成人の基準をそのまま使わず、年齢・性別ごとのBMIで評価する必要があります。",
+        "references": {
+          "cdc": {
+            "title": "Centers for Disease Control and Prevention.",
+            "citation": "Adult BMI Calculator. Centers for Disease Control and Prevention. For adults aged 20 and older."
+          }
+        }
+      },
+      "bmr": {
+        "title": "BMRの計算（基礎代謝量）",
+        "description": "このアプリはMifflin–St Jeor式で安静時のエネルギー消費量を推定しており、代謝を測定するものではありません。性別「その他」では、2つの式の係数の平均である−78を使用しています。これはアプリ独自の取り決めで、個別の検証は行われていません。",
+        "references": {
+          "mifflin": {
+            "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
+            "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
+          }
+        }
+      },
+      "activity": {
+        "title": "活動レベル係数",
+        "description": "このアプリは活動レベルに応じて、BMRに1.2、1.375、1.55、1.725、1.9のいずれかを掛けています。これらはアプリが選んだ推定値です。参考文献は活動量とエネルギーに関する背景情報であり、この係数の組み合わせそのものを検証したものではありません。",
+        "references": {
+          "brooks": {
+            "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
+            "citation": "Chronicle of the Institute of Medicine physical activity recommendation: how a physical activity recommendation came to be among dietary recommendations. Am J Clin Nutr. 2004;79(5):921S-930S."
+          },
+          "iom": {
+            "title": "Institute of Medicine (US) Panel on Macronutrients.",
+            "citation": "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. Washington (DC): National Academies Press (US); 2005."
+          }
+        }
+      },
+      "macros": {
+        "title": "三大栄養素（PFC）の配分",
+        "description": "これらの出典は、一般的な栄養指針と、運動する人向けのたんぱく質の指針を示しています。アプリのルールでは、目標に応じてたんぱく質を1.6〜2 g/kg（最低60 g）、脂質を0.8 g/kg以上またはエネルギーの25%以上とし、残りのエネルギーを炭水化物に割り当てます。BMIが25を超える場合、基準体重はBMI 25相当の体重を上限とします。これらはプラン作成用のルールであり、すべての人に当てはまる推奨ではありません。",
+        "references": {
+          "dietaryGuidelines": {
+            "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
+            "citation": "Dietary Guidelines for Americans, 2025–2030. 10th Edition. Current guidance and related resources."
+          },
+          "who": {
+            "title": "World Health Organization.",
+            "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          },
+          "protein": {
+            "title": "Jäger R, Kerksick CM, Campbell BI, et al.",
+            "citation": "International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20. Applies to exercising individuals."
+          }
+        }
+      },
+      "nutrients": {
+        "title": "栄養素の1日の参考量",
+        "description": "食物繊維、糖類、飽和脂肪酸、トランス脂肪酸、コレステロール、ナトリウム、カリウムの1日の参考量はFDAの1日摂取基準値（Daily Value）に、糖類とトランス脂肪酸の上限はWHOのガイドラインに基づいています。",
+        "references": {
+          "fda": {
+            "title": "U.S. Food and Drug Administration.",
+            "citation": "Daily Value on the Nutrition and Supplement Facts Labels."
+          },
+          "whoSugars": {
+            "title": "World Health Organization.",
+            "citation": "Guideline: Sugars intake for adults and children. Geneva: World Health Organization; 2015."
+          },
+          "whoFats": {
+            "title": "World Health Organization.",
+            "citation": "Saturated fatty acid and trans-fatty acid intake for adults and children: WHO guideline. Geneva: World Health Organization; 2023."
+          }
+        }
+      },
+      "weightManagement": {
+        "title": "体重管理",
+        "description": "このアプリは体重1 kgあたり7,700 kcalとして体重の変化を推定しています。達成日は推定であり、NIDDKの動的モデルではありません。不足カロリーの上限25%、余剰カロリーの上限1日500 kcal、BMRと組み合わせた性別ごとの最低カロリー、目標カロリー範囲はアプリ独自のルールであり、これらの参考文献によって一体として検証されたものではありません。",
+        "references": {
+          "wadden": {
+            "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
+            "citation": "Lifestyle modification for obesity: new developments in diet, physical activity, and behavior therapy. Circulation. 2012;125(9):1157-70."
+          },
+          "hall": {
+            "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
+            "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          },
+          "hallWeight": {
+            "title": "Hall KD.",
+            "citation": "What is the required energy deficit per unit weight loss? Int J Obes (Lond). 2008;32(3):573–576."
+          },
+          "niddk": {
+            "title": "National Institute of Diabetes and Digestive and Kidney Diseases.",
+            "citation": "About the Body Weight Planner. Background on personalized weight-change estimates; the app does not implement this model."
+          }
+        }
+      }
+    }
+  },
+  "accountScreen": {
+    "title": "アカウント",
+    "switchAccount": "アカウントを切り替え",
+    "dangerZone": "危険な操作",
+    "deleteAction": "アカウントを削除",
+    "deleteDescription": "クラウド上のアカウントと、この端末のすべてのデータを完全に削除します。新しい匿名セッションが作成されます。",
+    "deleteTitle": "アカウントを削除しますか？",
+    "deleteMessage": "クラウドとこの端末のデータがすべて完全に削除されます。この操作は取り消せません。",
+    "deleteConfirm": "すべて削除",
+    "deleteSuccess": "アカウントとデータを削除しました。",
+    "deleteError": "現在アカウントを削除できません。もう一度お試しください。",
+    "deleteDataAction": "すべてのデータを削除",
+    "deleteDataTitle": "すべてのデータを削除しますか？",
+    "deleteDataMessage": "この端末とクラウドの栄養データがすべて完全に削除されます。この操作は取り消せません。",
+    "deleteDataConfirm": "すべて削除",
+    "deleteDataSuccess": "栄養データをすべて削除しました。",
+    "deleteDataError": "データを削除できませんでした。もう一度お試しください。",
+    "logoutAction": "ログアウト",
+    "logoutTitle": "ログアウトしますか？",
+    "logoutMessage": "ログアウトすると、新しい匿名セッションが作成されます。クラウドのデータはそのまま残ります。",
+    "logoutConfirm": "ログアウト",
+    "logoutSuccess": "ログアウトしました。",
+    "logoutError": "現在ログアウトできません。",
+    "joinedAt": "登録日：{{value}}",
+    "joinedAtUnknown": "登録日不明"
+  },
+  "profileScreen": {
+    "actionError": "現在データを更新できません。もう一度お試しください。",
+    "reminders": {
+      "subtitle": "リマインダーごとにオン・オフを切り替えられます。間食や続けたい習慣のリマインダーも追加できます。",
+      "breakfast": "朝食",
+      "lunch": "昼食",
+      "dinner": "夕食",
+      "mealWindow": "{{start}}–{{end}}",
+      "customTag": "カスタム",
+      "addButton": "リマインダーを追加",
+      "limitReached": "リマインダーは最大{{count}}件まで設定できます。",
+      "toggleA11y": "{{name}}のリマインダーをオン/オフ",
+      "changeTimeA11y": "{{name}}のリマインダー時刻を変更",
+      "editA11y": "{{name}}のリマインダーを編集",
+      "editor": {
+        "addTitle": "新しいリマインダー",
+        "editTitle": "リマインダーを編集",
+        "nameLabel": "名前",
+        "namePlaceholder": "例：午後の間食",
+        "timeLabel": "通知時刻",
+        "defaultName": "リマインダー"
+      },
+      "permissionDenied": "アプリに通知が許可されていません。",
+      "adjustedToMealWindow": "リマインダーの時刻を、食事の有効な時間帯に調整しました。",
+      "channelName": "カロリー記録のリマインダー",
+      "notifications": {
+        "breakfast": {
+          "title": "朝食を記録しましょう",
+          "body": "アプリを開いて食事をスキャンし、カロリーを最新の状態にしましょう。"
+        },
+        "lunch": {
+          "title": "昼食を記録しましょう",
+          "body": "カロリーを記録して、今日もプランどおりに進めましょう。"
+        },
+        "dinner": {
+          "title": "夕食を記録しましょう",
+          "body": "数タップで夕食を記録して、今日を締めくくりましょう。"
+        },
+        "custom": {
+          "body": "アプリを開いて、今食べたものを記録しましょう。"
+        }
+      }
+    }
+  },
+  "goalTracking": {
+    "progressKcal": "{{current}} / {{target}} kcal",
+    "progressMaintainDays": "目標達成 {{current}} / {{target}}日",
+    "goalNames": {
+      "maintain": "体重維持",
+      "loseWithValue": "{{value, number}} kg減量",
+      "gainWithValue": "{{value, number}} kg増量",
+      "maintainWithValue": "{{value}}日間 体重維持",
+      "maintainWithOneMonth": "1か月間 体重維持",
+      "maintainWithMonths": "{{value}}か月間 体重維持"
+    },
+    "status": {
+      "active": "進行中",
+      "completed": "達成",
+      "cancelled": "中止",
+      "ended": "終了"
+    },
+    "history": {
+      "subtitle": "達成した目標や、途中で変更した目標です。",
+      "empty": "目標の履歴はまだありません。",
+      "period": {
+        "completed": "開始 {{start}} · 達成 {{end}}",
+        "cancelled": "開始 {{start}} · 中止 {{end}}",
+        "ended": "開始 {{start}} · 終了 {{end}}"
+      }
+    },
+    "today": {
+      "remaining": "残り {{value}} kcal",
+      "onTarget": "目標範囲内",
+      "over": "{{value}} kcal オーバー"
+    }
+  },
+  "achievements": {
+    "streakHistory": "連続記録の履歴",
+    "previousMonth": "前の月",
+    "nextMonth": "次の月",
+    "legendOnTarget": "目標達成",
+    "legendLogged": "記録済み",
+    "badges": "バッジ",
+    "unlockedCount": "{{unlocked}}/{{total}} 獲得",
+    "done": "完了",
+    "items": {
+      "streak_7": "7日連続",
+      "streak_14": "14日連続",
+      "streak_30": "30日連続",
+      "on_target_7": "目標達成7日",
+      "protein_5": "たんぱく質達成5日",
+      "balanced_7": "バランス良好7日",
+      "entries_10": "10品を記録",
+      "entries_100": "100品を記録"
+    }
+  },
+  "auth": {
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "confirmPassword": "パスワード（確認）",
+    "welcomeBack": "おかえりなさい！",
+    "welcomeBackSubtitle": "ログインして栄養管理を続け、データを同期しましょう。",
+    "emailPlaceholder": "name@example.com",
+    "passwordPlaceholder": "8文字以上",
+    "confirmPasswordPlaceholder": "パスワードを再入力",
+    "signIn": "ログイン",
+    "signInWithGoogle": "Googleでログイン",
+    "signUp": "アカウント作成",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "registerPageTitle": "新規登録",
+    "registerAction": "登録する",
+    "upgradeAccount": "このアカウントを保護",
+    "goToLogin": "すでにアカウントをお持ちの方",
+    "goToRegister": "同期用アカウントを作成",
+    "loginTitle": "同期用アカウントにログイン",
+    "loginCardSubtitle": "ログイン情報を入力してください。",
+    "loginSubtitle": "既存のアカウントで、同期済みの栄養データをこの端末に読み込みます。",
+    "loginSubtitleAnonymous": "すでにアカウントをお持ちの場合のみログインしてください。この匿名セッションのデータを守るには、「アカウント作成」を使ってください。",
+    "registerTitle": "同期用アカウントを作成",
+    "registerSubtitle": "新しいアカウントを作成すると、別の端末でも栄養データを復元できます。",
+    "registerUpgradeTitle": "同期済みデータを保護",
+    "registerUpgradeSubtitle": "この匿名セッションをメール、Google、Appleと連携すると、あとからデータを復元できます。",
+    "loginSuccess": "ログインしました。",
+    "loginFailed": "現在ログインできません。",
+    "loginConfirmTitle": "端末のデータを置き換えますか？",
+    "loginConfirmMessage": "ログインすると、この端末のデータはすべてクラウドアカウントのデータに置き換えられます。この操作は取り消せません。",
+    "loginConfirmAction": "ログイン",
+    "syncPhaseAuth": "ログイン中…",
+    "syncPhaseData": "データを同期中…",
+    "syncPleaseWait": "少々お待ちください。",
+    "syncFailedTitle": "同期に失敗しました",
+    "syncFailedMessage": "クラウドからデータを同期できませんでした。再試行するか、今はスキップできます。",
+    "syncRetry": "再試行",
+    "syncSkip": "今はスキップ",
+    "forgotPasswordTitle": "パスワードを再設定",
+    "forgotPasswordSubtitle": "メールアドレスを入力すると、再設定用のリンクをお送りします。",
+    "forgotPasswordAction": "再設定リンクを送信",
+    "forgotPasswordSuccess": "メールアドレスが登録されている場合、再設定リンクを送信しました。",
+    "forgotPasswordFailed": "現在、再設定リンクを送信できません。",
+    "resetPasswordTitle": "新しいパスワードを設定",
+    "resetPasswordSubtitle": "アカウントの新しいパスワードを決めてください。",
+    "resetPasswordAction": "新しいパスワードを保存",
+    "resetPasswordSuccess": "パスワードを更新しました。",
+    "resetPasswordFailed": "現在パスワードを更新できません。",
+    "registerSuccess": "アカウントを作成しました。",
+    "registerFailed": "現在アカウントの作成・保護ができません。",
+    "lastSyncAt": "最終同期：{{value}}",
+    "lastSignedInAt": "最終ログイン：{{value}}",
+    "lastSignedInUnknown": "最終ログイン：不明"
+  },
+  "legal": {
+    "updatedTitle": "最終更新日",
+    "updatedDate": "2024年5月15日",
+    "about": {
+      "heroTitle": "よく食べて、\nよく生きる",
+      "heroSubtitle": "カロリーと栄養をかしこく管理するアプリ",
+      "heroBody": "Check Caloは、からだを知り、毎日のカロリーを管理して、健康目標を毎日達成できるようサポートします。",
+      "features": {
+        "tracking": {
+          "title": "毎日のカロリー管理",
+          "body": "毎食のカロリーをすばやく記録し、1日の進捗をひと目で確認できます。"
+        },
+        "goals": {
+          "title": "あなたに合わせた目標",
+          "body": "体格やライフスタイル、目指す健康の方向に合った栄養目標を設定できます。"
+        },
+        "meals": {
+          "title": "食事の振り返り",
+          "body": "朝食・昼食・夕食・間食を記録して、食習慣を把握できます。"
+        }
+      }
+    },
+    "terms": {
+      "title": "利用規約",
+      "summary": "Check Caloをご利用になる前に、本規約をよくお読みください。",
+      "readMore": "続きを読む",
+      "readLess": "閉じる",
+      "items": {
+        "acceptance": {
+          "title": "規約への同意",
+          "body": "Check Caloを利用することで、本書に記載された利用規約に同意したものとみなされます。"
+        },
+        "purpose": {
+          "title": "利用目的",
+          "body": "本アプリはカロリー、栄養、個人の目標の管理をサポートするものです。医療上の助言や治療に代わるものではありません。"
+        },
+        "account": {
+          "title": "ユーザーアカウント",
+          "body": "アカウント情報の保護と、健康データを正確に保つことは、ユーザーご自身の責任となります。"
+        },
+        "prohibited": {
+          "title": "禁止事項",
+          "body": "違法な目的での利用、サービスの妨害、他のユーザーに害を与える行為は禁止します。"
+        },
+        "liability": {
+          "title": "責任の制限",
+          "body": "栄養情報は参考情報です。健康や食事に関する判断は、ご自身の責任で行ってください。"
+        }
+      },
+      "moreItems": {
+        "changes": {
+          "title": "規約の変更",
+          "body": "製品の変更や法的要件に合わせて、本規約を随時更新することがあります。"
+        },
+        "retention": {
+          "title": "データの保持",
+          "body": "快適なご利用、同期、履歴の復元のために、一部のデータを保持する場合があります。"
+        },
+        "contact": {
+          "title": "サポートへのお問い合わせ",
+          "body": "本規約についてご不明な点があれば、アプリ内のサポートページからお問い合わせください。"
+        }
+      }
+    },
+    "privacy": {
+      "title": "プライバシーポリシー",
+      "summary": "私たちはお客様のプライバシーを守り、Check Caloでのデータの利用方法をわかりやすくご説明します。",
+      "items": {
+        "collection": {
+          "title": "収集する情報",
+          "body": "氏名、メールアドレス、生年月日、性別、身長、体重、食事の記録など、お客様からご提供いただいた情報を収集する場合があります。"
+        },
+        "use": {
+          "title": "情報の利用方法",
+          "body": "データは、あなたに合わせた目標の提供、栄養管理、アプリ体験の向上のために利用します。"
+        },
+        "sharing": {
+          "title": "情報の共有",
+          "body": "法令で求められる場合やお客様の同意がある場合を除き、個人データを第三者に販売・共有することはありません。"
+        },
+        "voice": {
+          "title": "音声入力",
+          "body": "チャットで話しかけると、端末の音声認識サービス（AppleまたはGoogle）が音声をテキストに変換します。認識のために音声がそのサービスに送信される場合がありますが、Check Caloが保存するのは送信されたテキストのみです。"
+        },
+        "security": {
+          "title": "データのセキュリティ",
+          "body": "不正アクセスから情報を守るため、合理的な技術的・組織的対策を講じています。"
+        },
+        "rights": {
+          "title": "お客様の権利",
+          "body": "アプリまたはサポートを通じて、個人データの閲覧、更新、訂正、削除の依頼ができます。"
+        },
+        "changes": {
+          "title": "ポリシーの変更",
+          "body": "本ポリシーは更新されることがあります。重要な変更はアプリ内でお知らせします。"
+        }
+      },
+      "updatedDate": "2026年11月1日"
+    },
+    "help": {
+      "title": "お困りですか？",
+      "body": "本規約やプライバシーについてご質問があれば、お気軽にお問い合わせください。",
+      "action": "お問い合わせ"
+    }
+  },
+  "contactScreen": {
+    "title": "お問い合わせ",
+    "heroTitle": "お気軽にご連絡ください",
+    "formTitle": "メッセージを送る",
+    "formSubtitle": "メールアドレスと、お困りの内容をご記入ください。",
+    "copyHint": "タップしてコピー",
+    "copySuccess": "連絡先をコピーしました。",
+    "submitAction": "送信",
+    "submitSuccess": "お問い合わせを受け付けました。",
+    "emailLabel": "メールアドレス",
+    "emailValue": "checkcalosupport@gmail.com",
+    "phoneLabel": "電話番号",
+    "phoneValue": "0373060206",
+    "locationLabel": "所在地",
+    "locationValue": "No. 2A, Street 55, Quarter 2, Binh Duong Ward, Ho Chi Minh City, Vietnam",
+    "workingDaysLabel": "営業日",
+    "workingDaysValue": "月曜〜土曜 | 08:00 - 17:00",
+    "emailPlaceholder": "メールアドレス",
+    "problemPlaceholder": "お問い合わせ内容"
+  },
+  "settings": {
+    "about": "アプリについて",
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "contact": "お問い合わせ"
+  },
+  "settingsScreen": {
+    "title": "設定",
+    "subtitle": "アカウント・個人情報・表示",
+    "general": "一般",
+    "healthAndPrivacy": "健康とプライバシー"
+  },
+  "errorBoundary": {
+    "title": "問題が発生しました",
+    "message": "予期しないエラーが発生しました。もう一度お試しください。",
+    "retry": "再試行"
+  },
+  "network": {
+    "offline": "オフラインのようです",
+    "online": "オンラインに戻りました"
+  },
+  "notFound": {
+    "title": "見つかりません",
+    "message": "この画面は存在しません。",
+    "goHome": "ホームに戻る"
+  },
+  "errors": {
+    "title": "エラー",
+    "generic": "問題が発生しました。もう一度お試しください。",
+    "network": "通信エラーです。接続を確認してください。",
+    "auth": "認証に失敗しました。"
+  },
+  "validation": {
+    "required": "必須項目です",
+    "emailInvalid": "有効なメールアドレスを入力してください",
+    "numberInvalid": "有効な数値を入力してください",
+    "passwordMin": "パスワードは8文字以上で入力してください",
+    "passwordMismatch": "パスワードが一致しません",
+    "usernameMin": "ユーザー名は3文字以上で入力してください",
+    "usernameMax": "ユーザー名は20文字以内で入力してください",
+    "usernameFormat": "ユーザー名には英字、数字、アンダースコアのみ使用できます"
+  },
+  "camera": {
+    "title": "カメラ",
+    "scanTitle": "QRコードをスキャン",
+    "barcodeTitle": "バーコードをスキャン",
+    "scanHint": "QRコードを枠内に合わせると、自動でスキャンします。",
+    "barcodeHint": "バーコードを枠内に合わせると、自動でスキャンします。",
+    "permissionDenied": "カメラへのアクセスが許可されていません。",
+    "libraryPermissionDenied": "写真ライブラリへのアクセスが許可されていません。",
+    "captureFailed": "写真を撮影できませんでした。もう一度お試しください。",
+    "libraryPickFailed": "写真を選択できませんでした。もう一度お試しください。",
+    "scanFailed": "コードを読み取れませんでした。もう一度お試しください。",
+    "actions": {
+      "close": "閉じる",
+      "flip": "カメラを切り替え",
+      "capture": "撮影",
+      "toggleFlash": "フラッシュの切り替え"
+    }
+  },
+  "macros": {
+    "calories": "カロリー",
+    "carbs": "炭水化物",
+    "protein": "たんぱく質",
+    "fat": "脂質"
+  },
+  "nutrients": {
+    "title": "栄養素の詳細",
+    "fiberGrams": "食物繊維",
+    "sugarGrams": "糖類",
+    "saturatedFatGrams": "飽和脂肪酸",
+    "transFatGrams": "トランス脂肪酸",
+    "cholesterolMg": "コレステロール",
+    "sodiumMg": "ナトリウム",
+    "potassiumMg": "カリウム",
+    "unknown": "—",
+    "emptyHint": "この食品の詳細データはまだありません。編集をタップして、栄養成分表示の値を入力してください。",
+    "dailyValueHint": "1日2,000 kcalの食事における1日の参考量に対する割合（%）です。食物繊維とカリウムは達成を目指し、その他は下回るようにしましょう。",
+    "showDetails": "栄養素の詳細を表示",
+    "hideDetails": "栄養素の詳細を隠す"
+  },
+  "mealSlots": {
+    "breakfast": "朝食",
+    "lunch": "昼食",
+    "dinner": "夕食",
+    "snack": "間食"
+  },
+  "chat": {
+    "title": "Check AI",
+    "subtitle": "今日の食事について何でも聞いてください",
+    "placeholder": "今日は何を食べましたか？",
+    "send": "送信",
+    "voiceInput": "音声入力",
+    "attachPhoto": "写真を添付",
+    "takePhoto": "写真を撮る",
+    "pickFromLibrary": "ライブラリから選択",
+    "removePhoto": "写真を削除",
+    "welcome": "こんにちは！あなたの栄養パートナーです。食べたものを教えてくれたり、写真を送ってくれたりすれば記録します。目標に合った食事のアイデアも提案できますよ。",
+    "thinking": "Check AIが考え中…",
+    "photoOnlyPrompt": "この写真の料理を記録して。",
+    "fallbackReply": "結果はこちらです。",
+    "errorReply": "すみません、うまく分析できませんでした。もう一度お試しください。",
+    "addToDiary_other": "{{count}}品を記録に追加",
+    "addSuggestion": "記録に追加",
+    "logged": "追加済み",
+    "loggedToast": "記録に保存しました",
+    "total": "合計",
+    "undo": "元に戻す",
+    "undoToast": "記録から削除しました",
+    "scanBarcode": "バーコードをスキャン",
+    "recentTitle": "最近",
+    "recentChip": "{{name}} · {{calories}} kcal",
+    "recentLogged": "{{name}}を記録に追加しました。",
+    "barcodeMessage": "バーコード {{code}}",
+    "barcodeFound": "{{name}}が見つかりました。量を確認して、記録に追加してください。",
+    "barcodeNotFound": "バーコード{{code}}の商品が見つかりませんでした。料理の内容を入力するか、写真を送ってみてください。",
+    "barcodeLookupFailed": "バーコードを検索できませんでした。接続を確認して、もう一度お試しください。",
+    "followUps": {
+      "logBreakfast": "朝ごはんに納豆ごはんとみそ汁を食べた",
+      "suggestDinner": "700 kcal以下の高たんぱくな夕食を提案して"
+    }
+  },
+  "voice": {
+    "listening": "聞き取り中…",
+    "stop": "聞き取りを停止",
+    "permissionDenied": "音声で食事を記録するには、設定でマイクと音声認識を許可してください。",
+    "failed": "うまく聞き取れませんでした。もう一度話すか、入力してください。"
+  },
+  "mealDetail": {
+    "title": "食事の詳細",
+    "nutrition": "栄養成分",
+    "ringsHint": "リングは1日の目標に対する割合を示します。",
+    "notFound": "この食品は記録にありません。",
+    "deleteAction": "記録から削除",
+    "deleteTitle": "この食品を削除しますか？",
+    "deleteMessage": "記録と1日の合計から削除されます。",
+    "deleteSuccess": "削除しました",
+    "saveSuccess": "変更を保存しました",
+    "fields": {
+      "name": "食品名",
+      "quantity": "量",
+      "calories": "カロリー (kcal)",
+      "protein": "たんぱく質 (g)",
+      "carbs": "炭水化物 (g)",
+      "fat": "脂質 (g)",
+      "notes": "メモ"
+    }
+  },
+  "onboarding": {
+    "headerTitle": "はじめに",
+    "title": "Check Caloへようこそ！",
+    "subtitle": "あなたにぴったりのプランを作るため、{{name}}にあなたのことを少し教えてください。",
+    "displayName": "表示名",
+    "displayNamePlaceholder": "お名前",
+    "age": "年齢",
+    "gender": "性別",
+    "genders": {
+      "male": "男性",
+      "female": "女性",
+      "other": "その他"
+    },
+    "height": "身長",
+    "weight": "体重",
+    "bmi": "BMI",
+    "bmiCategories": {
+      "underweight": {
+        "title": "低体重"
+      },
+      "normal": {
+        "title": "普通体重"
+      },
+      "overweight": {
+        "title": "過体重"
+      },
+      "obese": {
+        "title": "肥満"
+      }
+    },
+    "goal": "あなたの目標",
+    "goals": {
+      "lose": {
+        "title": "減量",
+        "description": "脂肪を燃やしてスリムに"
+      },
+      "maintain": {
+        "title": "体重維持",
+        "description": "今の体重をキープ"
+      },
+      "gain": {
+        "title": "増量",
+        "description": "健康的に体を大きく"
+      }
+    },
+    "activity": "活動レベル",
+    "activities": {
+      "sedentary": "座っていることが多い",
+      "light": "軽い運動",
+      "moderate": "適度な運動",
+      "active": "活発に運動"
+    },
+    "plan": "あなたの推定プラン",
+    "saveSuccess": "プロフィールを保存しました",
+    "healthSources": "計算方法について",
+    "validation": {
+      "age": "年齢は10〜100の範囲で入力してください"
+    },
+    "targetWeight": "目標体重",
+    "targetBmiWarning": "この目標は健康的なBMI（18.5）を下回っています。医療専門家への相談をおすすめします。",
+    "planLoading": {
+      "title": "プランを作成中…",
+      "bmr": "基礎代謝量（BMR）を計算中…",
+      "energy": "1日の消費エネルギーを推定中…",
+      "pace": "目標に向けた無理のないペースを検討中…",
+      "roadmap": "目標体重までの道のりを作成中…"
+    },
+    "planResults": {
+      "target": "目標体重",
+      "targetChange": "現在から {{value}} kg",
+      "targetMaintain": "今の体重をキープ",
+      "daily": "1日あたりのkcal",
+      "dailyHint": "目標範囲：{{min}}–{{max}}",
+      "weekly": "1週間あたりのkcal",
+      "weeklyHint": "1週間で{{value}} kg",
+      "weeklyMaintain": "体重を安定してキープ",
+      "date": "達成予定",
+      "dateHint": "{{weeks}}後",
+      "dateMaintain": "継続中",
+      "dateMaintainHint": "終了日なし"
+    },
+    "step": "ステップ {{current}}/{{total}} · {{title}}",
+    "steps": {
+      "about": "あなたと目標",
+      "plan": "プラン"
+    },
+    "createPlan": "プランを作成",
+    "start": "はじめる",
+    "goalLabel": "目標",
+    "planSummary": {
+      "lose": "あなたの維持カロリーは約{{tdee}} kcal/日です。プランではそれより{{gap}} kcal少なく食べます。",
+      "gain": "あなたの維持カロリーは約{{tdee}} kcal/日です。プランではそれより{{gap}} kcal多く食べます。",
+      "maintain": "あなたの維持カロリーは約{{tdee}} kcal/日です。このくらいを食べていれば体重をキープできます。",
+      "macros": "1日あたり：たんぱく質 {{protein}}g · 脂質 {{fat}}g · 炭水化物 {{carbs}}g",
+      "estimate": "これは推定値です。体重を記録するたびにアプリが調整します。"
+    },
+    "weightAndTarget": "体重 / 目標",
+    "calorieAdjustment": {
+      "lose": "減らすカロリー",
+      "gain": "増やすカロリー",
+      "maintain": "カロリー調整"
+    },
+    "editTitle": "目標を更新",
+    "editSubtitle": "情報を確認して目標を調整すると、{{name}}がプランを更新します。",
+    "previewUpdate": "更新後のプランを見る"
+  },
+  "buddy": {
+    "openBuddy": "{{name}}を見る",
+    "title": "ペット",
+    "subtitle": "健康的な毎日で{{name}}を育てよう",
+    "rename": "ペットの名前を変更",
+    "renameLabel": "{{name}}の名前を変更",
+    "namePlaceholder": "ペットの名前",
+    "levelTitle": "レベル{{level}} - {{stage}}",
+    "levelShort": "Lv {{level}}",
+    "stages": {
+      "baby": "ベビー",
+      "junior": "ジュニア",
+      "teen": "ティーン",
+      "buddy": "プロ",
+      "master": "マスター"
+    },
+    "progressToNext": "{{percent}}% · 次のレベルまで{{points}}ポイント",
+    "maxLevel": "最高レベルに到達！",
+    "journey": "{{name}}の成長の記録",
+    "nextReward": "次のレベルの報酬",
+    "nextRewardHint": "{{points}}ポイントで{{name}}が{{stage}}に進化します",
+    "stats": {
+      "subtitle": "項目をタップすると詳細を表示",
+      "legendOverall": "全期間",
+      "legendRecent": "直近7日間",
+      "axisLabel": "{{axis}}：{{score}}ポイント。詳細を見る",
+      "axisLocked": "{{axis}}：データが足りません。詳細を見る",
+      "intro": "{{name}}があなたのことを知ろうとしています",
+      "introHint_other": "あと{{count}}日食事を記録すると、ステータスが表示されます。"
+    },
+    "axes": {
+      "calories": {
+        "name": "カロリー目標",
+        "short": "カロリー",
+        "measure": "1日の目標に対するカロリー。減量・増量・維持の目標に応じて評価します。",
+        "goal": "カロリーが目標範囲に収まると100ポイント。",
+        "tip": "食べたらすぐ記録すると、次の食事であとどれくらい食べられるかがわかります。"
+      },
+      "nutrients": {
+        "name": "PFCバランス",
+        "short": "PFC",
+        "measure": "たんぱく質・炭水化物・脂質の目標をどれだけ達成したか。超えても加点はありません。",
+        "goal": "3つすべてが目標に届くと100ポイント。",
+        "tip": "毎食、たんぱく質（肉、魚、卵、豆類）、炭水化物（ごはん、いも類）、少量の良質な脂質をとりましょう。"
+      },
+      "quality": {
+        "name": "栄養の質",
+        "short": "栄養",
+        "measure": "食物繊維が十分で、糖類・塩分・体に良くない脂質が推奨上限を下回っているか。これらの数値があるカロリーが70%以上の日だけを評価します。",
+        "goal": "食物繊維が十分で、すべてが上限以下なら100ポイント。",
+        "tip": "野菜、果物、豆類をプラスし、たれやソース、加工食品、炭酸飲料は控えめに。"
+      },
+      "timing": {
+        "name": "食事の時間",
+        "short": "時間",
+        "measure": "主な食事をリマインダーの時刻（前後1時間以内）に、リマインダーがなければ一般的な食事時間に食べているか。22時以降の食事は減点されます。",
+        "goal": "主な食事がすべて時間どおりで、夜遅くに食べなければ100ポイント。",
+        "tip": "食事のリマインダーを設定し、夕食は20時30分までに済ませましょう。"
+      },
+      "meals": {
+        "name": "3食そろう",
+        "short": "食事",
+        "measure": "1日に記録した主な食事（朝食・昼食・夕食）の数。間食は含みません。",
+        "goal": "主な3食すべてで100ポイント。",
+        "tip": "朝食は抜かないで。食事を抜くと、次の食事で食べすぎがちです。"
+      },
+      "consistency": {
+        "name": "継続",
+        "short": "継続",
+        "measure": "始めた日から毎日食事を記録しているか。",
+        "goal": "記録した日はそれぞれ100ポイント。",
+        "tip": "食事のリマインダーをオンにして、記録忘れを防ぎましょう。"
+      }
+    },
+    "insight": {
+      "strong": {
+        "calories": "カロリープランをしっかり守れています！",
+        "nutrients": "食事でPFCをバランスよくとれています！",
+        "quality": "とても健康的な食事で、{{name}}も元気いっぱい！",
+        "timing": "時計のように時間どおりに食べています！",
+        "meals": "毎日3食、すばらしい！",
+        "consistency": "毎日記録していて、{{name}}も感激しています！"
+      },
+      "weak": {
+        "calories": {
+          "lose": "カロリーオーバーの日がありました。夕食に気をつけましょう。",
+          "gain": "カロリーが足りない日がありました。間食をプラスしましょう。",
+          "maintain": "カロリーが目標からずれています。安定させましょう。"
+        },
+        "nutrients": "足りない栄養素があります。たんぱく質や炭水化物を食事に足しましょう。",
+        "quality": "野菜が少なめか、糖分・塩分が多めです。少しバランスを整えましょう。",
+        "timing": "食事の時間が少し不規則です。決まった時間に食べてみましょう。",
+        "meals": "食事を抜くことが多いようです。主な3食をとりましょう。",
+        "consistency": "もっとこまめに記録して、{{name}}にあなたのことを教えてあげましょう。"
+      },
+      "allGood": "すべての項目がばっちりです。この調子で！"
+    },
+    "detail": {
+      "ranges": {
+        "week": "7日",
+        "month": "30日",
+        "all": "全期間"
+      },
+      "averageScore": "平均スコア",
+      "noData": "選択した期間には、この項目のデータがまだありません。",
+      "todayPending": "今日の分は1日が終わるまで集計されません。",
+      "chartTitle": "日別スコア",
+      "chartTitleWeekly": "週別の平均スコア",
+      "dailyAverage": "1日の平均",
+      "metDays": "100ポイントの日数",
+      "metDaysValue": "{{met}} / {{total}}日",
+      "bestDay": "ベストの日",
+      "bestDayValue": "{{date}} · {{score}}ポイント",
+      "tipTitle": "{{name}}からのヒント",
+      "values": {
+        "calories": "{{value}} / {{target}} kcal",
+        "nutrients": "目標比 たんぱく質 {{protein}}% · 炭水化物 {{carbs}}% · 脂質 {{fat}}%",
+        "quality": "食物繊維 {{fiber}} g · ナトリウム {{sodium}} mg · 糖類 {{sugar}} g",
+        "timing": "時間どおりの食事 {{value}}% · 夜遅い食事 {{late}}日",
+        "meals": "主な食事 {{value}} / 3",
+        "consistency": "記録 {{value}} / {{target}}日"
+      },
+      "topFoods": {
+        "protein": "たんぱく質が多い食品",
+        "calories": "カロリーが多い食品",
+        "fiber": "食物繊維が多い食品",
+        "sodium": "ナトリウムが多い食品"
+      },
+      "amounts": {
+        "protein": "{{value}} g",
+        "calories": "{{value}} kcal",
+        "fiber": "{{value}} g",
+        "sodium": "{{value}} mg"
+      },
+      "timesEaten_other": "{{count}}回",
+      "notFound": "この項目は存在しません。",
+      "noDataQuality": "食物繊維・糖類・塩分のデータがまだ足りません。チャットで記録するかバーコードをスキャンすると、Buddyがこの項目を評価できます。"
+    },
+    "calorieGoal": {
+      "lose": "減量中：目標を下回っても大丈夫です。ただし、安全な最低ラインは守りましょう。",
+      "gain": "増量中：目標まで食べましょう。少し超えても大丈夫です。",
+      "maintain": "体重維持中：どちらにずれても減点されます。"
+    },
+    "quests": {
+      "title": "クエスト",
+      "subtitle": "クリアして{{name}}を早く成長させよう",
+      "tabs": {
+        "daily": "デイリー",
+        "weekly": "ウィークリー",
+        "special": "スペシャル"
+      },
+      "done": "クリア",
+      "settling": "達成ペース · 1日の終わりに確定",
+      "firstLogOpen": "今日はまだ記録がありません",
+      "limitsNeedsData": "糖類と塩分の数値がある主な食事が2回必要です",
+      "limitsOpen": "1日の終わりに確定",
+      "progress": {
+        "kcal": "{{value}} / {{target}} kcal",
+        "g": "{{value}} / {{target}} g",
+        "macros": "{{value}} / {{target}} 栄養素",
+        "days": "{{value}} / {{target}}日"
+      },
+      "weekDone": "今週クリア済み",
+      "levelUp_other": "{{count}}回レベルアップ",
+      "levelUpOpen": "次のレベルに到達してバッジを獲得",
+      "badge": "バッジ",
+      "weightGoalOpen": "体重目標を1つ達成する",
+      "weightGoalDone_other": "{{count}}件の目標を達成 · さらに続けよう",
+      "accountOpen": "登録すると、機種変更してもデータを引き継げます",
+      "accountDone": "アカウント作成済み",
+      "points": "+{{points}}",
+      "earnedTitle": "クエスト達成！",
+      "earnedToast": "+{{points}}ポイント · {{title}}",
+      "earnedManyToast_other": "{{count}}件のクエストで+{{points}}ポイント",
+      "empty": "クエストはまだありません"
+    },
+    "calorieChart": {
+      "title": "摂取カロリー",
+      "tabs": {
+        "week": "週",
+        "year": "年"
+      },
+      "previous": {
+        "week": "前の週",
+        "year": "前の年"
+      },
+      "next": {
+        "week": "次の週",
+        "year": "次の年"
+      },
+      "other": "その他",
+      "goal": "目標",
+      "noLog": "記録なし",
+      "monthAverage_other": "1日平均 · 記録 {{count}}日"
+    },
+    "levelRange": "レベル{{from}}–{{to}}"
+  },
+  "profileTab": {
+    "guest": "ゲスト",
+    "guestAccount": "ゲストアカウント · データはこの端末に保存",
+    "reminders": "リマインダー",
+    "appearance": "表示",
+    "language": "言語",
+    "goalHistory": "目標の履歴",
+    "other": "その他",
+    "support": "Check Caloを応援",
+    "healthSources": "健康情報の出典",
+    "signIn": "ログイン / アカウント作成",
+    "signInHint": "記録をクラウドにバックアップ",
+    "resetData": "すべてのデータを削除",
+    "resetTitle": "すべてのデータを削除しますか？",
+    "resetMessage": "この端末とクラウド上の記録、目標、プロフィールが完全に削除されます。",
+    "resetConfirm": "削除",
+    "version": "バージョン {{version}}",
+    "account": "アカウント"
+  },
+  "devTools": {
+    "group": "開発者",
+    "toggle": "開発モード",
+    "toggleHint": "UIテスト用ツール。開発ビルドでのみ使えます。",
+    "title": "UIテストツール",
+    "subtitle": "画面確認用のダミーデータと状態",
+    "sampleData": "サンプルデータ",
+    "seed": "{{count}}日分のサンプル食事を追加",
+    "seedHint": "この端末にのみ保存され、同期されません",
+    "clear": "サンプル食事を削除",
+    "clearHint": "サンプルのみ削除し、実際の記録は残ります",
+    "seeded": "サンプル食事を{{count}}件追加しました",
+    "cleared": "サンプル食事を{{count}}件削除しました",
+    "screenStates": "画面の状態",
+    "forceEmptyDiary": "ホームの記録を空にする",
+    "forceEmptyDiaryHint": "食事を記録していても空の状態を表示",
+    "chatScenario": "Check AIの応答",
+    "chatScenarioHint": "チャットでのAIの応答をシミュレート",
+    "chatScenarios": {
+      "normal": "通常",
+      "slow": "遅い（3秒）",
+      "quota": "上限到達",
+      "auth": "未ログイン",
+      "error": "エラー"
+    },
+    "fakeBarcode": "バーコードスキャンをシミュレート",
+    "fakeBarcodeHint": "チャットのバーコードボタンで、カメラの代わりにサンプル商品を使います",
+    "notifications": "トーストとアラート",
+    "toastSuccess": "成功トースト",
+    "toastError": "エラートースト",
+    "toastInfo": "情報トースト",
+    "toastWarning": "警告トースト",
+    "alert": "アラート",
+    "destructiveAlert": "削除系アラート",
+    "alertTitle": "サンプルアラート",
+    "sampleMessage": "レイアウト確認用のサンプルメッセージです。"
+  },
+  "personalInfo": {
+    "title": "個人情報",
+    "saved": "保存しました",
+    "heightInvalid": "身長は100〜230 cmの範囲で入力してください"
+  },
+  "goalPlanner": {
+    "maintainHint": "体重をキープするには、1日約{{kcal}} kcalを目安に食べましょう。",
+    "duration": "目標達成までの期間",
+    "weeks_other": "{{count}}週間",
+    "months": "約{{value}}か月",
+    "fastest_other": "{{count}}週間（最短）",
+    "slowest_other": "{{count}}週間（最長）",
+    "kcal": "kcal/日",
+    "ratePerWeek": "kg/週",
+    "paceLabel": "ペース",
+    "pace": {
+      "gentle": "ゆるやか",
+      "moderate": "ふつう",
+      "fast": "速め"
+    },
+    "endDate": "達成予定：{{value}}",
+    "stageHint": "12か月で目指せるのはここまでです。さらに進めるには、この段階を達成してから次の目標を設定しましょう。"
+  },
+  "goalEdit": {
+    "title": "目標を変更",
+    "saved": "目標を更新しました",
+    "restart": "今日からやり直す",
+    "restartHint": "現在の体重がスタートになり、進行中の目標は履歴に移ります。",
+    "confirmTitle": "{{mode}}に切り替えますか？",
+    "confirmMessage": "現在の目標は終了し、履歴に移ります。1日のカロリー：{{from}} → {{to}} kcal",
+    "confirmAction": "目標を変更",
+    "transition_other": "まず{{count}}週間、維持カロリーで食べます（{{kcal}} kcal/日）",
+    "transitionHint": "方向を変える前に体を慣らします。水分で体重が少し増えることがあります。その後、カロリーは{{kcal}} kcal/日に切り替わります。"
+  }
+}

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Icon, Text } from '@/common/components';
+import { toLocale } from '@/features/food-log/utils/format';
 import { BMI_THRESHOLDS, getBmiCategory, type BmiCategory } from '../../utils/bmi';
 import { styles } from './BmiCard.styles';
 
@@ -36,11 +37,11 @@ function formatRanges(format: (value: number) => string): Record<BmiCategory, st
 export function BmiCard({ bmi, stats, animationPlayed }: BmiCardProps) {
   const { t, i18n } = useTranslation();
   const category = getBmiCategory(bmi);
-  const bmiNumber = new Intl.NumberFormat(i18n.language, {
+  const bmiNumber = new Intl.NumberFormat(toLocale(i18n.language), {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   });
-  const rangeNumber = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 });
+  const rangeNumber = new Intl.NumberFormat(toLocale(i18n.language), { maximumFractionDigits: 1 });
   const ranges = formatRanges((value) => rangeNumber.format(value));
   const scale = useSharedValue(1);
   useEffect(() => {

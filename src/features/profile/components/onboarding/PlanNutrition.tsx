@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Text } from '@/common/components';
 import { CalorieGauge } from '@/features/food-log/components';
+import { toLocale } from '@/features/food-log/utils/format';
 import type { ProfilePlan } from '../../hooks/useProfileForm';
 
 interface PlanNutritionProps {
@@ -14,7 +15,8 @@ interface PlanNutritionProps {
 export function PlanNutrition({ plan, maintenanceCalories }: PlanNutritionProps) {
   const { t, i18n } = useTranslation();
   const [width, setWidth] = useState(240);
-  const format = (value: number) => new Intl.NumberFormat(i18n.language).format(Math.round(value));
+  const format = (value: number) =>
+    new Intl.NumberFormat(toLocale(i18n.language)).format(Math.round(value));
   const macros = [
     { key: 'carbs', value: plan.carbsGrams },
     { key: 'protein', value: plan.proteinGrams },

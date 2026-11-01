@@ -1,0 +1,1114 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "confirm": "确认",
+    "back": "返回",
+    "next": "下一步",
+    "done": "完成",
+    "date": "日期",
+    "time": "时间",
+    "retry": "重试",
+    "search": "搜索",
+    "settings": "设置",
+    "close": "关闭",
+    "edit": "编辑",
+    "clear": "清除",
+    "more": "更多",
+    "showPassword": "显示密码",
+    "hidePassword": "隐藏密码",
+    "progress": "进度",
+    "userAvatar": "用户头像",
+    "removeItem": "移除{{name}}",
+    "clearSearch": "清除搜索",
+    "decreaseQuantity": "减少份量",
+    "increaseQuantity": "增加份量",
+    "defaultMealName": "食物",
+    "numberPlaceholder": "0",
+    "submit": "提交",
+    "ok": "确定",
+    "units": {
+      "cm": "cm",
+      "kg": "kg",
+      "kcal": "kcal",
+      "gram": "g",
+      "milligram": "mg",
+      "day": "天"
+    },
+    "aiQuotaExceeded": "今日 AI 使用次数已达上限，请明天再试。",
+    "signInRequired": "登录后才能使用 AI 功能。",
+    "syncStatus": {
+      "syncNow": "立即同步",
+      "loginToSync": "登录以同步",
+      "localOnly": "仅存本机",
+      "failed": "同步失败",
+      "syncing": "同步中",
+      "synced": "已同步"
+    }
+  },
+  "header": {
+    "back": "返回",
+    "themeSystem": "跟随系统",
+    "themeLight": "浅色",
+    "themeDark": "深色"
+  },
+  "drawer": {
+    "open": "打开菜单",
+    "dashboard": "概览",
+    "buddy": "宠物",
+    "settings": "设置"
+  },
+  "language": {
+    "label": "语言",
+    "english": "English",
+    "vietnamese": "Tiếng Việt",
+    "thai": "ไทย",
+    "indonesian": "Bahasa Indonesia",
+    "japanese": "日本語",
+    "korean": "한국어",
+    "chineseSimplified": "简体中文",
+    "chineseTraditional": "繁體中文",
+    "spanish": "Español",
+    "localized": {
+      "vietnamese": "越南语",
+      "english": "英语",
+      "thai": "泰语",
+      "indonesian": "印度尼西亚语",
+      "japanese": "日语",
+      "korean": "韩语",
+      "chineseSimplified": "简体中文",
+      "chineseTraditional": "繁体中文",
+      "spanish": "西班牙语"
+    }
+  },
+  "home": {
+    "subtitle": "看看今天的进展",
+    "greeting": "{{name}}，你好",
+    "streakLabel": "连续{{count}}天",
+    "openMenu": "打开菜单",
+    "pickDate": "选择日期",
+    "goToToday": "回到今天",
+    "dayStatus": {
+      "on_target": "达标",
+      "off_target": "已记录",
+      "empty": "未记录"
+    },
+    "dailyProgress": "今日进度",
+    "caloriesLabel": "热量",
+    "emptyTitle": "还没有记录",
+    "emptySubtitle": "告诉 Check AI 你吃了什么，或者拍张餐食照片。",
+    "rangeLabel": "达标区间：{{min}}–{{max}} kcal",
+    "buddyMood": {
+      "onTarget": "正好在目标区间内，{{name}}为你骄傲！",
+      "aboveTarget": "稍微超出区间了，和{{name}}一起散散步吧？"
+    },
+    "goalSummary": {
+      "title": "当前目标",
+      "goal": "目标",
+      "progress": "当前进度",
+      "expectedEnd": "预计完成",
+      "daysUnit": "天",
+      "modes": {
+        "lose": "减重",
+        "gain": "增重",
+        "maintain": "保持体重"
+      },
+      "remaining": {
+        "lose": "还需减",
+        "gain": "还需增",
+        "maintain": "剩余天数"
+      },
+      "maintainToday": "今天",
+      "maintainRecent_other": "近{{count}}天",
+      "maintainOnTarget": "达标{{value}}天",
+      "maintainTotal": "达标天数",
+      "maintainSince": "开始保持于",
+      "milestoneTitle": "已达标{{value}}天！",
+      "milestoneMessage": "开始保持体重以来，你已有{{value}}天把热量控制在区间内。继续稳住！",
+      "milestoneAction": "继续加油",
+      "changeGoal": "更改目标",
+      "reachedTitle": "已达成：{{goal}}！",
+      "reachedMessage": "太棒了！你的计划已切换为保持体重。设定下一个目标，更新体重和计划吧。",
+      "keepMaintaining": "继续保持",
+      "nextGoal": "下一个目标"
+    }
+  },
+  "supportScreen": {
+    "title": "支持我们",
+    "introTitle": "感谢你对应用的支持",
+    "introBody": "每一份支持都能帮助应用持续运营，为所有人带来更好的体验 ❤️",
+    "subtitle": "通过银行转账支持",
+    "providerBrand": "VIETQR.IO",
+    "bankBrand": "Shinhan Bank",
+    "napasBrand": "napas",
+    "accountHolderLabel": "户名",
+    "accountHolder": "DAO NGOC THACH",
+    "accountNumberLabel": "账号",
+    "accountNumber": "700-034-951978",
+    "bankLabel": "银行",
+    "bankName": "越南新韩银行",
+    "copySectionTitle": "快速复制",
+    "copyAccountNumberAction": "复制账号",
+    "copyAccountHolderAction": "复制户名",
+    "copyBankAction": "复制银行名称",
+    "copySuccess": "已复制到剪贴板。",
+    "saveImageAction": "保存图片",
+    "saveImageModalTitle": "图片保存成功！",
+    "saveImageModalBody": "有你的支持，应用才能一天天变得更好 ❤️",
+    "saveImagePermissionDenied": "相册访问权限被拒绝。",
+    "saveImageFailed": "图片保存失败，请重试。",
+    "thanks": "非常感谢！"
+  },
+  "homeScreen": {
+    "monthStatus": {
+      "goalMet": "达标"
+    }
+  },
+  "manualFoodEntry": {
+    "openImageViewer": "全屏查看食物图片",
+    "closeImageViewer": "关闭全屏食物图片"
+  },
+  "healthInformationSourcesScreen": {
+    "title": "健康信息来源",
+    "intro": "本应用基于公认的科学研究提供健康与营养信息。计算和建议参考了以下来源：",
+    "disclaimer": "本应用仅供参考，不能替代专业医疗建议。如需个性化的医疗指导，请务必咨询专业医护人员。",
+    "sections": {
+      "bmi": {
+        "title": "BMI 计算（身体质量指数）",
+        "description": "BMI 等于体重（千克）除以身高（米）的平方。所引用的 CDC 分类标准适用于 20 岁及以上的成人；2–19 岁人群需按年龄和性别评估 BMI，不能直接套用成人标准。",
+        "references": {
+          "cdc": {
+            "title": "Centers for Disease Control and Prevention.",
+            "citation": "Adult BMI Calculator. Centers for Disease Control and Prevention. For adults aged 20 and older."
+          }
+        }
+      },
+      "bmr": {
+        "title": "BMR 计算（基础代谢率）",
+        "description": "本应用使用 Mifflin–St Jeor 公式估算静息能量消耗，并非实际测量代谢。性别选择“其他”时，−78 系数取两个公式系数的平均值；这是应用自定的做法，未经单独验证。",
+        "references": {
+          "mifflin": {
+            "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
+            "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
+          }
+        }
+      },
+      "activity": {
+        "title": "活动水平系数",
+        "description": "本应用根据活动水平，将 BMR 乘以 1.2、1.375、1.55、1.725 或 1.9。这些系数是应用选定的估算值；下列参考文献提供的是关于身体活动与能量的背景知识，并未验证这组具体系数。",
+        "references": {
+          "brooks": {
+            "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
+            "citation": "Chronicle of the Institute of Medicine physical activity recommendation: how a physical activity recommendation came to be among dietary recommendations. Am J Clin Nutr. 2004;79(5):921S-930S."
+          },
+          "iom": {
+            "title": "Institute of Medicine (US) Panel on Macronutrients.",
+            "citation": "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. Washington (DC): National Academies Press (US); 2005."
+          }
+        }
+      },
+      "macros": {
+        "title": "宏量营养素分配",
+        "description": "以下来源提供一般营养指导，以及运动人群的蛋白质摄入建议。应用规则按目标选择每千克体重 1.6–2 g 蛋白质，且不少于 60 g；脂肪至少 0.8 g/kg 或占能量的 25%；其余能量来自碳水化合物。BMI 超过 25 时，参考体重按 BMI 25 计算。这些是应用的规划规则，并非通用建议。",
+        "references": {
+          "dietaryGuidelines": {
+            "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
+            "citation": "Dietary Guidelines for Americans, 2025–2030. 10th Edition. Current guidance and related resources."
+          },
+          "who": {
+            "title": "World Health Organization.",
+            "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          },
+          "protein": {
+            "title": "Jäger R, Kerksick CM, Campbell BI, et al.",
+            "citation": "International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20. Applies to exercising individuals."
+          }
+        }
+      },
+      "nutrients": {
+        "title": "营养素每日参考量",
+        "description": "膳食纤维、糖、饱和脂肪、反式脂肪、胆固醇、钠和钾的每日参考量依据 FDA 每日营养值（Daily Value）；糖和反式脂肪的上限依据 WHO 指南。",
+        "references": {
+          "fda": {
+            "title": "U.S. Food and Drug Administration.",
+            "citation": "Daily Value on the Nutrition and Supplement Facts Labels."
+          },
+          "whoSugars": {
+            "title": "World Health Organization.",
+            "citation": "Guideline: Sugars intake for adults and children. Geneva: World Health Organization; 2015."
+          },
+          "whoFats": {
+            "title": "World Health Organization.",
+            "citation": "Saturated fatty acid and trans-fatty acid intake for adults and children: WHO guideline. Geneva: World Health Organization; 2023."
+          }
+        }
+      },
+      "weightManagement": {
+        "title": "体重管理",
+        "description": "本应用按 7,700 kcal/kg 估算体重变化；达成日期仅为预估，并非 NIDDK 动态模型。25% 热量缺口上限、每天 500 kcal 盈余上限、结合 BMR 的分性别热量下限以及达标热量区间均为应用规则，并非经这些参考文献验证的整套方案。",
+        "references": {
+          "wadden": {
+            "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
+            "citation": "Lifestyle modification for obesity: new developments in diet, physical activity, and behavior therapy. Circulation. 2012;125(9):1157-70."
+          },
+          "hall": {
+            "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
+            "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          },
+          "hallWeight": {
+            "title": "Hall KD.",
+            "citation": "What is the required energy deficit per unit weight loss? Int J Obes (Lond). 2008;32(3):573–576."
+          },
+          "niddk": {
+            "title": "National Institute of Diabetes and Digestive and Kidney Diseases.",
+            "citation": "About the Body Weight Planner. Background on personalized weight-change estimates; the app does not implement this model."
+          }
+        }
+      }
+    }
+  },
+  "accountScreen": {
+    "title": "账户",
+    "switchAccount": "切换账户",
+    "dangerZone": "危险操作",
+    "deleteAction": "删除账户",
+    "deleteDescription": "这将永久删除你的云端账户及本设备上的所有数据，并创建一个新的匿名会话。",
+    "deleteTitle": "删除账户？",
+    "deleteMessage": "你的所有云端数据和本地数据都将被永久删除，且无法恢复。",
+    "deleteConfirm": "全部删除",
+    "deleteSuccess": "账户和数据已删除。",
+    "deleteError": "暂时无法删除账户，请重试。",
+    "deleteDataAction": "删除所有数据",
+    "deleteDataTitle": "删除所有数据？",
+    "deleteDataMessage": "这将永久删除你在本地和云端的所有营养数据，且无法恢复。",
+    "deleteDataConfirm": "全部删除",
+    "deleteDataSuccess": "所有营养数据已删除。",
+    "deleteDataError": "数据删除失败，请重试。",
+    "logoutAction": "退出登录",
+    "logoutTitle": "退出登录？",
+    "logoutMessage": "退出后将创建一个新的匿名会话，你的云端数据不会丢失。",
+    "logoutConfirm": "退出登录",
+    "logoutSuccess": "已退出登录。",
+    "logoutError": "暂时无法退出登录。",
+    "joinedAt": "{{value}}加入",
+    "joinedAtUnknown": "加入日期未知"
+  },
+  "profileScreen": {
+    "actionError": "暂时无法更新数据，请重试。",
+    "reminders": {
+      "subtitle": "每个提醒都可单独开关。你也可以为加餐或其他想坚持的习惯添加自定义提醒。",
+      "breakfast": "早餐",
+      "lunch": "午餐",
+      "dinner": "晚餐",
+      "mealWindow": "{{start}}–{{end}}",
+      "customTag": "自定义",
+      "addButton": "添加提醒",
+      "limitReached": "最多可设置{{count}}个提醒。",
+      "toggleA11y": "开启或关闭{{name}}提醒",
+      "changeTimeA11y": "更改{{name}}提醒时间",
+      "editA11y": "编辑{{name}}提醒",
+      "editor": {
+        "addTitle": "新建提醒",
+        "editTitle": "编辑提醒",
+        "nameLabel": "名称",
+        "namePlaceholder": "例如：下午加餐",
+        "timeLabel": "提醒时间",
+        "defaultName": "提醒"
+      },
+      "permissionDenied": "应用尚未获得通知权限。",
+      "adjustedToMealWindow": "提醒时间已调整到有效的用餐时段内。",
+      "channelName": "热量记录提醒",
+      "notifications": {
+        "breakfast": {
+          "title": "该记录早餐啦",
+          "body": "打开应用扫一扫你的餐食，及时更新热量。"
+        },
+        "lunch": {
+          "title": "该记录午餐啦",
+          "body": "小提醒：更新一下热量，今天也按计划来。"
+        },
+        "dinner": {
+          "title": "该记录晚餐啦",
+          "body": "轻点几下记下晚餐，为今天画上句号。"
+        },
+        "custom": {
+          "body": "打开应用，记下刚刚吃的东西。"
+        }
+      }
+    }
+  },
+  "goalTracking": {
+    "progressKcal": "{{current}} / {{target}} kcal",
+    "progressMaintainDays": "{{current}} / {{target}} 天达标",
+    "goalNames": {
+      "maintain": "保持体重",
+      "loseWithValue": "减重 {{value, number}} kg",
+      "gainWithValue": "增重 {{value, number}} kg",
+      "maintainWithValue": "保持{{value}}天",
+      "maintainWithOneMonth": "保持1个月",
+      "maintainWithMonths": "保持{{value}}个月"
+    },
+    "status": {
+      "active": "进行中",
+      "completed": "已完成",
+      "cancelled": "已停止",
+      "ended": "已结束"
+    },
+    "history": {
+      "subtitle": "已完成或中途更改的目标。",
+      "empty": "还没有目标记录。",
+      "period": {
+        "completed": "{{start}}开始 · {{end}}完成",
+        "cancelled": "{{start}}开始 · {{end}}停止",
+        "ended": "{{start}}开始 · {{end}}结束"
+      }
+    },
+    "today": {
+      "remaining": "还剩 {{value}} kcal",
+      "onTarget": "达标",
+      "over": "超出 {{value}} kcal"
+    }
+  },
+  "achievements": {
+    "streakHistory": "连续记录历史",
+    "previousMonth": "上个月",
+    "nextMonth": "下个月",
+    "legendOnTarget": "达标",
+    "legendLogged": "已记录",
+    "badges": "徽章",
+    "unlockedCount": "已解锁 {{unlocked}}/{{total}}",
+    "done": "完成",
+    "items": {
+      "streak_7": "连续7天",
+      "streak_14": "连续14天",
+      "streak_30": "连续30天",
+      "on_target_7": "达标7天",
+      "protein_5": "蛋白质达标5天",
+      "balanced_7": "均衡饮食7天",
+      "entries_10": "记录10种食物",
+      "entries_100": "记录100种食物"
+    }
+  },
+  "auth": {
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "welcomeBack": "欢迎回来！",
+    "welcomeBackSubtitle": "登录后继续记录营养，并保持数据同步。",
+    "emailPlaceholder": "name@example.com",
+    "passwordPlaceholder": "至少8个字符",
+    "confirmPasswordPlaceholder": "再次输入密码",
+    "signIn": "登录",
+    "signInWithGoogle": "使用 Google 登录",
+    "signUp": "创建账户",
+    "forgotPassword": "忘记密码？",
+    "registerPageTitle": "注册",
+    "registerAction": "注册",
+    "upgradeAccount": "保护此账户",
+    "goToLogin": "我已有账户",
+    "goToRegister": "创建同步账户",
+    "loginTitle": "登录同步账户",
+    "loginCardSubtitle": "使用你的账号和密码登录。",
+    "loginSubtitle": "使用已有账户，在本设备上载入已同步的营养数据。",
+    "loginSubtitleAnonymous": "仅在已有账户时登录。如需保留当前匿名会话的数据，请选择“创建账户”。",
+    "registerTitle": "创建同步账户",
+    "registerSubtitle": "创建新账户，以便在其他设备上恢复营养数据。",
+    "registerUpgradeTitle": "保护已同步的数据",
+    "registerUpgradeSubtitle": "将此匿名会话关联到邮箱、Google 或 Apple，方便日后恢复数据。",
+    "loginSuccess": "登录成功。",
+    "loginFailed": "暂时无法登录。",
+    "loginConfirmTitle": "替换本地数据？",
+    "loginConfirmMessage": "登录后，本设备上的所有数据将被云端账户中的数据替换，且无法恢复。",
+    "loginConfirmAction": "登录",
+    "syncPhaseAuth": "正在登录…",
+    "syncPhaseData": "正在同步数据…",
+    "syncPleaseWait": "请稍候，这可能需要一点时间。",
+    "syncFailedTitle": "同步失败",
+    "syncFailedMessage": "无法从云端同步数据。你可以重试，或暂时跳过。",
+    "syncRetry": "重试",
+    "syncSkip": "暂时跳过",
+    "forgotPasswordTitle": "重置密码",
+    "forgotPasswordSubtitle": "输入你的邮箱地址，我们将发送重置链接。",
+    "forgotPasswordAction": "发送重置链接",
+    "forgotPasswordSuccess": "如果该邮箱已注册，重置链接已发送。",
+    "forgotPasswordFailed": "暂时无法发送重置链接。",
+    "resetPasswordTitle": "设置新密码",
+    "resetPasswordSubtitle": "为你的账户设置一个新密码。",
+    "resetPasswordAction": "保存新密码",
+    "resetPasswordSuccess": "密码已更新。",
+    "resetPasswordFailed": "暂时无法更新密码。",
+    "registerSuccess": "账户创建成功。",
+    "registerFailed": "暂时无法创建或保护此账户。",
+    "lastSyncAt": "上次同步：{{value}}",
+    "lastSignedInAt": "上次登录：{{value}}",
+    "lastSignedInUnknown": "上次登录：暂无"
+  },
+  "legal": {
+    "updatedTitle": "最后更新",
+    "updatedDate": "2024年5月15日",
+    "about": {
+      "heroTitle": "吃得健康，\n活得精彩",
+      "heroSubtitle": "智能热量与营养追踪应用",
+      "heroBody": "Check Calo 帮你了解自己的身体、管理每日热量，一天天实现健康目标。",
+      "features": {
+        "tracking": {
+          "title": "每日热量追踪",
+          "body": "快速记录每餐热量，每日进度一目了然。"
+        },
+        "goals": {
+          "title": "个性化目标",
+          "body": "根据你的身体、生活方式和健康方向，设定适合你的营养目标。"
+        },
+        "meals": {
+          "title": "饮食洞察",
+          "body": "记录早餐、午餐、晚餐和加餐，了解自己的饮食习惯。"
+        }
+      }
+    },
+    "terms": {
+      "title": "服务条款",
+      "summary": "使用 Check Calo 前，请仔细阅读以下条款。",
+      "readMore": "展开阅读",
+      "readLess": "收起",
+      "items": {
+        "acceptance": {
+          "title": "接受条款",
+          "body": "使用 Check Calo 即表示你同意遵守本文件所述的条款和条件。"
+        },
+        "purpose": {
+          "title": "使用目的",
+          "body": "本应用帮助你追踪热量、营养和个人目标，不能替代医疗建议或治疗。"
+        },
+        "account": {
+          "title": "用户账户",
+          "body": "你有责任保护好账户信息，并确保健康数据准确。"
+        },
+        "prohibited": {
+          "title": "禁止行为",
+          "body": "不得将本应用用于违法用途、干扰服务或伤害其他用户。"
+        },
+        "liability": {
+          "title": "责任限制",
+          "body": "营养信息仅供参考，健康和饮食决定仍由你自行负责。"
+        }
+      },
+      "moreItems": {
+        "changes": {
+          "title": "条款变更",
+          "body": "我们可能会根据产品变化或法律要求，不时更新本条款。"
+        },
+        "retention": {
+          "title": "数据保留",
+          "body": "为保障使用体验、数据同步和历史记录恢复，部分数据可能会被保留。"
+        },
+        "contact": {
+          "title": "联系客服",
+          "body": "如对本条款有任何疑问，请通过应用内的支持页面联系我们。"
+        }
+      }
+    },
+    "privacy": {
+      "title": "隐私政策",
+      "summary": "我们致力于保护你的隐私，并说明 Check Calo 如何使用数据。",
+      "items": {
+        "collection": {
+          "title": "我们收集的信息",
+          "body": "我们可能会收集你提供的信息，如姓名、邮箱、出生日期、性别、身高、体重和饮食记录。"
+        },
+        "use": {
+          "title": "信息的使用方式",
+          "body": "数据用于提供个性化目标、营养追踪以及更好的应用体验。"
+        },
+        "sharing": {
+          "title": "信息共享",
+          "body": "除非法律要求或经你同意，我们不会向第三方出售或共享个人数据。"
+        },
+        "voice": {
+          "title": "语音输入",
+          "body": "当你在聊天中说话时，手机自带的语音服务（Apple 或 Google）会将语音转为文字。音频可能会发送至该服务进行识别；Check Calo 只保存你发送的文字。"
+        },
+        "security": {
+          "title": "数据安全",
+          "body": "我们采取合理的技术和管理措施，保护你的信息免遭未经授权的访问。"
+        },
+        "rights": {
+          "title": "你的权利",
+          "body": "你可以通过应用或客服查看、更新、更正个人数据，或申请删除。"
+        },
+        "changes": {
+          "title": "政策变更",
+          "body": "我们可能会更新本政策，重要变更将在应用内通知。"
+        }
+      },
+      "updatedDate": "2026年11月1日"
+    },
+    "help": {
+      "title": "需要帮助？",
+      "body": "如对本条款或隐私有任何疑问，欢迎联系我们。",
+      "action": "联系我们"
+    }
+  },
+  "contactScreen": {
+    "title": "联系我们",
+    "heroTitle": "与我们联系",
+    "formTitle": "给我们留言",
+    "formSubtitle": "留下你的邮箱和遇到的问题即可。",
+    "copyHint": "点击复制",
+    "copySuccess": "联系方式已复制。",
+    "submitAction": "提交",
+    "submitSuccess": "已收到你的联系请求。",
+    "emailLabel": "邮箱地址",
+    "emailValue": "checkcalosupport@gmail.com",
+    "phoneLabel": "电话号码",
+    "phoneValue": "0373060206",
+    "locationLabel": "办公地址",
+    "locationValue": "No. 2A, Street 55, Quarter 2, Binh Duong Ward, Ho Chi Minh City, Vietnam",
+    "workingDaysLabel": "工作时间",
+    "workingDaysValue": "周一至周六 | 08:00 - 17:00",
+    "emailPlaceholder": "你的邮箱",
+    "problemPlaceholder": "你遇到的问题"
+  },
+  "settings": {
+    "about": "关于",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "contact": "联系我们"
+  },
+  "settingsScreen": {
+    "title": "设置",
+    "subtitle": "账户、个人信息和显示",
+    "general": "通用",
+    "healthAndPrivacy": "健康与隐私"
+  },
+  "errorBoundary": {
+    "title": "出错了",
+    "message": "应用遇到了意外错误，请重试。",
+    "retry": "重试"
+  },
+  "network": {
+    "offline": "你似乎已离线",
+    "online": "网络已恢复"
+  },
+  "notFound": {
+    "title": "页面不存在",
+    "message": "此页面不存在。",
+    "goHome": "返回首页"
+  },
+  "errors": {
+    "title": "错误",
+    "generic": "出错了，请重试。",
+    "network": "网络错误，请检查网络连接。",
+    "auth": "身份验证失败。"
+  },
+  "validation": {
+    "required": "此项为必填项",
+    "emailInvalid": "请输入有效的邮箱地址",
+    "numberInvalid": "请输入有效的数字",
+    "passwordMin": "密码至少需要8个字符",
+    "passwordMismatch": "两次输入的密码不一致",
+    "usernameMin": "用户名至少需要3个字符",
+    "usernameMax": "用户名最多20个字符",
+    "usernameFormat": "用户名只能包含字母、数字和下划线"
+  },
+  "camera": {
+    "title": "相机",
+    "scanTitle": "扫描二维码",
+    "barcodeTitle": "扫描条形码",
+    "scanHint": "将二维码对准框内，即可自动扫描。",
+    "barcodeHint": "将条形码对准框内，即可自动扫描。",
+    "permissionDenied": "相机权限被拒绝。",
+    "libraryPermissionDenied": "相册访问权限被拒绝。",
+    "captureFailed": "拍照失败，请重试。",
+    "libraryPickFailed": "选择照片失败，请重试。",
+    "scanFailed": "扫码失败，请重试。",
+    "actions": {
+      "close": "关闭",
+      "flip": "切换摄像头",
+      "capture": "拍照",
+      "toggleFlash": "开关闪光灯"
+    }
+  },
+  "macros": {
+    "calories": "热量",
+    "carbs": "碳水",
+    "protein": "蛋白质",
+    "fat": "脂肪"
+  },
+  "nutrients": {
+    "title": "营养详情",
+    "fiberGrams": "膳食纤维",
+    "sugarGrams": "糖",
+    "saturatedFatGrams": "饱和脂肪",
+    "transFatGrams": "反式脂肪",
+    "cholesterolMg": "胆固醇",
+    "sodiumMg": "钠",
+    "potassiumMg": "钾",
+    "unknown": "—",
+    "emptyHint": "这种食物暂无详细数据。点击编辑，按营养成分表填写。",
+    "dailyValueHint": "占 2,000 kcal 饮食每日参考量的百分比。膳食纤维和钾尽量吃够，其他营养素应控制在参考量以下。",
+    "showDetails": "显示营养详情",
+    "hideDetails": "隐藏营养详情"
+  },
+  "mealSlots": {
+    "breakfast": "早餐",
+    "lunch": "午餐",
+    "dinner": "晚餐",
+    "snack": "加餐"
+  },
+  "chat": {
+    "title": "Check AI",
+    "subtitle": "关于今天的饮食，尽管问",
+    "placeholder": "今天吃了什么？",
+    "send": "发送",
+    "voiceInput": "语音输入",
+    "attachPhoto": "添加照片",
+    "takePhoto": "拍照",
+    "pickFromLibrary": "从相册选择",
+    "removePhoto": "移除照片",
+    "welcome": "你好！我是你的营养小助手。告诉我你吃了什么、发张餐食照片，或者让我推荐适合你目标的餐食吧。",
+    "thinking": "Check AI 正在思考…",
+    "photoOnlyPrompt": "记录这张照片里的食物。",
+    "fallbackReply": "这是我找到的结果。",
+    "errorReply": "抱歉，没能分析出来，请再试一次。",
+    "addToDiary_other": "加入日记（{{count}}项）",
+    "addSuggestion": "加入日记",
+    "logged": "已添加",
+    "loggedToast": "已保存到日记",
+    "total": "合计",
+    "undo": "撤销",
+    "undoToast": "已从日记中移除",
+    "scanBarcode": "扫描条形码",
+    "recentTitle": "最近",
+    "recentChip": "{{name}} · {{calories}} kcal",
+    "recentLogged": "已将{{name}}加入日记。",
+    "barcodeMessage": "条形码 {{code}}",
+    "barcodeFound": "找到了{{name}}。确认份量后即可加入日记。",
+    "barcodeNotFound": "没有找到条形码 {{code}} 对应的商品。试试描述一下食物，或者发张照片吧。",
+    "barcodeLookupFailed": "条形码查询失败，请检查网络后重试。",
+    "followUps": {
+      "logBreakfast": "早餐吃了一碗牛肉面",
+      "suggestDinner": "推荐一份 700 kcal 以内的高蛋白晚餐"
+    }
+  },
+  "voice": {
+    "listening": "正在聆听…",
+    "stop": "停止聆听",
+    "permissionDenied": "请在设置中允许使用麦克风和语音识别，即可语音记录饮食。",
+    "failed": "没听清，请再说一次或直接输入。"
+  },
+  "mealDetail": {
+    "title": "食物详情",
+    "nutrition": "营养成分",
+    "ringsHint": "圆环表示占每日目标的比例。",
+    "notFound": "这条食物已不在日记中。",
+    "deleteAction": "从日记中删除",
+    "deleteTitle": "删除这条食物？",
+    "deleteMessage": "它将从日记和当日总计中移除。",
+    "deleteSuccess": "已删除",
+    "saveSuccess": "修改已保存",
+    "fields": {
+      "name": "食物名称",
+      "quantity": "份量",
+      "calories": "热量（kcal）",
+      "protein": "蛋白质（g）",
+      "carbs": "碳水（g）",
+      "fat": "脂肪（g）",
+      "notes": "备注"
+    }
+  },
+  "onboarding": {
+    "headerTitle": "开始使用",
+    "title": "欢迎使用 Check Calo！",
+    "subtitle": "简单介绍一下自己，{{name}}会为你制定合适的计划。",
+    "displayName": "昵称",
+    "displayNamePlaceholder": "你的名字",
+    "age": "年龄",
+    "gender": "性别",
+    "genders": {
+      "male": "男",
+      "female": "女",
+      "other": "其他"
+    },
+    "height": "身高",
+    "weight": "体重",
+    "bmi": "BMI",
+    "bmiCategories": {
+      "underweight": {
+        "title": "偏瘦"
+      },
+      "normal": {
+        "title": "正常"
+      },
+      "overweight": {
+        "title": "超重"
+      },
+      "obese": {
+        "title": "肥胖"
+      }
+    },
+    "goal": "你的目标",
+    "goals": {
+      "lose": {
+        "title": "减重",
+        "description": "燃脂瘦身"
+      },
+      "maintain": {
+        "title": "保持",
+        "description": "维持当前体重"
+      },
+      "gain": {
+        "title": "增重",
+        "description": "健康增肌增重"
+      }
+    },
+    "activity": "活动水平",
+    "activities": {
+      "sedentary": "久坐少动",
+      "light": "轻度活动",
+      "moderate": "中度活动",
+      "active": "高度活动"
+    },
+    "plan": "你的预估计划",
+    "saveSuccess": "资料已保存",
+    "healthSources": "计算依据",
+    "validation": {
+      "age": "请输入10到100之间的年龄"
+    },
+    "targetWeight": "目标体重",
+    "targetBmiWarning": "该目标低于健康 BMI（18.5），建议咨询专业医护人员。",
+    "planLoading": {
+      "title": "正在制定你的计划…",
+      "bmr": "正在计算你的基础代谢（BMR）…",
+      "energy": "正在估算你每天消耗的能量…",
+      "pace": "正在为你的目标寻找安全的节奏…",
+      "roadmap": "正在规划通往目标的路线…"
+    },
+    "planResults": {
+      "target": "目标体重",
+      "targetChange": "较当前 {{value}} kg",
+      "targetMaintain": "保持当前体重",
+      "daily": "kcal/天",
+      "dailyHint": "达标区间：{{min}}–{{max}}",
+      "weekly": "kcal/周",
+      "weeklyHint": "每周 {{value}} kg",
+      "weeklyMaintain": "体重保持稳定",
+      "date": "预计达成",
+      "dateHint": "{{weeks}}后",
+      "dateMaintain": "长期",
+      "dateMaintainHint": "无结束日期"
+    },
+    "step": "第{{current}}/{{total}}步 · {{title}}",
+    "steps": {
+      "about": "个人信息与目标",
+      "plan": "计划"
+    },
+    "createPlan": "生成我的计划",
+    "start": "开始",
+    "goalLabel": "目标",
+    "planSummary": {
+      "lose": "你的维持热量约为 {{tdee}} kcal/天；计划每天少吃 {{gap}} kcal。",
+      "gain": "你的维持热量约为 {{tdee}} kcal/天；计划每天多吃 {{gap}} kcal。",
+      "maintain": "你的维持热量约为 {{tdee}} kcal/天；按此摄入即可保持体重。",
+      "macros": "每天：蛋白质 {{protein}}g · 脂肪 {{fat}}g · 碳水 {{carbs}}g。",
+      "estimate": "这是估算值，应用会根据你记录的体重逐步调整。"
+    },
+    "weightAndTarget": "体重 / 目标",
+    "calorieAdjustment": {
+      "lose": "热量缺口",
+      "gain": "热量盈余",
+      "maintain": "热量调整"
+    },
+    "editTitle": "更新你的目标",
+    "editSubtitle": "检查你的信息并调整目标，{{name}}会为你更新计划。",
+    "previewUpdate": "预览新计划"
+  },
+  "buddy": {
+    "openBuddy": "查看{{name}}",
+    "title": "宠物",
+    "subtitle": "每个健康的日子，都让{{name}}长大一点",
+    "rename": "给宠物改名",
+    "renameLabel": "给{{name}}改名",
+    "namePlaceholder": "宠物名字",
+    "levelTitle": "{{level}}级 - {{stage}}",
+    "levelShort": "Lv.{{level}}",
+    "stages": {
+      "baby": "幼崽",
+      "junior": "少年",
+      "teen": "青年",
+      "buddy": "达人",
+      "master": "大师"
+    },
+    "progressToNext": "{{percent}}% · 距下一级还差{{points}}积分",
+    "maxLevel": "已达最高等级！",
+    "journey": "{{name}}的成长之旅",
+    "nextReward": "下一级奖励",
+    "nextRewardHint": "达到{{points}}积分，{{name}}将进化为{{stage}}",
+    "stats": {
+      "subtitle": "点击指标查看详情",
+      "legendOverall": "全部",
+      "legendRecent": "近7天",
+      "axisLabel": "{{axis}}：{{score}}分。查看详情",
+      "axisLocked": "{{axis}}：数据不足。查看详情",
+      "intro": "{{name}}正在了解你",
+      "introHint_other": "再记录{{count}}天饮食，即可解锁数据指标。"
+    },
+    "axes": {
+      "calories": {
+        "name": "热量目标",
+        "short": "热量",
+        "measure": "当天热量与目标的对比，按减重、增重或保持体重计算。",
+        "goal": "热量落在目标区间内得100分。",
+        "tip": "吃完马上记录，就知道下一餐还剩多少热量。"
+      },
+      "nutrients": {
+        "name": "宏量营养",
+        "short": "宏量",
+        "measure": "蛋白质、碳水和脂肪各自达成目标的比例。超出部分不加分。",
+        "goal": "三者都达到目标得100分。",
+        "tip": "每餐都搭配一些蛋白质（肉、鱼、蛋、豆类）、碳水（米饭、土豆）和少量健康脂肪。"
+      },
+      "quality": {
+        "name": "营养质量",
+        "short": "营养",
+        "measure": "膳食纤维充足，糖、盐和不健康脂肪低于建议上限。只有至少70%热量带有这些数据的日子才会计分。",
+        "goal": "膳食纤维充足且各项都低于上限得100分。",
+        "tip": "多吃蔬菜、水果和豆类；少吃酱料、加工食品和含糖饮料。"
+      },
+      "timing": {
+        "name": "按时吃饭",
+        "short": "按时",
+        "measure": "正餐是否在提醒时间前后1小时内进食；未设置提醒时，按常规用餐时间判断。晚上10点后进食会扣分。",
+        "goal": "所有正餐都按时、且没有吃夜宵得100分。",
+        "tip": "设置用餐提醒，尽量在晚上8:30前吃完晚饭。"
+      },
+      "meals": {
+        "name": "三餐齐全",
+        "short": "餐次",
+        "measure": "当天记录的正餐（早餐、午餐、晚餐）数量。加餐不计入。",
+        "goal": "三顿正餐都记录得100分。",
+        "tip": "别跳过早餐；漏掉一餐，下一餐容易吃得更多。"
+      },
+      "consistency": {
+        "name": "坚持记录",
+        "short": "坚持",
+        "measure": "从开始使用起，每天都记录饮食。",
+        "goal": "每记录一天得100分。",
+        "tip": "打开用餐提醒，就不会忘记记录了。"
+      }
+    },
+    "insight": {
+      "strong": {
+        "calories": "你的热量计划执行得超棒！",
+        "nutrients": "你的餐食宏量营养很全面！",
+        "quality": "吃得这么健康，{{name}}元气满满！",
+        "timing": "你吃饭像钟表一样准时！",
+        "meals": "每天三餐不落，太棒了！",
+        "consistency": "你每天都在记录，{{name}}好感动！"
+      },
+      "weak": {
+        "calories": {
+          "lose": "有几天热量超标了，留意一下晚餐哦。",
+          "gain": "有几天热量没吃够，加顿加餐吧。",
+          "maintain": "热量偏离目标有点多，尽量保持稳定哦。"
+        },
+        "nutrients": "部分宏量营养不足，餐中多加点蛋白质或碳水吧。",
+        "quality": "蔬菜有点少，或者糖和盐有点多，稍微调整一下吧。",
+        "timing": "用餐时间不太规律，试着按时吃饭吧。",
+        "meals": "经常跳过正餐，争取好好吃三顿正餐哦。",
+        "consistency": "多记录一些，{{name}}才能更了解你。"
+      },
+      "allGood": "各项指标都很棒，继续保持！"
+    },
+    "detail": {
+      "ranges": {
+        "week": "7天",
+        "month": "30天",
+        "all": "全部"
+      },
+      "averageScore": "平均分",
+      "noData": "所选时间段内暂无该指标数据。",
+      "todayPending": "今天结束后才会计入。",
+      "chartTitle": "每日得分",
+      "chartTitleWeekly": "每周平均分",
+      "dailyAverage": "日均",
+      "metDays": "满分天数",
+      "metDaysValue": "{{met}} / {{total}} 天",
+      "bestDay": "最佳一天",
+      "bestDayValue": "{{date}} · {{score}}分",
+      "tipTitle": "{{name}}的小建议",
+      "values": {
+        "calories": "{{value}} / {{target}} kcal",
+        "nutrients": "蛋白质 {{protein}}% · 碳水 {{carbs}}% · 脂肪 {{fat}}%（占目标）",
+        "quality": "膳食纤维 {{fiber}} g · 钠 {{sodium}} mg · 糖 {{sugar}} g",
+        "timing": "{{value}}% 正餐按时 · {{late}}天吃夜宵",
+        "meals": "{{value}} / 3 顿正餐",
+        "consistency": "{{value}} / {{target}} 天有记录"
+      },
+      "topFoods": {
+        "protein": "蛋白质最多的食物",
+        "calories": "热量最高的食物",
+        "fiber": "膳食纤维最多的食物",
+        "sodium": "钠含量最高的食物"
+      },
+      "amounts": {
+        "protein": "{{value}} g",
+        "calories": "{{value}} kcal",
+        "fiber": "{{value}} g",
+        "sodium": "{{value}} mg"
+      },
+      "timesEaten_other": "{{count}}次",
+      "notFound": "该指标不存在。",
+      "noDataQuality": "膳食纤维、糖和盐的数据还不够。通过聊天记录饮食或扫描条形码，Buddy 才能为这项打分。"
+    },
+    "calorieGoal": {
+      "lose": "减重中：吃得低于目标也没关系，只要不低于安全下限。",
+      "gain": "增重中：要吃够目标量，稍微超出一点也没问题。",
+      "maintain": "保持体重中：偏高或偏低都会扣分。"
+    },
+    "quests": {
+      "title": "任务",
+      "subtitle": "完成任务，帮{{name}}更快成长",
+      "tabs": {
+        "daily": "每日",
+        "weekly": "每周",
+        "special": "特别"
+      },
+      "done": "已完成",
+      "settling": "进展顺利 · 当天结束时结算",
+      "firstLogOpen": "今天还没有记录",
+      "limitsNeedsData": "需要2顿带有糖和盐数据的正餐",
+      "limitsOpen": "当天结束时结算",
+      "progress": {
+        "kcal": "{{value}} / {{target}} kcal",
+        "g": "{{value}} / {{target}} g",
+        "macros": "{{value}} / {{target}} 项宏量营养",
+        "days": "{{value}} / {{target}} 天"
+      },
+      "weekDone": "本周已完成",
+      "levelUp_other": "已升级{{count}}次",
+      "levelUpOpen": "升到下一级即可获得徽章",
+      "badge": "徽章",
+      "weightGoalOpen": "完成一个体重目标",
+      "weightGoalDone_other": "已达成{{count}}个目标 · 继续加油赢取更多",
+      "accountOpen": "注册账户，换手机也不丢数据",
+      "accountDone": "已创建账户",
+      "points": "+{{points}}",
+      "earnedTitle": "任务完成！",
+      "earnedToast": "+{{points}}积分 · {{title}}",
+      "earnedManyToast_other": "+{{points}}积分 · 完成{{count}}个任务",
+      "empty": "暂无任务"
+    },
+    "calorieChart": {
+      "title": "摄入热量",
+      "tabs": {
+        "week": "周",
+        "year": "年"
+      },
+      "previous": {
+        "week": "上一周",
+        "year": "上一年"
+      },
+      "next": {
+        "week": "下一周",
+        "year": "下一年"
+      },
+      "other": "其他",
+      "goal": "目标",
+      "noLog": "未记录",
+      "monthAverage_other": "日均 · 已记录{{count}}天"
+    },
+    "levelRange": "{{from}}–{{to}}级"
+  },
+  "profileTab": {
+    "guest": "游客",
+    "guestAccount": "游客账户 · 数据仅存于本设备",
+    "reminders": "提醒",
+    "appearance": "外观",
+    "language": "语言",
+    "goalHistory": "目标历史",
+    "other": "其他",
+    "support": "支持 Check Calo",
+    "healthSources": "健康信息来源",
+    "signIn": "登录 / 创建账户",
+    "signInHint": "将日记备份到云端",
+    "resetData": "删除我的所有数据",
+    "resetTitle": "删除所有数据？",
+    "resetMessage": "这将永久删除你在本设备和云端的日记、目标和个人资料。",
+    "resetConfirm": "删除",
+    "version": "版本 {{version}}",
+    "account": "账户"
+  },
+  "devTools": {
+    "group": "开发者",
+    "toggle": "开发者模式",
+    "toggleHint": "界面测试工具，仅在开发版本中可用。",
+    "title": "界面测试工具",
+    "subtitle": "用模拟数据和状态检查页面",
+    "sampleData": "示例数据",
+    "seed": "添加{{count}}天的示例餐食",
+    "seedHint": "仅保存在本设备，不会同步",
+    "clear": "移除示例餐食",
+    "clearHint": "只移除示例数据，真实记录保持不变",
+    "seeded": "已添加{{count}}条示例餐食",
+    "cleared": "已移除{{count}}条示例餐食",
+    "screenStates": "页面状态",
+    "forceEmptyDiary": "首页显示空日记",
+    "forceEmptyDiaryHint": "即使已有记录也显示空状态",
+    "chatScenario": "Check AI 回复",
+    "chatScenarioHint": "模拟 AI 在聊天中的回复方式",
+    "chatScenarios": {
+      "normal": "正常",
+      "slow": "慢速（3秒）",
+      "quota": "额度用尽",
+      "auth": "未登录",
+      "error": "出错"
+    },
+    "fakeBarcode": "模拟扫码",
+    "fakeBarcodeHint": "聊天中的条形码按钮将使用示例商品，而不是打开相机",
+    "notifications": "提示与弹窗",
+    "toastSuccess": "成功提示",
+    "toastError": "错误提示",
+    "toastInfo": "信息提示",
+    "toastWarning": "警告提示",
+    "alert": "弹窗",
+    "destructiveAlert": "危险操作弹窗",
+    "alertTitle": "示例弹窗",
+    "sampleMessage": "这是一条用于检查布局的示例消息。"
+  },
+  "personalInfo": {
+    "title": "个人信息",
+    "saved": "已保存",
+    "heightInvalid": "请输入100到230 cm之间的身高"
+  },
+  "goalPlanner": {
+    "maintainHint": "每天摄入约 {{kcal}} kcal 即可保持体重。",
+    "duration": "达成目标所需时间",
+    "weeks_other": "{{count}}周",
+    "months": "约{{value}}个月",
+    "fastest_other": "{{count}}周（最快）",
+    "slowest_other": "{{count}}周（最慢）",
+    "kcal": "kcal/天",
+    "ratePerWeek": "kg/周",
+    "paceLabel": "节奏",
+    "pace": {
+      "gentle": "温和",
+      "moderate": "适中",
+      "fast": "快速"
+    },
+    "endDate": "预计达成：{{value}}",
+    "stageHint": "这是12个月内能达到的最远目标。想走得更远，先完成这一阶段，再设定下一个。"
+  },
+  "goalEdit": {
+    "title": "更改目标",
+    "saved": "目标已更新",
+    "restart": "从今天重新开始",
+    "restartHint": "以当前体重作为起点；进行中的目标将移入历史。",
+    "confirmTitle": "切换为{{mode}}？",
+    "confirmMessage": "当前目标将停止并移入历史。每日热量：{{from}} → {{to}} kcal。",
+    "confirmAction": "更改目标",
+    "transition_other": "先按维持热量吃{{count}}周（{{kcal}} kcal/天）",
+    "transitionHint": "让身体先适应再转换方向；体重可能因水分略有上升。之后热量将调整为 {{kcal}} kcal/天。"
+  }
+}

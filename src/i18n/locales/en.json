@@ -63,10 +63,28 @@
   "language": {
     "label": "Language",
     "english": "English",
-    "vietnamese": "Tiếng Việt"
+    "vietnamese": "Tiếng Việt",
+    "thai": "ไทย",
+    "indonesian": "Bahasa Indonesia",
+    "japanese": "日本語",
+    "korean": "한국어",
+    "chineseSimplified": "简体中文",
+    "chineseTraditional": "繁體中文",
+    "spanish": "Español",
+    "localized": {
+      "vietnamese": "Vietnamese",
+      "english": "English",
+      "thai": "Thai",
+      "indonesian": "Indonesian",
+      "japanese": "Japanese",
+      "korean": "Korean",
+      "chineseSimplified": "Chinese (Simplified)",
+      "chineseTraditional": "Chinese (Traditional)",
+      "spanish": "Spanish"
+    }
   },
   "home": {
-    "subtitle": "Here's your day so far",
+    "subtitle": "How is your day going so far",
     "greeting": "Hi {{name}}",
     "streakLabel": "{{count}}-day streak",
     "openMenu": "Open menu",
@@ -83,8 +101,8 @@
     "emptySubtitle": "Tell Check AI what you ate, or snap a photo of your meal.",
     "rangeLabel": "On target at {{min}}–{{max}} kcal",
     "buddyMood": {
-      "onTarget": "Right in your range. {{name}} is proud of you!",
-      "aboveTarget": "A little over the range. How about a short walk with {{name}}?"
+      "onTarget": "Great job completing your goal",
+      "aboveTarget": "Over your target. How about a walk?"
     },
     "goalSummary": {
       "title": "Current goal",
@@ -102,17 +120,17 @@
         "gain": "Still to add",
         "maintain": "Days left"
       },
-      "maintainRecent_one": "Today",
+      "maintainToday": "Today",
       "maintainRecent_other": "Last {{count}} days",
       "maintainOnTarget": "{{value}} days on target",
       "maintainTotal": "Days on target",
       "maintainSince": "Maintaining since",
-      "milestoneTitle": "{{value}} days on target!",
-      "milestoneMessage": "You've eaten within your range on {{value}} days since you started maintaining. Keep it steady!",
+      "milestoneTitle": "You're doing well maintaining your weight",
+      "milestoneMessage": "You've had {{value}} days within your calorie target range since you started maintaining your weight.",
       "milestoneAction": "Keep going",
       "changeGoal": "Change goal",
-      "reachedTitle": "Reached: {{goal}}!",
-      "reachedMessage": "Great work! Your plan has switched to maintaining. Set your next goal to update your weight and plan.",
+      "reachedTitle": "Congratulations on completing your goal: {{goal}}",
+      "reachedMessage": "Your plan has switched to weight maintenance. You can keep maintaining your weight or set a new goal.",
       "keepMaintaining": "Keep maintaining",
       "nextGoal": "Next goal"
     }

@@ -89,6 +89,11 @@ export function GoalSummaryCard() {
   const format = (value: number) => formatWholeNumber(value, i18n.language);
   const unit = progress?.unit === 'days' ? t('home.goalSummary.daysUnit') : t('common.units.kcal');
   const recent = progress?.recent ?? null;
+  // A key of its own: most app languages have no singular plural form to say "today".
+  const recentLabel =
+    recent?.days === 1
+      ? t('home.goalSummary.maintainToday')
+      : t('home.goalSummary.maintainRecent', { count: recent?.days ?? 0 });
 
   return (
     <>
@@ -121,7 +126,7 @@ export function GoalSummaryCard() {
             <>
               <View style={styles.progress}>
                 <Text variant="caption" color="secondary">
-                  {t('home.goalSummary.maintainRecent', { count: recent.days })}
+                  {recentLabel}
                 </Text>
                 <View style={styles.progressLabels}>
                   <Text variant="bodySmall" weight="bold" style={styles.progressCurrent}>
@@ -135,9 +140,7 @@ export function GoalSummaryCard() {
                 </View>
                 <ProgressBar
                   value={Math.round((recent.onTargetDays / recent.days) * 100)}
-                  accessibilityLabel={t('home.goalSummary.maintainRecent', {
-                    count: recent.days,
-                  })}
+                  accessibilityLabel={recentLabel}
                 />
               </View>
               <View style={styles.details}>

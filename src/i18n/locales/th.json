@@ -1,0 +1,1114 @@
+{
+  "common": {
+    "loading": "กำลังโหลด...",
+    "cancel": "ยกเลิก",
+    "save": "บันทึก",
+    "delete": "ลบ",
+    "confirm": "ยืนยัน",
+    "back": "ย้อนกลับ",
+    "next": "ถัดไป",
+    "done": "เสร็จสิ้น",
+    "date": "วันที่",
+    "time": "เวลา",
+    "retry": "ลองอีกครั้ง",
+    "search": "ค้นหา",
+    "settings": "ตั้งค่า",
+    "close": "ปิด",
+    "edit": "แก้ไข",
+    "clear": "ล้าง",
+    "more": "เพิ่มเติม",
+    "showPassword": "แสดงรหัสผ่าน",
+    "hidePassword": "ซ่อนรหัสผ่าน",
+    "progress": "ความคืบหน้า",
+    "userAvatar": "รูปโปรไฟล์",
+    "removeItem": "ลบ {{name}}",
+    "clearSearch": "ล้างการค้นหา",
+    "decreaseQuantity": "ลดปริมาณ",
+    "increaseQuantity": "เพิ่มปริมาณ",
+    "defaultMealName": "มื้ออาหาร",
+    "numberPlaceholder": "0",
+    "submit": "ส่ง",
+    "ok": "ตกลง",
+    "units": {
+      "cm": "cm",
+      "kg": "kg",
+      "kcal": "kcal",
+      "gram": "g",
+      "milligram": "mg",
+      "day": "วัน"
+    },
+    "aiQuotaExceeded": "คุณใช้ AI ครบโควตาของวันนี้แล้ว ลองใหม่พรุ่งนี้นะ",
+    "signInRequired": "ต้องเข้าสู่ระบบก่อนจึงจะใช้ฟีเจอร์ AI ได้",
+    "syncStatus": {
+      "syncNow": "ซิงค์เลย",
+      "loginToSync": "เข้าสู่ระบบเพื่อซิงค์",
+      "localOnly": "เก็บในเครื่องเท่านั้น",
+      "failed": "ซิงค์ไม่สำเร็จ",
+      "syncing": "กำลังซิงค์",
+      "synced": "ซิงค์แล้ว"
+    }
+  },
+  "header": {
+    "back": "ย้อนกลับ",
+    "themeSystem": "ตามระบบ",
+    "themeLight": "สว่าง",
+    "themeDark": "มืด"
+  },
+  "drawer": {
+    "open": "เปิดเมนู",
+    "dashboard": "ภาพรวม",
+    "buddy": "สัตว์เลี้ยง",
+    "settings": "ตั้งค่า"
+  },
+  "language": {
+    "label": "ภาษา",
+    "english": "English",
+    "vietnamese": "Tiếng Việt",
+    "thai": "ไทย",
+    "indonesian": "Bahasa Indonesia",
+    "japanese": "日本語",
+    "korean": "한국어",
+    "chineseSimplified": "简体中文",
+    "chineseTraditional": "繁體中文",
+    "spanish": "Español",
+    "localized": {
+      "vietnamese": "ภาษาเวียดนาม",
+      "english": "ภาษาอังกฤษ",
+      "thai": "ภาษาไทย",
+      "indonesian": "ภาษาอินโดนีเซีย",
+      "japanese": "ภาษาญี่ปุ่น",
+      "korean": "ภาษาเกาหลี",
+      "chineseSimplified": "ภาษาจีน (ตัวย่อ)",
+      "chineseTraditional": "ภาษาจีน (ตัวเต็ม)",
+      "spanish": "ภาษาสเปน"
+    }
+  },
+  "home": {
+    "subtitle": "วันนี้ของคุณเป็นยังไงบ้าง",
+    "greeting": "สวัสดี {{name}}",
+    "streakLabel": "ต่อเนื่อง {{count}} วัน",
+    "openMenu": "เปิดเมนู",
+    "pickDate": "เลือกวันที่",
+    "goToToday": "ไปที่วันนี้",
+    "dayStatus": {
+      "on_target": "ถึงเป้าหมาย",
+      "off_target": "บันทึกแล้ว",
+      "empty": "ยังไม่ได้บันทึก"
+    },
+    "dailyProgress": "ความคืบหน้าวันนี้",
+    "caloriesLabel": "แคลอรี่",
+    "emptyTitle": "ยังไม่มีรายการอาหาร",
+    "emptySubtitle": "บอก Check AI ว่าคุณกินอะไรไป หรือถ่ายรูปมื้ออาหารของคุณ",
+    "rangeLabel": "อยู่ในเป้าที่ {{min}}–{{max}} kcal",
+    "buddyMood": {
+      "onTarget": "อยู่ในช่วงเป้าหมายพอดี {{name}} ภูมิใจในตัวคุณมาก!",
+      "aboveTarget": "เกินช่วงเป้าหมายไปนิดนึง ไปเดินเล่นกับ {{name}} สักหน่อยไหม?"
+    },
+    "goalSummary": {
+      "title": "เป้าหมายปัจจุบัน",
+      "goal": "เป้าหมาย",
+      "progress": "ความคืบหน้าปัจจุบัน",
+      "expectedEnd": "คาดว่าจะสำเร็จ",
+      "daysUnit": "วัน",
+      "modes": {
+        "lose": "ลดน้ำหนัก",
+        "gain": "เพิ่มน้ำหนัก",
+        "maintain": "คุมน้ำหนัก"
+      },
+      "remaining": {
+        "lose": "ต้องลดอีก",
+        "gain": "ต้องเพิ่มอีก",
+        "maintain": "เหลืออีก"
+      },
+      "maintainToday": "วันนี้",
+      "maintainRecent_other": "{{count}} วันล่าสุด",
+      "maintainOnTarget": "อยู่ในเป้า {{value}} วัน",
+      "maintainTotal": "วันที่อยู่ในเป้า",
+      "maintainSince": "คุมน้ำหนักตั้งแต่",
+      "milestoneTitle": "อยู่ในเป้าครบ {{value}} วันแล้ว!",
+      "milestoneMessage": "คุณกินอยู่ในช่วงแคลอรี่ที่กำหนดมาแล้ว {{value}} วัน นับตั้งแต่เริ่มคุมน้ำหนัก รักษาจังหวะนี้ไว้นะ!",
+      "milestoneAction": "ไปต่อเลย",
+      "changeGoal": "เปลี่ยนเป้าหมาย",
+      "reachedTitle": "สำเร็จแล้ว: {{goal}}!",
+      "reachedMessage": "เยี่ยมมาก! แผนของคุณเปลี่ยนเป็นการคุมน้ำหนักแล้ว ตั้งเป้าหมายถัดไปเพื่ออัปเดตน้ำหนักและแผนใหม่",
+      "keepMaintaining": "คุมน้ำหนักต่อ",
+      "nextGoal": "เป้าหมายถัดไป"
+    }
+  },
+  "supportScreen": {
+    "title": "สนับสนุนแอป",
+    "introTitle": "ขอบคุณที่สนับสนุนแอป",
+    "introBody": "ทุกการสนับสนุนช่วยให้แอปไปต่อได้ และพัฒนาประสบการณ์ที่ดีขึ้นสำหรับทุกคน ❤️",
+    "subtitle": "สนับสนุนผ่านการโอนเงิน",
+    "providerBrand": "VIETQR.IO",
+    "bankBrand": "Shinhan Bank",
+    "napasBrand": "napas",
+    "accountHolderLabel": "ชื่อบัญชี",
+    "accountHolder": "DAO NGOC THACH",
+    "accountNumberLabel": "เลขที่บัญชี",
+    "accountNumber": "700-034-951978",
+    "bankLabel": "ธนาคาร",
+    "bankName": "Shinhan Bank Vietnam",
+    "copySectionTitle": "คัดลอกด่วน",
+    "copyAccountNumberAction": "คัดลอกเลขที่บัญชี",
+    "copyAccountHolderAction": "คัดลอกชื่อบัญชี",
+    "copyBankAction": "คัดลอกชื่อธนาคาร",
+    "copySuccess": "คัดลอกแล้ว",
+    "saveImageAction": "บันทึกรูปภาพ",
+    "saveImageModalTitle": "บันทึกรูปภาพสำเร็จ!",
+    "saveImageModalBody": "คุณคือส่วนสำคัญที่ทำให้แอปนี้ดีขึ้นทุกวัน ❤️",
+    "saveImagePermissionDenied": "ไม่ได้รับสิทธิ์เข้าถึงคลังรูปภาพ",
+    "saveImageFailed": "บันทึกรูปภาพไม่สำเร็จ โปรดลองอีกครั้ง",
+    "thanks": "ขอบคุณมากนะ!"
+  },
+  "homeScreen": {
+    "monthStatus": {
+      "goalMet": "ถึงเป้าหมาย"
+    }
+  },
+  "manualFoodEntry": {
+    "openImageViewer": "เปิดรูปอาหารแบบเต็มจอ",
+    "closeImageViewer": "ปิดรูปอาหารแบบเต็มจอ"
+  },
+  "healthInformationSourcesScreen": {
+    "title": "แหล่งข้อมูลด้านสุขภาพ",
+    "intro": "แอปนี้ให้ข้อมูลด้านสุขภาพและโภชนาการโดยอ้างอิงจากงานวิจัยทางวิทยาศาสตร์ที่เป็นที่ยอมรับ แหล่งข้อมูลต่อไปนี้ใช้ในการคำนวณและให้คำแนะนำ:",
+    "disclaimer": "แอปนี้มีไว้เพื่อให้ข้อมูลเท่านั้น และไม่สามารถใช้แทนคำแนะนำทางการแพทย์จากผู้เชี่ยวชาญได้ ควรปรึกษาบุคลากรทางการแพทย์เสมอเพื่อรับคำแนะนำที่เหมาะกับคุณ",
+    "sections": {
+      "bmi": {
+        "title": "การคำนวณ BMI (ดัชนีมวลกาย)",
+        "description": "BMI คือน้ำหนักเป็นกิโลกรัมหารด้วยส่วนสูงเป็นเมตรยกกำลังสอง เกณฑ์ของ CDC ที่อ้างถึงใช้กับผู้ใหญ่อายุ 20 ปีขึ้นไป ผู้ที่อายุ 2–19 ปีต้องประเมิน BMI ตามอายุและเพศ แทนการใช้เกณฑ์ของผู้ใหญ่โดยตรง",
+        "references": {
+          "cdc": {
+            "title": "Centers for Disease Control and Prevention.",
+            "citation": "Adult BMI Calculator. Centers for Disease Control and Prevention. For adults aged 20 and older."
+          }
+        }
+      },
+      "bmr": {
+        "title": "การคำนวณ BMR (อัตราการเผาผลาญพลังงานขณะพัก)",
+        "description": "แอปใช้สมการ Mifflin–St Jeor เพื่อประมาณการใช้พลังงานขณะพัก ไม่ใช่การวัดการเผาผลาญจริง สำหรับเพศ \"อื่นๆ\" ค่าสัมประสิทธิ์ −78 คือค่าเฉลี่ยของสัมประสิทธิ์ทั้งสองในสมการ ซึ่งเป็นข้อกำหนดของแอปที่ยังไม่ได้รับการตรวจสอบแยกต่างหาก",
+        "references": {
+          "mifflin": {
+            "title": "Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO.",
+            "citation": "A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-7."
+          }
+        }
+      },
+      "activity": {
+        "title": "ค่าตัวคูณระดับกิจกรรม",
+        "description": "แอปนำ BMR คูณด้วย 1.2, 1.375, 1.55, 1.725 หรือ 1.9 ตามระดับกิจกรรม ค่าเหล่านี้เป็นค่าประมาณที่แอปเลือกใช้ เอกสารอ้างอิงให้ข้อมูลพื้นฐานเรื่องกิจกรรมและพลังงาน แต่ไม่ได้รับรองชุดตัวคูณนี้โดยตรง",
+        "references": {
+          "brooks": {
+            "title": "Brooks GA, Butte NF, Rand WM, Flatt JP, Caballero B.",
+            "citation": "Chronicle of the Institute of Medicine physical activity recommendation: how a physical activity recommendation came to be among dietary recommendations. Am J Clin Nutr. 2004;79(5):921S-930S."
+          },
+          "iom": {
+            "title": "Institute of Medicine (US) Panel on Macronutrients.",
+            "citation": "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. Washington (DC): National Academies Press (US); 2005."
+          }
+        }
+      },
+      "macros": {
+        "title": "การกระจายสารอาหารหลัก",
+        "description": "แหล่งข้อมูลเหล่านี้ให้แนวทางโภชนาการทั่วไปและแนวทางโปรตีนสำหรับผู้ที่ออกกำลังกาย แอปกำหนดโปรตีน 1.6–2 g/kg ตามเป้าหมาย อย่างน้อย 60 g ไขมันอย่างน้อย 0.8 g/kg หรือ 25% ของพลังงาน และพลังงานที่เหลือมาจากคาร์โบไฮเดรต หาก BMI เกิน 25 น้ำหนักอ้างอิงจะถูกจำกัดไว้ที่ BMI 25 กฎการวางแผนเหล่านี้ไม่ใช่คำแนะนำสำหรับทุกคน",
+        "references": {
+          "dietaryGuidelines": {
+            "title": "U.S. Department of Health and Human Services and U.S. Department of Agriculture.",
+            "citation": "Dietary Guidelines for Americans, 2025–2030. 10th Edition. Current guidance and related resources."
+          },
+          "who": {
+            "title": "World Health Organization.",
+            "citation": "Diet, nutrition and the prevention of chronic diseases. WHO Technical Report Series, No. 916. Geneva: WHO Press; 2003."
+          },
+          "protein": {
+            "title": "Jäger R, Kerksick CM, Campbell BI, et al.",
+            "citation": "International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20. Applies to exercising individuals."
+          }
+        }
+      },
+      "nutrients": {
+        "title": "ค่าอ้างอิงสารอาหารต่อวัน",
+        "description": "ค่าอ้างอิงต่อวันของใยอาหาร น้ำตาล ไขมันอิ่มตัว ไขมันทรานส์ คอเลสเตอรอล โซเดียม และโพแทสเซียม อ้างอิงตามค่า Daily Value ของ FDA ส่วนขีดจำกัดน้ำตาลและไขมันทรานส์อ้างอิงตามแนวทางของ WHO",
+        "references": {
+          "fda": {
+            "title": "U.S. Food and Drug Administration.",
+            "citation": "Daily Value on the Nutrition and Supplement Facts Labels."
+          },
+          "whoSugars": {
+            "title": "World Health Organization.",
+            "citation": "Guideline: Sugars intake for adults and children. Geneva: World Health Organization; 2015."
+          },
+          "whoFats": {
+            "title": "World Health Organization.",
+            "citation": "Saturated fatty acid and trans-fatty acid intake for adults and children: WHO guideline. Geneva: World Health Organization; 2023."
+          }
+        }
+      },
+      "weightManagement": {
+        "title": "การจัดการน้ำหนัก",
+        "description": "แอปประมาณการเปลี่ยนแปลงน้ำหนักโดยใช้ 7,700 kcal/kg วันที่คาดว่าจะสำเร็จเป็นเพียงค่าประมาณ ไม่ใช่แบบจำลองเชิงพลวัตของ NIDDK การจำกัดการขาดดุลไม่เกิน 25% การเกินดุลไม่เกิน 500 kcal/วัน แคลอรี่ขั้นต่ำตามเพศร่วมกับ BMR และช่วงแคลอรี่ที่ถือว่าอยู่ในเป้า ล้วนเป็นกฎของแอป ไม่ใช่ระเบียบวิธีที่เอกสารอ้างอิงเหล่านี้รับรองร่วมกัน",
+        "references": {
+          "wadden": {
+            "title": "Wadden TA, Webb VL, Moran CH, Bailer BA.",
+            "citation": "Lifestyle modification for obesity: new developments in diet, physical activity, and behavior therapy. Circulation. 2012;125(9):1157-70."
+          },
+          "hall": {
+            "title": "Hall KD, Heymsfield SB, Kemnitz JW, Klein S, Schoeller DA, Speakman JR.",
+            "citation": "Energy balance and its components: implications for body weight regulation. Am J Clin Nutr. 2012;95(4):989-94."
+          },
+          "hallWeight": {
+            "title": "Hall KD.",
+            "citation": "What is the required energy deficit per unit weight loss? Int J Obes (Lond). 2008;32(3):573–576."
+          },
+          "niddk": {
+            "title": "National Institute of Diabetes and Digestive and Kidney Diseases.",
+            "citation": "About the Body Weight Planner. Background on personalized weight-change estimates; the app does not implement this model."
+          }
+        }
+      }
+    }
+  },
+  "accountScreen": {
+    "title": "บัญชี",
+    "switchAccount": "สลับบัญชี",
+    "dangerZone": "โซนอันตราย",
+    "deleteAction": "ลบบัญชี",
+    "deleteDescription": "การดำเนินการนี้จะลบบัญชีคลาวด์และข้อมูลทั้งหมดในเครื่องนี้อย่างถาวร และจะสร้างเซสชันแบบไม่ระบุตัวตนขึ้นใหม่",
+    "deleteTitle": "ลบบัญชีใช่ไหม?",
+    "deleteMessage": "ข้อมูลทั้งหมดบนคลาวด์และในเครื่องจะถูกลบอย่างถาวร และไม่สามารถกู้คืนได้",
+    "deleteConfirm": "ลบทั้งหมด",
+    "deleteSuccess": "ลบบัญชีและข้อมูลแล้ว",
+    "deleteError": "ไม่สามารถลบบัญชีได้ในขณะนี้ โปรดลองอีกครั้ง",
+    "deleteDataAction": "ลบข้อมูลทั้งหมด",
+    "deleteDataTitle": "ลบข้อมูลทั้งหมดใช่ไหม?",
+    "deleteDataMessage": "ข้อมูลโภชนาการทั้งหมดในเครื่องและบนคลาวด์จะถูกลบอย่างถาวร และไม่สามารถกู้คืนได้",
+    "deleteDataConfirm": "ลบทั้งหมด",
+    "deleteDataSuccess": "ลบข้อมูลโภชนาการทั้งหมดแล้ว",
+    "deleteDataError": "ลบข้อมูลไม่สำเร็จ โปรดลองอีกครั้ง",
+    "logoutAction": "ออกจากระบบ",
+    "logoutTitle": "ออกจากระบบใช่ไหม?",
+    "logoutMessage": "คุณจะออกจากระบบ และจะมีการสร้างเซสชันแบบไม่ระบุตัวตนขึ้นใหม่ ข้อมูลบนคลาวด์ของคุณยังปลอดภัย",
+    "logoutConfirm": "ออกจากระบบ",
+    "logoutSuccess": "ออกจากระบบแล้ว",
+    "logoutError": "ไม่สามารถออกจากระบบได้ในขณะนี้",
+    "joinedAt": "เข้าร่วมเมื่อ {{value}}",
+    "joinedAtUnknown": "ไม่ทราบวันที่เข้าร่วม"
+  },
+  "profileScreen": {
+    "actionError": "ไม่สามารถอัปเดตข้อมูลได้ในขณะนี้ โปรดลองอีกครั้ง",
+    "reminders": {
+      "subtitle": "การแจ้งเตือนแต่ละรายการมีสวิตช์ของตัวเอง เพิ่มการแจ้งเตือนของคุณเองสำหรับของว่างหรือนิสัยอื่นๆ ที่อยากติดตามได้",
+      "breakfast": "มื้อเช้า",
+      "lunch": "มื้อกลางวัน",
+      "dinner": "มื้อเย็น",
+      "mealWindow": "{{start}}–{{end}}",
+      "customTag": "กำหนดเอง",
+      "addButton": "เพิ่มการแจ้งเตือน",
+      "limitReached": "ตั้งการแจ้งเตือนได้สูงสุด {{count}} รายการ",
+      "toggleA11y": "เปิดหรือปิดการแจ้งเตือน {{name}}",
+      "changeTimeA11y": "เปลี่ยนเวลาแจ้งเตือน {{name}}",
+      "editA11y": "แก้ไขการแจ้งเตือน {{name}}",
+      "editor": {
+        "addTitle": "การแจ้งเตือนใหม่",
+        "editTitle": "แก้ไขการแจ้งเตือน",
+        "nameLabel": "ชื่อ",
+        "namePlaceholder": "เช่น ของว่างตอนบ่าย",
+        "timeLabel": "แจ้งเตือนเวลา",
+        "defaultName": "การแจ้งเตือน"
+      },
+      "permissionDenied": "แอปยังไม่ได้รับสิทธิ์ในการส่งการแจ้งเตือน",
+      "adjustedToMealWindow": "ปรับเวลาแจ้งเตือนให้อยู่ในช่วงเวลามื้ออาหารที่ถูกต้องแล้ว",
+      "channelName": "แจ้งเตือนบันทึกแคลอรี่",
+      "notifications": {
+        "breakfast": {
+          "title": "ได้เวลาบันทึกมื้อเช้าแล้ว",
+          "body": "เปิดแอปเพื่อสแกนมื้ออาหารและอัปเดตแคลอรี่ของคุณ"
+        },
+        "lunch": {
+          "title": "ได้เวลาบันทึกมื้อกลางวันแล้ว",
+          "body": "เตือนเบาๆ: อัปเดตแคลอรี่เพื่อให้วันนี้เป็นไปตามแผน"
+        },
+        "dinner": {
+          "title": "ได้เวลาบันทึกมื้อเย็นแล้ว",
+          "body": "ปิดท้ายวันนี้ด้วยการบันทึกมื้อเย็นแค่ไม่กี่แตะ"
+        },
+        "custom": {
+          "body": "เปิดแอปเพื่อบันทึกสิ่งที่คุณเพิ่งกินไป"
+        }
+      }
+    }
+  },
+  "goalTracking": {
+    "progressKcal": "{{current}} / {{target}} kcal",
+    "progressMaintainDays": "อยู่ในเป้า {{current}} / {{target}} วัน",
+    "goalNames": {
+      "maintain": "คุมน้ำหนัก",
+      "loseWithValue": "ลด {{value, number}} kg",
+      "gainWithValue": "เพิ่ม {{value, number}} kg",
+      "maintainWithValue": "คุมน้ำหนัก {{value}} วัน",
+      "maintainWithOneMonth": "คุมน้ำหนัก 1 เดือน",
+      "maintainWithMonths": "คุมน้ำหนัก {{value}} เดือน"
+    },
+    "status": {
+      "active": "กำลังดำเนินการ",
+      "completed": "สำเร็จแล้ว",
+      "cancelled": "หยุดแล้ว",
+      "ended": "สิ้นสุดแล้ว"
+    },
+    "history": {
+      "subtitle": "เป้าหมายที่คุณทำสำเร็จหรือเปลี่ยนระหว่างทาง",
+      "empty": "คุณยังไม่มีประวัติเป้าหมาย",
+      "period": {
+        "completed": "เริ่ม {{start}} · สำเร็จ {{end}}",
+        "cancelled": "เริ่ม {{start}} · หยุด {{end}}",
+        "ended": "เริ่ม {{start}} · สิ้นสุด {{end}}"
+      }
+    },
+    "today": {
+      "remaining": "เหลือ {{value}} kcal",
+      "onTarget": "ตรงเป้า",
+      "over": "เกิน {{value}} kcal"
+    }
+  },
+  "achievements": {
+    "streakHistory": "ประวัติความต่อเนื่อง",
+    "previousMonth": "เดือนก่อน",
+    "nextMonth": "เดือนถัดไป",
+    "legendOnTarget": "ตรงเป้า",
+    "legendLogged": "บันทึกแล้ว",
+    "badges": "เหรียญรางวัล",
+    "unlockedCount": "ปลดล็อกแล้ว {{unlocked}}/{{total}}",
+    "done": "สำเร็จ",
+    "items": {
+      "streak_7": "ต่อเนื่อง 7 วัน",
+      "streak_14": "ต่อเนื่อง 14 วัน",
+      "streak_30": "ต่อเนื่อง 30 วัน",
+      "on_target_7": "ตรงเป้า 7 วัน",
+      "protein_5": "โปรตีนถึงเป้า 5 วัน",
+      "balanced_7": "กินสมดุล 7 วัน",
+      "entries_10": "บันทึกอาหาร 10 รายการ",
+      "entries_100": "บันทึกอาหาร 100 รายการ"
+    }
+  },
+  "auth": {
+    "email": "อีเมล",
+    "password": "รหัสผ่าน",
+    "confirmPassword": "ยืนยันรหัสผ่าน",
+    "welcomeBack": "ยินดีต้อนรับกลับมา!",
+    "welcomeBackSubtitle": "เข้าสู่ระบบเพื่อติดตามโภชนาการต่อ และซิงค์ข้อมูลของคุณให้เป็นปัจจุบัน",
+    "emailPlaceholder": "name@example.com",
+    "passwordPlaceholder": "อย่างน้อย 8 ตัวอักษร",
+    "confirmPasswordPlaceholder": "กรอกรหัสผ่านอีกครั้ง",
+    "signIn": "เข้าสู่ระบบ",
+    "signInWithGoogle": "เข้าสู่ระบบด้วย Google",
+    "signUp": "สร้างบัญชี",
+    "forgotPassword": "ลืมรหัสผ่าน?",
+    "registerPageTitle": "สมัครสมาชิก",
+    "registerAction": "สมัครสมาชิก",
+    "upgradeAccount": "ปกป้องบัญชีนี้",
+    "goToLogin": "ฉันมีบัญชีอยู่แล้ว",
+    "goToRegister": "สร้างบัญชีสำหรับซิงค์",
+    "loginTitle": "เข้าสู่ระบบบัญชีซิงค์",
+    "loginCardSubtitle": "เข้าสู่ระบบด้วยอีเมลและรหัสผ่านของคุณ",
+    "loginSubtitle": "ใช้บัญชีที่มีอยู่เพื่อโหลดข้อมูลโภชนาการที่ซิงค์ไว้มายังเครื่องนี้",
+    "loginSubtitleAnonymous": "เข้าสู่ระบบเฉพาะเมื่อคุณมีบัญชีอยู่แล้ว หากต้องการเก็บข้อมูลของเซสชันแบบไม่ระบุตัวตนนี้ไว้ ให้ใช้ \"สร้างบัญชี\" แทน",
+    "registerTitle": "สร้างบัญชีสำหรับซิงค์",
+    "registerSubtitle": "สร้างบัญชีใหม่เพื่อให้กู้คืนข้อมูลโภชนาการบนเครื่องอื่นได้",
+    "registerUpgradeTitle": "ปกป้องข้อมูลที่ซิงค์ไว้",
+    "registerUpgradeSubtitle": "เชื่อมเซสชันแบบไม่ระบุตัวตนนี้กับอีเมล Google หรือ Apple เพื่อให้กู้คืนข้อมูลได้ภายหลัง",
+    "loginSuccess": "เข้าสู่ระบบสำเร็จ",
+    "loginFailed": "ไม่สามารถเข้าสู่ระบบได้ในขณะนี้",
+    "loginConfirmTitle": "แทนที่ข้อมูลในเครื่องใช่ไหม?",
+    "loginConfirmMessage": "การเข้าสู่ระบบจะแทนที่ข้อมูลทั้งหมดในเครื่องนี้ด้วยข้อมูลจากบัญชีคลาวด์ของคุณ และไม่สามารถย้อนกลับได้",
+    "loginConfirmAction": "เข้าสู่ระบบ",
+    "syncPhaseAuth": "กำลังเข้าสู่ระบบ…",
+    "syncPhaseData": "กำลังซิงค์ข้อมูลของคุณ…",
+    "syncPleaseWait": "โปรดรอสักครู่ อาจใช้เวลาเล็กน้อย",
+    "syncFailedTitle": "ซิงค์ไม่สำเร็จ",
+    "syncFailedMessage": "ไม่สามารถซิงค์ข้อมูลจากคลาวด์ได้ คุณลองใหม่หรือข้ามไปก่อนก็ได้",
+    "syncRetry": "ลองอีกครั้ง",
+    "syncSkip": "ข้ามไปก่อน",
+    "forgotPasswordTitle": "รีเซ็ตรหัสผ่าน",
+    "forgotPasswordSubtitle": "กรอกอีเมลของคุณ แล้วเราจะส่งลิงก์สำหรับรีเซ็ตรหัสผ่านให้",
+    "forgotPasswordAction": "ส่งลิงก์รีเซ็ต",
+    "forgotPasswordSuccess": "หากมีอีเมลนี้ในระบบ เราได้ส่งลิงก์รีเซ็ตไปให้แล้ว",
+    "forgotPasswordFailed": "ไม่สามารถส่งลิงก์รีเซ็ตได้ในขณะนี้",
+    "resetPasswordTitle": "ตั้งรหัสผ่านใหม่",
+    "resetPasswordSubtitle": "เลือกรหัสผ่านใหม่สำหรับบัญชีของคุณ",
+    "resetPasswordAction": "บันทึกรหัสผ่านใหม่",
+    "resetPasswordSuccess": "อัปเดตรหัสผ่านของคุณแล้ว",
+    "resetPasswordFailed": "ไม่สามารถอัปเดตรหัสผ่านได้ในขณะนี้",
+    "registerSuccess": "สร้างบัญชีสำเร็จ",
+    "registerFailed": "ไม่สามารถสร้างหรือปกป้องบัญชีนี้ได้ในขณะนี้",
+    "lastSyncAt": "ซิงค์ล่าสุด: {{value}}",
+    "lastSignedInAt": "เข้าสู่ระบบล่าสุด: {{value}}",
+    "lastSignedInUnknown": "เข้าสู่ระบบล่าสุด: ไม่มีข้อมูล"
+  },
+  "legal": {
+    "updatedTitle": "อัปเดตล่าสุด",
+    "updatedDate": "15 พฤษภาคม 2024",
+    "about": {
+      "heroTitle": "กินดี\nอยู่ดี",
+      "heroSubtitle": "แอปติดตามแคลอรี่และโภชนาการอัจฉริยะ",
+      "heroBody": "Check Calo ช่วยให้คุณเข้าใจร่างกาย ควบคุมแคลอรี่ในแต่ละวัน และไปถึงเป้าหมายสุขภาพได้ทุกวัน",
+      "features": {
+        "tracking": {
+          "title": "ติดตามแคลอรี่รายวัน",
+          "body": "บันทึกแคลอรี่จากทุกมื้อได้อย่างรวดเร็ว และดูความคืบหน้าของวันได้ในพริบตา"
+        },
+        "goals": {
+          "title": "เป้าหมายเฉพาะคุณ",
+          "body": "ตั้งเป้าหมายโภชนาการที่เหมาะกับร่างกาย ไลฟ์สไตล์ และทิศทางสุขภาพของคุณ"
+        },
+        "meals": {
+          "title": "ข้อมูลเชิงลึกเรื่องมื้ออาหาร",
+          "body": "บันทึกมื้อเช้า กลางวัน เย็น และของว่าง เพื่อเข้าใจพฤติกรรมการกินของคุณ"
+        }
+      }
+    },
+    "terms": {
+      "title": "ข้อกำหนดการให้บริการ",
+      "summary": "โปรดอ่านข้อกำหนดเหล่านี้อย่างละเอียดก่อนใช้งานแอป Check Calo",
+      "readMore": "อ่านเพิ่มเติม",
+      "readLess": "แสดงน้อยลง",
+      "items": {
+        "acceptance": {
+          "title": "การยอมรับข้อกำหนด",
+          "body": "เมื่อใช้งาน Check Calo ถือว่าคุณตกลงปฏิบัติตามข้อกำหนดและเงื่อนไขที่ระบุไว้ในเอกสารนี้"
+        },
+        "purpose": {
+          "title": "วัตถุประสงค์การใช้งาน",
+          "body": "แอปนี้ช่วยติดตามแคลอรี่ โภชนาการ และเป้าหมายส่วนตัว ไม่สามารถใช้แทนคำแนะนำหรือการรักษาทางการแพทย์ได้"
+        },
+        "account": {
+          "title": "บัญชีผู้ใช้",
+          "body": "คุณมีหน้าที่ดูแลรักษาข้อมูลบัญชีของคุณ และดูแลให้ข้อมูลสุขภาพถูกต้อง"
+        },
+        "prohibited": {
+          "title": "พฤติกรรมที่ห้ามกระทำ",
+          "body": "ห้ามใช้แอปเพื่อวัตถุประสงค์ที่ผิดกฎหมาย รบกวนการให้บริการ หรือสร้างความเสียหายแก่ผู้ใช้อื่น"
+        },
+        "liability": {
+          "title": "ข้อจำกัดความรับผิด",
+          "body": "ข้อมูลโภชนาการมีไว้เพื่อการอ้างอิงเท่านั้น คุณยังคงต้องรับผิดชอบต่อการตัดสินใจด้านสุขภาพและการกินของตนเอง"
+        }
+      },
+      "moreItems": {
+        "changes": {
+          "title": "การเปลี่ยนแปลงข้อกำหนด",
+          "body": "เราอาจปรับปรุงข้อกำหนดเหล่านี้เป็นครั้งคราวให้สอดคล้องกับการเปลี่ยนแปลงของผลิตภัณฑ์หรือข้อกำหนดทางกฎหมาย"
+        },
+        "retention": {
+          "title": "การเก็บรักษาข้อมูล",
+          "body": "ข้อมูลบางส่วนอาจถูกเก็บไว้เพื่อรองรับประสบการณ์การใช้งาน การซิงค์ และการกู้คืนประวัติของคุณ"
+        },
+        "contact": {
+          "title": "ติดต่อฝ่ายช่วยเหลือ",
+          "body": "หากมีคำถามเกี่ยวกับข้อกำหนดเหล่านี้ โปรดติดต่อเราผ่านหน้าช่วยเหลือในแอป"
+        }
+      }
+    },
+    "privacy": {
+      "title": "นโยบายความเป็นส่วนตัว",
+      "summary": "เรามุ่งมั่นปกป้องความเป็นส่วนตัวของคุณ และอธิบายว่า Check Calo ใช้ข้อมูลอย่างไร",
+      "items": {
+        "collection": {
+          "title": "ข้อมูลที่เราเก็บรวบรวม",
+          "body": "เราอาจเก็บข้อมูลที่คุณให้ไว้ เช่น ชื่อ อีเมล วันเกิด เพศ ส่วนสูง น้ำหนัก และบันทึกมื้ออาหาร"
+        },
+        "use": {
+          "title": "การใช้ข้อมูล",
+          "body": "ข้อมูลถูกใช้เพื่อกำหนดเป้าหมายเฉพาะบุคคล ติดตามโภชนาการ และปรับปรุงประสบการณ์การใช้แอป"
+        },
+        "sharing": {
+          "title": "การเปิดเผยข้อมูล",
+          "body": "เราไม่ขายหรือเปิดเผยข้อมูลส่วนบุคคลแก่บุคคลภายนอก เว้นแต่กฎหมายกำหนดหรือได้รับความยินยอมจากคุณ"
+        },
+        "voice": {
+          "title": "การป้อนข้อมูลด้วยเสียง",
+          "body": "เมื่อคุณพูดในแชท บริการรู้จำเสียงของโทรศัพท์ (Apple หรือ Google) จะแปลงเสียงเป็นข้อความ เสียงอาจถูกส่งไปยังบริการนั้นเพื่อประมวลผล โดย Check Calo จะเก็บเฉพาะข้อความที่คุณส่งเท่านั้น"
+        },
+        "security": {
+          "title": "ความปลอดภัยของข้อมูล",
+          "body": "เราใช้มาตรการทางเทคนิคและการจัดการที่เหมาะสมเพื่อปกป้องข้อมูลของคุณจากการเข้าถึงโดยไม่ได้รับอนุญาต"
+        },
+        "rights": {
+          "title": "สิทธิ์ของคุณ",
+          "body": "คุณสามารถเข้าถึง อัปเดต แก้ไข หรือขอให้ลบข้อมูลส่วนบุคคลได้ผ่านแอปหรือฝ่ายช่วยเหลือ"
+        },
+        "changes": {
+          "title": "การเปลี่ยนแปลงนโยบาย",
+          "body": "เราอาจปรับปรุงนโยบายนี้ หากมีการเปลี่ยนแปลงที่สำคัญจะแจ้งให้ทราบในแอป"
+        }
+      },
+      "updatedDate": "1 พฤศจิกายน 2026"
+    },
+    "help": {
+      "title": "ต้องการความช่วยเหลือ?",
+      "body": "ติดต่อเราได้หากมีคำถามเกี่ยวกับข้อกำหนดหรือความเป็นส่วนตัวของคุณ",
+      "action": "ติดต่อ"
+    }
+  },
+  "contactScreen": {
+    "title": "ติดต่อเรา",
+    "heroTitle": "ติดต่อเรา",
+    "formTitle": "ส่งข้อความถึงเรา",
+    "formSubtitle": "แค่ฝากอีเมลและปัญหาที่คุณพบไว้",
+    "copyHint": "แตะเพื่อคัดลอก",
+    "copySuccess": "คัดลอกข้อมูลติดต่อแล้ว",
+    "submitAction": "ส่ง",
+    "submitSuccess": "เราได้รับคำขอติดต่อของคุณแล้ว",
+    "emailLabel": "อีเมล",
+    "emailValue": "checkcalosupport@gmail.com",
+    "phoneLabel": "เบอร์โทรศัพท์",
+    "phoneValue": "0373060206",
+    "locationLabel": "ที่ตั้งสำนักงาน",
+    "locationValue": "No. 2A, Street 55, Quarter 2, Binh Duong Ward, Ho Chi Minh City, Vietnam",
+    "workingDaysLabel": "วันทำการ",
+    "workingDaysValue": "จันทร์ - เสาร์ | 08:00 - 17:00",
+    "emailPlaceholder": "อีเมลของคุณ",
+    "problemPlaceholder": "ปัญหาที่คุณพบ"
+  },
+  "settings": {
+    "about": "เกี่ยวกับ",
+    "privacy": "นโยบายความเป็นส่วนตัว",
+    "terms": "ข้อกำหนดการให้บริการ",
+    "contact": "ติดต่อเรา"
+  },
+  "settingsScreen": {
+    "title": "ตั้งค่า",
+    "subtitle": "บัญชี ข้อมูลส่วนตัว และการแสดงผล",
+    "general": "ทั่วไป",
+    "healthAndPrivacy": "สุขภาพและความเป็นส่วนตัว"
+  },
+  "errorBoundary": {
+    "title": "เกิดข้อผิดพลาด",
+    "message": "แอปเกิดข้อผิดพลาดที่ไม่คาดคิด โปรดลองอีกครั้ง",
+    "retry": "ลองอีกครั้ง"
+  },
+  "network": {
+    "offline": "ดูเหมือนคุณออฟไลน์อยู่",
+    "online": "กลับมาออนไลน์แล้ว"
+  },
+  "notFound": {
+    "title": "ไม่พบหน้านี้",
+    "message": "ไม่มีหน้าจอนี้อยู่",
+    "goHome": "กลับไปหน้าหลัก"
+  },
+  "errors": {
+    "title": "ข้อผิดพลาด",
+    "generic": "เกิดข้อผิดพลาด โปรดลองอีกครั้ง",
+    "network": "เครือข่ายมีปัญหา โปรดตรวจสอบการเชื่อมต่อ",
+    "auth": "ยืนยันตัวตนไม่สำเร็จ"
+  },
+  "validation": {
+    "required": "จำเป็นต้องกรอกช่องนี้",
+    "emailInvalid": "โปรดกรอกอีเมลที่ถูกต้อง",
+    "numberInvalid": "โปรดกรอกตัวเลขที่ถูกต้อง",
+    "passwordMin": "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร",
+    "passwordMismatch": "รหัสผ่านไม่ตรงกัน",
+    "usernameMin": "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร",
+    "usernameMax": "ชื่อผู้ใช้ต้องมีไม่เกิน 20 ตัวอักษร",
+    "usernameFormat": "ชื่อผู้ใช้ใช้ได้เฉพาะตัวอักษร ตัวเลข และขีดล่าง"
+  },
+  "camera": {
+    "title": "กล้อง",
+    "scanTitle": "สแกน QR โค้ด",
+    "barcodeTitle": "สแกนบาร์โค้ด",
+    "scanHint": "จัด QR โค้ดให้อยู่ในกรอบเพื่อสแกนอัตโนมัติ",
+    "barcodeHint": "จัดบาร์โค้ดให้อยู่ในกรอบเพื่อสแกนอัตโนมัติ",
+    "permissionDenied": "ไม่ได้รับสิทธิ์เข้าถึงกล้อง",
+    "libraryPermissionDenied": "ไม่ได้รับสิทธิ์เข้าถึงคลังรูปภาพ",
+    "captureFailed": "ถ่ายรูปไม่สำเร็จ โปรดลองอีกครั้ง",
+    "libraryPickFailed": "เลือกรูปไม่สำเร็จ โปรดลองอีกครั้ง",
+    "scanFailed": "สแกนโค้ดไม่สำเร็จ โปรดลองอีกครั้ง",
+    "actions": {
+      "close": "ปิด",
+      "flip": "สลับกล้อง",
+      "capture": "ถ่ายรูป",
+      "toggleFlash": "เปิด/ปิดแฟลช"
+    }
+  },
+  "macros": {
+    "calories": "แคลอรี่",
+    "carbs": "คาร์บ",
+    "protein": "โปรตีน",
+    "fat": "ไขมัน"
+  },
+  "nutrients": {
+    "title": "รายละเอียดสารอาหาร",
+    "fiberGrams": "ใยอาหาร",
+    "sugarGrams": "น้ำตาล",
+    "saturatedFatGrams": "ไขมันอิ่มตัว",
+    "transFatGrams": "ไขมันทรานส์",
+    "cholesterolMg": "คอเลสเตอรอล",
+    "sodiumMg": "โซเดียม",
+    "potassiumMg": "โพแทสเซียม",
+    "unknown": "—",
+    "emptyHint": "อาหารนี้ยังไม่มีข้อมูลละเอียด แตะแก้ไขเพื่อกรอกค่าจากฉลากโภชนาการ",
+    "dailyValueHint": "% เทียบกับค่าอ้างอิงต่อวันสำหรับอาหาร 2,000 kcal ใยอาหารและโพแทสเซียมควรได้ให้ถึง ส่วนตัวอื่นๆ ควรต่ำกว่านี้",
+    "showDetails": "แสดงรายละเอียดสารอาหาร",
+    "hideDetails": "ซ่อนรายละเอียดสารอาหาร"
+  },
+  "mealSlots": {
+    "breakfast": "มื้อเช้า",
+    "lunch": "มื้อกลางวัน",
+    "dinner": "มื้อเย็น",
+    "snack": "ของว่าง"
+  },
+  "chat": {
+    "title": "Check AI",
+    "subtitle": "ถามอะไรก็ได้เกี่ยวกับมื้ออาหารวันนี้",
+    "placeholder": "วันนี้คุณกินอะไรไปบ้าง?",
+    "send": "ส่ง",
+    "voiceInput": "พิมพ์ด้วยเสียง",
+    "attachPhoto": "แนบรูปภาพ",
+    "takePhoto": "ถ่ายรูป",
+    "pickFromLibrary": "เลือกจากคลังรูปภาพ",
+    "removePhoto": "ลบรูปภาพ",
+    "welcome": "สวัสดี! เราคือผู้ช่วยด้านโภชนาการของคุณ บอกได้เลยว่ากินอะไรไป ส่งรูปมา หรือให้ช่วยแนะนำเมนูที่เหมาะกับเป้าหมายของคุณก็ได้นะ",
+    "thinking": "Check AI กำลังคิด…",
+    "photoOnlyPrompt": "บันทึกอาหารในรูปนี้",
+    "fallbackReply": "นี่คือสิ่งที่หาเจอ",
+    "errorReply": "ขอโทษนะ วิเคราะห์ไม่สำเร็จ ลองอีกครั้งได้เลย",
+    "addToDiary_other": "เพิ่ม {{count}} รายการลงบันทึก",
+    "addSuggestion": "เพิ่มลงบันทึก",
+    "logged": "เพิ่มแล้ว",
+    "loggedToast": "บันทึกลงไดอารี่แล้ว",
+    "total": "รวม",
+    "undo": "เลิกทำ",
+    "undoToast": "นำออกจากบันทึกแล้ว",
+    "scanBarcode": "สแกนบาร์โค้ด",
+    "recentTitle": "ล่าสุด",
+    "recentChip": "{{name}} · {{calories}} kcal",
+    "recentLogged": "เพิ่ม {{name}} ลงบันทึกแล้ว",
+    "barcodeMessage": "บาร์โค้ด {{code}}",
+    "barcodeFound": "เจอ {{name}} แล้ว ตรวจสอบปริมาณ แล้วเพิ่มลงบันทึกได้เลย",
+    "barcodeNotFound": "ไม่พบสินค้าสำหรับบาร์โค้ด {{code}} ลองอธิบายอาหารหรือส่งรูปมาแทนนะ",
+    "barcodeLookupFailed": "ค้นหาบาร์โค้ดไม่สำเร็จ ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+    "followUps": {
+      "logBreakfast": "มื้อเช้ากินข้าวมันไก่ไป 1 จาน",
+      "suggestDinner": "แนะนำมื้อเย็นโปรตีนสูง ไม่เกิน 700 kcal"
+    }
+  },
+  "voice": {
+    "listening": "กำลังฟัง…",
+    "stop": "หยุดฟัง",
+    "permissionDenied": "อนุญาตไมโครโฟนและการรู้จำเสียงในการตั้งค่า เพื่อพูดบอกมื้ออาหารได้",
+    "failed": "ฟังไม่ชัด ลองพูดใหม่หรือพิมพ์แทนนะ"
+  },
+  "mealDetail": {
+    "title": "รายละเอียดมื้ออาหาร",
+    "nutrition": "ข้อมูลโภชนาการ",
+    "ringsHint": "วงแหวนแสดงสัดส่วนเทียบกับเป้าหมายทั้งวัน",
+    "notFound": "อาหารนี้ไม่อยู่ในบันทึกแล้ว",
+    "deleteAction": "ลบออกจากบันทึก",
+    "deleteTitle": "ลบอาหารนี้ใช่ไหม?",
+    "deleteMessage": "อาหารนี้จะถูกนำออกจากบันทึกและยอดรวมของวัน",
+    "deleteSuccess": "ลบอาหารแล้ว",
+    "saveSuccess": "บันทึกการเปลี่ยนแปลงแล้ว",
+    "fields": {
+      "name": "ชื่ออาหาร",
+      "quantity": "ปริมาณ",
+      "calories": "แคลอรี่ (kcal)",
+      "protein": "โปรตีน (g)",
+      "carbs": "คาร์บ (g)",
+      "fat": "ไขมัน (g)",
+      "notes": "หมายเหตุ"
+    }
+  },
+  "onboarding": {
+    "headerTitle": "เริ่มต้นใช้งาน",
+    "title": "ยินดีต้อนรับสู่ Check Calo!",
+    "subtitle": "เล่าเกี่ยวกับตัวคุณให้ {{name}} ฟังสักหน่อย เพื่อสร้างแผนที่เหมาะกับคุณ",
+    "displayName": "ชื่อที่แสดง",
+    "displayNamePlaceholder": "ชื่อของคุณ",
+    "age": "อายุ",
+    "gender": "เพศ",
+    "genders": {
+      "male": "ชาย",
+      "female": "หญิง",
+      "other": "อื่นๆ"
+    },
+    "height": "ส่วนสูง",
+    "weight": "น้ำหนัก",
+    "bmi": "BMI",
+    "bmiCategories": {
+      "underweight": {
+        "title": "น้ำหนักน้อย"
+      },
+      "normal": {
+        "title": "น้ำหนักปกติ"
+      },
+      "overweight": {
+        "title": "น้ำหนักเกิน"
+      },
+      "obese": {
+        "title": "โรคอ้วน"
+      }
+    },
+    "goal": "เป้าหมายของคุณ",
+    "goals": {
+      "lose": {
+        "title": "ลดน้ำหนัก",
+        "description": "เผาผลาญไขมัน หุ่นกระชับ"
+      },
+      "maintain": {
+        "title": "คุมน้ำหนัก",
+        "description": "รักษาน้ำหนักปัจจุบัน"
+      },
+      "gain": {
+        "title": "เพิ่มน้ำหนัก",
+        "description": "เพิ่มมวลอย่างมีสุขภาพดี"
+      }
+    },
+    "activity": "ระดับกิจกรรม",
+    "activities": {
+      "sedentary": "นั่งเป็นส่วนใหญ่",
+      "light": "ขยับตัวเล็กน้อย",
+      "moderate": "ขยับตัวปานกลาง",
+      "active": "ขยับตัวมาก"
+    },
+    "plan": "แผนโดยประมาณของคุณ",
+    "saveSuccess": "บันทึกโปรไฟล์แล้ว",
+    "healthSources": "เราคำนวณอย่างไร",
+    "validation": {
+      "age": "กรอกอายุระหว่าง 10 ถึง 100 ปี"
+    },
+    "targetWeight": "น้ำหนักเป้าหมาย",
+    "targetBmiWarning": "เป้าหมายนี้ต่ำกว่า BMI ที่ดีต่อสุขภาพ (18.5) ควรปรึกษาผู้เชี่ยวชาญด้านสุขภาพ",
+    "planLoading": {
+      "title": "กำลังสร้างแผนของคุณ…",
+      "bmr": "กำลังคำนวณอัตราการเผาผลาญขณะพัก (BMR)…",
+      "energy": "กำลังประมาณพลังงานที่คุณใช้ในแต่ละวัน…",
+      "pace": "กำลังหาจังหวะที่ปลอดภัยสำหรับเป้าหมายของคุณ…",
+      "roadmap": "กำลังวางเส้นทางสู่เป้าหมายของคุณ…"
+    },
+    "planResults": {
+      "target": "น้ำหนักเป้าหมาย",
+      "targetChange": "{{value}} kg จากวันนี้",
+      "targetMaintain": "รักษาน้ำหนักปัจจุบัน",
+      "daily": "kcal ต่อวัน",
+      "dailyHint": "ช่วงที่ตรงเป้า: {{min}}–{{max}}",
+      "weekly": "kcal ต่อสัปดาห์",
+      "weeklyHint": "{{value}} kg ต่อสัปดาห์",
+      "weeklyMaintain": "น้ำหนักคงที่",
+      "date": "คาดว่าจะถึงเป้า",
+      "dateHint": "อีก {{weeks}}",
+      "dateMaintain": "ต่อเนื่อง",
+      "dateMaintainHint": "ไม่มีวันสิ้นสุด"
+    },
+    "step": "ขั้นตอนที่ {{current}}/{{total}} · {{title}}",
+    "steps": {
+      "about": "คุณและเป้าหมาย",
+      "plan": "แผน"
+    },
+    "createPlan": "สร้างแผนของฉัน",
+    "start": "เริ่มเลย",
+    "goalLabel": "เป้าหมาย",
+    "planSummary": {
+      "lose": "พลังงานที่คุณใช้ต่อวันประมาณ ~{{tdee}} kcal/วัน แผนนี้กินน้อยกว่านั้น {{gap}} kcal",
+      "gain": "พลังงานที่คุณใช้ต่อวันประมาณ ~{{tdee}} kcal/วัน แผนนี้กินมากกว่านั้น {{gap}} kcal",
+      "maintain": "พลังงานที่คุณใช้ต่อวันประมาณ ~{{tdee}} kcal/วัน กินใกล้เคียงค่านี้จะช่วยรักษาน้ำหนัก",
+      "macros": "ต่อวัน: โปรตีน {{protein}}g · ไขมัน {{fat}}g · คาร์บ {{carbs}}g",
+      "estimate": "นี่เป็นค่าประมาณ แอปจะปรับให้ตามน้ำหนักที่คุณบันทึก"
+    },
+    "weightAndTarget": "น้ำหนัก / เป้าหมาย",
+    "calorieAdjustment": {
+      "lose": "แคลอรี่ที่ลดลง",
+      "gain": "แคลอรี่ที่เพิ่มขึ้น",
+      "maintain": "การปรับแคลอรี่"
+    },
+    "editTitle": "อัปเดตเป้าหมายของคุณ",
+    "editSubtitle": "ตรวจสอบข้อมูลและปรับเป้าหมาย เพื่อให้ {{name}} อัปเดตแผนให้คุณ",
+    "previewUpdate": "ดูตัวอย่างแผนใหม่"
+  },
+  "buddy": {
+    "openBuddy": "เปิด {{name}}",
+    "title": "สัตว์เลี้ยง",
+    "subtitle": "เลี้ยง {{name}} ให้โตไปพร้อมกับทุกวันที่ดีต่อสุขภาพ",
+    "rename": "เปลี่ยนชื่อสัตว์เลี้ยง",
+    "renameLabel": "เปลี่ยนชื่อ {{name}}",
+    "namePlaceholder": "ชื่อสัตว์เลี้ยง",
+    "levelTitle": "เลเวล {{level}} - {{stage}}",
+    "levelShort": "Lv {{level}}",
+    "stages": {
+      "baby": "เบบี้",
+      "junior": "จูเนียร์",
+      "teen": "วัยรุ่น",
+      "buddy": "โปร",
+      "master": "มาสเตอร์"
+    },
+    "progressToNext": "{{percent}}% · อีก {{points}} แต้มถึงเลเวลถัดไป",
+    "maxLevel": "ถึงเลเวลสูงสุดแล้ว!",
+    "journey": "เส้นทางการเติบโตของ {{name}}",
+    "nextReward": "รางวัลเลเวลถัดไป",
+    "nextRewardHint": "สะสมให้ถึง {{points}} แต้ม เพื่อให้ {{name}} วิวัฒนาการเป็น {{stage}}",
+    "stats": {
+      "subtitle": "แตะค่าสถิติเพื่อดูรายละเอียด",
+      "legendOverall": "ทั้งหมด",
+      "legendRecent": "7 วันล่าสุด",
+      "axisLabel": "{{axis}}: {{score}} แต้ม ดูรายละเอียด",
+      "axisLocked": "{{axis}}: ข้อมูลยังไม่พอ ดูรายละเอียด",
+      "intro": "{{name}} กำลังทำความรู้จักคุณ",
+      "introHint_other": "บันทึกอาหารอีก {{count}} วันเพื่อปลดล็อกค่าสถิติ"
+    },
+    "axes": {
+      "calories": {
+        "name": "เป้าแคลอรี่",
+        "short": "แคลอรี่",
+        "measure": "แคลอรี่เทียบกับเป้าของวัน ตามแผนลด เพิ่ม หรือคุมน้ำหนัก",
+        "goal": "ได้ 100 แต้มเมื่อแคลอรี่อยู่ในช่วงเป้าหมาย",
+        "tip": "บันทึกอาหารทันทีหลังกิน จะได้รู้ว่ามื้อถัดไปเหลือแคลอรี่เท่าไร"
+      },
+      "nutrients": {
+        "name": "สารอาหารหลัก",
+        "short": "มาโคร",
+        "measure": "ได้โปรตีน คาร์บ และไขมันถึงเป้าแค่ไหน กินเกินไม่ได้แต้มเพิ่ม",
+        "goal": "ได้ 100 แต้มเมื่อทั้งสามอย่างถึงเป้า",
+        "tip": "ทุกมื้อควรมีโปรตีน (เนื้อสัตว์ ปลา ไข่ ถั่ว) คาร์บ (ข้าว มันฝรั่ง) และไขมันดีเล็กน้อย"
+      },
+      "quality": {
+        "name": "คุณภาพอาหาร",
+        "short": "คุณภาพ",
+        "measure": "ได้ใยอาหารเพียงพอ และน้ำตาล เกลือ ไขมันไม่ดี ไม่เกินค่าที่แนะนำ ให้คะแนนเฉพาะวันที่อย่างน้อย 70% ของแคลอรี่มีข้อมูลเหล่านี้",
+        "goal": "ได้ 100 แต้มเมื่อใยอาหารพอและทุกอย่างไม่เกินขีดจำกัด",
+        "tip": "เพิ่มผัก ผลไม้ และถั่ว ลดน้ำจิ้ม อาหารแปรรูป และน้ำอัดลม"
+      },
+      "timing": {
+        "name": "ตรงเวลา",
+        "short": "ตรงเวลา",
+        "measure": "กินมื้อหลักตรงเวลาแจ้งเตือนหรือไม่ (คลาดได้ไม่เกิน 1 ชั่วโมง) ถ้าไม่ได้ตั้งแจ้งเตือนจะเทียบกับเวลามื้ออาหารปกติ กินหลัง 4 ทุ่มจะถูกหักแต้ม",
+        "goal": "ได้ 100 แต้มเมื่อทุกมื้อหลักตรงเวลาและไม่กินดึก",
+        "tip": "ตั้งแจ้งเตือนมื้ออาหาร และพยายามกินมื้อเย็นให้เสร็จก่อน 2 ทุ่มครึ่ง"
+      },
+      "meals": {
+        "name": "ครบมื้อ",
+        "short": "มื้ออาหาร",
+        "measure": "จำนวนมื้อหลัก (เช้า กลางวัน เย็น) ที่บันทึกในวันนั้น ไม่นับของว่าง",
+        "goal": "ได้ 100 แต้มเมื่อครบทั้งสามมื้อหลัก",
+        "tip": "อย่าข้ามมื้อเช้า การข้ามมื้อทำให้มื้อถัดไปกินเยอะขึ้น"
+      },
+      "consistency": {
+        "name": "ความสม่ำเสมอ",
+        "short": "สม่ำเสมอ",
+        "measure": "บันทึกอาหารทุกวันนับตั้งแต่เริ่มใช้แอป",
+        "goal": "ได้ 100 แต้มทุกวันที่คุณบันทึก",
+        "tip": "เปิดแจ้งเตือนมื้ออาหารไว้ จะได้ไม่ลืมบันทึก"
+      }
+    },
+    "insight": {
+      "strong": {
+        "calories": "คุณทำตามแผนแคลอรี่ได้ดีมาก!",
+        "nutrients": "มื้ออาหารของคุณได้สารอาหารหลักครบเลย!",
+        "quality": "กินดีมีประโยชน์สุดๆ {{name}} สดชื่นเลย!",
+        "timing": "คุณกินตรงเวลาเป๊ะทุกวัน!",
+        "meals": "ครบสามมื้อทุกวัน เยี่ยมมาก!",
+        "consistency": "คุณบันทึกทุกวันเลย {{name}} ซึ้งใจมาก!"
+      },
+      "weak": {
+        "calories": {
+          "lose": "มีบางวันที่แคลอรี่เกิน ระวังมื้อเย็นหน่อยนะ",
+          "gain": "มีบางวันที่แคลอรี่ไม่ถึง ลองเพิ่มของว่างสักมื้อนะ",
+          "maintain": "แคลอรี่คลาดจากเป้าไปบ้าง พยายามรักษาให้สม่ำเสมอนะ"
+        },
+        "nutrients": "สารอาหารหลักบางตัวยังไม่ถึง ลองเพิ่มโปรตีนหรือคาร์บในมื้ออาหารนะ",
+        "quality": "ผักน้อยไปหน่อย หรือน้ำตาลกับเกลือเยอะไป ลองปรับสมดุลสักนิดนะ",
+        "timing": "เวลากินยังไม่ค่อยสม่ำเสมอ ลองกินให้ตรงเวลานะ",
+        "meals": "คุณข้ามมื้อบ่อย ลองกินให้ครบสามมื้อหลักนะ",
+        "consistency": "บันทึกให้บ่อยขึ้น {{name}} จะได้รู้จักคุณมากขึ้น"
+      },
+      "allGood": "ทุกค่าสถิติดูดีมาก รักษาไว้นะ!"
+    },
+    "detail": {
+      "ranges": {
+        "week": "7 วัน",
+        "month": "30 วัน",
+        "all": "ทั้งหมด"
+      },
+      "averageScore": "คะแนนเฉลี่ย",
+      "noData": "ยังไม่มีข้อมูลของค่าสถิตินี้ในช่วงที่เลือก",
+      "todayPending": "วันนี้จะยังไม่ถูกนับจนกว่าจะจบวัน",
+      "chartTitle": "คะแนนรายวัน",
+      "chartTitleWeekly": "คะแนนเฉลี่ยรายสัปดาห์",
+      "dailyAverage": "เฉลี่ยต่อวัน",
+      "metDays": "วันที่ได้ 100 แต้ม",
+      "metDaysValue": "{{met}} / {{total}} วัน",
+      "bestDay": "วันที่ดีที่สุด",
+      "bestDayValue": "{{date}} · {{score}} แต้ม",
+      "tipTitle": "เคล็ดลับจาก {{name}}",
+      "values": {
+        "calories": "{{value}} / {{target}} kcal",
+        "nutrients": "โปรตีน {{protein}}% · คาร์บ {{carbs}}% · ไขมัน {{fat}}% ของเป้า",
+        "quality": "ใยอาหาร {{fiber}} g · โซเดียม {{sodium}} mg · น้ำตาล {{sugar}} g",
+        "timing": "มื้อตรงเวลา {{value}}% · กินดึก {{late}} วัน",
+        "meals": "{{value}} / 3 มื้อหลัก",
+        "consistency": "บันทึก {{value}} / {{target}} วัน"
+      },
+      "topFoods": {
+        "protein": "อาหารโปรตีนสูงสุด",
+        "calories": "อาหารแคลอรี่สูงสุด",
+        "fiber": "อาหารใยอาหารสูงสุด",
+        "sodium": "อาหารโซเดียมสูงสุด"
+      },
+      "amounts": {
+        "protein": "{{value}} g",
+        "calories": "{{value}} kcal",
+        "fiber": "{{value}} g",
+        "sodium": "{{value}} mg"
+      },
+      "timesEaten_other": "{{count}} ครั้ง",
+      "notFound": "ไม่พบค่าสถิตินี้",
+      "noDataQuality": "ข้อมูลใยอาหาร น้ำตาล และเกลือยังไม่พอ บันทึกอาหารผ่านแชทหรือสแกนบาร์โค้ด เพื่อให้ Buddy ให้คะแนนส่วนนี้ได้"
+    },
+    "calorieGoal": {
+      "lose": "ช่วงลดน้ำหนัก: กินต่ำกว่าเป้าได้ ตราบใดที่ไม่ต่ำกว่าขั้นต่ำที่ปลอดภัย",
+      "gain": "ช่วงเพิ่มน้ำหนัก: กินให้ถึงเป้า เกินนิดหน่อยไม่เป็นไร",
+      "maintain": "ช่วงคุมน้ำหนัก: คลาดไปทางไหนก็ถูกหักแต้ม"
+    },
+    "quests": {
+      "title": "ภารกิจ",
+      "subtitle": "ทำให้สำเร็จเพื่อให้ {{name}} โตเร็วขึ้น",
+      "tabs": {
+        "daily": "รายวัน",
+        "weekly": "รายสัปดาห์",
+        "special": "พิเศษ"
+      },
+      "done": "สำเร็จแล้ว",
+      "settling": "กำลังไปได้ดี · สรุปผลเมื่อจบวัน",
+      "firstLogOpen": "วันนี้ยังไม่ได้บันทึกอะไร",
+      "limitsNeedsData": "ต้องมี 2 มื้อหลักที่มีข้อมูลน้ำตาลและเกลือ",
+      "limitsOpen": "สรุปผลเมื่อจบวัน",
+      "progress": {
+        "kcal": "{{value}} / {{target}} kcal",
+        "g": "{{value}} / {{target}} g",
+        "macros": "{{value}} / {{target}} สารอาหารหลัก",
+        "days": "{{value}} / {{target}} วัน"
+      },
+      "weekDone": "สำเร็จแล้วในสัปดาห์นี้",
+      "levelUp_other": "เลเวลอัป {{count}} ครั้ง",
+      "levelUpOpen": "ไปให้ถึงเลเวลถัดไปเพื่อรับเหรียญรางวัล",
+      "badge": "เหรียญรางวัล",
+      "weightGoalOpen": "ทำเป้าหมายน้ำหนักให้สำเร็จ",
+      "weightGoalDone_other": "สำเร็จแล้ว {{count}} เป้าหมาย · ทำต่อเพื่อรับเพิ่ม",
+      "accountOpen": "สมัครสมาชิกเพื่อเก็บข้อมูลไว้เมื่อเปลี่ยนเครื่อง",
+      "accountDone": "สร้างบัญชีแล้ว",
+      "points": "+{{points}}",
+      "earnedTitle": "ภารกิจสำเร็จ!",
+      "earnedToast": "+{{points}} แต้ม · {{title}}",
+      "earnedManyToast_other": "+{{points}} แต้มจาก {{count}} ภารกิจ",
+      "empty": "ยังไม่มีภารกิจ"
+    },
+    "calorieChart": {
+      "title": "แคลอรี่ที่กิน",
+      "tabs": {
+        "week": "สัปดาห์",
+        "year": "ปี"
+      },
+      "previous": {
+        "week": "สัปดาห์ก่อน",
+        "year": "ปีก่อน"
+      },
+      "next": {
+        "week": "สัปดาห์ถัดไป",
+        "year": "ปีถัดไป"
+      },
+      "other": "อื่นๆ",
+      "goal": "เป้าหมาย",
+      "noLog": "ไม่ได้บันทึก",
+      "monthAverage_other": "เฉลี่ยต่อวัน · บันทึก {{count}} วัน"
+    },
+    "levelRange": "เลเวล {{from}}–{{to}}"
+  },
+  "profileTab": {
+    "guest": "ผู้เยี่ยมชม",
+    "guestAccount": "บัญชีผู้เยี่ยมชม · ข้อมูลเก็บในเครื่องนี้",
+    "reminders": "การแจ้งเตือน",
+    "appearance": "รูปลักษณ์",
+    "language": "ภาษา",
+    "goalHistory": "ประวัติเป้าหมาย",
+    "other": "อื่นๆ",
+    "support": "สนับสนุน Check Calo",
+    "healthSources": "แหล่งข้อมูลด้านสุขภาพ",
+    "signIn": "เข้าสู่ระบบ / สร้างบัญชี",
+    "signInHint": "สำรองบันทึกอาหารไว้บนคลาวด์",
+    "resetData": "ลบข้อมูลทั้งหมดของฉัน",
+    "resetTitle": "ลบข้อมูลทั้งหมดใช่ไหม?",
+    "resetMessage": "บันทึกอาหาร เป้าหมาย และโปรไฟล์ของคุณในเครื่องนี้และบนคลาวด์จะถูกลบอย่างถาวร",
+    "resetConfirm": "ลบ",
+    "version": "เวอร์ชัน {{version}}",
+    "account": "บัญชี"
+  },
+  "devTools": {
+    "group": "นักพัฒนา",
+    "toggle": "โหมดนักพัฒนา",
+    "toggleHint": "เครื่องมือทดสอบ UI ใช้ได้เฉพาะบิลด์สำหรับนักพัฒนา",
+    "title": "เครื่องมือทดสอบ UI",
+    "subtitle": "ข้อมูลและสถานะจำลองสำหรับตรวจหน้าจอ",
+    "sampleData": "ข้อมูลตัวอย่าง",
+    "seed": "เพิ่มมื้อตัวอย่าง {{count}} วัน",
+    "seedHint": "บันทึกในเครื่องนี้เท่านั้น ไม่ซิงค์",
+    "clear": "ลบมื้อตัวอย่าง",
+    "clearHint": "ลบเฉพาะข้อมูลตัวอย่าง รายการจริงยังอยู่",
+    "seeded": "เพิ่มมื้อตัวอย่าง {{count}} รายการแล้ว",
+    "cleared": "ลบมื้อตัวอย่าง {{count}} รายการแล้ว",
+    "screenStates": "สถานะหน้าจอ",
+    "forceEmptyDiary": "บันทึกว่างในหน้าหลัก",
+    "forceEmptyDiaryHint": "แสดงสถานะว่างแม้จะมีมื้อที่บันทึกไว้",
+    "chatScenario": "การตอบของ Check AI",
+    "chatScenarioHint": "จำลองการตอบของ AI ในแชท",
+    "chatScenarios": {
+      "normal": "ปกติ",
+      "slow": "ช้า (3 วิ)",
+      "quota": "โควตาหมด",
+      "auth": "ออกจากระบบแล้ว",
+      "error": "ข้อผิดพลาด"
+    },
+    "fakeBarcode": "จำลองการสแกนบาร์โค้ด",
+    "fakeBarcodeHint": "ปุ่มบาร์โค้ดในแชทจะใช้สินค้าตัวอย่างแทนการเปิดกล้อง",
+    "notifications": "Toast และการแจ้งเตือน",
+    "toastSuccess": "Toast สำเร็จ",
+    "toastError": "Toast ข้อผิดพลาด",
+    "toastInfo": "Toast ข้อมูล",
+    "toastWarning": "Toast คำเตือน",
+    "alert": "กล่องแจ้งเตือน",
+    "destructiveAlert": "กล่องแจ้งเตือนการลบ",
+    "alertTitle": "กล่องแจ้งเตือนตัวอย่าง",
+    "sampleMessage": "นี่คือข้อความตัวอย่างสำหรับตรวจสอบเลย์เอาต์"
+  },
+  "personalInfo": {
+    "title": "ข้อมูลส่วนตัว",
+    "saved": "บันทึกแล้ว",
+    "heightInvalid": "กรอกส่วนสูงระหว่าง 100 ถึง 230 cm"
+  },
+  "goalPlanner": {
+    "maintainHint": "กินประมาณ {{kcal}} kcal ต่อวันเพื่อรักษาน้ำหนัก",
+    "duration": "ระยะเวลาถึงเป้าหมาย",
+    "weeks_other": "{{count}} สัปดาห์",
+    "months": "~{{value}} เดือน",
+    "fastest_other": "{{count}} สัปดาห์ (เร็วที่สุด)",
+    "slowest_other": "{{count}} สัปดาห์ (ช้าที่สุด)",
+    "kcal": "kcal/วัน",
+    "ratePerWeek": "kg/สัปดาห์",
+    "paceLabel": "ความเร็ว",
+    "pace": {
+      "gentle": "สบายๆ",
+      "moderate": "ปานกลาง",
+      "fast": "เร็ว"
+    },
+    "endDate": "คาดว่าจะถึงเป้า: {{value}}",
+    "stageHint": "นี่คือระยะที่ไกลที่สุดภายใน 12 เดือน หากต้องการไปต่อ ให้ทำช่วงนี้ให้สำเร็จก่อนแล้วค่อยตั้งช่วงถัดไป"
+  },
+  "goalEdit": {
+    "title": "เปลี่ยนเป้าหมาย",
+    "saved": "อัปเดตเป้าหมายแล้ว",
+    "restart": "เริ่มใหม่ตั้งแต่วันนี้",
+    "restartHint": "น้ำหนักปัจจุบันจะเป็นจุดเริ่มต้น และเป้าหมายที่กำลังทำอยู่จะย้ายไปที่ประวัติ",
+    "confirmTitle": "เปลี่ยนเป็น{{mode}}ใช่ไหม?",
+    "confirmMessage": "เป้าหมายปัจจุบันจะหยุดและย้ายไปที่ประวัติ แคลอรี่ต่อวัน: {{from}} → {{to}} kcal",
+    "confirmAction": "เปลี่ยนเป้าหมาย",
+    "transition_other": "กินระดับคงที่ {{count}} สัปดาห์ก่อน ({{kcal}} kcal/วัน)",
+    "transitionHint": "ให้ร่างกายปรับตัวก่อนเปลี่ยนทิศทาง ตาชั่งอาจขึ้นเล็กน้อยจากน้ำ จากนั้นแคลอรี่จะเปลี่ยนเป็น {{kcal}} kcal/วัน"
+  }
+}

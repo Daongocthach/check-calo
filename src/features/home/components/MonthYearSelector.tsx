@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { DateTimeField, Icon, Text } from '@/common/components';
 import type { DateTimeFieldHandle, IconProps } from '@/common/components';
+import { toLocale } from '@/features/food-log/utils/format';
 import { formatDateKey } from '@/utils/date';
 import { isSameDay } from '../utils/week';
 
@@ -68,7 +69,7 @@ export function MonthYearSelector({
 }: MonthYearSelectorProps) {
   const { t, i18n } = useTranslation();
   const pickerRef = useRef<DateTimeFieldHandle>(null);
-  const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
+  const locale = toLocale(i18n.language);
   const monthLabel = selectedDate.toLocaleDateString(locale, { month: 'long' });
 
   return (

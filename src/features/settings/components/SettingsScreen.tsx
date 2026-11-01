@@ -2,13 +2,14 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { ScreenHeader, Select, Switch, Text } from '@/common/components';
+import { ScreenHeader, Switch } from '@/common/components';
 import { deleteCurrentUserCloudNutritionData } from '@/features/auth/services/authService';
 import { useDevToolsStore } from '@/features/dev-tools';
 import { resetLocalNutritionData } from '@/features/food-log/services/localDataReset';
 import { useFoodEntryRefreshStore } from '@/features/food-log/stores/useFoodEntryRefreshStore';
 import { DrawerMenuButton } from '@/features/navigation';
 import { useBottomPadding } from '@/hooks';
+import { LANGUAGE_INFO, toAppLanguage } from '@/i18n/languages';
 import { appAlert } from '@/providers/app-alert';
 import { useAuthStore } from '@/providers/auth/authStore';
 import { toast } from '@/utils/toast';
@@ -16,7 +17,7 @@ import { usePreferences } from '../hooks/usePreferences';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
 
 export function SettingsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { theme } = useUnistyles();
   const bottomPadding = useBottomPadding();
@@ -26,11 +27,6 @@ export function SettingsScreen() {
   const setDevModeEnabled = useDevToolsStore((state) => state.setEnabled);
   const user = useAuthStore((state) => state.user);
   const isAnonymous = !user || user.isAnonymous;
-
-  const languageOptions = [
-    { label: t('language.vietnamese'), value: 'vi' },
-    { label: t('language.english'), value: 'en' },
-  ];
 
   const confirmReset = () => {
     appAlert.alert(t('profileTab.resetTitle'), t('profileTab.resetMessage'), [
@@ -106,19 +102,8 @@ export function SettingsScreen() {
           <SettingsRow
             icon="language-outline"
             title={t('profileTab.language')}
-            right={
-              <Select
-                value={preferences.language}
-                onChange={preferences.changeLanguage}
-                options={languageOptions}
-                size="sm"
-                triggerVariant="plain"
-              >
-                <Text variant="bodySmall" color="secondary">
-                  {languageOptions.find((option) => option.value === preferences.language)?.label}
-                </Text>
-              </Select>
-            }
+            value={t(`language.${LANGUAGE_INFO[toAppLanguage(i18n.language)].labelKey}`)}
+            onPress={() => router.push('/language')}
           />
           <SettingsRow
             icon="heart-outline"

@@ -6,6 +6,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import { Text } from '@/common/components';
 import { DayStatusBubble } from '@/features/achievements';
 import type { DayStatus } from '@/features/achievements/types';
+import { toLocale } from '@/features/food-log/utils/format';
 import { formatDateKey } from '@/utils/date';
 import { addDays, getWeekStart, getWeekStarts, isSameDay } from '../utils/week';
 import { MonthYearSelector } from './MonthYearSelector';
@@ -25,7 +26,7 @@ export interface WeekStripProps {
 
 export function WeekStrip({ selectedDate, today, dayStatuses, streak, onSelect }: WeekStripProps) {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
+  const locale = toLocale(i18n.language);
   const listRef = useRef<FlatList<Date>>(null);
   const visibleIndexRef = useRef(-1);
   const [pageWidth, setPageWidth] = useState(0);

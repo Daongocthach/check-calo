@@ -1,16 +1,12 @@
 import { useState } from 'react';
 import i18n from '@/i18n/config';
+import { isAppLanguage } from '@/i18n/languages';
 import { getThemePreference, setThemeMode, type ThemeModePreference } from '@/theme/themeManager';
 import { setItem, STORAGE_KEYS } from '@/utils/storage';
-
-export type LanguagePreference = 'vi' | 'en';
 
 /** Theme and language preferences (formerly in the global header). */
 export function usePreferences() {
   const [theme, setTheme] = useState<ThemeModePreference>(() => getThemePreference());
-  const [language, setLanguage] = useState<LanguagePreference>(() =>
-    i18n.language === 'en' ? 'en' : 'vi'
-  );
 
   const changeTheme = (value: string) => {
     if (value !== 'light' && value !== 'dark' && value !== 'system') {
@@ -22,14 +18,13 @@ export function usePreferences() {
   };
 
   const changeLanguage = (value: string) => {
-    if (value !== 'vi' && value !== 'en') {
+    if (!isAppLanguage(value)) {
       return;
     }
 
     void i18n.changeLanguage(value);
     setItem(STORAGE_KEYS.preferences.language, value);
-    setLanguage(value);
   };
 
-  return { theme, language, changeTheme, changeLanguage };
+  return { theme, changeTheme, changeLanguage };
 }

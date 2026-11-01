@@ -63,7 +63,25 @@
   "language": {
     "label": "Ngôn ngữ",
     "english": "English",
-    "vietnamese": "Tiếng Việt"
+    "vietnamese": "Tiếng Việt",
+    "thai": "ไทย",
+    "indonesian": "Bahasa Indonesia",
+    "japanese": "日本語",
+    "korean": "한국어",
+    "chineseSimplified": "简体中文",
+    "chineseTraditional": "繁體中文",
+    "spanish": "Español",
+    "localized": {
+      "vietnamese": "Tiếng Việt",
+      "english": "Tiếng Anh",
+      "thai": "Tiếng Thái",
+      "indonesian": "Tiếng Indonesia",
+      "japanese": "Tiếng Nhật",
+      "korean": "Tiếng Hàn",
+      "chineseSimplified": "Tiếng Trung (Giản thể)",
+      "chineseTraditional": "Tiếng Trung (Phồn thể)",
+      "spanish": "Tiếng Tây Ban Nha"
+    }
   },
   "home": {
     "subtitle": "Hôm nay của bạn thế nào rồi",
@@ -83,8 +101,8 @@
     "emptySubtitle": "Kể cho Check AI bạn đã ăn gì, hoặc chụp ảnh bữa ăn.",
     "rangeLabel": "Khoảng đạt {{min}}–{{max}} kcal",
     "buddyMood": {
-      "onTarget": "Vừa đúng khoảng mục tiêu, {{name}} tự hào về bạn lắm!",
-      "aboveTarget": "Hơi vượt khoảng mục tiêu. Đi bộ nhẹ cùng {{name}} nhé?"
+      "onTarget": "Đã hoàn thành xuất sắc mục tiêu",
+      "aboveTarget": "Vượt mục tiêu rồi, đi bộ nhé?"
     },
     "goalSummary": {
       "title": "Mục tiêu hiện tại",
@@ -102,17 +120,17 @@
         "gain": "Còn cần tăng",
         "maintain": "Còn lại"
       },
-      "maintainRecent_one": "Hôm nay",
+      "maintainToday": "Hôm nay",
       "maintainRecent_other": "{{count}} ngày qua",
       "maintainOnTarget": "{{value}} ngày đúng mức",
       "maintainTotal": "Tổng ngày đúng mức",
       "maintainSince": "Giữ cân từ",
-      "milestoneTitle": "{{value}} ngày giữ cân đúng mức!",
-      "milestoneMessage": "Bạn đã ăn trong khoảng calo cho phép {{value}} ngày kể từ khi bắt đầu giữ cân. Cứ đều đặn như vậy nhé!",
+      "milestoneTitle": "Bạn đang giữ cân rất tốt",
+      "milestoneMessage": "Bạn đã có {{value}} ngày ăn trong khoảng calo mục tiêu kể từ khi bắt đầu giữ cân.",
       "milestoneAction": "Tiếp tục",
       "changeGoal": "Đổi mục tiêu",
-      "reachedTitle": "Đã đạt: {{goal}}!",
-      "reachedMessage": "Tuyệt vời! Kế hoạch đã chuyển sang giữ cân. Đặt mục tiêu tiếp theo để cập nhật cân nặng và kế hoạch mới.",
+      "reachedTitle": "Chúc mừng bạn đã hoàn thành mục tiêu {{goal}}",
+      "reachedMessage": "Kế hoạch đã chuyển sang giữ cân. Bạn có thể tiếp tục giữ cân hoặc đặt mục tiêu mới.",
       "keepMaintaining": "Giữ cân",
       "nextGoal": "Mục tiêu tiếp theo"
     }

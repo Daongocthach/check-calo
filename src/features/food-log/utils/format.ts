@@ -1,3 +1,5 @@
+import { LANGUAGE_INFO, toAppLanguage } from '@/i18n/languages';
+
 export function formatTime(value: string | Date, language: string) {
   return new Date(value).toLocaleTimeString(toLocale(language), {
     hour: '2-digit',
@@ -11,7 +13,7 @@ export function roundNumber(value: number) {
 
 /** The Intl locale for an app language. */
 export function toLocale(language: string) {
-  return language === 'en' ? 'en-US' : 'vi-VN';
+  return LANGUAGE_INFO[toAppLanguage(language)].locale;
 }
 
 const nutrientFormatterCache = new Map<string, Intl.NumberFormat>();

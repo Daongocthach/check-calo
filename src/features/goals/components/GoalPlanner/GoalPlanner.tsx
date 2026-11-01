@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Slider, Text } from '@/common/components';
+import { toLocale } from '@/features/food-log/utils/format';
 import { calculateBmi, type BodyStats } from '@/features/profile/utils/calorie';
 import { formatDateKey } from '@/utils/date';
 import type { WeightGoalMode } from '../../types';
@@ -38,7 +39,7 @@ export function GoalPlanner({ body, draft, onChange }: GoalPlannerProps) {
   const { t, i18n } = useTranslation();
   const current = normalizeGoalDraft(body, draft);
   const plan = planForDuration(body, current.targetWeightKg, current.weeks);
-  const numberFormat = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 });
+  const numberFormat = new Intl.NumberFormat(toLocale(i18n.language), { maximumFractionDigits: 1 });
   const kcal = numberFormat.format(plan.dailyCalories);
 
   const changeMode = (mode: WeightGoalMode) => {
@@ -76,9 +77,9 @@ function DurationFields({ body, draft, onChange }: GoalPlannerProps) {
   const targetBounds = getTargetWeightBounds(body, draft.mode);
   const durationBounds = getGoalDurationBounds(body, draft.targetWeightKg);
   const plan = planForDuration(body, draft.targetWeightKg, draft.weeks);
-  const numberFormat = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 });
-  const rateFormat = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 2 });
-  const endDate = new Intl.DateTimeFormat(i18n.language, {
+  const numberFormat = new Intl.NumberFormat(toLocale(i18n.language), { maximumFractionDigits: 1 });
+  const rateFormat = new Intl.NumberFormat(toLocale(i18n.language), { maximumFractionDigits: 2 });
+  const endDate = new Intl.DateTimeFormat(toLocale(i18n.language), {
     day: 'numeric',
     month: 'numeric',
     year: 'numeric',

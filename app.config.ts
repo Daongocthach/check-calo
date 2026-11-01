@@ -33,7 +33,7 @@ const config: ExpoConfig = {
     infoPlist: {
       CFBundleDisplayName: 'Check Calo',
       CFBundleAllowMixedLocalizations: true,
-      CFBundleLocalizations: ['en', 'vi'],
+      CFBundleLocalizations: ['en', 'vi', 'th', 'id', 'ja', 'ko', 'zh-Hans', 'zh-Hant', 'es'],
       ITSAppUsesNonExemptEncryption: false,
       NSPhotoLibraryAddUsageDescription:
         'CheckCalo requires permission to save images to your photo library.',
@@ -61,8 +61,8 @@ const config: ExpoConfig = {
       'expo-localization',
       {
         supportedLocales: {
-          ios: ['en', 'vi'],
-          android: ['en', 'vi'],
+          ios: ['en', 'vi', 'th', 'id', 'ja', 'ko', 'zh-Hans', 'zh-Hant', 'es'],
+          android: ['en', 'vi', 'th', 'id', 'ja', 'ko', 'zh-Hans', 'zh-Hant', 'es'],
         },
       },
     ],

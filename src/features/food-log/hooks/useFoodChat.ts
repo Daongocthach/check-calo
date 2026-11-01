@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { applyDevChatScenario } from '@/features/dev-tools';
 import { getUserProfile } from '@/features/profile/services/profileRepository';
+import { toAppLanguage } from '@/i18n/languages';
 import { createEntityId } from '@/utils/id';
 import { NUTRIENTS } from '../constants';
 import { lookupFoodByBarcode, type BarcodeFoodLookupResult } from '../services/barcodeFoodLookup';
@@ -203,7 +204,7 @@ export function useFoodChat() {
         const result = await analyzeFoodChatMessage(
           trimmed || t('chat.photoOnlyPrompt'),
           {
-            language: i18n.language === 'en' ? 'en' : 'vi',
+            language: toAppLanguage(i18n.language),
             daySummary: await buildDaySummary(),
           },
           imageUri
