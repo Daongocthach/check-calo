@@ -843,7 +843,131 @@
       }
     },
     "nextReward": "Phần thưởng cấp tiếp theo",
-    "nextRewardHint": "Đạt {{points}} điểm để {{name}} tiến hoá thành {{stage}}"
+    "nextRewardHint": "Đạt {{points}} điểm để {{name}} tiến hoá thành {{stage}}",
+    "stats": {
+      "subtitle": "Chạm vào từng chỉ số để xem chi tiết",
+      "legendOverall": "Từ đầu",
+      "legendRecent": "7 ngày qua",
+      "axisLabel": "{{axis}}: {{score}} điểm. Xem chi tiết",
+      "axisLocked": "{{axis}}: chưa đủ dữ liệu. Xem chi tiết",
+      "intro": "{{name}} đang làm quen với bạn",
+      "introHint_one": "Ghi món thêm {{count}} ngày nữa để mở khoá bảng chỉ số.",
+      "introHint_other": "Ghi món thêm {{count}} ngày nữa để mở khoá bảng chỉ số."
+    },
+    "axes": {
+      "calories": {
+        "name": "Mục tiêu calo",
+        "short": "Mục tiêu",
+        "measure": "Calo so với mục tiêu của ngày, theo kế hoạch giảm, tăng hay giữ cân.",
+        "goal": "100 điểm khi calo nằm trong khoảng mục tiêu.",
+        "tip": "Ghi món ngay sau khi ăn để biết còn bao nhiêu calo cho bữa sau."
+      },
+      "nutrients": {
+        "name": "Đủ chất",
+        "short": "Đủ chất",
+        "measure": "Đạm, tinh bột và chất béo, mỗi chất đạt bao nhiêu phần mục tiêu. Ăn dư không được cộng thêm.",
+        "goal": "100 điểm khi cả 3 chất đều đạt mục tiêu.",
+        "tip": "Bữa nào cũng nên có đạm (thịt, cá, trứng, đậu), tinh bột (cơm, khoai) và một ít chất béo tốt."
+      },
+      "quality": {
+        "name": "Dinh dưỡng cao",
+        "short": "Dinh dưỡng",
+        "measure": "Đủ chất xơ, và đường, muối, chất béo xấu dưới ngưỡng khuyến cáo. Chỉ chấm ngày có ít nhất 70% calo có số liệu các chất này.",
+        "goal": "100 điểm khi đủ chất xơ và mọi chất đều dưới ngưỡng.",
+        "tip": "Thêm rau, trái cây, đậu; bớt nước chấm, đồ chế biến sẵn và nước ngọt."
+      },
+      "timing": {
+        "name": "Đúng giờ",
+        "short": "Đúng giờ",
+        "measure": "Bữa chính có ăn đúng giờ nhắc nhở (lệch tối đa 1 tiếng) không; chưa đặt nhắc nhở thì so với giờ ăn thông thường. Ăn sau 22h bị trừ điểm.",
+        "goal": "100 điểm khi mọi bữa chính đều đúng giờ và không ăn khuya.",
+        "tip": "Đặt nhắc nhở giờ ăn và cố gắng ăn tối trước 20h30."
+      },
+      "meals": {
+        "name": "Đủ bữa",
+        "short": "Đủ bữa",
+        "measure": "Số bữa chính (sáng, trưa, tối) có ghi món trong ngày. Bữa phụ không tính.",
+        "goal": "100 điểm khi ăn đủ 3 bữa chính.",
+        "tip": "Đừng bỏ bữa sáng; bỏ bữa dễ khiến bữa sau ăn quá nhiều."
+      },
+      "consistency": {
+        "name": "Duy trì",
+        "short": "Duy trì",
+        "measure": "Ngày nào cũng ghi món, kể từ ngày đầu tiên dùng app.",
+        "goal": "100 điểm cho mỗi ngày có ghi món.",
+        "tip": "Bật nhắc nhở giờ ăn để không quên ghi món."
+      }
+    },
+    "insight": {
+      "strong": {
+        "calories": "Bạn bám kế hoạch calo cực tốt!",
+        "nutrients": "Bữa ăn của bạn đủ chất ghê!",
+        "quality": "Ăn uống lành mạnh quá, {{name}} khoẻ re!",
+        "timing": "Bạn ăn đúng giờ đều đặn lắm!",
+        "meals": "Ngày nào cũng đủ 3 bữa, tuyệt vời!",
+        "consistency": "Ngày nào bạn cũng ghi đều, {{name}} cảm động quá!"
+      },
+      "weak": {
+        "calories": {
+          "lose": "Vài ngày bị vượt calo rồi, để ý bữa tối nha.",
+          "gain": "Vài ngày ăn chưa đủ calo, thêm một bữa phụ nha.",
+          "maintain": "Calo lệch mục tiêu hơi nhiều, giữ đều tay nha."
+        },
+        "nutrients": "Còn thiếu chất, thêm đạm hoặc tinh bột vào bữa ăn nha.",
+        "quality": "Hơi ít rau hoặc hơi nhiều đường, muối rồi, cân lại chút nha.",
+        "timing": "Giờ ăn hơi thất thường, thử ăn đúng giờ hơn nha.",
+        "meals": "Hay bỏ bữa quá, ăn đủ 3 bữa chính nha.",
+        "consistency": "Ghi món đều hơn để {{name}} hiểu bạn rõ hơn nha."
+      },
+      "allGood": "Mọi chỉ số đều tốt, cứ giữ nhịp này nhé!"
+    },
+    "detail": {
+      "ranges": {
+        "week": "7 ngày",
+        "month": "30 ngày",
+        "all": "Từ đầu"
+      },
+      "averageScore": "Điểm trung bình",
+      "noData": "Chưa có dữ liệu cho chỉ số này trong khoảng đã chọn.",
+      "todayPending": "Hôm nay chưa được tính vì ngày chưa kết thúc.",
+      "chartTitle": "Điểm theo ngày",
+      "chartTitleWeekly": "Điểm trung bình theo tuần",
+      "dailyAverage": "Trung bình mỗi ngày",
+      "metDays": "Số ngày đạt 100 điểm",
+      "metDaysValue": "{{met}} / {{total}} ngày",
+      "bestDay": "Ngày tốt nhất",
+      "bestDayValue": "{{date}} · {{score}} điểm",
+      "tipTitle": "Mẹo từ {{name}}",
+      "values": {
+        "calories": "{{value}} / {{target}} kcal",
+        "nutrients": "Đạm {{protein}}% · Tinh bột {{carbs}}% · Béo {{fat}}% mục tiêu",
+        "quality": "Chất xơ {{fiber}} g · Natri {{sodium}} mg · Đường {{sugar}} g",
+        "timing": "{{value}}% bữa đúng giờ · {{late}} ngày ăn khuya",
+        "meals": "{{value}} / 3 bữa chính",
+        "consistency": "{{value}} / {{target}} ngày có ghi món"
+      },
+      "topFoods": {
+        "protein": "Món nhiều protein nhất",
+        "calories": "Món nhiều calo nhất",
+        "fiber": "Món nhiều chất xơ nhất",
+        "sodium": "Món nhiều natri nhất"
+      },
+      "amounts": {
+        "protein": "{{value}} g",
+        "calories": "{{value}} kcal",
+        "fiber": "{{value}} g",
+        "sodium": "{{value}} mg"
+      },
+      "timesEaten_one": "{{count}} lần",
+      "timesEaten_other": "{{count}} lần",
+      "notFound": "Không tìm thấy chỉ số này.",
+      "noDataQuality": "Chưa đủ số liệu chất xơ, đường, muối. Ghi món qua chat hoặc quét mã vạch để Buddy chấm được chỉ số này."
+    },
+    "calorieGoal": {
+      "lose": "Đang giảm cân: ăn dưới mục tiêu vẫn tốt, miễn không thấp hơn mức tối thiểu an toàn.",
+      "gain": "Đang tăng cân: cần ăn đủ mục tiêu, dư một chút vẫn ổn.",
+      "maintain": "Đang giữ cân: lệch về phía nào cũng bị trừ điểm."
+    }
   },
   "profileTab": {
     "guest": "Khách",

@@ -1,4 +1,5 @@
 export { BuddyAvatar } from './components/BuddyAvatar';
+export { BuddyAxisDetailScreen } from './components/BuddyAxisDetailScreen';
 export { BuddyJourney } from './components/BuddyJourney';
 export { BuddyMascot } from './components/BuddyMascot';
 export { BuddyScreen } from './components/BuddyScreen';

@@ -1,6 +1,6 @@
 # Kế hoạch: Buddy — thể trạng, thống kê và nhiệm vụ mới
 
-> Trạng thái: **giai đoạn 1 đã code** (migration `20261101000001_add_daily_targets_and_weight_goals.sql` chưa chạy trên Supabase); giai đoạn 2–4 chưa làm. Mỗi giai đoạn ra một PR riêng, theo đúng thứ tự.
+> Trạng thái: **giai đoạn 1–2 đã code** (migration `20261101000001_add_daily_targets_and_weight_goals.sql` chưa chạy trên Supabase); giai đoạn 3–4 chưa làm. Mỗi giai đoạn ra một PR riêng, theo đúng thứ tự.
 
 ## Mục tiêu
 
@@ -13,7 +13,7 @@
 
 | Chủ đề        | Quyết định                                                                                                                                 |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| 6 chỉ số      | 💪 Sức mạnh · 🎯 Kỷ luật · ⚖️ Cân bằng · 🌿 Sinh lực · 🛡️ Phòng thủ · 🔥 Bền bỉ                                                            |
+| 6 chỉ số      | 🎯 Mục tiêu calo · 🥗 Đủ chất · 🌿 Dinh dưỡng cao · ⏰ Đúng giờ · 🍽️ Đủ bữa · 📅 Duy trì (đổi ngày 01/11 cho sát chuyện ăn uống, giảm cân) |
 | Cách tính     | Mỗi ngày chấm 0–100 từng trục → **trung bình toàn bộ lịch sử** (ngày có log, đã kết thúc)                                                  |
 | Lớp "gần đây" | Lớp mờ = trung bình 7 ngày gần nhất, chồng lên hình chính                                                                                  |
 | Theo mục tiêu | Mỗi ngày chấm theo **mục tiêu và kế hoạch của chính ngày đó**                                                                              |
@@ -127,19 +127,21 @@ Chỉ hiển thị; **không đổi cách tính điểm**.
 
 ### Chấm điểm một ngày — `buddy/utils/dayScore.ts` (hàm thuần, có test)
 
-`scoreDay(summary, targets, goalMode) → Record<BuddyAxis, number | null>`
+`scoreDay({ summary, meals, nutrientCoverage }, profile) → Record<BuddyAxis, number | null>`
 
-| Trục         | 100 điểm                                                           | Giảm điểm                                                                                                                                      | `null` khi     |
-| ------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| 💪 Sức mạnh  | protein ≥ mục tiêu                                                 | tuyến tính theo tỉ lệ đạt                                                                                                                      | —              |
-| 🎯 Kỷ luật   | calo trong khoảng đạt của `getDailyCalorieGoalState`               | **lose:** vượt trên → về 0 khi vượt 50%; dưới mức sàn → giảm. **gain:** thiếu → về 0 khi thiếu 50%; dư nhẹ vẫn ổn. **maintain:** lệch hai phía | —              |
-| ⚖️ Cân bằng  | carb 45–65 %, fat 20–35 % calo                                     | theo khoảng cách ra ngoài khoảng                                                                                                               | ăn < 300 kcal  |
-| 🌿 Sinh lực  | chất xơ ≥ ngưỡng (14 g / 1000 kcal mục tiêu, trong khoảng 20–35 g) | tuyến tính                                                                                                                                     | chất xơ `null` |
-| 🛡️ Phòng thủ | natri ≤ 2000 mg **và** đường ≤ 65 g                                | mỗi chất về 0 khi gấp đôi ngưỡng; lấy trung bình chất có dữ liệu                                                                               | cả hai `null`  |
-| 🔥 Bền bỉ    | ngày có ≥ 2 bữa                                                    | — (đạt / không)                                                                                                                                | —              |
+| Chỉ số            | 100 điểm khi                                                                                            | Giảm điểm                                                                                                                   | `null` khi                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 🎯 Mục tiêu calo  | calo trong khoảng đạt của `getDailyCalorieGoalState`                                                    | **lose:** vượt trên → về 0 khi vượt 50 % mục tiêu; dưới mức sàn → giảm. **gain:** thiếu → về 0. **maintain:** lệch hai phía | không có mục tiêu                              |
+| 🥗 Đủ chất        | đạm, tinh bột, béo đều đạt mục tiêu ngày                                                                | trung bình tỉ lệ đạt của 3 chất (tối đa 100 % mỗi chất, ăn dư không cộng)                                                   | không có mục tiêu macro                        |
+| 🌿 Dinh dưỡng cao | đủ chất xơ (14 g / 1000 kcal, 20–35 g) **và** đường, natri, béo bão hoà, trans, cholesterol dưới ngưỡng | trung bình điểm chất xơ và điểm giới hạn                                                                                    | < 70 % calo trong ngày có số liệu các chất này |
+| ⏰ Đúng giờ       | mọi bữa chính đúng giờ, không ăn khuya                                                                  | tỉ lệ bữa đúng giờ; ăn từ 22h–4h trừ 30                                                                                     | không có bữa chính và không ăn khuya           |
+| 🍽️ Đủ bữa         | đủ 3 bữa chính                                                                                          | số bữa chính / 3 (bữa phụ không tính)                                                                                       | —                                              |
+| 📅 Duy trì        | ngày có ghi món                                                                                         | ngày trống = 0                                                                                                              | —                                              |
 
-- Ngưỡng để trong `buddy/constants/nutritionThresholds.ts`.
-- "Bữa" = khung giờ khác nhau theo `consumed_at` (sáng 4–10h, trưa 10–14h, chiều 14–17h, tối 17–4h). Thêm `mealSlotCount` vào truy vấn tổng kết ngày (`dailySummaryService.ts`).
+- Ngưỡng trong `buddy/constants/stats.ts`.
+- Bữa chính theo khung giờ của app (`getMealTimeWindow`: sáng 5:00–10:30, trưa 10:30–14:30, tối 17:00–22:00); "đúng giờ" = trong ±1 tiếng giờ nhắc nhở đang bật của bữa đó, chưa bật thì sáng 6:00–9:30, trưa 11:00–13:30, tối 17:30–20:30 (`buddy/utils/mealTiming.ts`).
+- Giờ ăn lấy theo `consumed_at`: ghi món muộn sẽ lệch giờ (chat AI có đặt giờ theo "sáng nay", "trưa nay"…).
+- Độ phủ số liệu: `listNutrientCoverage` trong `dailySummaryService.ts`.
 
 ### Gộp điểm — `buddy/utils/axisAggregate.ts`
 

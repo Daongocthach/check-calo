@@ -1,22 +1,33 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 import { Dialog, Icon, Input, Loading, ProgressBar, ScreenHeader, Text } from '@/common/components';
-import { AchievementGrid, getAchievementProgress, StreakCalendar } from '@/features/achievements';
+import { StreakCalendar } from '@/features/achievements';
 import { DrawerMenuButton } from '@/features/navigation';
 import { useBottomPadding } from '@/hooks';
 import { hs } from '@/theme/metrics';
 import { BUDDY_POINTS } from '../constants/levels';
+import { EMPTY_AXIS_SCORES } from '../constants/stats';
 import { BUDDY_NAME_MAX_LENGTH, useBuddyName } from '../hooks/useBuddyName';
 import { useBuddyProgress } from '../hooks/useBuddyProgress';
+import { useBuddyStats } from '../hooks/useBuddyStats';
+import type { BuddyAxis } from '../types';
 import { BuddyJourney } from './BuddyJourney';
 import { BuddyMascot } from './BuddyMascot';
+import { styles } from './BuddyScreen.styles';
+import { BuddyStatsHexagon, getHexagonCenterSize } from './BuddyStatsHexagon';
+import { BuddyStatsInsight } from './BuddyStatsInsight';
+
+const MAX_CHART_SIZE = hs(560);
 
 export function BuddyScreen() {
   const { t } = useTranslation();
   const bottomPadding = useBottomPadding();
+  const router = useRouter();
+  const { width } = useWindowDimensions();
   const { stats, progress } = useBuddyProgress();
+  const { data: buddyStats } = useBuddyStats();
   const { name, setName } = useBuddyName();
   // Kept apart from the draft: an IME can send a late onChangeText after Save, which must not
   // reopen the dialog.
@@ -59,6 +70,12 @@ export function BuddyScreen() {
     setIsRenaming(true);
   };
 
+  // Let the chart span the mobile viewport while keeping labels clear of its edges.
+  const chartSize = Math.min(MAX_CHART_SIZE, width - hs(16));
+
+  const openAxis = (axis: BuddyAxis) =>
+    router.push({ pathname: '/buddy-stat/[axis]', params: { axis } });
+
   const saveName = () => {
     setName(draftName);
     setIsRenaming(false);
@@ -76,7 +93,18 @@ export function BuddyScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.hero}>
-          <BuddyMascot level={progress.current.level} size={hs(170)} animated />
+          <BuddyStatsHexagon
+            size={chartSize}
+            overall={buddyStats?.overall ?? EMPTY_AXIS_SCORES}
+            recent={buddyStats?.recent ?? EMPTY_AXIS_SCORES}
+            onSelectAxis={openAxis}
+          >
+            <BuddyMascot
+              level={progress.current.level}
+              size={getHexagonCenterSize(chartSize)}
+              animated
+            />
+          </BuddyStatsHexagon>
           <Pressable
             onPress={startRename}
             accessibilityRole="button"
@@ -84,14 +112,14 @@ export function BuddyScreen() {
             hitSlop={8}
             style={styles.nameRow}
           >
-            <Text variant="h2" weight="bold" numberOfLines={1}>
+            <Text variant="h1" weight="bold" numberOfLines={1}>
               {name}
             </Text>
             <View style={styles.editBadge}>
               <Icon name="create-outline" variant="brand" size={16} />
             </View>
           </Pressable>
-          <Text variant="body" weight="semibold" color="secondary" align="center">
+          <Text variant="h3" weight="semibold" color="secondary" align="center">
             {t('buddy.levelTitle', {
               level: progress.current.level,
               stage: t(`buddy.stages.${progress.current.stage}`),
@@ -108,10 +136,16 @@ export function BuddyScreen() {
                 : t('buddy.maxLevel')}
             </Text>
           </View>
+          {buddyStats ? (
+            <BuddyStatsInsight
+              stats={buddyStats}
+              name={name}
+              goalMode={buddyStats.days.at(-1)?.summary.goalMode ?? 'maintain'}
+            />
+          ) : null}
         </View>
 
         <StreakCalendar stats={stats} />
-        <AchievementGrid items={getAchievementProgress(stats)} />
 
         <View style={styles.card}>
           <Text variant="body" weight="bold">
@@ -193,80 +227,3 @@ export function BuddyScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create((theme) => ({
-  container: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: theme.metrics.spacing.p16,
-    gap: theme.metrics.spacingV.p16,
-  },
-  bottom: (bottomPadding: number) => ({
-    paddingBottom: bottomPadding,
-  }),
-  hero: {
-    alignItems: 'center',
-    gap: theme.metrics.spacingV.p12,
-    padding: theme.metrics.spacing.p16,
-    borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.surface,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p8,
-    maxWidth: '100%',
-  },
-  editBadge: {
-    width: theme.metrics.spacing.p28,
-    height: theme.metrics.spacing.p28,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.section,
-  },
-  progressWrap: {
-    alignSelf: 'stretch',
-    gap: theme.metrics.spacingV.p8,
-  },
-  flex: {
-    flex: 1,
-    gap: theme.metrics.spacingV.p4,
-  },
-  card: {
-    gap: theme.metrics.spacingV.p12,
-    padding: theme.metrics.spacing.p16,
-    borderRadius: theme.metrics.borderRadius.xl,
-    backgroundColor: theme.colors.background.surface,
-  },
-  rule: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p12,
-  },
-  ruleIcon: {
-    width: theme.metrics.spacing.p36,
-    height: theme.metrics.spacing.p36,
-    borderRadius: theme.metrics.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.section,
-  },
-  pointsPill: {
-    paddingHorizontal: theme.metrics.spacing.p12,
-    paddingVertical: theme.metrics.spacingV.p4,
-    borderRadius: theme.metrics.borderRadius.full,
-    backgroundColor: theme.colors.background.section,
-  },
-  reward: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.metrics.spacing.p12,
-    padding: theme.metrics.spacing.p16,
-    borderRadius: theme.metrics.borderRadius.xl,
-    borderWidth: 1,
-    borderColor: theme.colors.border.focus,
-    backgroundColor: theme.colors.background.surface,
-  },
-}));

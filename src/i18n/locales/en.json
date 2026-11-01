@@ -843,7 +843,131 @@
       }
     },
     "nextReward": "Next level reward",
-    "nextRewardHint": "Reach {{points}} points for {{name}} to evolve into {{stage}}"
+    "nextRewardHint": "Reach {{points}} points for {{name}} to evolve into {{stage}}",
+    "stats": {
+      "subtitle": "Tap a stat for details",
+      "legendOverall": "All time",
+      "legendRecent": "Last 7 days",
+      "axisLabel": "{{axis}}: {{score}} points. See details",
+      "axisLocked": "{{axis}}: not enough data yet. See details",
+      "intro": "{{name}} is getting to know you",
+      "introHint_one": "Log food on {{count}} more day to unlock the stats.",
+      "introHint_other": "Log food on {{count}} more days to unlock the stats."
+    },
+    "axes": {
+      "calories": {
+        "name": "Calorie goal",
+        "short": "Calories",
+        "measure": "Calories against the day's target, for losing, gaining or keeping your weight.",
+        "goal": "100 points when calories land in the target range.",
+        "tip": "Log food right after eating so you know what's left for the next meal."
+      },
+      "nutrients": {
+        "name": "Macros",
+        "short": "Macros",
+        "measure": "How much of the protein, carb and fat targets you reached. Going over adds nothing.",
+        "goal": "100 points when all three reach their target.",
+        "tip": "Give every meal some protein (meat, fish, eggs, beans), carbs (rice, potatoes) and a little healthy fat."
+      },
+      "quality": {
+        "name": "Nutrition",
+        "short": "Nutrition",
+        "measure": "Enough fiber, with sugar, salt and bad fats under the recommended limits. Only days with at least 70% of calories carrying these numbers are scored.",
+        "goal": "100 points with enough fiber and everything under its limit.",
+        "tip": "Add vegetables, fruit and beans; cut back on sauces, processed food and soda."
+      },
+      "timing": {
+        "name": "On time",
+        "short": "On time",
+        "measure": "Whether main meals are eaten at your reminder times (within an hour), or at usual meal times without reminders. Eating after 10 pm costs points.",
+        "goal": "100 points when every main meal is on time and nothing is eaten late.",
+        "tip": "Set meal reminders and try to finish dinner by 8:30 pm."
+      },
+      "meals": {
+        "name": "Full meals",
+        "short": "Meals",
+        "measure": "Main meals (breakfast, lunch, dinner) logged in the day. Snacks don't count.",
+        "goal": "100 points for all three main meals.",
+        "tip": "Don't skip breakfast; skipping meals makes the next one bigger."
+      },
+      "consistency": {
+        "name": "Consistency",
+        "short": "Consistency",
+        "measure": "Logging food every day since you started.",
+        "goal": "100 points for every day you log.",
+        "tip": "Turn on meal reminders so you don't forget to log."
+      }
+    },
+    "insight": {
+      "strong": {
+        "calories": "You stick to your calorie plan really well!",
+        "nutrients": "Your meals cover all the macros!",
+        "quality": "You eat so healthy, {{name}} feels great!",
+        "timing": "You eat on time like clockwork!",
+        "meals": "Three meals every day, great!",
+        "consistency": "You log every day, {{name}} is touched!"
+      },
+      "weak": {
+        "calories": {
+          "lose": "A few days went over your calories, watch dinner.",
+          "gain": "A few days fell short on calories, add a snack.",
+          "maintain": "Calories drifted from the target, keep it steady."
+        },
+        "nutrients": "Some macros fall short, add protein or carbs to your meals.",
+        "quality": "A bit low on veggies or high on sugar and salt, rebalance a little.",
+        "timing": "Meal times are a bit irregular, try eating on time.",
+        "meals": "You skip meals often, aim for three main meals.",
+        "consistency": "Log more often so {{name}} gets to know you."
+      },
+      "allGood": "Every stat looks great, keep it up!"
+    },
+    "detail": {
+      "ranges": {
+        "week": "7 days",
+        "month": "30 days",
+        "all": "All time"
+      },
+      "averageScore": "Average score",
+      "noData": "No data for this stat in the selected range yet.",
+      "todayPending": "Today isn't counted until the day is over.",
+      "chartTitle": "Score by day",
+      "chartTitleWeekly": "Average score by week",
+      "dailyAverage": "Daily average",
+      "metDays": "Days at 100 points",
+      "metDaysValue": "{{met}} / {{total}} days",
+      "bestDay": "Best day",
+      "bestDayValue": "{{date}} · {{score}} points",
+      "tipTitle": "Tip from {{name}}",
+      "values": {
+        "calories": "{{value}} / {{target}} kcal",
+        "nutrients": "Protein {{protein}}% · Carbs {{carbs}}% · Fat {{fat}}% of target",
+        "quality": "Fiber {{fiber}} g · Sodium {{sodium}} mg · Sugar {{sugar}} g",
+        "timing": "{{value}}% of meals on time · {{late}} late-night days",
+        "meals": "{{value}} / 3 main meals",
+        "consistency": "{{value}} / {{target}} days logged"
+      },
+      "topFoods": {
+        "protein": "Top protein foods",
+        "calories": "Top calorie foods",
+        "fiber": "Top fiber foods",
+        "sodium": "Top sodium foods"
+      },
+      "amounts": {
+        "protein": "{{value}} g",
+        "calories": "{{value}} kcal",
+        "fiber": "{{value}} g",
+        "sodium": "{{value}} mg"
+      },
+      "timesEaten_one": "{{count}} time",
+      "timesEaten_other": "{{count}} times",
+      "notFound": "This stat doesn't exist.",
+      "noDataQuality": "Not enough fiber, sugar and salt data yet. Log food through chat or scan a barcode so Buddy can score this."
+    },
+    "calorieGoal": {
+      "lose": "Losing weight: eating under the target is fine, as long as you stay above the safe minimum.",
+      "gain": "Gaining weight: reach the target; a little over is fine.",
+      "maintain": "Keeping your weight: drifting either way costs points."
+    }
   },
   "profileTab": {
     "guest": "Guest",

@@ -160,3 +160,85 @@ export async function countFoodEntries() {
 
   return row?.count ?? 0;
 }
+
+/** When each entry in the range was eaten, for telling meals apart within a day. */
+export async function listEntryTimes(startDate: string | Date, endDate: string | Date) {
+  const database = await getDatabase();
+  const rows = await database.getAllAsync<{ entry_date: string; consumed_at: string }>(
+    `
+      SELECT entry_date, consumed_at
+      FROM food_entries
+      WHERE entry_date >= ? AND entry_date <= ?;
+    `,
+    [formatDateKey(startDate), formatDateKey(endDate)]
+  );
+
+  return rows.map((row) => ({ date: row.entry_date, consumedAt: row.consumed_at }));
+}
+
+/**
+ * Share of each day's calories from food with fiber, sugar or sodium known (0-1), so a day
+ * mostly logged without them is not read as one without them.
+ */
+export async function listNutrientCoverage(startDate: string | Date, endDate: string | Date) {
+  const database = await getDatabase();
+  const rows = await database.getAllAsync<{ entry_date: string; total: number; covered: number }>(
+    `
+      SELECT
+        entry_date,
+        SUM(total_calories) AS total,
+        SUM(
+          CASE
+            WHEN fiber_grams IS NOT NULL OR sugar_grams IS NOT NULL OR sodium_mg IS NOT NULL
+              THEN total_calories
+            ELSE 0
+          END
+        ) AS covered
+      FROM food_entries
+      WHERE entry_date >= ? AND entry_date <= ?
+      GROUP BY entry_date;
+    `,
+    [formatDateKey(startDate), formatDateKey(endDate)]
+  );
+
+  return new Map(rows.map((row) => [row.entry_date, row.total > 0 ? row.covered / row.total : 0]));
+}
+
+const TOP_FOOD_COLUMNS = {
+  calories: 'total_calories',
+  protein: 'protein_grams',
+  fiber: 'fiber_grams',
+  sodium: 'sodium_mg',
+} as const;
+
+export type TopFoodMeasure = keyof typeof TOP_FOOD_COLUMNS;
+
+export interface TopFood {
+  name: string;
+  total: number;
+  count: number;
+}
+
+/** Foods that added the most of `measure` over the range, highest first. */
+export async function listTopFoods(
+  startDate: string | Date,
+  endDate: string | Date,
+  measure: TopFoodMeasure,
+  limit = 5
+): Promise<TopFood[]> {
+  const database = await getDatabase();
+  const column = TOP_FOOD_COLUMNS[measure];
+  const rows = await database.getAllAsync<{ name: string; total: number; count: number }>(
+    `
+      SELECT MIN(meal_name) AS name, SUM(${column}) AS total, COUNT(*) AS count
+      FROM food_entries
+      WHERE entry_date >= ? AND entry_date <= ? AND ${column} > 0
+      GROUP BY meal_name COLLATE NOCASE
+      ORDER BY total DESC
+      LIMIT ?;
+    `,
+    [formatDateKey(startDate), formatDateKey(endDate), limit]
+  );
+
+  return rows;
+}

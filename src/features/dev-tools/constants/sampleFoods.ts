@@ -1,3 +1,5 @@
+import type { NutrientValues } from '@/features/food-log/types';
+
 /** Prefix for sample diary rows so they can be found and removed without touching real entries. */
 export const SAMPLE_ENTRY_ID_PREFIX = 'devsample';
 
@@ -12,6 +14,8 @@ export interface SampleFood {
   protein: number;
   carbs: number;
   fat: number;
+  /** Rough values for the portion, so nutrition quality has something to score. */
+  nutrients: Partial<NutrientValues>;
   /** Local clock time the meal is logged at. */
   hour: number;
   minute: number;
@@ -27,6 +31,13 @@ export const SAMPLE_DAY: SampleFood[] = [
     protein: 28,
     carbs: 55,
     fat: 12,
+    nutrients: {
+      fiberGrams: 2,
+      sugarGrams: 4,
+      sodiumMg: 1800,
+      saturatedFatGrams: 4,
+      cholesterolMg: 60,
+    },
     hour: 7,
     minute: 30,
   },
@@ -38,6 +49,13 @@ export const SAMPLE_DAY: SampleFood[] = [
     protein: 2,
     carbs: 20,
     fat: 4,
+    nutrients: {
+      fiberGrams: 0,
+      sugarGrams: 18,
+      sodiumMg: 60,
+      saturatedFatGrams: 2.5,
+      cholesterolMg: 10,
+    },
     hour: 9,
     minute: 0,
   },
@@ -49,6 +67,14 @@ export const SAMPLE_DAY: SampleFood[] = [
     protein: 32,
     carbs: 78,
     fat: 25,
+    nutrients: {
+      fiberGrams: 2,
+      sugarGrams: 3,
+      sodiumMg: 1100,
+      saturatedFatGrams: 7,
+      transFatGrams: 0.3,
+      cholesterolMg: 120,
+    },
     hour: 12,
     minute: 15,
   },
@@ -60,6 +86,13 @@ export const SAMPLE_DAY: SampleFood[] = [
     protein: 4,
     carbs: 14,
     fat: 3,
+    nutrients: {
+      fiberGrams: 0,
+      sugarGrams: 12,
+      sodiumMg: 50,
+      saturatedFatGrams: 2,
+      cholesterolMg: 10,
+    },
     hour: 15,
     minute: 30,
   },
@@ -71,6 +104,13 @@ export const SAMPLE_DAY: SampleFood[] = [
     protein: 38,
     carbs: 18,
     fat: 30,
+    nutrients: {
+      fiberGrams: 5,
+      sugarGrams: 6,
+      sodiumMg: 550,
+      saturatedFatGrams: 5,
+      cholesterolMg: 90,
+    },
     hour: 19,
     minute: 0,
   },

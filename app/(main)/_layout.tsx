@@ -30,6 +30,7 @@ export default function MainLayout() {
       />
       <Stack.Screen name="meal/[id]" />
       <Stack.Screen name="goal-history" />
+      <Stack.Screen name="buddy-stat/[axis]" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="reminders" />
       <Stack.Screen name="health-sources" />

@@ -9,7 +9,8 @@ export function roundNumber(value: number) {
   return Math.round(Number.isFinite(value) ? value : 0);
 }
 
-function toLocale(language: string) {
+/** The Intl locale for an app language. */
+export function toLocale(language: string) {
   return language === 'en' ? 'en-US' : 'vi-VN';
 }
 
