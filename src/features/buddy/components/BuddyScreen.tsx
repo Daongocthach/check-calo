@@ -19,6 +19,7 @@ import { BuddyQuestsCard } from './BuddyQuestsCard';
 import { styles } from './BuddyScreen.styles';
 import { BuddyStatsHexagon, getHexagonCenterSize } from './BuddyStatsHexagon';
 import { BuddyStatsInsight } from './BuddyStatsInsight';
+import { CalorieChartCard } from './CalorieChartCard';
 
 const MAX_CHART_SIZE = hs(560);
 
@@ -141,6 +142,8 @@ export function BuddyScreen() {
             onCreateAccount={() => router.push('/register')}
           />
         ) : null}
+
+        <CalorieChartCard />
 
         <StreakCalendar stats={stats} />
 

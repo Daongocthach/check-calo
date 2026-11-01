@@ -988,6 +988,26 @@
       "earnedManyToast_other": "+{{points}} điểm từ {{count}} nhiệm vụ",
       "empty": "Chưa có nhiệm vụ nào"
     },
+    "calorieChart": {
+      "title": "Calo nạp vào",
+      "tabs": {
+        "week": "Tuần",
+        "year": "Năm"
+      },
+      "previous": {
+        "week": "Tuần trước",
+        "year": "Năm trước"
+      },
+      "next": {
+        "week": "Tuần sau",
+        "year": "Năm sau"
+      },
+      "other": "Khác",
+      "goal": "Mục tiêu",
+      "noLog": "Chưa ghi món",
+      "monthAverage_one": "Trung bình mỗi ngày · {{count}} ngày có ghi",
+      "monthAverage_other": "Trung bình mỗi ngày · {{count}} ngày có ghi"
+    },
     "levelRange": "Cấp {{from}}–{{to}}"
   },
   "profileTab": {

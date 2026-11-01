@@ -988,6 +988,26 @@
       "earnedManyToast_other": "+{{points}} points from {{count}} quests",
       "empty": "No quests yet"
     },
+    "calorieChart": {
+      "title": "Calories eaten",
+      "tabs": {
+        "week": "Week",
+        "year": "Year"
+      },
+      "previous": {
+        "week": "Previous week",
+        "year": "Previous year"
+      },
+      "next": {
+        "week": "Next week",
+        "year": "Next year"
+      },
+      "other": "Other",
+      "goal": "Goal",
+      "noLog": "Nothing logged",
+      "monthAverage_one": "Daily average · {{count}} day logged",
+      "monthAverage_other": "Daily average · {{count}} days logged"
+    },
     "levelRange": "Level {{from}}–{{to}}"
   },
   "profileTab": {
