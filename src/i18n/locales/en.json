@@ -46,7 +46,8 @@
       "failed": "Sync failed",
       "syncing": "Syncing",
       "synced": "Synced"
-    }
+    },
+    "scrollToTop": "Scroll to top"
   },
   "header": {
     "back": "Back",

@@ -104,3 +104,8 @@ export type { TextProps, TextVariant, TextWeight, TextAlign } from './Text';
 
 // Shared types
 export type { ColorScheme, ComponentSize } from './shared.types';
+
+export { PaginatedList } from './PaginatedList';
+export type { PaginatedListProps, PaginatedListRef } from './PaginatedList';
+export { AppRefreshControl } from './RefreshControl';
+export type { AppRefreshControlProps } from './RefreshControl';

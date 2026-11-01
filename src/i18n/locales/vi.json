@@ -46,7 +46,8 @@
       "failed": "Đồng bộ thất bại",
       "syncing": "Đang đồng bộ",
       "synced": "Đã đồng bộ"
-    }
+    },
+    "scrollToTop": "Cuộn lên đầu"
   },
   "header": {
     "back": "Quay lại",
