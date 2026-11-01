@@ -44,6 +44,8 @@ export interface DayStatusBubbleProps {
   selected?: boolean;
   /** Brand-coloured bold label, used to mark today. */
   highlighted?: boolean;
+  /** Override the status-based border for date selectors. */
+  borderStyle?: 'solid' | 'dashed';
 }
 
 /**
@@ -56,6 +58,7 @@ export function DayStatusBubble({
   future = false,
   selected = false,
   highlighted = false,
+  borderStyle,
 }: DayStatusBubbleProps) {
   let textColor: 'inverse' | 'tertiary' | 'link' | 'primary' = 'primary';
   if (selected) {
@@ -73,6 +76,7 @@ export function DayStatusBubble({
           styles.bubble,
           status === 'empty' || future ? styles.bubbleEmpty : styles.bubbleLogged,
           selected && styles.bubbleSelected,
+          borderStyle && styles.bubbleBorder(borderStyle),
         ]}
       >
         <Text variant="caption" weight={highlighted ? 'bold' : 'semibold'} color={textColor}>
@@ -99,6 +103,9 @@ const styles = StyleSheet.create((theme) => ({
     borderStyle: 'dashed',
     borderColor: theme.colors.border.strong,
   },
+  bubbleBorder: (borderStyle: 'solid' | 'dashed') => ({
+    borderStyle,
+  }),
   // iOS keeps a previous dashed style unless solid is set explicitly.
   bubbleLogged: {
     borderStyle: 'solid',

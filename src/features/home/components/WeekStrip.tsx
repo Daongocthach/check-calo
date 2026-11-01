@@ -96,6 +96,7 @@ export function WeekStrip({ selectedDate, today, dayStatuses, streak, onSelect }
               status={status}
               future={isFuture}
               selected={isSelected}
+              borderStyle={isToday ? 'solid' : 'dashed'}
             />
             <Text
               variant="bodySmall"
