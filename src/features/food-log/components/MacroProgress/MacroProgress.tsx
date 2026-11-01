@@ -1,5 +1,12 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 import { Text } from '@/common/components';
 import type { MacroKey } from '../../constants';
@@ -14,6 +21,14 @@ export interface MacroProgressProps {
 export function MacroProgress({ macro, value, target }: MacroProgressProps) {
   const { t } = useTranslation();
   const percent = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0;
+  const width = useSharedValue(0);
+
+  // Grows from its previous width; skipped when the system asks for reduced motion.
+  useEffect(() => {
+    width.value = withTiming(percent, { duration: 800, easing: Easing.out(Easing.cubic) });
+  }, [percent, width]);
+
+  const widthStyle = useAnimatedStyle(() => ({ width: `${width.value}%` }));
 
   return (
     <View style={styles.container}>
@@ -24,7 +39,7 @@ export function MacroProgress({ macro, value, target }: MacroProgressProps) {
         </Text>
       </Text>
       <View style={styles.track}>
-        <View style={[styles.fill(macro), styles.width(percent)]} />
+        <Animated.View style={[styles.fill(macro), widthStyle]} />
       </View>
       <Text variant="caption" color="secondary" align="center">
         {t(`macros.${macro}`)}
@@ -54,8 +69,5 @@ const styles = StyleSheet.create((theme) => ({
       protein: theme.colors.state.success,
       fat: theme.colors.state.warning,
     }[macro],
-  }),
-  width: (percent: number) => ({
-    width: `${percent}%`,
   }),
 }));
